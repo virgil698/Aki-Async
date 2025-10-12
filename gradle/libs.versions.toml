@@ -1,0 +1,24 @@
+[versions]
+leavesApi = "1.21.8-R0.1-SNAPSHOT"
+leavesweightUserdev = "2.0.0-SNAPSHOT"
+shadow = "9.0.0-rc1"
+runPaper = "2.3.1"
+resourceFactory = "1.0.0"
+spongeMixin = "0.15.5+mixin.0.8.7"
+mixinExtras = "0.4.1"
+mixinCondition = "1.0-SNAPSHOT"
+accessWiden = "1.0.0"
+
+[libraries]
+leavesApi = { group = "org.leavesmc.leaves", name = "leaves-api", version.ref = "leavesApi" }
+leavesDevBundle = { group = "org.leavesmc.leaves", name = "dev-bundle", version.ref = "leavesApi" }
+spongeMixin = { group = "net.fabricmc", name = "sponge-mixin", version.ref = "spongeMixin" }
+mixinExtras = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
+mixinCondition = { group = "org.leavesmc", name = "leaves-plugin-mixin-condition", version.ref = "mixinCondition" }
+
+[plugins]
+leavesweightUserdev = { id = "org.leavesmc.leavesweight.userdev", version.ref = "leavesweightUserdev" }
+shadowJar = { id = "com.gradleup.shadow", version.ref = "shadow" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
+resourceFactory = { id = "org.leavesmc.resource-factory", version.ref = "resourceFactory" }
+accessWiden = { id = "io.github.gliczdev.access-widen", version.ref = "accessWiden" }
