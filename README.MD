@@ -4,14 +4,17 @@
 
 ### Comprehensive Async Optimization Plugin for Leaves Server
 
-[![License](https://img.shields.io/github/license/LeavesMC/leaves-plugin-template)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](build/libs)
+[![Version](https://img.shields.io/badge/version-1.0.0--Community-orange.svg)](https://github.com/YourUsername/Aki-Async/releases)
 
 
 一个专为 **Leaves 1.21.8+** 服务端设计的全方位异步优化插件  
 通过 Mixin 技术深度优化服务端性能，让你的服务器丝滑流畅
+
+**🎉 Community Edition (开源社区版)** - 完全免费，永久开源
 
 [特性](#-核心特性) • [安装](#-快速开始) • [配置](#️-配置) • [性能](#-性能测试) • [文档](docs/)
 
@@ -480,7 +483,22 @@ docs: update configuration guide
 
 ## 📄 开源协议
 
-本项目采用 [MIT License](LICENSE) 开源协议。
+本项目采用 **[GPL-3.0 License](LICENSE)** 开源协议。
+
+### 🆓 社区版说明
+
+这是 **AkiAsync Community Edition（社区版）**：
+- ✅ 完全免费使用
+- ✅ 源代码开放
+- ✅ 允许商业使用
+- ✅ 14个稳定优化模块
+- ✅ 社区支持
+
+根据GPL-3.0协议，你可以：
+- ✅ 自由使用、修改、分发
+- ✅ 用于商业服务器
+- ⚠️ 修改后的版本必须同样开源（GPL-3.0）
+- ⚠️ 必须保留版权声明
 
 ---
 
@@ -494,10 +512,10 @@ docs: update configuration guide
 
 ### 🎯 项目状态
 
-**Status**: ✅ Production Ready | **Version**: 1.0.0 | **Modules**: 14
+**Edition**: Community (开源版) | **Status**: ✅ Production Ready | **Version**: 1.0.0 | **Modules**: 14
 
 **Author**: [Virgil](https://github.com/YourUsername)  
-**License**: MIT  
+**License**: GPL-3.0  
 **Supported**: Leaves 1.21.8+
 
 ---
@@ -512,6 +530,16 @@ docs: update configuration guide
 
 **如果觉得有用，请考虑 Star ⭐ 支持开发！**
 
-Made with ❤️ for Minecraft Server Optimization
+---
+
+### 📮 联系与支持
+
+- 💬 **Issues**: [GitHub Issues](https://github.com/YourUsername/Aki-Async/issues)
+- 📧 **Email**: your-email@example.com
+- 💬 **Discord**: [Join our community](#)
+
+---
+
+Made with ❤️ for Minecraft Server Optimization | Licensed under GPL-3.0
 
 </div>
