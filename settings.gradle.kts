@@ -1,5 +1,5 @@
 // TODO: change this to your plugin name
-rootProject.name = "leaves-plugin-template"
+rootProject.name = "Aki-Async"
 pluginManagement {
     repositories {
         maven("https://repo.leavesmc.org/releases") {

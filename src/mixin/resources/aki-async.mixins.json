@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "org.virgil.akiasync.mixin.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "target": "@env(PREINIT)",
+  "mixins": [
+    "entitytracker.EntityTrackerMixin",
+    "spawning.MobSpawningMixin",
+    "brain.BrainThrottleMixin",
+    "entity.EntityTickChunkParallelMixin",
+    "entity.PushEntitiesOptimizationMixin",
+    "entity.EntityLookupCacheMixin",
+    "entity.CollisionOptimizationMixin",
+    "memory.PredicateCacheMixin",
+    "memory.BlockPosPoolMixin",
+    "memory.EntityListPreallocMixin",
+    "pathfinding.PathfindingBudgetMixin",
+    "lighting.ChunkLightingAsyncMixin",
+    "lighting.LightEngineAsyncMixin",
+    "lighting.SkylightCacheMixin"
+  ],
+  "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+

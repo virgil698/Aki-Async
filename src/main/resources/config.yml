@@ -1,0 +1,161 @@
+# AkiAsync Configuration File
+# Async optimization plugin for Leaves server
+
+# Entity Tracker Async Optimization
+entity-tracker:
+  # Enable async entity tracker
+  enabled: true
+  # Number of threads in the async executor pool
+  # Recommended: CPU cores (for most servers 4-8 is good)
+  # Min: 1, Max: 32
+  thread-pool-size: 4
+  # Update interval in ticks (20 ticks = 1 second)
+  # Lower values = more frequent updates but higher CPU usage
+  # Default: 1 (every tick)
+  update-interval-ticks: 1
+  # Maximum queue size for async tasks
+  # If queue is full, tasks will be executed synchronously as fallback
+  max-queue-size: 1000
+  # Async mod: Batch processing size (default: 50)
+  # Accumulate N tracking tasks before submitting to thread pool
+  # Higher = better throughput but slightly higher latency
+  # Lower = lower latency but more thread overhead
+  # Recommended: 30-100
+  batch-size: 50
+
+# Mob Spawning Async Optimization
+mob-spawning:
+  # Enable async mob spawning optimization
+  enabled: true
+  # Enable spawner block optimization
+  # Optimizes mob spawner performance
+  spawner-optimization: true
+
+# Density & Pathfinding Controls
+density:
+  # Max entities per chunk (all mobs) before farm-mode mitigation kicks in
+  max-per-chunk: 80
+
+pathfinding:
+  # Total pathfinding budget per tick (estimated tasks). 0 disables limit
+  tick-budget: 0
+
+# Brain throttle & Expensive AI async processing
+brain:
+  # Enable throttling for stationary mobs AI brain.tick
+  throttle: true
+  # Only think once per N ticks when stationary
+  throttle-interval: 10
+
+# Parallel EntityTickList (biggest hotspot ~75%)
+# Async mod inspired: chunk-based grouping for better cache locality
+entity-tick-parallel:
+  # Enable parallel entity ticking
+  enabled: true
+  # Number of parallel threads (recommend: 4-8, you have 1443 entities so use 6-8)
+  threads: 6
+  # Minimum entities to trigger parallel (avoid overhead for small lists)
+  min-entities: 50
+  # Use chunk-based grouping (Async mod pattern, better cache locality)
+  chunk-based: true
+
+# ServerCore-inspired optimizations
+servercore-optimizations:
+  # Optimize pushEntities (26.72% hotspot)
+  push-optimization:
+    enabled: true
+    # Only push every N ticks (2 = every other tick)
+    interval: 2
+  
+  # Cache entity lookup results (23.12% hotspot)
+  entity-lookup-cache:
+    enabled: true
+    # Cache validity duration in milliseconds
+    duration-ms: 50
+  
+  # Optimize collision detection (9% hotspot)
+  collision-optimization:
+    enabled: true
+    # Minimum movement to trigger collision checks (squared)
+    min-movement: 0.001
+
+# FerriteCore-inspired memory optimizations
+memory-optimizations:
+  # Cache common predicates to reduce GC pressure
+  predicate-cache:
+    enabled: true
+  
+  # BlockPos object pool to reduce allocations (~26% reduction)
+  blockpos-pool:
+    enabled: true
+  
+  # Pre-allocate entity lists to reduce ArrayList resizing
+  list-prealloc:
+    enabled: true
+    # Default initial capacity for entity lists
+    default-capacity: 32
+
+# FabricFastFurnace-inspired block entity optimization
+block-entity-optimizations:
+  # Skip furnace ticks when idle (no fuel/items)
+  furnace-optimization:
+    enabled: true
+
+# ScalableLux/Starlight-inspired lighting optimizations
+lighting-optimizations:
+  # Async lighting calculation (reduces main thread load during chunk loading)
+  async-lighting:
+    enabled: true
+    # Dedicated thread pool size for lighting (recommend: 2-4)
+    thread-pool-size: 2
+    # Batch threshold - accumulate N updates before processing
+    # Higher = better throughput, lower = lower latency
+    # This is the base threshold, actual value adjusts dynamically based on TPS
+    batch-threshold: 16
+  
+  # Light propagation queue optimization (Starlight algorithm)
+  propagation-queue:
+    # Use true layered propagation queue (16 levels, 0-15 light levels)
+    # Starlight core algorithm - processes from high to low light levels
+    use-layered-queue: true
+    # Maximum light propagation distance per batch
+    # Lower values reduce lag spikes from large light updates
+    max-propagation-distance: 15
+  
+  # Skylight cache (reduces repeated calculations)
+  skylight-cache:
+    enabled: true
+    # Cache validity duration in milliseconds
+    cache-duration-ms: 100
+  
+  # Advanced optimizations
+  advanced:
+    # Enable deduplication (prevents same position from queuing multiple times)
+    enable-deduplication: true
+    # Enable dynamic batch size adjustment based on server TPS
+    # When TPS < 18: batch size increases (reduce overhead)
+    # When TPS > 19.8: batch size decreases (lower latency)
+    dynamic-batch-adjustment: true
+    # Log advanced optimization statistics
+    log-advanced-stats: false
+
+# Performance Settings
+performance:
+  # Enable debug logging (useful for troubleshooting)
+  # Warning: This can spam your console!
+  debug-logging: false
+  
+  # Enable performance metrics collection
+  # Shows async task execution times and queue sizes
+  enable-metrics: true
+
+# ========================================
+# Configuration Tips:
+# ========================================
+# 1. For small servers (1-10 players): thread-pool-size: 2-4
+# 2. For medium servers (10-50 players): thread-pool-size: 4-8
+# 3. For large servers (50+ players): thread-pool-size: 8-16
+# 
+# Note: More threads doesn't always mean better performance!
+# Start with 4 threads and adjust based on your server's needs.
+

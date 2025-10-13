@@ -13,32 +13,25 @@ plugins {
     alias(libs.plugins.accessWiden)
 }
 
-// TODO: change this to your plugin group
-group = "com.example"
-// TODO: change this to your plugin version
+group = "org.virgil"
 version = "1.0.0-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
     // INFO: name and version defaults to project name and version
-    // TODO: change this to your main class
-    main = "com.example.plugin.TemplatePlugin"
-    // TODO: change this to your name
-    authors.add("YourName")
-    // TODO: change this to your plugin description
-    description = "leaves template plugin"
+    name = "AkiAsync"
+    main = "org.virgil.akiasync.AkiAsyncPlugin"
+    authors.add("Virgil")
+    description = "Async optimizations for Leaves server - Entity Tracker & More"
     // TODO: support or not is decided by you
     foliaSupported = false
     apiVersion = libs.versions.leavesApi.extractMCVersion()
     // TODO: if your logic can work without mixin, can use `features.optional.add("mixin")`
     features.required.add("mixin")
     mixin.apply {
-        // TODO: replace this to your mixin package name
-        packageName = "com.example.plugin.mixin"
-        // TODO: replace this to your access widener file name
-        accessWidener = "leaves-template-plugin.accesswidener"
-        // TODO: replace this to your mixin configs name
-        mixins.add("leaves-template-plugin.mixins.json")
+        packageName = "org.virgil.akiasync.mixin"
+        accessWidener = "aki-async.accesswidener"
+        mixins.add("aki-async.mixins.json")
     }
     // TODO: add your plugin dependencies
     // please check https://docs.papermc.io/paper/dev/getting-started/paper-plugins/#dependency-declaration
@@ -103,7 +96,10 @@ dependencies {
     }
 
     apply `mixin dependencies`@{
+        // Main source set CAN access mixin source set (for ConfigBridge)
+        // This is OK because ConfigBridge is in mixin but outside mixin.* package
         compileOnly(mixinSourceSet.output)
+        
         mixinSourceSet.apply {
             val compileOnly = compileOnlyConfigurationName
             val annotationPreprocessor = annotationProcessorConfigurationName
@@ -145,12 +141,18 @@ tasks {
         dependsOn("paperweightUserdevSetup")
         dependsOn(applyAccessWideners)
     }
+    
+    named<JavaCompile>("compileJava") {
+        // Main must compile AFTER mixin (to access ConfigBridge which is in mixin source set)
+        dependsOn("compileMixinJava")
+    }
 
     paperweightUserdevSetup {
         finalizedBy(applyAccessWideners)
     }
 
     shadowJar {
+        // Add mixin source set output to the default shadowJar (which already includes main)
         from(mixinSourceSet.output)
         archiveFileName = "${project.name}-${version}.jar"
     }

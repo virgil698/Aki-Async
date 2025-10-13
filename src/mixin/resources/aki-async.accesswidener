@@ -1,0 +1,24 @@
+accessWidener v2 named
+
+# Entity Tracker Access
+accessible field net/minecraft/server/level/ChunkMap$TrackedEntity serverEntity Lnet/minecraft/server/level/ServerEntity;
+accessible field net/minecraft/server/level/ChunkMap$TrackedEntity entity Lnet/minecraft/world/entity/Entity;
+accessible field net/minecraft/server/level/ChunkMap$TrackedEntity range I
+accessible field net/minecraft/server/level/ChunkMap$TrackedEntity seenBy Ljava/util/Set;
+
+# Server Entity Access
+accessible field net/minecraft/server/level/ServerEntity entity Lnet/minecraft/world/entity/Entity;
+accessible method net/minecraft/server/level/ServerEntity sendChanges ()V
+
+# ChunkMap Access
+accessible class net/minecraft/server/level/ChunkMap$TrackedEntity
+
+# Mob Spawning Access
+accessible method net/minecraft/world/level/NaturalSpawner isValidSpawnPostitionForType (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/biome/MobSpawnSettings$SpawnerData;Lnet/minecraft/core/BlockPos$MutableBlockPos;D)Z
+
+# Spawner Access
+accessible field net/minecraft/world/level/BaseSpawner spawnDelay I
+
+# Level entity collisions
+accessible method net/minecraft/world/level/Level getEntities (Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;
+
