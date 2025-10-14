@@ -16,20 +16,20 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 
 /**
- * Brain CPU密集计算器（方案2：10分钟真异步）
+ * Brain CPU-intensive calculator (Solution 2: True async implementation)
  * 
- * 核心思路：
- * 1. 只读计算（异步池）- 路径筛选、POI查询、目标评分
- * 2. 写回状态（主线程）- setMemory、setPath、takePoi
+ * Core strategy:
+ * 1. Read-only computation (async pool) - Path filtering, POI query, target scoring
+ * 2. State writeback (main thread) - setMemory, setPath, takePoi
  * 
- * 按照最小可运行模板实现
+ * Implemented following minimum viable template
  * 
  * @author Virgil
  */
 public final class BrainCpuCalculator {
     
     /**
-     * 评分POI记录（用于排序）
+     * Scored POI record (for sorting)
      */
     private static class ScoredPoi {
         final BlockPos pos;
@@ -45,12 +45,12 @@ public final class BrainCpuCalculator {
     }
     
     /**
-     * 只读CPU计算（异步线程调用）- 方案2完整实现
+     * Read-only CPU computation (async thread invocation) - Solution 2 full implementation
      * 
-     * @param brain Brain对象
+     * @param brain Brain object
      * @param level ServerLevel
-     * @param poiSnapshot POI快照
-     * @return BrainDiff（包含计算结果）
+     * @param poiSnapshot POI snapshot
+     * @return BrainDiff containing computation results
      */
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity> BrainDiff runCpuOnly(
@@ -59,7 +59,7 @@ public final class BrainCpuCalculator {
             Map<BlockPos, PoiRecord> poiSnapshot
     ) {
         try {
-            // 1. 只读快照（Memory解包 → 纯Object）
+            // 1. Read-only snapshot (Memory unpacking → pure Object)
             Map<MemoryModuleType<?>, Object> memorySnapshot = brain.getMemories().entrySet()
                 .stream()
                 .collect(Collectors.toMap(
@@ -68,7 +68,7 @@ public final class BrainCpuCalculator {
                         Optional<?> opt = e.getValue();
                         if (opt != null && opt.isPresent()) {
                             Object val = opt.get();
-                            // 解包 ExpirableValue
+                            // Unpack ExpirableValue
                             if (val instanceof ExpirableValue) {
                                 return ((ExpirableValue<?>) val).getValue();
                             }
@@ -78,35 +78,35 @@ public final class BrainCpuCalculator {
                     }
                 ));
             
-            // 2. POI 只读遍历（使用快照）- 扩大候选池到64个
+            // 2. Read-only POI iteration (using snapshot) - Expand candidate pool to 64
             List<BlockPos> pois = new ArrayList<>();
             if (poiSnapshot != null) {
                 pois.addAll(poiSnapshot.keySet());
                 
-                // ⚠️ 如果候选少于64个，循环扩展（确保计算量）
+                // If candidates < 64, loop extend (ensure computation load)
                 while (pois.size() < 64 && !poiSnapshot.isEmpty()) {
                     pois.addAll(poiSnapshot.keySet());
                 }
             }
             
-            // 3. 距离计算 + 评分（CPU密集，只读）
+            // 3. Distance calculation + scoring (CPU-intensive, read-only)
             List<ScoredPoi> scoredPois = pois.stream()
                 .map(poi -> new ScoredPoi(poi, score(poi, memorySnapshot)))
                 .collect(Collectors.toList());
             
-            // 4. 排序（只读）
+            // 4. Sort (read-only)
             scoredPois.sort(Comparator.comparingDouble(ScoredPoi::score).reversed());
             
-            // 5. 构造 diff（纯原始类型）
+            // 5. Construct diff (pure primitive types)
             BrainDiff diff = new BrainDiff();
             
-            // 设置最佳POI（如果有）
+            // Set best POI (if any)
             if (!scoredPois.isEmpty()) {
                 BlockPos topPoi = scoredPois.get(0).pos();
                 diff.setTopPoi(topPoi);
             }
             
-            // 设置LIKED_PLAYER（如果存在）
+            // Set LIKED_PLAYER (if exists)
             Object likedPlayer = memorySnapshot.get(MemoryModuleType.LIKED_PLAYER);
             if (likedPlayer != null) {
                 diff.setLikedPlayer(likedPlayer);
@@ -115,40 +115,40 @@ public final class BrainCpuCalculator {
             return diff;
             
         } catch (Exception e) {
-            // 异常：返回空diff
+            // Exception: return empty diff
             return new BrainDiff();
         }
     }
     
     /**
-     * POI评分逻辑（只读）- 中期加料：让CPU真正忙起来
+     * POI scoring logic (read-only) - Mid-term enhancement: make CPU truly busy
      * 
-     * @param poi POI坐标
-     * @param memory Memory快照
-     * @return 评分（越高越好）
+     * @param poi POI coordinates
+     * @param memory Memory snapshot
+     * @return Score (higher is better)
      */
     private static double score(BlockPos poi, Map<MemoryModuleType<?>, Object> memory) {
-        // ① 距离评分（基础）
+        // ① Distance scoring (base)
         double dist = Math.sqrt(
             poi.getX() * poi.getX() + 
             poi.getY() * poi.getY() + 
             poi.getZ() * poi.getZ()
         );
         
-        // ② 职业匹配度（模拟：遍历职业类型）
+        // ② Profession match scoring (simulated: iterate profession types)
         double match = 0.0;
         Object walkTarget = memory.get(MemoryModuleType.WALK_TARGET);
         if (walkTarget != null) {
-            match = poi.getX() % 10 == 0 ? 1.0 : 0.3;  // 模拟职业匹配
+            match = poi.getX() % 10 == 0 ? 1.0 : 0.3;  // Simulate profession matching
         }
         
-        // ③ 价格评分（模拟：已有接口）
-        double price = 1.0 - (poi.getY() % 100) / 100.0;  // 模拟价格计算
+        // ③ Price scoring (simulated: existing interface)
+        double price = 1.0 - (poi.getY() % 100) / 100.0;  // Simulate price calculation
         
-        // ④ 随机偏好（模拟：引入噪声）
+        // ④ Random preference (simulated: introduce noise)
         double noise = (poi.hashCode() % 1000) / 1000.0;
         
-        // ⑤ 综合评分（CPU密集：多次乘法）
+        // ⑤ Composite scoring (CPU-intensive: multiple multiplications)
         return (match * 1000 - dist * 10 - price * 100) * noise;
     }
 }
