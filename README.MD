@@ -649,8 +649,7 @@ docs: update configuration guide
 
 **Edition**: Community (开源版) | **Status**: ✅ Production Ready | **Version**: 1.0.0 | **Modules**: 19
 
-**Author**: [Virgil](https://github.com/virgil698)  
-**Author**: [Virgil](https://github.com/virgil698)  
+**Author**: [Virgil](https://github.com/virgil698)   
 **License**: GPL-3.0  
 **Supported**: Leaves 1.21.8+
 
