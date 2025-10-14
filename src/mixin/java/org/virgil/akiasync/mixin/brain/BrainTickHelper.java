@@ -37,10 +37,8 @@ public class BrainTickHelper {
             ServerLevel level,
             E entity
     ) {
-        // ① 只读快照（已有）
-        // BrainSnapshot snap = BrainSnapshot.capture(brain, level.getGameTime());
         
-        // ② 真正跑一遍 CPU 密集逻辑
+        // 真正跑一遍 CPU 密集逻辑
         // 模拟 Brain.tick() 的核心计算部分，但不写回状态
         
         try {

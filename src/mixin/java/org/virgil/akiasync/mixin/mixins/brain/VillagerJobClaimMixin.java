@@ -16,16 +16,16 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 
 /**
- * 村民职业申请原子化修复（1.21.8 API）
+ * Villager job acquisition atomicity fix (1.21.8 API)
  * 
- * 问题：异步Brain写入 JOB_SITE → 主线程POI已被占 → 皮肤不变、摇头
- * 方案：职业申请必须回到主线程做原子校验
+ * Problem: Async Brain writes JOB_SITE → Main thread POI already taken → Skin doesn't change
+ * Solution: Job acquisition must return to main thread for atomic verification
  * 
- * 核心逻辑（参考文档示例 + 1.21.8 API）：
- * 1. 原子占坑：PoiManager.take() 校验所有权
- * 2. 占坑失败 → 清除记忆，避免无限重试
- * 3. 占坑成功 → 更新皮肤，粒子与皮肤同步
- * 4. 整个占坑过程 < 0.1ms → 对MSPT无影响
+ * Core logic (1.21.8 API):
+ * 1. Atomic claim: PoiManager.take() verifies ownership
+ * 2. Claim fails → Erase memory, avoid infinite retry loop
+ * 3. Claim succeeds → Vanilla logic updates profession/skin automatically  
+ * 4. Entire process < 0.1ms → No MSPT impact
  * 
  * @author Virgil
  */
@@ -37,27 +37,27 @@ public abstract class VillagerJobClaimMixin {
     @Unique private static volatile boolean initialized = false;
     
     /**
-     * 在 customServerAiStep 最后，原子化处理职业申请
+     * Atomically handle job acquisition after customServerAiStep
      * 
-     * @At("RETURN") - 在方法返回前执行
+     * @At("RETURN") - Execute before method returns
      */
     @Inject(method = "customServerAiStep", at = @At("RETURN"))
     private void aki$atomicClaim(CallbackInfo ci) {
-        // 初始化检查
+        // Initialization check
         if (!initialized) { aki$initAtomicClaim(); }
         if (!cached_enabled) return;
         
         Villager villager = (Villager) (Object) this;
         
-        // ✅ 关键修复：只对无业村民执行原子占坑
+        // Key fix: Only execute atomic claim for unemployed villagers
         if (!villager.getVillagerData().profession().is(
                 net.minecraft.world.entity.npc.VillagerProfession.NONE)) {
-            return;  // 已有职业 → 跳过，不再重复占坑
+            return;  // Already has profession → skip, prevent repeated claiming
         }
         
         Brain<?> brain = villager.getBrain();
         
-        // 1.21.8: JOB_SITE 既是 WANTED 也是已认领（没有 WANTED_ 前缀）
+        // 1.21.8: JOB_SITE serves as both WANTED and claimed (no WANTED_ prefix)
         Optional<GlobalPos> wanted = brain.getMemory(MemoryModuleType.JOB_SITE);
         if (wanted.isEmpty()) return;
         
@@ -65,26 +65,26 @@ public abstract class VillagerJobClaimMixin {
         BlockPos pos = globalPos.pos();
         ServerLevel level = (ServerLevel) villager.level();
         
-        // 1. 原子占坑（1.21.8 正确API：4参数）
+        // 1. Atomic claim (1.21.8 correct API: 4 parameters)
         Optional<BlockPos> result = level.getPoiManager().take(
-            holder -> true,  // 接受所有POI类型（简化）
+            holder -> true,  // Accept all POI types (simplified)
             (holder, blockPos) -> blockPos.equals(pos),
             pos,
             1
         );
         
-        // 返回值是 Optional<BlockPos>，判断是否成功且坐标一致
+        // Return value is Optional<BlockPos>, check if successful and position matches
         if (result.isPresent() && result.get().equals(pos)) {
-            // 占坑成功 → 什么都不用做，原版逻辑会自行更新职业/皮肤
+            // Claim succeeded → Do nothing, vanilla logic will update profession/skin automatically
             return;
         }
         
-        // 占坑失败 → 清除记忆，避免无限重试
+        // Claim failed → Erase memory to avoid infinite retry loop
         brain.eraseMemory(MemoryModuleType.JOB_SITE);
     }
     
     /**
-     * 初始化配置
+     * Initialize configuration
      */
     @Unique
     private static synchronized void aki$initAtomicClaim() {

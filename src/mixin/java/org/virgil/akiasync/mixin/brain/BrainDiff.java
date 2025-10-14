@@ -7,22 +7,22 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 
 /**
- * Brain状态差异记录器（方案2落地用）
- * 捕获异步CPU计算结果，用于主线程写回
+ * Brain state differential recorder for async CPU computation results
  * 
- * 最小实现：纯原始类型，避免任何计算
- * - topPoi（BlockPos）→ WALK_TARGET
- * - likedPlayer（Object）→ LIKED_PLAYER
+ * Minimal implementation using pure primitive types to avoid computation overhead.
+ * Captures results from async thread for main thread writeback:
+ * - topPoi (BlockPos) -> WALK_TARGET memory
+ * - likedPlayer (Object) -> LIKED_PLAYER memory
  * 
  * @author Virgil
  */
 public final class BrainDiff {
     
-    // 纯原始类型字段
+    // Pure primitive type fields
     private BlockPos topPoi;
     private Object likedPlayer;
     
-    // 统计信息
+    // Statistics
     private int changeCount;
     
     public BrainDiff() {
@@ -30,7 +30,7 @@ public final class BrainDiff {
     }
     
     /**
-     * 设置最佳POI
+     * Set the best POI position from async calculation
      */
     public void setTopPoi(BlockPos pos) {
         this.topPoi = pos;
@@ -38,48 +38,47 @@ public final class BrainDiff {
     }
     
     /**
-     * 设置喜欢的玩家
+     * Set the liked player from async calculation
      */
     public void setLikedPlayer(Object player) {
         this.likedPlayer = player;
         this.changeCount++;
     }
     
-    
     /**
-     * 将差异应用到目标Brain（主线程执行）
-     * 最小实现模板：只写可控的3个字段，其余一律无视
+     * Apply diff to target Brain (main thread execution)
      * 
-     * 白名单：topPoi / likedPlayer / walkTarget（已包装成WalkTarget）
+     * Whitelist approach: only writes controlled fields, ignores everything else
+     * to prevent ExpirableValue type pollution
      * 
-     * @param brain 目标Brain对象
+     * @param brain Target Brain object
      */
     @SuppressWarnings("unchecked")
     public <E extends LivingEntity> void applyTo(Brain<E> brain) {
-        // 1. walkTarget 已包装成 WalkTarget，不含错类型
+        // Write topPoi as WalkTarget (correct type wrapping)
         if (topPoi != null) {
             WalkTarget walkTarget = new WalkTarget(topPoi, 1.0f, 1);
             brain.setMemory(MemoryModuleType.WALK_TARGET, walkTarget);
         }
         
-        // 2. likedPlayer
+        // Write likedPlayer
         if (likedPlayer != null) {
             brain.setMemory(MemoryModuleType.LIKED_PLAYER, (java.util.UUID) likedPlayer);
         }
         
-        // ⚠️ 删除第103-119行遗留代码，防止ExpirableValue污染
-        // 只写这三项，其余一律无视
+        // Legacy memory changes removed to prevent ExpirableValue pollution
+        // Only write whitelisted fields above
     }
     
     /**
-     * 检查是否有变更
+     * Check if there are any changes
      */
     public boolean hasChanges() {
         return changeCount > 0;
     }
     
     /**
-     * 获取变更数量
+     * Get change count
      */
     public int getChangeCount() {
         return changeCount;
