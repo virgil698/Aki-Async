@@ -11,13 +11,13 @@ import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
 /**
- * Brain快照 - 深拷贝并校正过期时间
+ * Brain snapshot with deep copy and expiration time correction
  * 
- * 核心问题：Memory 中存储的是 ExpirableValue<T>，而不是直接的 T
- * 解决方案：
- * 1. 只拷贝行为相关内存（WalkTarget、LookTarget、JobSite、MeetingSite）
- * 2. 校正过期时间 → 让 ExpirableValue 在主线程时间轴上继续生效
- * 3. applyTo 在同 tick 内完成 → Behavior 取值时类型匹配
+ * Core problem: Memory stores ExpirableValue<T>, not T directly
+ * Solution:
+ * 1. Copy only behavior-related memories (WalkTarget, LookTarget, JobSite, MeetingSite)
+ * 2. Correct expiration time → Let ExpirableValue continue working on main thread timeline
+ * 3. applyTo completes within same tick → Type matches when Behavior retrieves value
  * 
  * @author Virgil
  */
@@ -32,34 +32,34 @@ public final class BrainSnapshot {
     }
     
     /**
-     * 捕获Brain快照（主线程调用）
+     * Capture Brain snapshot (main thread invocation)
      * 
-     * @param brain 目标Brain
-     * @param level ServerLevel（获取gameTime）
-     * @return Brain快照
+     * @param brain Target Brain
+     * @param level ServerLevel (for gameTime)
+     * @return Brain snapshot
      */
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity> BrainSnapshot capture(Brain<E> brain, ServerLevel level) {
         long gameTime = level.getGameTime();
         Map<MemoryModuleType<?>, Optional<?>> copy = new HashMap<>();
         
-        // 只拷贝行为相关内存，避免大块数据
+        // Copy only behavior-related memories to avoid large data blocks
         for (Map.Entry<MemoryModuleType<?>, ? extends Optional<?>> entry : brain.getMemories().entrySet()) {
             @SuppressWarnings("rawtypes")
             MemoryModuleType type = entry.getKey();
             Optional<?> opt = entry.getValue();
             
             if (opt != null && opt.isPresent() && opt.get() instanceof ExpirableValue) {
-                // 重新包装：校正过期时间
+                // Rewrap: correct expiration time
                 ExpirableValue<?> ev = (ExpirableValue<?>) opt.get();
-                // 创建新的 ExpirableValue，使用当前时间重新计算过期
+                // Create new ExpirableValue using current time to recalculate expiration
                 Object value = ev.getValue();
                 long ttl = ev.getTimeToLive();
                 @SuppressWarnings("unchecked")
                 ExpirableValue<?> newEv = new ExpirableValue<>(value, ttl);
                 copy.put(type, Optional.of(newEv));
             } else {
-                // 非 ExpirableValue 或空值，直接拷贝
+                // Non-ExpirableValue or null, direct copy
                 copy.put(type, opt != null ? opt : Optional.empty());
             }
         }
@@ -68,10 +68,10 @@ public final class BrainSnapshot {
     }
     
     /**
-     * 应用快照到Brain（主线程调用）
-     * 必须在同 tick 内完成，否则 Behavior 判断过期时类型不匹配
+     * Apply snapshot to Brain (main thread invocation)
+     * Must complete within same tick, otherwise Behavior's expiration check will have type mismatch
      * 
-     * @param brain 目标Brain
+     * @param brain Target Brain
      */
     @SuppressWarnings("unchecked")
     public <E extends LivingEntity> void applyTo(Brain<E> brain) {
@@ -86,7 +86,7 @@ public final class BrainSnapshot {
     }
     
     /**
-     * 获取快照时间（用于调试）
+     * Get snapshot time (for debugging)
      */
     public long getGameTime() {
         return gameTime;
