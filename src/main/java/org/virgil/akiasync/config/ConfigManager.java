@@ -31,7 +31,7 @@ public class ConfigManager {
     // Brain throttle
     private boolean brainThrottle;
     private int brainThrottleInterval;
-    // Async AI - Zero Latency (分类优化)
+    // Async AI - Zero Latency (per-entity optimization)
     private long asyncAITimeoutMicros;
     private boolean villagerOptimizationEnabled;
     private boolean villagerUsePOISnapshot;
@@ -107,7 +107,7 @@ public class ConfigManager {
         pathfindingTickBudget = config.getInt("pathfinding.tick-budget", 0);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
-        // Async AI settings (分类优化)
+        // Async AI settings (per-entity optimization)
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
         villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
         villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
@@ -283,7 +283,7 @@ public class ConfigManager {
     
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
-    // Async AI getters (分类优化)
+    // Async AI getters (per-entity optimization)
     public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
     public boolean isVillagerOptimizationEnabled() { return villagerOptimizationEnabled; }
     public boolean isVillagerUsePOISnapshot() { return villagerUsePOISnapshot; }

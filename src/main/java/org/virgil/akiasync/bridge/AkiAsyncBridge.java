@@ -62,7 +62,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.getBrainThrottleInterval();
     }
     
-    // ========== Async AI (Zero Latency) - 分类优化 ==========
+    // ========== Async AI (Zero Latency) - Per-Entity Optimization ==========
     
     @Override
     public long getAsyncAITimeoutMicros() {

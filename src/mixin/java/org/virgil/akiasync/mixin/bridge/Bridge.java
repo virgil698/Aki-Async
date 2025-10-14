@@ -56,7 +56,7 @@ public interface Bridge {
      */
     int getBrainThrottleInterval();
     
-    // ========== Async AI (Zero Latency) - 分类优化 ==========
+    // ========== Async AI (Zero Latency) - Per-Entity Optimization ==========
     
     /**
      * Get the async AI timeout in microseconds
