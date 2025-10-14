@@ -14,12 +14,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
 /**
- * AI专用线程池管理器
+ * AI dedicated thread pool manager
  * 
- * 核心优化：
- * 1. 独立池：与光照分离，避免相互影响
- * 2. 有界队列：LinkedBlockingQueue(256) → 防止任务堆积
- * 3. CallerRunsPolicy：满了立即同步，不堵 TPS
+ * Core optimizations:
+ * 1. Independent pool: Separated from lighting, avoid mutual interference
+ * 2. Bounded queue: LinkedBlockingQueue(256) → Prevent task accumulation
+ * 3. CallerRunsPolicy: Execute sync immediately when full, no TPS blocking
  * 
  * @author Virgil
  */
@@ -31,7 +31,7 @@ public class AIExecutorManager {
     public AIExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         
-        // AI线程池：4线程 + 有界队列(256)
+        // AI thread pool: 4 threads + bounded queue(256)
         int aiThreads = 4;
         ThreadFactory aiThreadFactory = new ThreadFactory() {
             private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -49,21 +49,21 @@ public class AIExecutorManager {
             aiThreads,
             aiThreads,
             60L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(256),  // 有界队列，防止爆炸
+            new LinkedBlockingQueue<>(256),  // Bounded queue, prevent explosion
             aiThreadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()  // 满了就同步，不堵TPS
+            new ThreadPoolExecutor.CallerRunsPolicy()  // Execute sync when full, no TPS blocking
         );
         
-        // 预启动所有线程
+        // Prestart all threads
         int prestarted = aiExecutor.prestartAllCoreThreads();
         plugin.getLogger().info("AI executor initialized: " + aiThreads + " threads (prestarted: " + prestarted + ")");
     }
     
     /**
-     * 提交AI任务（带超时）
+     * Submit AI task (with timeout)
      * 
-     * @param task 任务
-     * @param timeoutMicros 超时时间（微秒）
+     * @param task Task to execute
+     * @param timeoutMicros Timeout in microseconds
      * @return Future
      */
     public <T> CompletableFuture<T> submitWithTimeout(Callable<T> task, long timeoutMicros) {
@@ -78,18 +78,18 @@ public class AIExecutorManager {
     }
     
     /**
-     * 同步等待结果（主线程调用）
+     * Sync wait for result (main thread invocation)
      * 
-     * @param future Future对象
-     * @param timeoutMicros 超时时间（微秒）
-     * @param fallback 超时回调（立即同步执行）
-     * @return 结果，超时返回null并执行fallback
+     * @param future Future object
+     * @param timeoutMicros Timeout in microseconds
+     * @param fallback Timeout callback (execute sync immediately)
+     * @return Result, null on timeout with fallback executed
      */
     public <T> T getOrRunSync(CompletableFuture<T> future, long timeoutMicros, Runnable fallback) {
         try {
             return future.get(timeoutMicros, TimeUnit.MICROSECONDS);
         } catch (TimeoutException e) {
-            // 超时：立即同步执行，不堵TPS
+            // Timeout: execute sync immediately, no TPS blocking
             future.cancel(true);
             if (fallback != null) {
                 fallback.run();
@@ -101,14 +101,14 @@ public class AIExecutorManager {
     }
     
     /**
-     * 获取执行器
+     * Get executor
      */
     public ExecutorService getExecutor() {
         return aiExecutor;
     }
     
     /**
-     * 关闭
+     * Shutdown
      */
     public void shutdown() {
         plugin.getLogger().info("Shutting down AI executor...");
@@ -125,7 +125,7 @@ public class AIExecutorManager {
     }
     
     /**
-     * 获取统计信息
+     * Get statistics
      */
     public String getStatistics() {
         return String.format(
