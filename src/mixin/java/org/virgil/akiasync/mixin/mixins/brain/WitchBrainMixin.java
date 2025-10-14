@@ -47,9 +47,9 @@ public abstract class WitchBrainMixin {
     @Unique private static int timeoutCount = 0;
     
     /**
-     * Take snapshot at customServerAiStep start
+     * Take snapshot at aiStep start
      */
-    @Inject(method = "customServerAiStep", at = @At("HEAD"))
+    @Inject(method = "aiStep", at = @At("HEAD"))
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initWitchAsync(); }
         if (!cached_enabled) return;
@@ -73,9 +73,9 @@ public abstract class WitchBrainMixin {
     }
     
     /**
-     * Async computation and writeback after customServerAiStep ends
+     * Async computation and writeback after aiStep ends
      */
-    @Inject(method = "customServerAiStep", at = @At("RETURN"))
+    @Inject(method = "aiStep", at = @At("TAIL"))
     private void aki$offloadBrain(CallbackInfo ci) {
         if (!cached_enabled) return;
         if (this.aki$snapshot == null) return;
@@ -137,22 +137,23 @@ public abstract class WitchBrainMixin {
         if (bridge != null) {
             cached_enabled = bridge.isWitchOptimizationEnabled();
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
-            cached_tickInterval = 3;
+            cached_tickInterval = 1;  // Every tick (witches don't need POI throttling)
             cached_scanDistance = bridge.getWitchScanDistance();
             
             AsyncBrainExecutor.setExecutor(bridge.getGeneralExecutor());
         } else {
             cached_enabled = false;
             cached_timeoutMicros = 100;
-            cached_tickInterval = 3;
+            cached_tickInterval = 1;
             cached_scanDistance = 16;
         }
         
         initialized = true;
         System.out.println(String.format(
-            "[AkiAsync] WitchBrainMixin initialized: enabled=%s, timeout=%dμs, interval=%d tick",
+            "[AkiAsync] WitchBrainMixin initialized: enabled=%s, timeout=%dμs, interval=%d tick, reflection=Phase-2",
             cached_enabled, cached_timeoutMicros, cached_tickInterval
         ));
     }
 }
+
 

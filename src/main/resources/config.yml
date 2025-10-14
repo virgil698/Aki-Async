@@ -80,9 +80,13 @@ async-ai:
   # 女巫：药水配方+效果检测+攻击目标筛选，CPU密集
   # 30只女巫 = 27-33 ms MSPT → 直接吃掉1.5个TPS
   witch-optimization:
-    enabled: false  # 默认关闭
+    enabled: true  # 启用女巫优化
     use-poi-snapshot: false  # 女巫不依赖POI
     scan-distance: 16  # 扫描距离（格）
+    control-goal: true  # Phase-2反射写值（true=抢夺决策）
+    tick-interval: 1  # 每tick提交（不像村民有POI，女巫可以每tick）
+    batch-size: 8  # 实体级分批（8实体/批）
+    adaptive-timeout: true  # 自适应超时（MSPT>30降到50μs）
   
   # 其他生物优化 (简单AI实体)
   # 僵尸、骷髅、苦力怕等不依赖POI的生物

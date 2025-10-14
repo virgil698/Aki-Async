@@ -119,6 +119,12 @@ public interface Bridge {
     int getWitchScanDistance();
     
     /**
+     * Check if witch Goal control is enabled (Phase-2)
+     * @return true if enabled
+     */
+    boolean isWitchControlGoal();
+    
+    /**
      * Check if simple entities optimization is enabled
      * @return true if enabled
      */

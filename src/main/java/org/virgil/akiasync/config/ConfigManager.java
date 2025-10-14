@@ -42,6 +42,10 @@ public class ConfigManager {
     private boolean witchOptimizationEnabled;
     private boolean witchUsePOISnapshot;
     private int witchScanDistance;
+    private boolean witchControlGoal;
+    private int witchTickInterval;
+    private int witchBatchSize;
+    private boolean witchAdaptiveTimeout;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -121,6 +125,10 @@ public class ConfigManager {
         witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
         witchUsePOISnapshot = config.getBoolean("async-ai.witch-optimization.use-poi-snapshot", false);
         witchScanDistance = config.getInt("async-ai.witch-optimization.scan-distance", 16);
+        witchControlGoal = config.getBoolean("async-ai.witch-optimization.control-goal", false);
+        witchTickInterval = config.getInt("async-ai.witch-optimization.tick-interval", 1);
+        witchBatchSize = config.getInt("async-ai.witch-optimization.batch-size", 8);
+        witchAdaptiveTimeout = config.getBoolean("async-ai.witch-optimization.adaptive-timeout", true);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -300,6 +308,10 @@ public class ConfigManager {
     public boolean isWitchOptimizationEnabled() { return witchOptimizationEnabled; }
     public boolean isWitchUsePOISnapshot() { return witchUsePOISnapshot; }
     public int getWitchScanDistance() { return witchScanDistance; }
+    public boolean isWitchControlGoal() { return witchControlGoal; }
+    public int getWitchTickInterval() { return witchTickInterval; }
+    public int getWitchBatchSize() { return witchBatchSize; }
+    public boolean isWitchAdaptiveTimeout() { return witchAdaptiveTimeout; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

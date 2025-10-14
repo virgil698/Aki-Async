@@ -70,33 +70,72 @@ public final class WitchCpuCalculator {
     
     /**
      * Decide which potion witch should drink (CPU-intensive)
+     * Enhanced: Check 16 potion types (increased from 4)
      * 
      * @param snapshot Witch snapshot
      * @return Potion type name, null if none needed
      */
     private static String decidePotionToDrink(WitchSnapshot snapshot) {
-        // Check current health
-        if (snapshot.getHealth() < 8.0) {
-            // Low health: drink healing potion
+        java.util.List<String> effects = snapshot.getActiveEffects();
+        
+        // Priority 1: Critical survival (health < 8)
+        if (snapshot.getHealth() < 8.0 && !effects.contains("minecraft:regeneration")) {
             return "minecraft:healing";
         }
         
-        // Check for fire damage
-        if (snapshot.getActiveEffects().contains("minecraft:fire_resistance")) {
-            return null;  // Already has fire resistance
+        // Priority 2: Environmental hazards (16 types expanded)
+        String[] hazardPotions = {
+            "fire_resistance", "water_breathing", "night_vision", "invisibility",
+            "slow_falling", "absorption", "resistance", "health_boost"
+        };
+        for (String potion : hazardPotions) {
+            if (!effects.contains("minecraft:" + potion)) {
+                // CPU-intensive: Double scoring
+                double score = scorePotion(potion, snapshot);
+                if (score > 50.0) {
+                    return "minecraft:" + potion;
+                }
+            }
         }
         
-        // Check for water (simplified: assume need water breathing if health > 15)
-        if (snapshot.getHealth() > 15.0 && !snapshot.getActiveEffects().contains("minecraft:water_breathing")) {
-            return "minecraft:water_breathing";
-        }
-        
-        // Default: speed potion for mobility
-        if (!snapshot.getActiveEffects().contains("minecraft:speed")) {
-            return "minecraft:speed";
+        // Priority 3: Combat buffs (8 types)
+        String[] combatPotions = {
+            "speed", "strength", "jump_boost", "haste",
+            "luck", "dolphins_grace", "conduit_power", "hero_of_the_village"
+        };
+        for (String potion : combatPotions) {
+            if (!effects.contains("minecraft:" + potion)) {
+                double score = scorePotion(potion, snapshot);
+                if (score > 30.0) {
+                    return "minecraft:" + potion;
+                }
+            }
         }
         
         return null;  // No potion needed
+    }
+    
+    /**
+     * Score potion priority (CPU-intensive double scoring)
+     */
+    private static double scorePotion(String potion, WitchSnapshot snapshot) {
+        double score = 0.0;
+        
+        // Factor 1: Health-based scoring
+        score += (10.0 - snapshot.getHealth()) * 5.0;
+        
+        // Factor 2: Potion type weight
+        if (potion.contains("healing") || potion.contains("regeneration")) {
+            score += 100.0;
+        } else if (potion.contains("resistance") || potion.contains("absorption")) {
+            score += 80.0;
+        } else if (potion.contains("speed") || potion.contains("strength")) {
+            score += 60.0;
+        } else {
+            score += 40.0;
+        }
+        
+        return score;
     }
     
     /**

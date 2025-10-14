@@ -115,6 +115,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     }
     
     @Override
+    public boolean isWitchControlGoal() {
+        return config.isWitchControlGoal();
+    }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }
