@@ -8,7 +8,7 @@
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](build/libs)
-[![Version](https://img.shields.io/badge/version-1.0.0--Community-orange.svg)](https://github.com/YourUsername/Aki-Async/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
 
 一个专为 **Leaves 1.21.8+** 服务端设计的全方位异步优化插件  
@@ -649,6 +649,7 @@ docs: update configuration guide
 
 **Edition**: Community (开源版) | **Status**: ✅ Production Ready | **Version**: 1.0.0 | **Modules**: 19
 
+**Author**: [Virgil](https://github.com/virgil698)  
 **Author**: [Virgil](https://github.com/virgil698)  
 **License**: GPL-3.0  
 **Supported**: Leaves 1.21.8+
