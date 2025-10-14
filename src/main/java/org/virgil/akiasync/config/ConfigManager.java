@@ -39,6 +39,9 @@ public class ConfigManager {
     private boolean piglinUsePOISnapshot;
     private int piglinLookDistance;
     private int piglinBarterDistance;
+    private boolean witchOptimizationEnabled;
+    private boolean witchUsePOISnapshot;
+    private int witchScanDistance;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -115,6 +118,9 @@ public class ConfigManager {
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
         piglinBarterDistance = config.getInt("async-ai.piglin-optimization.barter-distance", 16);
+        witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
+        witchUsePOISnapshot = config.getBoolean("async-ai.witch-optimization.use-poi-snapshot", false);
+        witchScanDistance = config.getInt("async-ai.witch-optimization.scan-distance", 16);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -291,6 +297,9 @@ public class ConfigManager {
     public boolean isPiglinUsePOISnapshot() { return piglinUsePOISnapshot; }
     public int getPiglinLookDistance() { return piglinLookDistance; }
     public int getPiglinBarterDistance() { return piglinBarterDistance; }
+    public boolean isWitchOptimizationEnabled() { return witchOptimizationEnabled; }
+    public boolean isWitchUsePOISnapshot() { return witchUsePOISnapshot; }
+    public int getWitchScanDistance() { return witchScanDistance; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

@@ -76,6 +76,14 @@ async-ai:
     look-distance: 16  # 注视距离（格）
     barter-distance: 16  # 交易距离（格，蛮兵也检测）
   
+  # 女巫优化 (Witch)
+  # 女巫：药水配方+效果检测+攻击目标筛选，CPU密集
+  # 30只女巫 = 27-33 ms MSPT → 直接吃掉1.5个TPS
+  witch-optimization:
+    enabled: false  # 默认关闭
+    use-poi-snapshot: false  # 女巫不依赖POI
+    scan-distance: 16  # 扫描距离（格）
+  
   # 其他生物优化 (简单AI实体)
   # 僵尸、骷髅、苦力怕等不依赖POI的生物
   simple-entities:

@@ -101,6 +101,24 @@ public interface Bridge {
     int getPiglinBarterDistance();
     
     /**
+     * Check if witch optimization is enabled
+     * @return true if enabled
+     */
+    boolean isWitchOptimizationEnabled();
+    
+    /**
+     * Check if witch uses POI snapshot
+     * @return true if POI snapshot is used
+     */
+    boolean isWitchUsePOISnapshot();
+    
+    /**
+     * Get witch scan distance threshold
+     * @return distance in blocks
+     */
+    int getWitchScanDistance();
+    
+    /**
      * Check if simple entities optimization is enabled
      * @return true if enabled
      */
