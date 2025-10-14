@@ -45,6 +45,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.getMinEntitiesForParallel();
     }
     
+    @Override
+    public int getEntityTickBatchSize() {
+        return config.getEntityTickBatchSize();
+    }
+    
     // ========== Brain Throttle ==========
     
     @Override
@@ -55,6 +60,53 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public int getBrainThrottleInterval() {
         return config.getBrainThrottleInterval();
+    }
+    
+    // ========== Async AI (Zero Latency) - 分类优化 ==========
+    
+    @Override
+    public long getAsyncAITimeoutMicros() {
+        return config.getAsyncAITimeoutMicros();
+    }
+    
+    @Override
+    public boolean isVillagerOptimizationEnabled() {
+        return config.isVillagerOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isVillagerUsePOISnapshot() {
+        return config.isVillagerUsePOISnapshot();
+    }
+    
+    @Override
+    public boolean isPiglinOptimizationEnabled() {
+        return config.isPiglinOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isPiglinUsePOISnapshot() {
+        return config.isPiglinUsePOISnapshot();
+    }
+    
+    @Override
+    public int getPiglinLookDistance() {
+        return config.getPiglinLookDistance();
+    }
+    
+    @Override
+    public int getPiglinBarterDistance() {
+        return config.getPiglinBarterDistance();
+    }
+    
+    @Override
+    public boolean isSimpleEntitiesOptimizationEnabled() {
+        return config.isSimpleEntitiesOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isSimpleEntitiesUsePOISnapshot() {
+        return config.isSimpleEntitiesUsePOISnapshot();
     }
     
     // ========== Mob Spawning ==========

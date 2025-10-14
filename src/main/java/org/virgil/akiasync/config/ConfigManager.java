@@ -31,10 +31,21 @@ public class ConfigManager {
     // Brain throttle
     private boolean brainThrottle;
     private int brainThrottleInterval;
+    // Async AI - Zero Latency (分类优化)
+    private long asyncAITimeoutMicros;
+    private boolean villagerOptimizationEnabled;
+    private boolean villagerUsePOISnapshot;
+    private boolean piglinOptimizationEnabled;
+    private boolean piglinUsePOISnapshot;
+    private int piglinLookDistance;
+    private int piglinBarterDistance;
+    private boolean simpleEntitiesOptimizationEnabled;
+    private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
     private boolean entityTickParallel;
     private int entityTickThreads;
     private int minEntitiesForParallel;
+    private int entityTickBatchSize;
     
     // Lighting optimizations (ScalableLux/Starlight inspired)
     private boolean asyncLightingEnabled;
@@ -96,9 +107,20 @@ public class ConfigManager {
         pathfindingTickBudget = config.getInt("pathfinding.tick-budget", 0);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
+        // Async AI settings (分类优化)
+        asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
+        villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
+        villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
+        piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
+        piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
+        piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
+        piglinBarterDistance = config.getInt("async-ai.piglin-optimization.barter-distance", 16);
+        simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
+        simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
         entityTickThreads = config.getInt("entity-tick-parallel.threads", 4);
         minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
+        entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
         
         // Load lighting optimization settings
         asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
@@ -169,6 +191,15 @@ public class ConfigManager {
         }
         if (brainThrottleInterval < 0) {
             brainThrottleInterval = 0;
+        }
+        // Validate async AI settings
+        if (asyncAITimeoutMicros < 100) {
+            plugin.getLogger().warning("Async AI timeout too low, setting to 100μs");
+            asyncAITimeoutMicros = 100;
+        }
+        if (asyncAITimeoutMicros > 5000) {
+            plugin.getLogger().warning("Async AI timeout too high, setting to 5000μs (5ms)");
+            asyncAITimeoutMicros = 5000;
         }
         if (entityTickThreads < 1) entityTickThreads = 1;
         if (entityTickThreads > 16) entityTickThreads = 16;
@@ -252,9 +283,20 @@ public class ConfigManager {
     
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
+    // Async AI getters (分类优化)
+    public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
+    public boolean isVillagerOptimizationEnabled() { return villagerOptimizationEnabled; }
+    public boolean isVillagerUsePOISnapshot() { return villagerUsePOISnapshot; }
+    public boolean isPiglinOptimizationEnabled() { return piglinOptimizationEnabled; }
+    public boolean isPiglinUsePOISnapshot() { return piglinUsePOISnapshot; }
+    public int getPiglinLookDistance() { return piglinLookDistance; }
+    public int getPiglinBarterDistance() { return piglinBarterDistance; }
+    public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
+    public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }
     public int getEntityTickThreads() { return entityTickThreads; }
     public int getMinEntitiesForParallel() { return minEntitiesForParallel; }
+    public int getEntityTickBatchSize() { return entityTickBatchSize; }
     
     // Lighting optimization getters
     public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }

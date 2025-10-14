@@ -7,7 +7,10 @@
   "mixins": [
     "entitytracker.EntityTrackerMixin",
     "spawning.MobSpawningMixin",
+    "brain.ExpensiveAIMixin",
     "brain.BrainThrottleMixin",
+    "brain.VillagerJobClaimMixin",
+    "brain.PiglinBrainMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",

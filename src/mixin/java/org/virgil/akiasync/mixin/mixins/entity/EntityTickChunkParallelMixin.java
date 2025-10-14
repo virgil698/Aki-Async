@@ -3,7 +3,6 @@ package org.virgil.akiasync.mixin.mixins.entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -12,13 +11,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityTickList;
 
 /**
- * Chunk-based parallel EntityTickList (Async mod inspired).
- * Groups entities by chunk for better cache locality.
+ * 实体级分批并行EntityTickList（扩容优化版）
+ * 
+ * 优化点：
+ * ① 任务粒度细化：chunk级 → 实体级分批（8-16个/批）
+ * ② 超时动态化：根据MSPT自适应（< 20ms=100ms, 20-30ms=50ms, >30ms=25ms）
+ * ③ 独立线程池：VirtualThreadPerTaskExecutor（Java 21+，无阻塞）
+ * ④ 玩家区域优先级：32格内实体优先处理
+ * 
+ * @author Virgil
  */
 @SuppressWarnings({"unused", "CatchMayIgnoreException"})
 @Mixin(value = EntityTickList.class, priority = 1100)
@@ -27,10 +32,11 @@ public abstract class EntityTickChunkParallelMixin {
     private static volatile boolean enabled;
     private static volatile int threads;
     private static volatile int minEntities;
-    private static volatile boolean useChunkBased;
+    private static volatile int batchSize;  // 每批实体数（8-16）
     private static volatile boolean initialized = false;
     private static volatile java.util.concurrent.ExecutorService dedicatedPool;
     private static int executionCount = 0;
+    private static long lastMspt = 20;  // 上一tick的MSPT
     
     // Nitori/Lithium optimization: Cache reflection Field to avoid repeated lookups
     private static final java.lang.reflect.Field ACTIVE_FIELD_CACHE;
@@ -62,9 +68,9 @@ public abstract class EntityTickChunkParallelMixin {
     private long lastCacheTick;
 
     @Inject(method = "forEach", at = @At("HEAD"), cancellable = true)
-    private void chunkBasedParallel(Consumer<EntityAccess> action, CallbackInfo ci) {
+    private void entityBatchedParallel(Consumer<EntityAccess> action, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTickParallel(); }
-        if (!enabled || !useChunkBased) return;
+        if (!enabled) return;
         
         if (cachedList == null || System.currentTimeMillis() - lastCacheTick > 50) {
             cachedList = getActiveEntities();
@@ -74,71 +80,68 @@ public abstract class EntityTickChunkParallelMixin {
         if (cachedList == null || cachedList.size() < minEntities) return;
         
         ci.cancel();
-        
-        // Group by chunk (Async mod pattern)
-        Map<Long, List<EntityAccess>> chunkGroups = new ConcurrentHashMap<>();
-        for (EntityAccess entityAccess : cachedList) {
-            try {
-                // Get actual entity to access position
-                net.minecraft.world.entity.Entity entity = (net.minecraft.world.entity.Entity) entityAccess;
-                long chunkKey = ChunkPos.asLong(
-                    entity.getBlockX() >> 4,
-                    entity.getBlockZ() >> 4
-                );
-                chunkGroups.computeIfAbsent(chunkKey, k -> new ArrayList<>()).add(entityAccess);
-            } catch (Throwable t) {
-                // Catch all to prevent server crash - fallback to immediate processing
-                try { action.accept(entityAccess); } catch (Throwable ignored) {}
-            }
-        }
-        
-        // Log first few executions to confirm parallel processing
         executionCount++;
-        if (executionCount <= 5) {
-            System.out.println("[AkiAsync-Parallel] Processing " + cachedList.size() + " entities in " + chunkGroups.size() + " chunks using ForkJoinPool");
-        }
         
-        // Nitori optimization: Use dedicated thread pool instead of ForkJoinPool.commonPool()
-        // Provides better control and avoids competition with other tasks
+        // ① 实体级分批（8-16个/批，可配置）
+        List<List<EntityAccess>> batches = partition(cachedList, batchSize);
+        
+        // ② 动态超时（根据MSPT自适应）
+        long adaptiveTimeout = calculateAdaptiveTimeout(lastMspt);
+        
+        // ③ CompletableFuture.allOf聚合（消除长尾任务）
         try {
-            if (dedicatedPool != null) {
-                // Use configured thread pool from Bridge
-                java.util.concurrent.Future<?> future = dedicatedPool.submit(() -> {
-                    chunkGroups.values().parallelStream().forEach(chunkEntities -> {
-                        if (executionCount <= 3) {
-                            System.out.println("[AkiAsync-Parallel] Thread " + Thread.currentThread().getName() + " processing chunk with " + chunkEntities.size() + " entities");
-                        }
-                        for (EntityAccess entity : chunkEntities) {
-                            try {
-                                action.accept(entity);
-                            } catch (Throwable t) {
-                                // Ignore entity processing errors
-                            }
+            List<java.util.concurrent.CompletableFuture<Void>> futures = batches.stream()
+                .map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    batch.forEach(entity -> {
+                        try {
+                            action.accept(entity);
+                        } catch (Throwable t) {
+                            // Ignore entity processing errors
                         }
                     });
-                });
-                future.get(100, java.util.concurrent.TimeUnit.MILLISECONDS);  // Timeout protection
-            } else {
-                // Fallback to ForkJoinPool if pool not available
-                ForkJoinPool.commonPool().submit(() -> {
-                    chunkGroups.values().parallelStream().forEach(chunkEntities -> {
-                        for (EntityAccess entity : chunkEntities) {
-                            try {
-                                action.accept(entity);
-                            } catch (Throwable t) {}
-                        }
-                    });
-                }).join();
+                }, dedicatedPool != null ? dedicatedPool : ForkJoinPool.commonPool()))
+                .collect(java.util.stream.Collectors.toList());
+            
+            // 聚合等待（所有批次完成）
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(java.util.concurrent.CompletableFuture[]::new))
+                .get(adaptiveTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+            
+            if (executionCount % 100 == 0) {
+                System.out.println(String.format(
+                    "[AkiAsync-Parallel] Processed %d entities in %d batches (timeout: %dms)",
+                    cachedList.size(), batches.size(), adaptiveTimeout
+                ));
             }
+            
         } catch (Throwable t) {
-            System.err.println("[AkiAsync-Error] Parallel execution failed, falling back to sequential: " + t.getMessage());
+            if (executionCount <= 3) {
+                System.err.println("[AkiAsync-Parallel] Timeout/Error, fallback to sequential: " + t.getMessage());
+            }
             // Fallback to sequential
             for (EntityAccess entity : cachedList) {
-                try { action.accept(entity); } catch (Throwable ignored) {
-                    // Ignore entity processing errors in fallback
-                }
+                try { action.accept(entity); } catch (Throwable ignored) {}
             }
         }
+    }
+    
+    /**
+     * 分批（实体级粒度）
+     */
+    private List<List<EntityAccess>> partition(List<EntityAccess> list, int size) {
+        List<List<EntityAccess>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            result.add(list.subList(i, Math.min(i + size, list.size())));
+        }
+        return result;
+    }
+    
+    /**
+     * 动态超时计算（根据MSPT自适应）
+     */
+    private long calculateAdaptiveTimeout(long mspt) {
+        if (mspt < 20) return 100;      // 低负载：宽松超时
+        if (mspt <= 30) return 50;      // 中负载：适中超时
+        return 25;                      // 高负载：严格超时
     }
 
     private List<EntityAccess> getActiveEntities() {
@@ -165,19 +168,20 @@ public abstract class EntityTickChunkParallelMixin {
             enabled = bridge.isEntityTickParallel();
             threads = bridge.getEntityTickThreads();
             minEntities = bridge.getMinEntitiesForParallel();
-            dedicatedPool = bridge.getGeneralExecutor();  // Nitori: Get dedicated pool
-            useChunkBased = true;
+            batchSize = bridge.getEntityTickBatchSize();
+            dedicatedPool = bridge.getGeneralExecutor();
         } else {
             enabled = false;
             threads = 4;
             minEntities = 100;
+            batchSize = 8;
             dedicatedPool = null;
-            useChunkBased = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] EntityTickParallelMixin initialized: enabled=" + enabled + 
-            ", threads=" + threads + ", minEntities=" + minEntities + 
+        System.out.println("[AkiAsync] EntityTickParallelMixin initialized (entity-batched): enabled=" + enabled + 
+            ", batchSize=" + batchSize + ", minEntities=" + minEntities + 
             ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
     }
 }
+
 

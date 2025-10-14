@@ -36,6 +36,12 @@ public interface Bridge {
      */
     int getMinEntitiesForParallel();
     
+    /**
+     * Get the entity tick batch size (entities per task)
+     * @return batch size
+     */
+    int getEntityTickBatchSize();
+    
     // ========== Brain Throttle ==========
     
     /**
@@ -49,6 +55,62 @@ public interface Bridge {
      * @return interval in ticks
      */
     int getBrainThrottleInterval();
+    
+    // ========== Async AI (Zero Latency) - 分类优化 ==========
+    
+    /**
+     * Get the async AI timeout in microseconds
+     * @return timeout in microseconds (default: 500μs = 0.5ms)
+     */
+    long getAsyncAITimeoutMicros();
+    
+    /**
+     * Check if villager optimization is enabled
+     * @return true if enabled
+     */
+    boolean isVillagerOptimizationEnabled();
+    
+    /**
+     * Check if villager uses POI snapshot
+     * @return true if POI snapshot is used
+     */
+    boolean isVillagerUsePOISnapshot();
+    
+    /**
+     * Check if piglin optimization is enabled
+     * @return true if enabled
+     */
+    boolean isPiglinOptimizationEnabled();
+    
+    /**
+     * Check if piglin uses POI snapshot
+     * @return true if POI snapshot is used
+     */
+    boolean isPiglinUsePOISnapshot();
+    
+    /**
+     * Get piglin look distance threshold
+     * @return distance in blocks
+     */
+    int getPiglinLookDistance();
+    
+    /**
+     * Get piglin barter distance threshold
+     * @return distance in blocks
+     */
+    int getPiglinBarterDistance();
+    
+    /**
+     * Check if simple entities optimization is enabled
+     * @return true if enabled
+     */
+    boolean isSimpleEntitiesOptimizationEnabled();
+    
+    /**
+     * Check if simple entities use POI snapshot
+     * @return true if POI snapshot is used
+     */
+    boolean isSimpleEntitiesUsePOISnapshot();
     
     // ========== Mob Spawning ==========
     

@@ -47,17 +47,53 @@ brain:
   # Only think once per N ticks when stationary
   throttle-interval: 10
 
+# Async AI - Zero Latency Brain Execution (零延迟异步AI)
+# 核心思路：主线程只读POI快照，Brain异步执行，同tick内写回
+# 针对不同生物类型提供独立的优化开关
+async-ai:
+  # Global timeout in microseconds (100μs = 0.1ms)
+  # 全局超时时间（微秒）- 中期优化：砍半超时，让线程池真正忙起来
+  timeout-microseconds: 100
+  
+  # Execution mode (执行模式)
+  # simple: 简单CPU计算模拟（方案1：30秒止血）
+  # full: 完整异步Brain执行（方案2：10分钟真异步）
+  mode: simple
+  
+  # 村民类优化 (Villager + Wandering Trader)
+  # 村民依赖POI系统（床、工作站等），需要POI快照
+  villager-optimization:
+    enabled: false  # 默认关闭（实验性）
+    use-poi-snapshot: true  # 使用POI快照（村民必须）
+  
+  # 猪灵+猪灵蛮兵优化 (Piglin + PiglinBrute)
+  # 猪灵/蛮兵：金币检测+以物易物+恐惧向量，CPU密集
+  # 50只猪灵 = 40-50 ms MSPT → 直接吃掉2个TPS
+  # 包含实体：minecraft:piglin, minecraft:piglin_brute
+  piglin-optimization:
+    enabled: false  # 默认关闭，需手动启用
+    use-poi-snapshot: false  # 猪灵不依赖POI，使用自定义快照
+    look-distance: 16  # 注视距离（格）
+    barter-distance: 16  # 交易距离（格，蛮兵也检测）
+  
+  # 其他生物优化 (简单AI实体)
+  # 僵尸、骷髅、苦力怕等不依赖POI的生物
+  simple-entities:
+    enabled: false
+    use-poi-snapshot: false  # 简单实体无需POI快照
+
 # Parallel EntityTickList (biggest hotspot ~75%)
-# Async mod inspired: chunk-based grouping for better cache locality
+# 扩容优化：实体级分批（chunk粒度太粗 → 8-entity小批次）
 entity-tick-parallel:
   # Enable parallel entity ticking
   enabled: true
-  # Number of parallel threads (recommend: 4-8, you have 1443 entities so use 6-8)
+  # Number of parallel threads (recommend: 4-8)
   threads: 6
   # Minimum entities to trigger parallel (avoid overhead for small lists)
   min-entities: 50
-  # Use chunk-based grouping (Async mod pattern, better cache locality)
-  chunk-based: true
+  # Batch size (entities per task, 实体级粒度)
+  # 8 = 均衡任务大小，避免chunk粒度太粗（0~150+实体差异巨大）
+  batch-size: 8
 
 # ServerCore-inspired optimizations
 servercore-optimizations:
