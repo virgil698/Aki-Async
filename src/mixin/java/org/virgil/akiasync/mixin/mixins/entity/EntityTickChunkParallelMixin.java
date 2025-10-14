@@ -15,13 +15,13 @@ import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityTickList;
 
 /**
- * 实体级分批并行EntityTickList（扩容优化版）
+ * Entity-level batched parallel EntityTickList (capacity expansion optimized version)
  * 
- * 优化点：
- * ① 任务粒度细化：chunk级 → 实体级分批（8-16个/批）
- * ② 超时动态化：根据MSPT自适应（< 20ms=100ms, 20-30ms=50ms, >30ms=25ms）
- * ③ 独立线程池：VirtualThreadPerTaskExecutor（Java 21+，无阻塞）
- * ④ 玩家区域优先级：32格内实体优先处理
+ * Optimizations:
+ * ① Task granularity refinement: chunk-level → entity-level batching (8-16 entities/batch)
+ * ② Dynamic timeout: MSPT adaptive (< 20ms=100ms, 20-30ms=50ms, >30ms=25ms)
+ * ③ Independent thread pool: Dedicated executor (Java 21+, no blocking)
+ * ④ Player region priority: Entities within 32 blocks processed first
  * 
  * @author Virgil
  */
@@ -32,11 +32,11 @@ public abstract class EntityTickChunkParallelMixin {
     private static volatile boolean enabled;
     private static volatile int threads;
     private static volatile int minEntities;
-    private static volatile int batchSize;  // 每批实体数（8-16）
+    private static volatile int batchSize;  // Entities per batch (8-16)
     private static volatile boolean initialized = false;
     private static volatile java.util.concurrent.ExecutorService dedicatedPool;
     private static int executionCount = 0;
-    private static long lastMspt = 20;  // 上一tick的MSPT
+    private static long lastMspt = 20;  // Last tick's MSPT
     
     // Nitori/Lithium optimization: Cache reflection Field to avoid repeated lookups
     private static final java.lang.reflect.Field ACTIVE_FIELD_CACHE;
@@ -82,13 +82,13 @@ public abstract class EntityTickChunkParallelMixin {
         ci.cancel();
         executionCount++;
         
-        // ① 实体级分批（8-16个/批，可配置）
+        // ① Entity-level batching (8-16 entities/batch, configurable)
         List<List<EntityAccess>> batches = partition(cachedList, batchSize);
         
-        // ② 动态超时（根据MSPT自适应）
+        // ② Dynamic timeout (MSPT adaptive)
         long adaptiveTimeout = calculateAdaptiveTimeout(lastMspt);
         
-        // ③ CompletableFuture.allOf聚合（消除长尾任务）
+        // ③ CompletableFuture.allOf aggregation (eliminate long-tail tasks)
         try {
             List<java.util.concurrent.CompletableFuture<Void>> futures = batches.stream()
                 .map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
@@ -102,7 +102,7 @@ public abstract class EntityTickChunkParallelMixin {
                 }, dedicatedPool != null ? dedicatedPool : ForkJoinPool.commonPool()))
                 .collect(java.util.stream.Collectors.toList());
             
-            // 聚合等待（所有批次完成）
+            // Aggregate wait (all batches complete)
             java.util.concurrent.CompletableFuture.allOf(futures.toArray(java.util.concurrent.CompletableFuture[]::new))
                 .get(adaptiveTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
             
@@ -125,7 +125,7 @@ public abstract class EntityTickChunkParallelMixin {
     }
     
     /**
-     * 分批（实体级粒度）
+     * Partition into batches (entity-level granularity)
      */
     private List<List<EntityAccess>> partition(List<EntityAccess> list, int size) {
         List<List<EntityAccess>> result = new ArrayList<>();
@@ -136,12 +136,12 @@ public abstract class EntityTickChunkParallelMixin {
     }
     
     /**
-     * 动态超时计算（根据MSPT自适应）
+     * Calculate dynamic timeout (MSPT adaptive)
      */
     private long calculateAdaptiveTimeout(long mspt) {
-        if (mspt < 20) return 100;      // 低负载：宽松超时
-        if (mspt <= 30) return 50;      // 中负载：适中超时
-        return 25;                      // 高负载：严格超时
+        if (mspt < 20) return 100;      // Low load: lenient timeout
+        if (mspt <= 30) return 50;      // Medium load: moderate timeout
+        return 25;                      // High load: strict timeout
     }
 
     private List<EntityAccess> getActiveEntities() {

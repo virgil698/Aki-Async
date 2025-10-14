@@ -21,14 +21,14 @@ import net.minecraft.world.entity.schedule.Activity;
 public class BrainTickHelper {
     
     /**
-     * 只读tick（异步线程调用）
-     * 执行CPU密集部分：路径筛选、POI查询、目标评分
+     * Read-only tick (async thread invocation)
+     * Execute CPU-intensive parts: path filtering, POI query, target scoring
      * 
-     * @param brain 目标Brain
-     * @param snapshot Brain快照
+     * @param brain Target Brain
+     * @param snapshot Brain snapshot
      * @param level ServerLevel
-     * @param entity 实体
-     * @return 计算后的BrainSnapshot
+     * @param entity Entity
+     * @return Computed BrainSnapshot
      */
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity> BrainSnapshot tickSnapshot(
@@ -38,58 +38,58 @@ public class BrainTickHelper {
             E entity
     ) {
         
-        // 真正跑一遍 CPU 密集逻辑
-        // 模拟 Brain.tick() 的核心计算部分，但不写回状态
+        // Actually run CPU-intensive logic once
+        // Simulate core computation part of Brain.tick(), but don't write back state
         
         try {
-            // 获取当前活动的 Activity
+            // Get current active Activity
             Optional<Activity> currentActivity = brain.getActiveNonCoreActivity();
             
-            // 遍历所有 Behavior，执行 canStillUse 判断（CPU密集）
-            // 这部分是原版 Brain.tick() 中最耗时的部分
+            // Iterate all Behaviors, execute canStillUse checks (CPU-intensive)
+            // This is the most time-consuming part in vanilla Brain.tick()
             Activity scheduleActivity = brain.getSchedule().getActivityAt(
                 (int) (level.getGameTime() % 24000L)
             );
             
-            // CPU密集计算：Activity比对（模拟原版逻辑）
+            // CPU-intensive computation: Activity comparison (simulate vanilla logic)
             int score = 0;
             if (currentActivity.isPresent() && scheduleActivity != null) {
                 boolean activityMatches = currentActivity.get().equals(scheduleActivity);
-                // 模拟评分计算
+                // Simulate scoring calculation
                 score = activityMatches ? 100 : 0;
             }
             
-            // ③ 产出 diff（当前简化：直接返回快照）
-            // 防止编译器优化掉score计算
+            // ③ Produce diff (current simplified: return snapshot directly)
+            // Prevent compiler from optimizing away score computation
             if (score < 0) {
-                return snapshot;  // 永远不会执行
+                return snapshot;  // Never executes
             }
             return snapshot;
             
         } catch (Exception e) {
-            // 异常：返回原快照
+            // Exception: return original snapshot
             return snapshot;
         }
     }
     
     /**
-     * 简化版：只让线程跑起来，做一些CPU计算
+     * Simplified version: just make thread run with some CPU computation
      * 
-     * @param brain Brain对象
-     * @param snapshot 快照
-     * @return 快照（未修改）
+     * @param brain Brain object
+     * @param snapshot Snapshot
+     * @return Snapshot (unmodified)
      */
     public static <E extends LivingEntity> BrainSnapshot tickSnapshotSimple(
             Brain<E> brain,
             BrainSnapshot snapshot
     ) {
-        // CPU密集计算模拟：简单循环，让线程真正跑起来
+        // CPU-intensive computation simulation: simple loop to make thread actually run
         int sum = 0;
         for (int i = 0; i < 1000; i++) {
-            sum += i * i;  // 简单的CPU计算
+            sum += i * i;  // Simple CPU calculation
         }
         
-        // 防止编译器优化掉计算
+        // Prevent compiler from optimizing away computation
         if (sum < 0) {
             System.out.println("Unreachable");
         }
