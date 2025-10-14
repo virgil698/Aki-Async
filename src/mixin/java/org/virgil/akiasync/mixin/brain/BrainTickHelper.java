@@ -8,13 +8,13 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.schedule.Activity;
 
 /**
- * Brain Tick 辅助工具 - 只读CPU密集计算
+ * Brain Tick helper - Read-only CPU-intensive computation
  * 
- * 核心思路：拆分Brain.tick()为两阶段
- * 1. 只读计算（异步）：路径筛选、POI查询、目标评分
- * 2. 写回状态（主线程）：setMemory、setPath、takePoi
+ * Core strategy: Split Brain.tick() into two phases
+ * 1. Read-only computation (async): Path filtering, POI query, target scoring
+ * 2. State writeback (main thread): setMemory, setPath, takePoi
  * 
- * 方案1（30秒止血）：先让异步线程真正跑CPU密集逻辑
+ * Solution 1 (30-second stopgap): Let async threads actually run CPU-intensive logic
  * 
  * @author Virgil
  */
