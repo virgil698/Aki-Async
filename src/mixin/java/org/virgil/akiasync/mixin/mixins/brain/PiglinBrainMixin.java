@@ -17,18 +17,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 
 /**
- * 猪灵+猪灵蛮兵异步AI优化（1.21.8专用）
+ * Piglin + PiglinBrute async AI optimization (1.21.8 specific)
  * 
- * 支持实体：
- * - Piglin（猪灵）
- * - PiglinBrute（猪灵蛮兵）
+ * Supported entities:
+ * - Piglin
+ * - PiglinBrute
  * 
- * 流程：
- * ① 主线程拍快照（< 0.05 ms）
- * ② 异步计算（0.5-1 ms）：物品比价+恐惧合成
- * ③ 主线程写回（< 0.1 ms）：setMemory
+ * Workflow:
+ * ① Main thread snapshot (< 0.05 ms)
+ * ② Async computation (0.5-1 ms): Item bartering + fear vector synthesis
+ * ③ Main thread writeback (< 0.1 ms): setMemory
  * 
- * 总耗时：< 0.15 ms（同步）或 3 tick一次（异步）
+ * Total time: < 0.15 ms (sync) or once per 3 ticks (async throttled)
  * 
  * @author Virgil
  */
@@ -46,43 +46,43 @@ public abstract class PiglinBrainMixin {
     @Unique private PiglinSnapshot aki$snapshot;
     @Unique private long aki$nextAsyncTick = 0;
     
-    // 统计
+    // Statistics
     @Unique private static int executionCount = 0;
     @Unique private static int successCount = 0;
     @Unique private static int timeoutCount = 0;
     
     /**
-     * 在customServerAiStep开始：拍快照
+     * Take snapshot at customServerAiStep start
      */
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initPiglinAsync(); }
         if (!cached_enabled) return;
         
-        // 兼容：Piglin 或 PiglinBrute
+        // Compatible: Piglin or PiglinBrute
         net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin = 
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         
         ServerLevel level = (ServerLevel) abstractPiglin.level();
-        if (level == null) return;  // 防御性检查
+        if (level == null) return;  // Defensive null check
         
         Piglin piglin = abstractPiglin instanceof Piglin ? (Piglin) abstractPiglin : null;
         net.minecraft.world.entity.monster.piglin.PiglinBrute brute = 
             abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ? 
             (net.minecraft.world.entity.monster.piglin.PiglinBrute) abstractPiglin : null;
         
-        // 节流：每3 tick一次（比村民稀疏）
+        // Throttle: once per 3 ticks (sparser than villagers)
         if (level.getGameTime() < this.aki$nextAsyncTick) {
             return;
         }
         this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
         
-        // 拍快照（< 0.05 ms）- 只对Piglin拍快照（PiglinBrute无inventory）
+        // Take snapshot (< 0.05 ms) - Full snapshot for Piglin only (PiglinBrute has no inventory)
         try {
             if (piglin != null) {
                 this.aki$snapshot = PiglinSnapshot.capture(piglin, level);
             } else if (brute != null) {
-                // PiglinBrute：简化快照（无inventory）
+                // PiglinBrute: simplified snapshot (no inventory)
                 this.aki$snapshot = PiglinSnapshot.captureSimple(brute, level);
             }
         } catch (Exception e) {
@@ -91,7 +91,7 @@ public abstract class PiglinBrainMixin {
     }
     
     /**
-     * 在customServerAiStep结束：异步计算+写回
+     * Async computation and writeback after customServerAiStep ends
      */
     @Inject(method = "customServerAiStep", at = @At("RETURN"))
     private void aki$offloadBrain(CallbackInfo ci) {
@@ -100,23 +100,23 @@ public abstract class PiglinBrainMixin {
         
         executionCount++;
         
-        // 兼容：Piglin 或 PiglinBrute
+        // Compatible: Piglin or PiglinBrute
         net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin = 
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         
         ServerLevel level = (ServerLevel) abstractPiglin.level();
-        if (level == null) return;  // 防御性检查
+        if (level == null) return;  // Defensive null check
         
         final PiglinSnapshot snapshot = this.aki$snapshot;
         
         try {
-            // 异步计算（0.5-1 ms）
+            // Async computation (0.5-1 ms)
             CompletableFuture<PiglinDiff> future = AsyncBrainExecutor.runSync(() -> {
-                // 使用AbstractPiglin避免类型问题
+                // Use AbstractPiglin to avoid type issues
                 return PiglinCpuCalculator.runCpuOnly(abstractPiglin, level, snapshot);
             }, cached_timeoutMicros, TimeUnit.MICROSECONDS);
             
-            // 主线程等待（≤100μs）
+            // Main thread wait (≤100μs)
             PiglinDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future,
                 cached_timeoutMicros,
@@ -128,7 +128,7 @@ public abstract class PiglinBrainMixin {
                 diff.applyTo(abstractPiglin.getBrain(), level, cached_lookDistance, cached_barterDistance);
                 successCount++;
                 
-                // 每1000次输出统计
+                // Output statistics every 1000 executions
                 if (executionCount % 1000 == 0) {
                     double successRate = (successCount * 100.0) / executionCount;
                     double timeoutRate = (timeoutCount * 100.0) / executionCount;
