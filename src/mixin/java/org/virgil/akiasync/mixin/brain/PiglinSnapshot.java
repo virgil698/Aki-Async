@@ -7,28 +7,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
- * 猪灵快照（1.21.8专用）
+ * Piglin snapshot (1.21.8 specific)
  * 
- * 快照内容（主线程 < 0.05 ms）：
- * 1. inventory - 物品列表（copy ItemStack数组）
- * 2. nearbyPlayers - 16格内玩家位置+手持金币
- * 3. nearbyEntities - 12格内灵魂火/僵尸猪灵
- * 4. huntedTimer - HUNTED_RECENTLY 计时器
+ * Snapshot contents (main thread < 0.05 ms):
+ * 1. inventory - Item list (copied ItemStack array)
+ * 2. nearbyPlayers - Player positions + gold holding status within 16 blocks
+ * 3. nearbyThreats - Soul fire blocks within 12 blocks
+ * 4. isHunted - HUNTED_RECENTLY flag
  * 
  * @author Virgil
  */
 public final class PiglinSnapshot {
     
-    // 物品快照（复制ItemStack数组，快照需copy）
+    // Inventory snapshot (ItemStack array copy required for snapshot)
     private final ItemStack[] inventoryItems;
     
-    // 附近玩家快照（只记录位置+手持金币标记）
+    // Nearby players snapshot (position + gold holding status only)
     private final java.util.List<PlayerGoldInfo> nearbyPlayers;
     
-    // 附近威胁快照（灵魂火/僵尸猪灵）
+    // Nearby threats snapshot (soul fire blocks)
     private final java.util.List<net.minecraft.core.BlockPos> nearbyThreats;
     
-    // 仇恨标记（Boolean）
+    // Hunted flag (Boolean)
     private final boolean isHunted;
     
     private PiglinSnapshot(
@@ -44,21 +44,21 @@ public final class PiglinSnapshot {
     }
     
     /**
-     * 捕获猪灵快照（主线程调用，完整版）
+     * Capture piglin snapshot (main thread invocation, full version)
      * 
-     * @param piglin 猪灵实体（有inventory）
+     * @param piglin Piglin entity (has inventory)
      * @param level ServerLevel
-     * @return 快照
+     * @return Snapshot
      */
     public static PiglinSnapshot capture(Piglin piglin, ServerLevel level) {
-        // 1. 复制物品列表（SimpleContainer → ItemStack[]）
+        // 1. Copy inventory list (SimpleContainer → ItemStack[])
         SimpleContainer inv = piglin.getInventory();
         ItemStack[] items = new ItemStack[inv.getContainerSize()];
         for (int i = 0; i < items.length; i++) {
-            items[i] = inv.getItem(i).copy();  // copy避免引用
+            items[i] = inv.getItem(i).copy();  // copy to avoid reference sharing
         }
         
-        // 2. 扫描16格内玩家（UUID+位置+金币）
+        // 2. Scan players within 16 blocks (UUID + position + gold status)
         AABB scanBox = piglin.getBoundingBox().inflate(16.0);
         java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
@@ -71,7 +71,7 @@ public final class PiglinSnapshot {
             ))
             .collect(java.util.stream.Collectors.toList());
         
-        // 3. 扫描12格内威胁（灵魂火方块）
+        // 3. Scan threats within 12 blocks (soul fire blocks)
         java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>();
         net.minecraft.core.BlockPos piglinPos = piglin.blockPosition();
         for (int x = -12; x <= 12; x++) {
@@ -85,7 +85,7 @@ public final class PiglinSnapshot {
             }
         }
         
-        // 4. 读取仇恨标记（Boolean）
+        // 4. Read hunted flag (Boolean)
         boolean hunted = piglin.getBrain()
             .getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HUNTED_RECENTLY)
             .orElse(false);
@@ -94,20 +94,20 @@ public final class PiglinSnapshot {
     }
     
     /**
-     * 捕获简化快照（PiglinBrute专用，无inventory）
+     * Capture simplified snapshot (PiglinBrute specific, no inventory)
      * 
-     * @param brute 猪灵蛮兵（无inventory）
+     * @param brute PiglinBrute entity (no inventory)
      * @param level ServerLevel
-     * @return 快照
+     * @return Snapshot
      */
     public static PiglinSnapshot captureSimple(
             net.minecraft.world.entity.monster.piglin.PiglinBrute brute,
             ServerLevel level
     ) {
-        // 1. 空inventory（蛮兵不以物易物）
+        // 1. Empty inventory (brutes don't barter)
         ItemStack[] items = new ItemStack[0];
         
-        // 2-4. 其他逻辑相同（扫描玩家、威胁、仇恨标记）
+        // 2-4. Same logic for other aspects (scan players, threats, hunted flag)
         AABB scanBox = brute.getBoundingBox().inflate(16.0);
         java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
@@ -141,7 +141,7 @@ public final class PiglinSnapshot {
     }
     
     /**
-     * 检查玩家是否手持金币
+     * Check if player is holding gold items
      */
     private static boolean isHoldingGold(net.minecraft.world.entity.player.Player player) {
         ItemStack mainHand = player.getMainHandItem();
@@ -156,7 +156,7 @@ public final class PiglinSnapshot {
     public boolean isHunted() { return isHunted; }
     
     /**
-     * 玩家金币信息（虚拟引用：UUID+BlockPos）
+     * Player gold info (virtual reference: UUID + BlockPos)
      */
     public static class PlayerGoldInfo {
         final java.util.UUID playerId;

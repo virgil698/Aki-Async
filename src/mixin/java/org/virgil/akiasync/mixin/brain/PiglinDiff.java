@@ -7,33 +7,33 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 
 /**
- * 猪灵Brain Diff（异步计算结果）
+ * Piglin Brain differential for async computation results
  * 
- * 虚拟引用模板（1.21.8）：
- * - lookPlayerId（UUID） + lookPlayerPos（BlockPos）→ LOOK_TARGET
- * - barterPlayerId（UUID）→ BARTER_TARGET
- * - walkTarget（BlockPos）→ WALK_TARGET
- * - huntedTimer（Integer）→ HUNTED_RECENTLY
+ * Virtual reference pattern (1.21.8):
+ * - lookPlayerId (UUID) + lookPlayerPos (BlockPos) → LOOK_TARGET
+ * - barterPlayerId (UUID) → BARTER_TARGET  
+ * - walkTarget (BlockPos) → WALK_TARGET
+ * - huntedTimer (Integer) → HUNTED_RECENTLY
  * 
  * @author Virgil
  */
 public final class PiglinDiff {
     
-    // 白名单字段（纯原始类型 + 虚拟引用）
+    // Whitelisted fields (pure primitive types + virtual references)
     private java.util.UUID lookPlayerId;
     private BlockPos lookPlayerPos;
     private java.util.UUID barterPlayerId;
     private BlockPos walkTarget;
     private Integer huntedTimer;
     
-    // 统计
+    // Statistics
     private int changeCount;
     
     public PiglinDiff() {
         this.changeCount = 0;
     }
     
-    // Setters（虚拟引用）
+    // Setters (virtual reference pattern)
     public void setLookTarget(java.util.UUID playerId, BlockPos playerPos) {
         this.lookPlayerId = playerId;
         this.lookPlayerPos = playerPos;
@@ -56,18 +56,18 @@ public final class PiglinDiff {
     }
     
     /**
-     * 应用到Brain（主线程 < 0.1 ms）
-     * 虚拟引用模板：getPlayerByUUID + hasGold校验（O(1)哈希查询）
+     * Apply to Brain (main thread < 0.1 ms)
+     * Virtual reference pattern: getPlayerByUUID + hasGold validation (O(1) hash lookup)
      */
     @SuppressWarnings("unchecked")
     public <E extends LivingEntity> void applyTo(Brain<E> brain, net.minecraft.server.level.ServerLevel level, int lookDist, int barterDist) {
-        // 1. WALK_TARGET（已有）
+        // 1. WALK_TARGET
         if (walkTarget != null) {
             WalkTarget wt = new WalkTarget(walkTarget, 1.2f, 1);
             brain.setMemory(MemoryModuleType.WALK_TARGET, wt);
         }
         
-        // 2. HUNTED_RECENTLY（已有）
+        // 2. HUNTED_RECENTLY
         if (huntedTimer != null) {
             if (huntedTimer > 0) {
                 brain.setMemory(MemoryModuleType.HUNTED_RECENTLY, true);
@@ -76,18 +76,18 @@ public final class PiglinDiff {
             }
         }
         
-        // 3. LOOK_TARGET（虚拟引用：UUID → Player）
+        // 3. LOOK_TARGET (virtual reference: UUID → Player)
         if (lookPlayerId != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(lookPlayerId);
             
-            // 防御性空保护：玩家下线后 UUID 残留
+            // Defensive null protection: UUID persists after player logout
             if (player == null || player.isRemoved()) {
                 brain.eraseMemory(MemoryModuleType.LOOK_TARGET);
                 brain.eraseMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
                 return;
             }
             
-            // 距离阈值：可配置（默认16格）
+            // Distance threshold: configurable (default 16 blocks)
             double lookDistSqr = lookDist * lookDist;
             if (player.distanceToSqr(lookPlayerPos.getX(), lookPlayerPos.getY(), lookPlayerPos.getZ()) < lookDistSqr) {
                 net.minecraft.world.entity.ai.behavior.EntityTracker tracker = 
@@ -98,17 +98,17 @@ public final class PiglinDiff {
             }
         }
         
-        // 4. BARTER_TARGET（虚拟引用：UUID → Player + hasGold校验）
+        // 4. BARTER_TARGET (virtual reference: UUID → Player + hasGold validation)
         if (barterPlayerId != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(barterPlayerId);
             
-            // 防御性空保护（复用上面的检查）
+            // Defensive null protection (reuse check from above)
             if (player == null || player.isRemoved()) {
                 brain.eraseMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
                 return;
             }
             
-            // 距离+hasGold双重校验（可配置，默认16格）
+            // Distance + hasGold dual validation (configurable, default 16 blocks)
             double barterDistSqr = barterDist * barterDist;
             if (player.distanceToSqr(lookPlayerPos.getX(), lookPlayerPos.getY(), lookPlayerPos.getZ()) < barterDistSqr && hasGold(player)) {
                 brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, player);
@@ -119,7 +119,7 @@ public final class PiglinDiff {
     }
     
     /**
-     * 检查玩家是否持金（gold 检测）
+     * Check if player is holding gold (gold detection)
      */
     private boolean hasGold(net.minecraft.world.entity.player.Player player) {
         net.minecraft.world.item.ItemStack mainHand = player.getMainHandItem();

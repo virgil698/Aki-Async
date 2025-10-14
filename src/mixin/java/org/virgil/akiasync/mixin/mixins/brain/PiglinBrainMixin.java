@@ -160,7 +160,7 @@ public abstract class PiglinBrainMixin {
         if (bridge != null) {
             cached_enabled = bridge.isPiglinOptimizationEnabled();
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
-            cached_tickInterval = 3;  // 3 tick一次（比村民稀疏）
+            cached_tickInterval = 3;
             cached_lookDistance = bridge.getPiglinLookDistance();
             cached_barterDistance = bridge.getPiglinBarterDistance();
             
