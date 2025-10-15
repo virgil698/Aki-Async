@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Evoker;
 
 /**
- * Evoker differential (法术目标)
+ * Evoker differential (spell target)
  * 
  * @author Virgil
  */

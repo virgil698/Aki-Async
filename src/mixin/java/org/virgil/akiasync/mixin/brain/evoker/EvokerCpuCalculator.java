@@ -6,7 +6,7 @@ import java.util.UUID;
 import net.minecraft.world.entity.monster.Evoker;
 
 /**
- * Evoker CPU calculator (法术评分 + 空地块)
+ * Evoker CPU calculator (spell scoring + empty blocks)
  * 
  * @author Virgil
  */

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Witch snapshot (v2.1 safe version)
+ * Witch snapshot (nearby players scanning)
  */
 public final class WitchSnapshot {
     private final List<PlayerInfo> players;

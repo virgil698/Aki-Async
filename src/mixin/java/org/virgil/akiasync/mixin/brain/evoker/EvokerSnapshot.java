@@ -10,7 +10,7 @@ import net.minecraft.world.entity.monster.Evoker;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Evoker snapshot (法术+召唤+空地块)
+ * Evoker snapshot (spell CD + Vex summon + empty blocks)
  * 
  * @author Virgil
  */

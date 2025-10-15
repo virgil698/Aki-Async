@@ -10,7 +10,7 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Blaze snapshot (火焰弹+火柱空位)
+ * Blaze snapshot (fireball + fire column positioning)
  * @author Virgil
  */
 public final class BlazeSnapshot {
