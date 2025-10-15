@@ -9,9 +9,7 @@
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 [![Version](https://img.shields.io/badge/version-2.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
-**🎉 Community Edition（社区版）** - 完全免费，永久开源
-让你的Minecraft服务器丝滑流畅  
-TPS稳定20.00，MSPT大幅降低，65种生物AI零延迟优化
+**🎉 Community Edition（社区版）**
 
 [快速开始](#-快速开始) • [功能特性](#-功能特性) • [配置说明](#️-配置说明) • [常见问题](#-常见问题)
 
