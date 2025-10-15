@@ -65,7 +65,7 @@
 </details>
 
 <details>
-<summary><b>🎯 并行实体Tick（实体级分批）</b> - 76%热点优化，扩容升级版</summary>
+<summary><b>🎯 并行实体Tick（实体级分批）</b></summary>
 
 **做了什么**：
 - 把chunk级分组改成实体级分批（8个实体一批）
@@ -78,10 +78,6 @@
 - 没有长尾任务拖慢整体
 - 不和其他异步任务抢线程池
 
-**效果**：
-- MSPT从14.6ms → 9.34ms（再降36%）
-- 配置batch-size可调（默认8）
-
 </details>
 
 <details>
@@ -93,7 +89,7 @@
 - 天空光缓存（避免重复计算）
 - 专用光照线程池（2线程默认）
 
-**高级优化** ⭐：
+**高级优化**：
 - **真正的16层分层传播队列** - Starlight核心算法（光照等级0-15）
 - **智能批量大小调整** - 根据TPS动态调整（8-64范围）
 - **光照更新去重** - 防止重复计算，提升30%效率
@@ -104,57 +100,35 @@
 <details>
 <summary><b>⚡ 零延迟异步AI - 村民</b></summary>
 
+**支持**：Villager（村民）+ WanderingTrader（流浪商人）
+
 **做了什么**：
 - 把村民找工作站、找床位的POI查询放到异步线程
 - 主线程只拍个快照，异步线程算完了再写回
 - 同一tick内完成，村民行为看不出区别
 
-**技术要点**：
+**改进点**：
 - POI快照（不可变Map，线程安全）
 - 异步算64个POI的距离评分
 - ExpirableValue类型处理（避免ClassCastException）
 - 职业申请加原子锁（防止村民皮肤来回跳）
 
-**效果（44村民测试）**：
-- MSPT：36ms → 14.6ms（降低60%）
-- 村民职业稳定（不再粒子出现了但皮肤不变）
-- 交易正常，不摇头
-
-**配置**：
-```yaml
-villager-optimization:
-  enabled: true
-  use-poi-snapshot: true
-```
-
 </details>
 
 <details>
-<summary><b>🐷 零延迟异步AI - 猪灵/蛮兵</b></summary>
+<invoke name="🐷 零延迟异步AI - 猪灵/蛮兵</b></summary>
 
-**支持**：猪灵 + 猪灵蛮兵
+**支持**：Piglin（猪灵）+ PiglinBrute（猪灵蛮兵）
 
 **做了什么**：
 - 把金币检测、物品比价、恐惧向量计算放到异步线程
 - 主线程只做最后的写回（< 0.1ms）
 - 3 tick执行一次（比村民稀疏，避免过载）
 
-**技术要点**：
-- 异步阶段存UUID（不存Player引用，避免线程安全问题）
-- 主线程用UUID查玩家，再检查距离和是否持金
-- 防止玩家下线导致NPE
-
-**效果**：
-- 50只猪灵原本吃掉2个TPS
-- 优化后不影响TPS
-- 猪灵行为正常（寻路、交易、逃跑）
-
-**配置**：
-```yaml
-piglin-optimization:
-  enabled: false  # 需要时再开
-  look-distance: 16  # 可调小（10/12）避免卡顿
-```
+**改进点**：
+- UUID虚拟引用（异步存UUID，主线程查Player）
+- 防御性空保护（player == null || isRemoved）
+- 距离+hasGold双重实时校验
 
 </details>
 
@@ -168,78 +142,57 @@ piglin-optimization:
 - 全部放到异步线程，主线程安全反射写回
 - 3 tick执行一次，避免过载
 
-**技术要点**：
-- 安全REFLECTIONS工具（lazy init，不会像Witch崩溃）
-- 反射写字段：target（攻击目标）、raidCenter（Raid中心）、patrolTarget（巡逻目标）
-- 字段自动搜索父类（兼容Paper字段重混淆）
-
-**配置**：
-```yaml
-pillager-family-optimization:
-  enabled: true
-```
+**改进点**：
+- 安全REFLECTIONS工具（lazy init，避免static块崩溃）
+- 反射写字段：target、raidCenter、patrolTarget
+- 字段自动搜索父类（兼容Paper重混淆）
 
 </details>
 
 <details>
-<summary><b>🧙 零延迟异步AI - Evoker（唤魔者）</b> - v1.1</summary>
+<summary><b>🧙 零延迟异步AI - Evoker（唤魔者）</b></summary>
 
-**计算内容**：
-- 法术CD检测（基于生命值简化）
-- Vex召唤空地块检测（3x3范围）
-- 最近玩家目标筛选
+**支持**：Evoker（唤魔者）
 
-**技术**：
-- Mob.tick()注入 + instanceof过滤（Paper inline方法规避）
-- 安全反射写 Mob.target 字段
+**做了什么**：
+- 法术CD检测、Vex召唤空地块检测、最近玩家筛选
+- 异步计算，安全反射写回
 
-**配置**：
-```yaml
-evoker-optimization:
-  enabled: true
-```
+**改进点**：
+- Mob.tick()注入（Paper inline方法规避）
+- instanceof过滤（性能开销<0.01ms）
+- 3x3空地块检测（Vex召唤条件）
 
 </details>
 
 <details>
-<summary><b>🔥 零延迟异步AI - Blaze（烈焰人）</b> - v1.1</summary>
+<summary><b>🔥 零延迟异步AI - Blaze（烈焰人）</b></summary>
 
-**计算内容**：
-- 火焰弹CD检测
-- 火柱空位检测（above(2)位置）
-- 32格内玩家扫描
+**支持**：Blaze（烈焰人）
 
-**技术**：
-- Mob.tick()注入 + instanceof过滤
-- 安全反射写 target + fireColumnPos
+**做了什么**：
+- 火焰弹CD检测、火柱空位检测、32格内玩家扫描
+- 异步计算，安全反射写回
 
-**配置**：
-```yaml
-blaze-optimization:
-  enabled: true
-```
+**改进点**：
+- 火柱位置预判（above(2)位置）
+- 距离优先排序（最近玩家优先）
 
 </details>
 
 <details>
-<summary><b>🌊 零延迟异步AI - Guardian（守卫者）</b> - v1.1</summary>
+<summary><b>🌊 零延迟异步AI - Guardian（守卫者）</b></summary>
 
-**支持**：Guardian（守卫者）+ ElderGuardian（远古守卫者，自动包含）
+**支持**：Guardian（守卫者）+ ElderGuardian（远古守卫者）
 
-**计算内容**：
-- 激光CD检测
-- 水下玩家扫描（isInWater过滤）
-- 最近水下目标筛选
+**做了什么**：
+- 激光CD检测、水下玩家扫描、最近水下目标筛选
+- 异步计算，安全反射写回
 
-**技术**：
-- Java继承：ElderGuardian extends Guardian → instanceof自动覆盖
-- 安全反射写 target + beamTarget
-
-**配置**：
-```yaml
-guardian-optimization:
-  enabled: true  # 远古守卫者自动包含
-```
+**改进点**：
+- Java继承自动覆盖（ElderGuardian extends Guardian）
+- isInWater过滤（只攻击水下玩家）
+- 16格扫描范围（Guardian攻击距离）
 
 </details>
 
