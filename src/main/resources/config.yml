@@ -273,7 +273,6 @@ memory-optimizations:
 # 方块实体优化 / Block Entity Optimizations
 # ==========================================
 block-entity-optimizations:
-  # ========== v3.0 零延迟工厂优化 / Zero-Delay Factory Optimization ==========
   # 支持实体 / Supported: Furnace, Hopper, Chest, Barrel
   # 技术特性 / Features: 配方缓存+物品传输+库存扫描异步化
   zero-delay-factory-optimization:
