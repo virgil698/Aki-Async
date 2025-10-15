@@ -110,6 +110,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     }
     
     @Override
+    public boolean isEvokerOptimizationEnabled() { return config.isEvokerOptimizationEnabled(); }
+    
+    @Override
+    public boolean isBlazeOptimizationEnabled() { return config.isBlazeOptimizationEnabled(); }
+    
+    @Override
+    public boolean isGuardianOptimizationEnabled() { return config.isGuardianOptimizationEnabled(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }

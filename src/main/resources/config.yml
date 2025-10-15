@@ -1,206 +1,278 @@
-# AkiAsync Configuration File
-# Async optimization plugin for Leaves server
+# ==========================================
+# AkiAsync 配置文件 / Configuration File
+# ==========================================
+# 版本 / Version: 1.1.0
+# 适用服务端 / Server: Leaves 1.21.8+
+# ==========================================
 
-# Entity Tracker Async Optimization
+# 异步实体追踪器 / Async Entity Tracker
+# 说明：将实体位置更新移至异步线程处理
+# Description: Offload entity position tracking to async threads
 entity-tracker:
-  # Enable async entity tracker
   enabled: true
-  # Number of threads in the async executor pool
-  # Recommended: CPU cores (for most servers 4-8 is good)
-  # Min: 1, Max: 32
+  # 线程池大小 / Thread pool size
+  # 推荐值：CPU核心数 / Recommended: CPU core count
   thread-pool-size: 4
-  # Update interval in ticks (20 ticks = 1 second)
-  # Lower values = more frequent updates but higher CPU usage
-  # Default: 1 (every tick)
+  # 更新间隔（tick）/ Update interval (ticks)
   update-interval-ticks: 1
-  # Maximum queue size for async tasks
-  # If queue is full, tasks will be executed synchronously as fallback
+  # 最大队列大小 / Maximum queue size
   max-queue-size: 1000
-  # Async mod: Batch processing size (default: 50)
-  # Accumulate N tracking tasks before submitting to thread pool
-  # Higher = better throughput but slightly higher latency
-  # Lower = lower latency but more thread overhead
-  # Recommended: 30-100
+  # 批量处理大小 / Batch processing size
   batch-size: 50
 
-# Mob Spawning Async Optimization
+# 异步生物生成 / Async Mob Spawning
+# 说明：异步处理生物自然生成逻辑
+# Description: Async natural mob spawning logic
 mob-spawning:
-  # Enable async mob spawning optimization
   enabled: true
-  # Enable spawner block optimization
-  # Optimizes mob spawner performance
+  # 刷怪笼优化 / Spawner block optimization
   spawner-optimization: true
 
-# Density & Pathfinding Controls
+# 实体密度控制 / Entity Density Control
+# 说明：限制单区块实体数量
+# Description: Limit entities per chunk
 density:
-  # Max entities per chunk (all mobs) before farm-mode mitigation kicks in
+  # 单区块最大实体数 / Max entities per chunk
   max-per-chunk: 80
 
+# 寻路预算 / Pathfinding Budget
+# 说明：限制每tick寻路计算量
+# Description: Limit pathfinding computations per tick
 pathfinding:
-  # Total pathfinding budget per tick (estimated tasks). 0 disables limit
+  # 每tick预算（0=禁用）/ Budget per tick (0=disabled)
   tick-budget: 0
 
-# Brain throttle & Expensive AI async processing
+# AI降频 / Brain Throttle
+# 说明：静止实体降低AI更新频率
+# Description: Reduce AI update frequency for stationary entities
 brain:
-  # Enable throttling for stationary mobs AI brain.tick
+  # 启用降频 / Enable throttling
   throttle: true
-  # Only think once per N ticks when stationary
+  # 降频间隔（tick）/ Throttle interval (ticks)
   throttle-interval: 10
 
-# Async AI - Zero Latency Brain Execution (零延迟异步AI)
-# 核心思路：主线程只读POI快照，Brain异步执行，同tick内写回
-# 针对不同生物类型提供独立的优化开关
+# ==========================================
+# 零延迟异步AI / Zero-Latency Async AI
+# ==========================================
+# 核心思路 / Core Strategy:
+#   1. 主线程拍快照 / Main thread takes snapshot
+#   2. 异步线程计算 / Async thread computes
+#   3. 主线程写回结果 / Main thread writes back
+# ==========================================
 async-ai:
-  # Global timeout in microseconds (100μs = 0.1ms)
-  # 全局超时时间（微秒）- 中期优化：砍半超时，让线程池真正忙起来
+  # 全局超时时间（微秒）/ Global timeout (microseconds)
+  # 100μs = 0.1ms
   timeout-microseconds: 100
   
-  # Execution mode (执行模式)
-  # simple: 简单CPU计算模拟（方案1：30秒止血）
-  # full: 完整异步Brain执行（方案2：10分钟真异步）
+  # 执行模式 / Execution mode
   mode: simple
   
-  # 村民类优化 (Villager + Wandering Trader)
-  # 村民依赖POI系统（床、工作站等），需要POI快照
+  # ---------- 村民优化 / Villager Optimization ----------
+  # 支持实体 / Supported: Villager, Wandering Trader
+  # 技术特性 / Features: POI快照 + 职业原子占坑
   villager-optimization:
-    enabled: false  # 默认关闭（实验性）
-    use-poi-snapshot: true  # 使用POI快照（村民必须）
+    # 启用开关 / Enable toggle
+    enabled: false
+    # 使用POI快照 / Use POI snapshot
+    # 说明：村民需要POI系统（床、工作站）
+    # Description: Villagers need POI system (beds, job sites)
+    use-poi-snapshot: true
   
-  # 猪灵+猪灵蛮兵优化 (Piglin + PiglinBrute)
-  # 猪灵/蛮兵：金币检测+以物易物+恐惧向量，CPU密集
-  # 50只猪灵 = 40-50 ms MSPT → 直接吃掉2个TPS
-  # 包含实体：minecraft:piglin, minecraft:piglin_brute
+  # ---------- 猪灵家族优化 / Piglin Family Optimization ----------
+  # 支持实体 / Supported: Piglin, PiglinBrute
+  # 技术特性 / Features: UUID虚拟引用 + 物品比价 + 恐惧向量
   piglin-optimization:
-    enabled: false  # 默认关闭，需手动启用
-    use-poi-snapshot: false  # 猪灵不依赖POI，使用自定义快照
-    look-distance: 16  # 注视距离（格）
-    barter-distance: 16  # 交易距离（格，蛮兵也检测）
+    enabled: false
+    use-poi-snapshot: false
+    # 注视距离（格）/ Look distance (blocks)
+    look-distance: 16
+    # 交易距离（格）/ Barter distance (blocks)
+    barter-distance: 16
   
-  # 掠夺者家族优化 (Pillager/Evoker/Vindicator/Ravager)
-  # 劫掠者车团：Crossbow+Raid+Attack+Patrol，CPU密集
-  # 50只劫掠者 = 55-70 ms MSPT → 直接吃掉3.5个TPS
-  # 包含实体：minecraft:pillager, minecraft:evoker, minecraft:vindicator, minecraft:ravager
-  # 注入父类Mob.tick()，用instanceof过滤四兄弟
+  # ---------- 掠夺者家族优化 / Pillager Family Optimization ----------
+  # 支持实体 / Supported: Pillager, Vindicator, Ravager
+  # 技术特性 / Features: 安全反射写字段 + Raid检测
+  # 注意 / Note: Evoker单独优化（见下方）
   pillager-family-optimization:
-    enabled: false  # 默认关闭
-    use-poi-snapshot: false  # 使用自定义快照
+    enabled: false
+    use-poi-snapshot: false
   
-  # 其他生物优化 (简单AI实体)
-  # 僵尸、骷髅、苦力怕等不依赖POI的生物
+  # ---------- 高级AI实体优化 / High-AI Entity Optimization ----------
+  # v1.1新增 / v1.1 New
+  
+  # Evoker优化 / Evoker Optimization
+  # 支持实体 / Supported: Evoker
+  # 计算内容 / Computations: 法术CD + 召唤Vex + 空地块检测
+  evoker-optimization:
+    enabled: false
+  
+  # Blaze优化 / Blaze Optimization  
+  # 支持实体 / Supported: Blaze
+  # 计算内容 / Computations: 火焰弹CD + 火柱空位检测
+  blaze-optimization:
+    enabled: false
+  
+  # Guardian优化 / Guardian Optimization
+  # 支持实体 / Supported: Guardian, ElderGuardian
+  # 计算内容 / Computations: 激光CD + 水下玩家扫描
+  # 说明：远古守卫者自动包含（Java继承）
+  # Description: Elder guardian auto-included (Java inheritance)
+  guardian-optimization:
+    enabled: false
+  
+  # 简单实体优化 / Simple Entities Optimization
+  # 支持实体 / Supported: Zombie, Skeleton, Creeper, etc
+  # 说明：不依赖POI的简单AI实体
+  # Description: Simple AI entities without POI dependency
   simple-entities:
     enabled: false
-    use-poi-snapshot: false  # 简单实体无需POI快照
+    use-poi-snapshot: false
 
-# Parallel EntityTickList (biggest hotspot ~75%)
-# 扩容优化：实体级分批（chunk粒度太粗 → 8-entity小批次）
+# ==========================================
+# 并行实体Tick / Parallel Entity Tick
+# ==========================================
+# 说明：将实体tick分批并行处理（76%热点优化）
+# Description: Batch entities for parallel tick processing
 entity-tick-parallel:
-  # Enable parallel entity ticking
+  # 启用开关 / Enable toggle
   enabled: true
-  # Number of parallel threads (recommend: 4-8)
+  # 线程数 / Thread count
+  # 推荐：CPU核心数×1.5 / Recommended: CPU cores × 1.5
   threads: 6
-  # Minimum entities to trigger parallel (avoid overhead for small lists)
+  # 最小实体数阈值 / Minimum entities threshold
+  # 说明：低于此值不启用并行（避免overhead）
+  # Description: Skip parallel if entities < threshold
   min-entities: 50
-  # Batch size (entities per task, 实体级粒度)
-  # 8 = 均衡任务大小，避免chunk粒度太粗（0~150+实体差异巨大）
+  # 批量大小（实体级粒度）/ Batch size (entity-level granularity)
+  # 说明：8个实体一批，任务均衡
+  # Description: 8 entities per batch, balanced task size
   batch-size: 8
 
-# ServerCore-inspired optimizations
+# ==========================================
+# 性能优化套件 / Performance Optimizations
+# ==========================================
+# ServerCore启发 / ServerCore-inspired
 servercore-optimizations:
-  # Optimize pushEntities (26.72% hotspot)
+  # 推挤优化 / Push optimization
+  # 热点占比 / Hotspot: 26.72%
   push-optimization:
     enabled: true
-    # Only push every N ticks (2 = every other tick)
     interval: 2
   
-  # Cache entity lookup results (23.12% hotspot)
+  # 实体查找缓存 / Entity lookup cache
+  # 热点占比 / Hotspot: 23.12%
   entity-lookup-cache:
     enabled: true
-    # Cache validity duration in milliseconds
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
     duration-ms: 50
   
-  # Optimize collision detection (9% hotspot)
+  # 碰撞检测优化 / Collision optimization
+  # 热点占比 / Hotspot: 9%
   collision-optimization:
     enabled: true
-    # Minimum movement to trigger collision checks (squared)
     min-movement: 0.001
 
-# FerriteCore-inspired memory optimizations
+# ==========================================
+# 内存优化套件 / Memory Optimizations
+# ==========================================
+# FerriteCore启发 / FerriteCore-inspired
 memory-optimizations:
-  # Cache common predicates to reduce GC pressure
+  # 谓词缓存 / Predicate cache
+  # 说明：缓存常用谓词，降低GC压力
+  # Description: Cache common predicates, reduce GC pressure
   predicate-cache:
     enabled: true
   
-  # BlockPos object pool to reduce allocations (~26% reduction)
+  # BlockPos对象池 / BlockPos object pool
+  # 说明：复用BlockPos对象，减少26%内存分配
+  # Description: Reuse BlockPos objects, 26% allocation reduction
   blockpos-pool:
     enabled: true
   
-  # Pre-allocate entity lists to reduce ArrayList resizing
+  # 列表预分配 / List pre-allocation
+  # 说明：预分配容量，减少ArrayList扩容
+  # Description: Pre-allocate capacity, reduce ArrayList resizing
   list-prealloc:
     enabled: true
-    # Default initial capacity for entity lists
+    # 默认初始容量 / Default initial capacity
     default-capacity: 32
 
-# FabricFastFurnace-inspired block entity optimization
+# 方块实体优化 / Block Entity Optimizations
 block-entity-optimizations:
-  # Skip furnace ticks when idle (no fuel/items)
+  # 熔炉优化 / Furnace optimization
+  # 说明：空闲时跳过tick
+  # Description: Skip tick when idle
   furnace-optimization:
     enabled: true
 
-# ScalableLux/Starlight-inspired lighting optimizations
+# ==========================================
+# 光照优化套件 / Lighting Optimizations
+# ==========================================
+# Starlight/ScalableLux启发 / Starlight-inspired
 lighting-optimizations:
-  # Async lighting calculation (reduces main thread load during chunk loading)
+  # 异步光照 / Async lighting
   async-lighting:
     enabled: true
-    # Dedicated thread pool size for lighting (recommend: 2-4)
+    # 光照线程池大小 / Lighting thread pool size
     thread-pool-size: 2
-    # Batch threshold - accumulate N updates before processing
-    # Higher = better throughput, lower = lower latency
-    # This is the base threshold, actual value adjusts dynamically based on TPS
+    # 批量处理阈值 / Batch threshold
     batch-threshold: 16
   
-  # Light propagation queue optimization (Starlight algorithm)
+  # 光照传播队列 / Propagation queue
   propagation-queue:
-    # Use true layered propagation queue (16 levels, 0-15 light levels)
-    # Starlight core algorithm - processes from high to low light levels
+    # 分层队列（Starlight核心算法）/ Layered queue (Starlight core)
+    # 说明：16层队列，按光照等级0-15分层处理
+    # Description: 16-layer queue, processes by light level 0-15
     use-layered-queue: true
-    # Maximum light propagation distance per batch
-    # Lower values reduce lag spikes from large light updates
+    # 最大传播距离 / Max propagation distance
     max-propagation-distance: 15
   
-  # Skylight cache (reduces repeated calculations)
+  # 天空光缓存 / Skylight cache
   skylight-cache:
     enabled: true
-    # Cache validity duration in milliseconds
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
     cache-duration-ms: 100
   
-  # Advanced optimizations
+  # 高级优化 / Advanced optimizations
   advanced:
-    # Enable deduplication (prevents same position from queuing multiple times)
+    # 启用去重 / Enable deduplication
+    # 说明：防止同一位置重复排队
+    # Description: Prevent same position from queuing multiple times
     enable-deduplication: true
-    # Enable dynamic batch size adjustment based on server TPS
-    # When TPS < 18: batch size increases (reduce overhead)
-    # When TPS > 19.8: batch size decreases (lower latency)
+    # 动态批量大小调整 / Dynamic batch adjustment
+    # 说明：根据TPS自动调整批量大小
+    # Description: Auto-adjust batch size based on TPS
     dynamic-batch-adjustment: true
-    # Log advanced optimization statistics
+    # 输出高级统计 / Log advanced stats
     log-advanced-stats: false
 
-# Performance Settings
+# ==========================================
+# 性能监控 / Performance Monitoring
+# ==========================================
 performance:
-  # Enable debug logging (useful for troubleshooting)
-  # Warning: This can spam your console!
+  # 调试日志 / Debug logging
+  # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
   
-  # Enable performance metrics collection
-  # Shows async task execution times and queue sizes
+  # 性能指标收集 / Metrics collection
+  # 说明：显示异步任务执行时间和队列大小
+  # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
-# ========================================
-# Configuration Tips:
-# ========================================
-# 1. For small servers (1-10 players): thread-pool-size: 2-4
-# 2. For medium servers (10-50 players): thread-pool-size: 4-8
-# 3. For large servers (50+ players): thread-pool-size: 8-16
-# 
-# Note: More threads doesn't always mean better performance!
-# Start with 4 threads and adjust based on your server's needs.
-
+# ==========================================
+# 配置建议 / Configuration Tips
+# ==========================================
+# 小型服务器 / Small servers (1-10人):
+#   - thread-pool-size: 2-4
+#   - threads: 4
+#
+# 中型服务器 / Medium servers (10-50人):
+#   - thread-pool-size: 4-8
+#   - threads: 6-8
+#
+# 大型服务器 / Large servers (50+人):
+#   - thread-pool-size: 8-16
+#   - threads: 8-12
+#
+# 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
+# More threads ≠ better performance! Start with recommended values.

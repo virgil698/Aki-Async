@@ -41,6 +41,9 @@ public class ConfigManager {
     private int piglinBarterDistance;
     private boolean pillagerFamilyOptimizationEnabled;
     private boolean pillagerFamilyUsePOISnapshot;
+    private boolean evokerOptimizationEnabled;
+    private boolean blazeOptimizationEnabled;
+    private boolean guardianOptimizationEnabled;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -119,6 +122,9 @@ public class ConfigManager {
         piglinBarterDistance = config.getInt("async-ai.piglin-optimization.barter-distance", 16);
         pillagerFamilyOptimizationEnabled = config.getBoolean("async-ai.pillager-family-optimization.enabled", false);
         pillagerFamilyUsePOISnapshot = config.getBoolean("async-ai.pillager-family-optimization.use-poi-snapshot", false);
+        evokerOptimizationEnabled = config.getBoolean("async-ai.evoker-optimization.enabled", false);
+        blazeOptimizationEnabled = config.getBoolean("async-ai.blaze-optimization.enabled", false);
+        guardianOptimizationEnabled = config.getBoolean("async-ai.guardian-optimization.enabled", false);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -297,6 +303,9 @@ public class ConfigManager {
     public int getPiglinBarterDistance() { return piglinBarterDistance; }
     public boolean isPillagerFamilyOptimizationEnabled() { return pillagerFamilyOptimizationEnabled; }
     public boolean isPillagerFamilyUsePOISnapshot() { return pillagerFamilyUsePOISnapshot; }
+    public boolean isEvokerOptimizationEnabled() { return evokerOptimizationEnabled; }
+    public boolean isBlazeOptimizationEnabled() { return blazeOptimizationEnabled; }
+    public boolean isGuardianOptimizationEnabled() { return guardianOptimizationEnabled; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

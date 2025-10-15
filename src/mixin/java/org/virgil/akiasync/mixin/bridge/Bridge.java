@@ -112,6 +112,10 @@ public interface Bridge {
      */
     boolean isPillagerFamilyUsePOISnapshot();
     
+    boolean isEvokerOptimizationEnabled();
+    boolean isBlazeOptimizationEnabled();
+    boolean isGuardianOptimizationEnabled();
+    
     /**
      * Check if simple entities optimization is enabled
      * @return true if enabled
