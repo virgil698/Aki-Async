@@ -10,7 +10,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 
 /**
- * Hopper hardcore optimization (delay markDirty only, like Witch v2.1)
+ * Hopper hardcore optimization (delay markDirty only, safe method)
+ * 
+ * Note: pushItems/suckInItems don't exist in Paper 1.21.8 (obfuscated)
+ * Only tick() static method exists, need research for real optimization
  * 
  * @author Virgil
  */
@@ -18,12 +21,12 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 @Mixin(value = HopperBlockEntity.class, priority = 989)
 public class HopperOptimizationMixin {
     
-    // Skip empty hopper setChanged + delay markDirty
+    // Skip empty + delay markDirty (only safe method)
     @Inject(method = "setChanged", at = @At("HEAD"), cancellable = true)
     private void aki$optimizeMarkDirty(CallbackInfo ci) {
         HopperBlockEntity hopper = (HopperBlockEntity) (Object) this;
         
-        // Skip if empty (no items changed)
+        // Skip if empty
         if (hopper.isEmpty()) {
             ci.cancel();
             return;
@@ -34,7 +37,7 @@ public class HopperOptimizationMixin {
         if (level == null) return;
         if (level instanceof ServerLevel serverLevel) {
             if (serverLevel.getGameTime() % 20 != 0) {
-                ci.cancel();  // Only save every 20 ticks
+                ci.cancel();
             }
         }
     }

@@ -49,6 +49,8 @@ public class ConfigManager {
     private java.util.Set<String> universalAiEntities;
     private boolean zeroDelayFactoryOptimizationEnabled;
     private java.util.Set<String> zeroDelayFactoryEntities;
+    private boolean itemEntityOptimizationEnabled;
+    private int itemEntityAgeInterval;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -135,6 +137,8 @@ public class ConfigManager {
         universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
         zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
         zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
+        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -321,6 +325,8 @@ public class ConfigManager {
     public java.util.Set<String> getUniversalAiEntities() { return universalAiEntities; }
     public boolean isZeroDelayFactoryOptimizationEnabled() { return zeroDelayFactoryOptimizationEnabled; }
     public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
+    public boolean isItemEntityOptimizationEnabled() { return itemEntityOptimizationEnabled; }
+    public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

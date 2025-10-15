@@ -134,6 +134,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public java.util.Set<String> getZeroDelayFactoryEntities() { return config.getZeroDelayFactoryEntities(); }
     
     @Override
+    public boolean isItemEntityOptimizationEnabled() { return config.isItemEntityOptimizationEnabled(); }
+    
+    @Override
+    public int getItemEntityAgeInterval() { return config.getItemEntityAgeInterval(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }

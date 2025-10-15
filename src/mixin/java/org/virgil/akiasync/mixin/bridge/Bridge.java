@@ -120,6 +120,8 @@ public interface Bridge {
     java.util.Set<String> getUniversalAiEntities();
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
+    boolean isItemEntityOptimizationEnabled();
+    int getItemEntityAgeInterval();
     
     /**
      * Check if simple entities optimization is enabled

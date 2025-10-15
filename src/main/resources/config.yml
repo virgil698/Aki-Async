@@ -270,6 +270,19 @@ memory-optimizations:
     default-capacity: 32
 
 # ==========================================
+# 掉落物优化 / Item Entity Optimizations (v5.0)
+# ==========================================
+# 说明：掉落物是红石频控、刷石机的"第二性能瓶弹"
+# Description: ItemEntity is the 2nd performance bottleneck for redstone farms
+item-entity-optimizations:
+  enabled: true  # v5.0启用
+  # Tick节流间隔 / Tick throttle interval
+  # 说明：每N tick更新一次掉落物（默认每tick）
+  # Description: Update item entity every N ticks (default: every tick)
+  # 推荐值 / Recommended: 5-10 (reduce 80-90% tick frequency)
+  age-increment-interval: 10
+
+# ==========================================
 # 方块实体优化 / Block Entity Optimizations
 # ==========================================
 block-entity-optimizations:
