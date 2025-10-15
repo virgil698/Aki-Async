@@ -49,6 +49,7 @@ public class AsyncBrainExecutor {
      */
     public static <T> CompletableFuture<T> runSync(Callable<T> task, long timeout, TimeUnit unit) {
         totalExecutions.incrementAndGet();
+        long startNanos = org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncStart();
         
         if (executorService == null || executorService.isShutdown()) {
             // Fallback: executor unavailable, execute synchronously
@@ -74,15 +75,19 @@ public class AsyncBrainExecutor {
         }, executorService)
         .orTimeout(timeout, unit)
         .whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                if (throwable instanceof TimeoutException) {
-                    timeoutCount.incrementAndGet();
-                } else {
-                    errorCount.incrementAndGet();
-                }
+            boolean success = throwable == null;
+            boolean isTimeout = throwable instanceof TimeoutException;
+            
+            if (isTimeout) {
+                timeoutCount.incrementAndGet();
+            } else if (!success) {
+                errorCount.incrementAndGet();
             } else {
                 successCount.incrementAndGet();
             }
+            
+            // Record metrics
+            org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, success, isTimeout);
         });
     }
     
