@@ -20,6 +20,8 @@
     "blockentity.HopperOptimizationMixin",
     "blockentity.FurnaceOptimizationMixin",
     "blockentity.ChestOptimizationMixin",
+    "blockentity.BrewingStandOptimizationMixin",
+    "blockentity.BeaconOptimizationMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",
