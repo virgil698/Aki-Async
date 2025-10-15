@@ -434,7 +434,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 
 💬 **Issues**: [GitHub Issues](https://github.com/virgil698/Aki-Async/issues)  
 📧 **Email**: virgil698@sky233.top  
-💬 **Discord**: xiaokou23357(virgil698)
+💬 **Discord**: xiaokong23357(virgil698)
 
 ---
 

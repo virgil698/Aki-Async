@@ -17,6 +17,7 @@
     "brain.GuardianTickMixin",
     "brain.WitchTickMixin",
     "brain.UniversalAiFamilyTickMixin",
+    "blockentity.FactoryTickMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",

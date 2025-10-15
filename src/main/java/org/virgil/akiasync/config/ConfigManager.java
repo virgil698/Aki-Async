@@ -47,6 +47,8 @@ public class ConfigManager {
     private boolean witchOptimizationEnabled;
     private boolean universalAiOptimizationEnabled;
     private java.util.Set<String> universalAiEntities;
+    private boolean zeroDelayFactoryOptimizationEnabled;
+    private java.util.Set<String> zeroDelayFactoryEntities;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -131,6 +133,8 @@ public class ConfigManager {
         witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
         universalAiOptimizationEnabled = config.getBoolean("async-ai.universal-ai-optimization.enabled", false);
         universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
+        zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
+        zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -315,6 +319,8 @@ public class ConfigManager {
     public boolean isWitchOptimizationEnabled() { return witchOptimizationEnabled; }
     public boolean isUniversalAiOptimizationEnabled() { return universalAiOptimizationEnabled; }
     public java.util.Set<String> getUniversalAiEntities() { return universalAiEntities; }
+    public boolean isZeroDelayFactoryOptimizationEnabled() { return zeroDelayFactoryOptimizationEnabled; }
+    public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

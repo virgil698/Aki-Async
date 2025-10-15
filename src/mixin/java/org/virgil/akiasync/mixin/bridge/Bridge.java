@@ -118,6 +118,8 @@ public interface Bridge {
     boolean isWitchOptimizationEnabled();
     boolean isUniversalAiOptimizationEnabled();
     java.util.Set<String> getUniversalAiEntities();
+    boolean isZeroDelayFactoryOptimizationEnabled();
+    java.util.Set<String> getZeroDelayFactoryEntities();
     
     /**
      * Check if simple entities optimization is enabled

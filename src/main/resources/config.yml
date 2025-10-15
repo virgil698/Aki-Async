@@ -269,13 +269,34 @@ memory-optimizations:
     # 默认初始容量 / Default initial capacity
     default-capacity: 32
 
+# ==========================================
 # 方块实体优化 / Block Entity Optimizations
+# ==========================================
 block-entity-optimizations:
-  # 熔炉优化 / Furnace optimization
-  # 说明：空闲时跳过tick
-  # Description: Skip tick when idle
+  # ========== v3.0 零延迟工厂优化 / Zero-Delay Factory Optimization ==========
+  # 支持实体 / Supported: Furnace, Hopper, Chest, Barrel
+  # 技术特性 / Features: 配方缓存+物品传输+库存扫描异步化
+  zero-delay-factory-optimization:
+    enabled: true  # v3.0启用
+    # 启用的实体列表 / Enabled entity types
+    entities:
+      - "minecraft:furnace"
+      - "minecraft:blast_furnace"
+      - "minecraft:smoker"
+      - "minecraft:hopper"
+      - "minecraft:chest"
+      - "minecraft:barrel"
+      - "minecraft:trapped_chest"
+    tick-interval: 1      # 每tick提交（生电需要0 tick延迟）
+    timeout-us: 100
+    control-goal: true
+    batch-size: 8
+  
+  # 熔炉空闲优化 / Furnace idle skip
+  # 说明：空闲时跳过tick（已被v3.0包含）
+  # Description: Skip tick when idle (included in v3.0)
   furnace-optimization:
-    enabled: true
+    enabled: false  # 关闭（被v3.0替代）
 
 # ==========================================
 # 光照优化套件 / Lighting Optimizations

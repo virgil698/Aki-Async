@@ -128,6 +128,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public java.util.Set<String> getUniversalAiEntities() { return config.getUniversalAiEntities(); }
     
     @Override
+    public boolean isZeroDelayFactoryOptimizationEnabled() { return config.isZeroDelayFactoryOptimizationEnabled(); }
+    
+    @Override
+    public java.util.Set<String> getZeroDelayFactoryEntities() { return config.getZeroDelayFactoryEntities(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }
