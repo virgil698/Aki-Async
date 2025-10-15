@@ -2,7 +2,7 @@
 
 # 🚀 AkiAsync
 
-### Comprehensive Async Optimization Plugin for Leaves Server
+### 🍃 Comprehensive Async Optimization Plugin for Leaves Server
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
@@ -10,13 +10,8 @@
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](build/libs)
 [![Version](https://img.shields.io/badge/version-1.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
-
 一个专为 **Leaves 1.21.8+** 服务端设计的全方位异步优化插件  
-通过 Mixin 技术深度优化服务端性能，让你的服务器丝滑流畅
-
-**🎉 Community Edition (开源社区版)** - 完全免费，永久开源
-
-[特性](#-核心特性) • [安装](#-快速开始) • [配置](#️-配置) • [性能](#-性能测试) • [文档](docs/)
+使用 Mixin 深度优化服务端部分卡顿问题，确保服务端稳定运行，提升服务器性能
 
 </div>
 
@@ -24,46 +19,23 @@
 
 ## 🎯 核心特性
 
-### 📊 性能表现
-
-<table>
-<tr>
-<td>
-
-**优化前**
-- MSPT: ~20-30ms
-- TPS波动: 频繁
-- CPU占用: 不均衡
-
-</td>
-<td>
-
-**优化后** ✨
-- **MSPT: ~9.34ms** (↓ 74%)
-- **TPS: 20.00** (稳定)
-- **CPU: 24.23%** (多核均衡)
-
-</td>
-</tr>
-</table>
-
-### 🚀 19个优化模块（1.21.8专用）
-
-#### **异步AI优化** (4个模块)
-- ⚡ **Zero-Latency Async AI - 村民** - UUID虚拟引用+POI快照+职业原子占坑
-- 🐷 **Zero-Latency Async AI - 猪灵/蛮兵** - 物品比价+恐惧向量+虚拟引用（NEW!）
+#### **异步AI优化** (9个模块)
+- ⚡ **Villager** - POI快照+职业原子占坑（村民+流浪商人）
+- 🐷 **Piglin/PiglinBrute** - UUID虚拟引用+物品比价+恐惧向量
+- 🏹 **Pillager/Vindicator/Ravager** - 安全反射+Raid检测+攻击目标筛选
+- 🧙 **Evoker** - 法术CD+Vex召唤+空地块检测（v1.1 NEW!）
+- 🔥 **Blaze** - 火焰弹CD+火柱空位检测（v1.1 NEW!）
+- 🌊 **Guardian/ElderGuardian** - 激光CD+水下玩家扫描（v1.1 NEW!）
 - 🧠 **Brain Throttle** - AI降频，静止实体每10 tick思考一次
+- 🗺️ **Pathfinding Budget** - 寻路预算调度，平滑分散负载
 - 🔒 **Villager Job Claim Atomic** - 村民职业原子占坑，防止皮肤横跳
 
 #### **并行优化** (3个模块)
 - 🔄 **Async Entity Tracker** - 实体追踪异步化，减少主线程负载
-- 🎯 **Parallel Entity Tick（实体级分批）** - 8实体/批，自适应超时，allof聚合
-- 🗺️ **Pathfinding Budget** - 寻路预算调度，平滑分散负载
-
-#### **生成优化** (1个模块)
+- 🎯 **Parallel Entity Tick（实体级分批）** - 8实体/批，自适应超时，allOf聚合
 - 🐛 **Async Mob Spawning** - 异步生物生成，密度智能控制
 
-#### **光照优化** (3个模块)
+#### **光照优化** (个模块)
 - 💡 **16-Layer Propagation Queue** - Starlight核心算法，分层处理光照
 - 🔆 **Smart Batch Adjustment** - TPS自适应批量大小（8-64动态调整）
 - ☀️ **Skylight Cache + Deduplication** - 天空光缓存 + 去重（+30%效率）
@@ -77,39 +49,6 @@
 - 🗄️ **BlockPos Pooling** - 对象池减少26%内存分配
 - 📦 **Predicate Cache** - 谓词缓存，降低GC压力
 - 📋 **List Pre-allocation** - 列表预分配，减少ArrayList扩容
-
-### 🎨 技术架构
-
-```
-┌─────────────────────────────────────────────────┐
-│            AkiAsync Plugin Core (v1.0.0)        │
-├─────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌─────────────────┐         │
-│  │ General Pool │  │  Lighting Pool  │         │
-│  │  (4 threads) │  │   (2 threads)   │         │
-│  │ AI + Entity  │  │   Light Only    │         │
-│  └──────────────┘  └─────────────────┘         │
-├─────────────────────────────────────────────────┤
-│         Bridge Pattern (Mixin ↔ Plugin)         │
-│         UUID虚拟引用 + ExpirableValue时间校正     │
-├─────────────────────────────────────────────────┤
-│  19 Optimization Mixins (Priority 999-1200)     │
-│  - Async AI (4)        - Parallel (3)           │
-│  - Lighting (3)        - Performance (3)        │
-│  - Memory (3)          - Spawning (1)           │
-│  - Brain Throttle (1)  - Pathfinding (1)        │
-└─────────────────────────────────────────────────┘
-```
-
-### 🏆 关键技术
-
-- **UUID虚拟引用** - 异步存UUID，主线程查玩家（避免跨线程传Player）
-- **ExpirableValue处理** - 避免类型错误（之前会崩）
-- **实体级分批** - 8个一批，任务均衡
-- **自适应超时** - 根据MSPT调整（25-100ms）
-- **原子占坑** - 村民职业申请加锁（防止皮肤跳）
-- **双线程池** - General + Lighting分开
-- **100μs超时** - 超时立即fallback
 
 ---
 
@@ -220,6 +159,91 @@ piglin-optimization:
 </details>
 
 <details>
+<summary><b>🏹 零延迟异步AI - 劫掠者家族</b></summary>
+
+**支持**：Pillager（劫掠者）+ Vindicator（卫道士）+ Ravager（劫掠兽）
+
+**做了什么**：
+- Crossbow装填检测、Raid位置扫描、攻击目标筛选、巡逻POI评分
+- 全部放到异步线程，主线程安全反射写回
+- 3 tick执行一次，避免过载
+
+**技术要点**：
+- 安全REFLECTIONS工具（lazy init，不会像Witch崩溃）
+- 反射写字段：target（攻击目标）、raidCenter（Raid中心）、patrolTarget（巡逻目标）
+- 字段自动搜索父类（兼容Paper字段重混淆）
+
+**配置**：
+```yaml
+pillager-family-optimization:
+  enabled: true
+```
+
+</details>
+
+<details>
+<summary><b>🧙 零延迟异步AI - Evoker（唤魔者）</b> - v1.1</summary>
+
+**计算内容**：
+- 法术CD检测（基于生命值简化）
+- Vex召唤空地块检测（3x3范围）
+- 最近玩家目标筛选
+
+**技术**：
+- Mob.tick()注入 + instanceof过滤（Paper inline方法规避）
+- 安全反射写 Mob.target 字段
+
+**配置**：
+```yaml
+evoker-optimization:
+  enabled: true
+```
+
+</details>
+
+<details>
+<summary><b>🔥 零延迟异步AI - Blaze（烈焰人）</b> - v1.1</summary>
+
+**计算内容**：
+- 火焰弹CD检测
+- 火柱空位检测（above(2)位置）
+- 32格内玩家扫描
+
+**技术**：
+- Mob.tick()注入 + instanceof过滤
+- 安全反射写 target + fireColumnPos
+
+**配置**：
+```yaml
+blaze-optimization:
+  enabled: true
+```
+
+</details>
+
+<details>
+<summary><b>🌊 零延迟异步AI - Guardian（守卫者）</b> - v1.1</summary>
+
+**支持**：Guardian（守卫者）+ ElderGuardian（远古守卫者，自动包含）
+
+**计算内容**：
+- 激光CD检测
+- 水下玩家扫描（isInWater过滤）
+- 最近水下目标筛选
+
+**技术**：
+- Java继承：ElderGuardian extends Guardian → instanceof自动覆盖
+- 安全反射写 target + beamTarget
+
+**配置**：
+```yaml
+guardian-optimization:
+  enabled: true  # 远古守卫者自动包含
+```
+
+</details>
+
+<details>
 <summary><b>🧠 AI Brain 降频 (Brain Throttle)</b></summary>
 
 - 静止实体在可配置间隔内跳过 `Brain#tick`
@@ -282,18 +306,7 @@ piglin-optimization:
 
 ### 方式1：下载 Release（推荐）
 
-```bash
-# 1. 下载最新版本
-wget https://github.com/virgil698/Aki-Async/releases/latest/download/Aki-Async.jar
-
-# 2. 放入 plugins 文件夹
-mv Aki-Async.jar /path/to/server/plugins/
-
-# 3. 修改启动脚本添加 Mixin 支持
-java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
-
-# 4. 重启服务器
-```
+> ⚠ 本项目正在开发中，暂时不提供 Releases 下载，请使用方式2从源码构建
 
 ### 方式2：从源码构建
 
@@ -311,146 +324,301 @@ cd Aki-Async
 ### ⚙️ 启动参数（重要！）
 
 ```bash
-# 必须添加此参数启用 Mixin 支持
+# 必须添加此参数启用 Mixin 支持，否则插件无法加载
 -Dleavesclip.enable.mixin=true
 ```
 
 ## ⚙️ 配置
 
-配置文件位于 `plugins/AkiAsync/config.yml`，首次启动自动生成。
+配置文件位于 `plugins/AkiAsync/config.yml`，首次启动自动生成
 
-### 推荐配置（不同服务器规模）
-
-<details>
-<summary><b>小型服务器 (1-10人)</b></summary>
-
-```yaml
-entity-tracker:
-  thread-pool-size: 2-4
-  
-entity-tick-parallel:
-  threads: 4
-  min-entities: 100
-
-lighting-optimizations:
-  async-lighting:
-    thread-pool-size: 2
-    batch-threshold: 16
-```
-</details>
+配置文件默认已添加所有优化模块，请根据需要自行调整
 
 <details>
-<summary><b>中型服务器 (10-50人) - 推荐配置</b></summary>
+<summary><b>默认配置</b></summary>
 
 ```yaml
+# ==========================================
+# AkiAsync 配置文件 / Configuration File
+# ==========================================
+# 版本 / Version: 1.1.0
+# 适用服务端 / Server: Leaves 1.21.8+
+# ==========================================
+
+# 异步实体追踪器 / Async Entity Tracker
+# 说明：将实体位置更新移至异步线程处理
+# Description: Offload entity position tracking to async threads
 entity-tracker:
   enabled: true
-  thread-pool-size: 4-6
-  
-entity-tick-parallel:
+  # 线程池大小 / Thread pool size
+  # 推荐值：CPU核心数 / Recommended: CPU core count
+  thread-pool-size: 4
+  # 更新间隔（tick）/ Update interval (ticks)
+  update-interval-ticks: 1
+  # 最大队列大小 / Maximum queue size
+  max-queue-size: 1000
+  # 批量处理大小 / Batch processing size
+  batch-size: 50
+
+# 异步生物生成 / Async Mob Spawning
+# 说明：异步处理生物自然生成逻辑
+# Description: Async natural mob spawning logic
+mob-spawning:
   enabled: true
-  threads: 6-8
-  min-entities: 50
-  
+  # 刷怪笼优化 / Spawner block optimization
+  spawner-optimization: true
+
+# 实体密度控制 / Entity Density Control
+# 说明：限制单区块实体数量
+# Description: Limit entities per chunk
+density:
+  # 单区块最大实体数 / Max entities per chunk
+  max-per-chunk: 80
+
+# 寻路预算 / Pathfinding Budget
+# 说明：限制每tick寻路计算量
+# Description: Limit pathfinding computations per tick
+pathfinding:
+  # 每tick预算（0=禁用）/ Budget per tick (0=disabled)
+  tick-budget: 0
+
+# AI降频 / Brain Throttle
+# 说明：静止实体降低AI更新频率
+# Description: Reduce AI update frequency for stationary entities
 brain:
+  # 启用降频 / Enable throttling
   throttle: true
+  # 降频间隔（tick）/ Throttle interval (ticks)
   throttle-interval: 10
 
-async-ai:  # ⚡ 零延迟异步AI（1.21.8专用）
-  timeout-microseconds: 100  # 100微秒超时
+# ==========================================
+# 零延迟异步AI / Zero-Latency Async AI
+# ==========================================
+# 核心思路 / Core Strategy:
+#   1. 主线程拍快照 / Main thread takes snapshot
+#   2. 异步线程计算 / Async thread computes
+#   3. 主线程写回结果 / Main thread writes back
+# ==========================================
+async-ai:
+  # 全局超时时间（微秒）/ Global timeout (microseconds)
+  # 100μs = 0.1ms
+  timeout-microseconds: 100
   
-  villager-optimization:  # 村民优化（已稳定）
-    enabled: true  # 可启用
+  # 执行模式 / Execution mode
+  mode: simple
+  
+  # ---------- 村民优化 / Villager Optimization ----------
+  # 支持实体 / Supported: Villager, Wandering Trader
+  # 技术特性 / Features: POI快照 + 职业原子占坑
+  villager-optimization:
+    # 启用开关 / Enable toggle
+    enabled: false
+    # 使用POI快照 / Use POI snapshot
+    # 说明：村民需要POI系统（床、工作站）
+    # Description: Villagers need POI system (beds, job sites)
     use-poi-snapshot: true
   
-  piglin-optimization:  # 猪灵+蛮兵优化（NEW!）
-    enabled: true  # 可启用
+  # ---------- 猪灵家族优化 / Piglin Family Optimization ----------
+  # 支持实体 / Supported: Piglin, PiglinBrute
+  # 技术特性 / Features: UUID虚拟引用 + 物品比价 + 恐惧向量
+  piglin-optimization:
+    enabled: false
     use-poi-snapshot: false
-    look-distance: 16  # 可调 10/12/16
+    # 注视距离（格）/ Look distance (blocks)
+    look-distance: 16
+    # 交易距离（格）/ Barter distance (blocks)
     barter-distance: 16
+  
+  # ---------- 掠夺者家族优化 / Pillager Family Optimization ----------
+  # 支持实体 / Supported: Pillager, Vindicator, Ravager
+  # 技术特性 / Features: 安全反射写字段 + Raid检测
+  # 注意 / Note: Evoker单独优化（见下方）
+  pillager-family-optimization:
+    enabled: false
+    use-poi-snapshot: false
+  
+  # ---------- 高级AI实体优化 / High-AI Entity Optimization ----------
+  # v1.1新增 / v1.1 New
+  
+  # Evoker优化 / Evoker Optimization
+  # 支持实体 / Supported: Evoker
+  # 计算内容 / Computations: 法术CD + 召唤Vex + 空地块检测
+  evoker-optimization:
+    enabled: false
+  
+  # Blaze优化 / Blaze Optimization  
+  # 支持实体 / Supported: Blaze
+  # 计算内容 / Computations: 火焰弹CD + 火柱空位检测
+  blaze-optimization:
+    enabled: false
+  
+  # Guardian优化 / Guardian Optimization
+  # 支持实体 / Supported: Guardian, ElderGuardian
+  # 计算内容 / Computations: 激光CD + 水下玩家扫描
+  # 说明：远古守卫者自动包含（Java继承）
+  # Description: Elder guardian auto-included (Java inheritance)
+  guardian-optimization:
+    enabled: false
+  
+  # 简单实体优化 / Simple Entities Optimization
+  # 支持实体 / Supported: Zombie, Skeleton, Creeper, etc
+  # 说明：不依赖POI的简单AI实体
+  # Description: Simple AI entities without POI dependency
+  simple-entities:
+    enabled: false
+    use-poi-snapshot: false
 
-entity-tick-parallel:  # 实体级分批并行
+# ==========================================
+# 并行实体Tick / Parallel Entity Tick
+# ==========================================
+# 说明：将实体tick分批并行处理（76%热点优化）
+# Description: Batch entities for parallel tick processing
+entity-tick-parallel:
+  # 启用开关 / Enable toggle
   enabled: true
-  threads: 6-8
+  # 线程数 / Thread count
+  # 推荐：CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  threads: 6
+  # 最小实体数阈值 / Minimum entities threshold
+  # 说明：低于此值不启用并行（避免overhead）
+  # Description: Skip parallel if entities < threshold
   min-entities: 50
-  batch-size: 8  # NEW! 8实体/批
+  # 批量大小（实体级粒度）/ Batch size (entity-level granularity)
+  # 说明：8个实体一批，任务均衡
+  # Description: 8 entities per batch, balanced task size
+  batch-size: 8
 
+# ==========================================
+# 性能优化套件 / Performance Optimizations
+# ==========================================
+# ServerCore启发 / ServerCore-inspired
+servercore-optimizations:
+  # 推挤优化 / Push optimization
+  # 热点占比 / Hotspot: 26.72%
+  push-optimization:
+    enabled: true
+    interval: 2
+  
+  # 实体查找缓存 / Entity lookup cache
+  # 热点占比 / Hotspot: 23.12%
+  entity-lookup-cache:
+    enabled: true
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
+    duration-ms: 50
+  
+  # 碰撞检测优化 / Collision optimization
+  # 热点占比 / Hotspot: 9%
+  collision-optimization:
+    enabled: true
+    min-movement: 0.001
+
+# ==========================================
+# 内存优化套件 / Memory Optimizations
+# ==========================================
+# FerriteCore启发 / FerriteCore-inspired
+memory-optimizations:
+  # 谓词缓存 / Predicate cache
+  # 说明：缓存常用谓词，降低GC压力
+  # Description: Cache common predicates, reduce GC pressure
+  predicate-cache:
+    enabled: true
+  
+  # BlockPos对象池 / BlockPos object pool
+  # 说明：复用BlockPos对象，减少26%内存分配
+  # Description: Reuse BlockPos objects, 26% allocation reduction
+  blockpos-pool:
+    enabled: true
+  
+  # 列表预分配 / List pre-allocation
+  # 说明：预分配容量，减少ArrayList扩容
+  # Description: Pre-allocate capacity, reduce ArrayList resizing
+  list-prealloc:
+    enabled: true
+    # 默认初始容量 / Default initial capacity
+    default-capacity: 32
+
+# 方块实体优化 / Block Entity Optimizations
+block-entity-optimizations:
+  # 熔炉优化 / Furnace optimization
+  # 说明：空闲时跳过tick
+  # Description: Skip tick when idle
+  furnace-optimization:
+    enabled: true
+
+# ==========================================
+# 光照优化套件 / Lighting Optimizations
+# ==========================================
+# Starlight/ScalableLux启发 / Starlight-inspired
 lighting-optimizations:
+  # 异步光照 / Async lighting
   async-lighting:
     enabled: true
-    thread-pool-size: 2-3
+    # 光照线程池大小 / Lighting thread pool size
+    thread-pool-size: 2
+    # 批量处理阈值 / Batch threshold
     batch-threshold: 16
+  
+  # 光照传播队列 / Propagation queue
   propagation-queue:
-    use-layered-queue: true  # ⭐ 16层队列
+    # 分层队列（Starlight核心算法）/ Layered queue (Starlight core)
+    # 说明：16层队列，按光照等级0-15分层处理
+    # Description: 16-layer queue, processes by light level 0-15
+    use-layered-queue: true
+    # 最大传播距离 / Max propagation distance
+    max-propagation-distance: 15
+  
+  # 天空光缓存 / Skylight cache
+  skylight-cache:
+    enabled: true
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
+    cache-duration-ms: 100
+  
+  # 高级优化 / Advanced optimizations
   advanced:
+    # 启用去重 / Enable deduplication
+    # 说明：防止同一位置重复排队
+    # Description: Prevent same position from queuing multiple times
     enable-deduplication: true
+    # 动态批量大小调整 / Dynamic batch adjustment
+    # 说明：根据TPS自动调整批量大小
+    # Description: Auto-adjust batch size based on TPS
     dynamic-batch-adjustment: true
+    # 输出高级统计 / Log advanced stats
+    log-advanced-stats: false
+
+# ==========================================
+# 性能监控 / Performance Monitoring
+# ==========================================
+performance:
+  # 调试日志 / Debug logging
+  # 警告：会刷屏 / Warning: Console spam!
+  debug-logging: false
+  
+  # 性能指标收集 / Metrics collection
+  # 说明：显示异步任务执行时间和队列大小
+  # Description: Show async task execution times and queue sizes
+  enable-metrics: true
+
+# ==========================================
+# 配置建议 / Configuration Tips
+# ==========================================
+# 小型服务器 / Small servers (1-10人):
+#   - thread-pool-size: 2-4
+#   - threads: 4
+#
+# 中型服务器 / Medium servers (10-50人):
+#   - thread-pool-size: 4-8
+#   - threads: 6-8
+#
+# 大型服务器 / Large servers (50+人):
+#   - thread-pool-size: 8-16
+#   - threads: 8-12
+#
+# 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
+# More threads ≠ better performance! Start with recommended values.
+
 ```
 </details>
-
-<details>
-<summary><b>大型服务器 (50+人)</b></summary>
-
-```yaml
-entity-tracker:
-  thread-pool-size: 8
-  
-entity-tick-parallel:
-  threads: 8-12
-  min-entities: 50
-  
-brain:
-  throttle-interval: 15  # 更激进的降频
-
-lighting-optimizations:
-  async-lighting:
-    thread-pool-size: 3-4
-    batch-threshold: 24
-```
-</details>
-
-### 核心配置项说明
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `entity-tracker.thread-pool-size` | 4 | 异步线程池大小 |
-| `entity-tick-parallel.threads` | 6 | 并行实体Tick线程数 |
-| `entity-tick-parallel.batch-size` | 8 | 实体级分批大小（NEW!）⚡ |
-| `brain.throttle-interval` | 10 | AI降频间隔（tick） |
-| `async-ai.villager-optimization.enabled` | false | 村民异步AI（已稳定）⚡ |
-| `async-ai.piglin-optimization.enabled` | false | 猪灵异步AI（NEW!）🐷 |
-| `async-ai.timeout-microseconds` | 100 | AI执行超时（微秒）|
-| `lighting-optimizations.async-lighting.batch-threshold` | 16 | 光照批量处理阈值 |
-| `pathfinding.tick-budget` | 0 | 寻路预算（0=禁用） |
-
-## 📊 性能测试
-
-### 实测数据（开发者本地测试服务器）
-
-**测试环境**：
-- CPU: Intel Core Ultra 5 125H (18 threads)
-- Server: Leaves 1.21.8-137
-- Players: 1 online  
-- Entities: 147总计（44村民 + 49猪灵/蛮兵 + 其他）
-
-**性能指标（实测数据 - Spark 5分钟采样）**：
-
-| 指标 | 优化前 | 优化后 | 提升 |
-|------|--------|--------|------|
-| **MSPT (最小值)** | ~14.8ms | **4.58ms** | ↓ 69% |
-| **MSPT (中位数)** | ~36ms | **9.34ms** | ↓ 74% |
-| **MSPT (95分位)** | ~54ms | **19.6ms** | ↓ 64% |
-| **TPS** | 19.95 | **20.00** | 稳定满TPS |
-| **CPU占用（系统）** | 单核高负载 | **24.23%** | 多核均衡 |
-| **GC (G1 Young)** | 频繁 | **4.4ms** | 低延迟 |
-
-**分模块性能贡献**：
-- 并行实体Tick（实体级分批）：~40%（主力）
-- 零延迟异步AI（村民）：~25%
-- 零延迟异步AI（猪灵/蛮兵）：~15%
-- 其他优化（光照/内存/性能）：~20%
-
----
 
 ## 🛠️ 开发指南
 
@@ -466,37 +634,6 @@ cd Aki-Async
 
 # 构建产物
 # build/libs/Aki-Async-1.0.0-SNAPSHOT.jar
-```
-
-### 项目结构
-
-```
-Aki-Async/
-├── src/main/                 # 插件主代码
-│   ├── java/org/virgil/akiasync/
-│   │   ├── AkiAsyncPlugin.java          # 插件入口
-│   │   ├── bridge/AkiAsyncBridge.java   # Bridge实现
-│   │   ├── config/ConfigManager.java    # 配置管理
-│   │   └── executor/AsyncExecutorManager.java  # 线程池管理
-│   └── resources/config.yml
-│
-├── src/mixin/                # Mixin代码
-│   ├── java/org/virgil/akiasync/mixin/
-│   │   ├── bridge/                # Bridge接口
-│   │   └── mixins/
-│   │       ├── entity/            # 实体优化 (5个)
-│   │       ├── lighting/          # 光照优化 (3个)
-│   │       ├── memory/            # 内存优化 (3个)
-│   │       ├── brain/             # AI优化
-│   │       ├── pathfinding/       # 寻路优化
-│   │       └── spawning/          # 生成优化
-│   └── resources/
-│       ├── aki-async.mixins.json
-│       └── aki-async.accesswidener
-│
-├── docs/                     # 文档
-│   └── REFERENCE_MODS.md    # 参考项目清单
-└── build.gradle.kts
 ```
 
 ## 📚 参考与致谢
@@ -626,7 +763,7 @@ docs: update configuration guide
 - ✅ 完全免费使用
 - ✅ 源代码开放
 - ✅ 允许商业使用
-- ✅ 19个优化模块（4个零延迟异步AI专项）
+- ✅ 22个优化模块（9个零延迟异步AI，覆盖9种生物）
 - ✅ 社区支持
 
 根据GPL-3.0协议，你可以：
@@ -641,40 +778,3 @@ docs: update configuration guide
 
 如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！
 
----
-
-<div align="center">
-
-### 🎯 项目状态
-
-**Edition**: Community (开源版) | **Status**: ✅ Production Ready | **Version**: 1.0.0 | **Modules**: 19
-
-**Author**: [Virgil](https://github.com/virgil698)   
-**License**: GPL-3.0  
-**Supported**: Leaves 1.21.8+
-
----
-
-### 🌟 特别致谢
-
-感谢 [Leaves 团队](https://github.com/LeavesMC/Leaves) 提供优秀的服务端  
-感谢所有参考项目的开发者们  
-感谢 Fabric/Sponge 团队的 Mixin 技术
-
----
-
-**如果觉得有用，请考虑 Star ⭐ 支持开发！**
-
----
-
-### 📮 联系与支持
-
-- 💬 **Issues**: [GitHub Issues](https://github.com/virgil698/Aki-Async/issues)
-- 📧 **Email**: virgil698@sky233.top
-- 💬 **Discord**: xiaokou23357(virgil698)
-
----
-
-Made with ❤️ for Minecraft Server Optimization | Licensed under GPL-3.0
-
-</div>
