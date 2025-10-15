@@ -1,4 +1,4 @@
-package org.virgil.akiasync.mixin.brain;
+package org.virgil.akiasync.mixin.brain.piglin;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.SimpleContainer;

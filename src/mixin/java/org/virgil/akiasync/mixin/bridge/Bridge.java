@@ -115,6 +115,7 @@ public interface Bridge {
     boolean isEvokerOptimizationEnabled();
     boolean isBlazeOptimizationEnabled();
     boolean isGuardianOptimizationEnabled();
+    boolean isWitchOptimizationEnabled();
     
     /**
      * Check if simple entities optimization is enabled

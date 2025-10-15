@@ -1,4 +1,4 @@
-package org.virgil.akiasync.mixin.brain;
+package org.virgil.akiasync.mixin.brain.evoker;
 
 import java.util.List;
 import java.util.UUID;

@@ -44,6 +44,7 @@ public class ConfigManager {
     private boolean evokerOptimizationEnabled;
     private boolean blazeOptimizationEnabled;
     private boolean guardianOptimizationEnabled;
+    private boolean witchOptimizationEnabled;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -125,6 +126,7 @@ public class ConfigManager {
         evokerOptimizationEnabled = config.getBoolean("async-ai.evoker-optimization.enabled", false);
         blazeOptimizationEnabled = config.getBoolean("async-ai.blaze-optimization.enabled", false);
         guardianOptimizationEnabled = config.getBoolean("async-ai.guardian-optimization.enabled", false);
+        witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -306,6 +308,7 @@ public class ConfigManager {
     public boolean isEvokerOptimizationEnabled() { return evokerOptimizationEnabled; }
     public boolean isBlazeOptimizationEnabled() { return blazeOptimizationEnabled; }
     public boolean isGuardianOptimizationEnabled() { return guardianOptimizationEnabled; }
+    public boolean isWitchOptimizationEnabled() { return witchOptimizationEnabled; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

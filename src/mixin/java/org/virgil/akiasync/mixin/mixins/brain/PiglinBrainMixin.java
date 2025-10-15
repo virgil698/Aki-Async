@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.virgil.akiasync.mixin.brain.AsyncBrainExecutor;
-import org.virgil.akiasync.mixin.brain.PiglinCpuCalculator;
-import org.virgil.akiasync.mixin.brain.PiglinDiff;
-import org.virgil.akiasync.mixin.brain.PiglinSnapshot;
+import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
+import org.virgil.akiasync.mixin.brain.piglin.PiglinCpuCalculator;
+import org.virgil.akiasync.mixin.brain.piglin.PiglinDiff;
+import org.virgil.akiasync.mixin.brain.piglin.PiglinSnapshot;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.piglin.Piglin;

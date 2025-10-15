@@ -1,4 +1,4 @@
-package org.virgil.akiasync.mixin.brain;
+package org.virgil.akiasync.mixin.brain.villager;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;

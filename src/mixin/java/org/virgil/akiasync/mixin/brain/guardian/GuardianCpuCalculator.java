@@ -1,7 +1,8 @@
-package org.virgil.akiasync.mixin.brain;
+package org.virgil.akiasync.mixin.brain.guardian;
+
+import java.util.Comparator;
 
 import net.minecraft.world.entity.monster.Guardian;
-import java.util.Comparator;
 
 public final class GuardianCpuCalculator {
     public static GuardianDiff runCpuOnly(Guardian guardian, GuardianSnapshot snap) {

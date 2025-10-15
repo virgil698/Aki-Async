@@ -119,6 +119,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isGuardianOptimizationEnabled() { return config.isGuardianOptimizationEnabled(); }
     
     @Override
+    public boolean isWitchOptimizationEnabled() { return config.isWitchOptimizationEnabled(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }

@@ -120,6 +120,13 @@ async-ai:
   guardian-optimization:
     enabled: false
   
+  # Witch优化 / Witch Optimization (v2.1: safe reflection)
+  # 支持实体 / Supported: Witch
+  # 计算内容 / Computations: 最近玩家目标筛选
+  # 技术特性 / Features: printStackTrace + no rethrow（安全异常处理）
+  witch-optimization:
+    enabled: false
+  
   # 简单实体优化 / Simple Entities Optimization
   # 支持实体 / Supported: Zombie, Skeleton, Creeper, etc
   # 说明：不依赖POI的简单AI实体

@@ -1,13 +1,21 @@
 package org.virgil.akiasync.mixin.mixins.brain;
 
-import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.virgil.akiasync.mixin.brain.*;
+import org.virgil.akiasync.mixin.brain.blaze.BlazeCpuCalculator;
+import org.virgil.akiasync.mixin.brain.blaze.BlazeDiff;
+import org.virgil.akiasync.mixin.brain.blaze.BlazeSnapshot;
+import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Blaze;
-import java.util.concurrent.*;
 
 @SuppressWarnings("unused")
 @Mixin(value = Mob.class, priority = 993)

@@ -1,4 +1,4 @@
-package org.virgil.akiasync.mixin.brain;
+package org.virgil.akiasync.mixin.brain.villager;
 
 import java.util.ArrayList;
 import java.util.Comparator;
