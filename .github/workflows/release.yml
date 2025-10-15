@@ -13,6 +13,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,21 +40,14 @@ jobs:
       run: mv build/libs/Aki-Async-*-SNAPSHOT.jar build/libs/Aki-Async-${{ github.event.inputs.version }}.jar
       
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ github.event.inputs.version }}
         name: AkiAsync v${{ github.event.inputs.version }} Community Edition
         body: |
           # AkiAsync v${{ github.event.inputs.version }} Community Edition
           
-          **零延迟异步AI优化插件 for Leaves 1.21.8+**
-          
-          ## ✨ 核心特性
-          
-          - 30个优化模块
-          - 65种生物AI零延迟优化
-          - 方块实体硬核拦截（5种）
-          - 掉落物tick节流（90%降频）
+          **🍃 用于 Leaves 服务器的综合异步优化插件**
           
           ## 📦 下载
           
