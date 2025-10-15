@@ -1,0 +1,80 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 2.0.0)'
+        required: true
+        default: '2.0.0'
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build with Gradle
+      run: ./gradlew clean build
+      
+    - name: Rename artifact
+      run: mv build/libs/Aki-Async-*-SNAPSHOT.jar build/libs/Aki-Async-${{ github.event.inputs.version }}.jar
+      
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        name: AkiAsync v${{ github.event.inputs.version }} Community Edition
+        body: |
+          # AkiAsync v${{ github.event.inputs.version }} Community Edition
+          
+          **零延迟异步AI优化插件 for Leaves 1.21.8+**
+          
+          ## ✨ 核心特性
+          
+          - 30个优化模块
+          - 65种生物AI零延迟优化
+          - 方块实体硬核拦截（5种）
+          - 掉落物tick节流（90%降频）
+          
+          ## 📦 下载
+          
+          下载JAR文件放入 `plugins/` 文件夹，启动参数添加：
+          ```
+          -Dleavesclip.enable.mixin=true
+          ```
+          
+          ## 🔧 配置
+          
+          配置文件：`plugins/AkiAsync/config.yml`
+          
+          ## 📝 更新日志
+          
+          查看完整更新日志：[README.MD](https://github.com/virgil698/Aki-Async/blob/master/README.MD)
+          
+          ---
+          
+          **License**: GPL-3.0 | **Author**: Virgil
+        files: |
+          build/libs/Aki-Async-${{ github.event.inputs.version }}.jar
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
