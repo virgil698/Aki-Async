@@ -7,7 +7,11 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
-[![Version](https://img.shields.io/badge/version-2.0.0-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
+
+**🎉 Community Edition（社区版）** - 完全免费，永久开源
+让你的Minecraft服务器丝滑流畅  
+TPS稳定20.00，MSPT大幅降低，65种生物AI零延迟优化
 
 [快速开始](#-快速开始) • [功能特性](#-功能特性) • [配置说明](#️-配置说明) • [常见问题](#-常见问题)
 
@@ -445,12 +449,21 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 
 本项目采用 [GPL-3.0 License](LICENSE) 开源协议
 
-**社区版（免费开源）：**
+### 🆓 AkiAsync Community Edition（社区版）
+
+这是**完全免费的社区版本**：
 - ✅ 完全免费使用
 - ✅ 允许商业用途
-- ✅ 24个优化模块
-- ✅ 65种生物覆盖
-- ⚠️ 修改后必须同样开源
+- ✅ 源代码开放
+- ✅ 24个优化模块完整功能
+- ✅ 65种生物全覆盖
+- ✅ 长期维护更新
+
+根据GPL-3.0协议：
+- ✅ 可自由使用、修改、分发
+- ✅ 可用于商业服务器
+- ⚠️ 修改后的版本必须同样开源（GPL-3.0）
+- ⚠️ 必须保留原作者版权声明
 
 ---
 
@@ -487,7 +500,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 
 ---
 
-**Version**: 2.0.0 | **License**: GPL-3.0 | **Author**: [Virgil](https://github.com/virgil698)
+**Edition**: Community（社区版） | **Version**: 2.0.0 | **License**: GPL-3.0 | **Author**: [Virgil](https://github.com/virgil698)
 
 **如果觉得有用，请给个 ⭐ Star 支持开发！**
 
