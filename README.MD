@@ -8,7 +8,7 @@
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](build/libs)
-[![Version](https://img.shields.io/badge/version-1.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
 一个专为 **Leaves 1.21.8+** 服务端设计的全方位异步优化插件  
 使用 Mixin 深度优化服务端部分卡顿问题，确保服务端稳定运行，提升服务器性能
@@ -23,9 +23,9 @@
 - ⚡ **Villager** - POI快照+职业原子占坑（村民+流浪商人）
 - 🐷 **Piglin/PiglinBrute** - UUID虚拟引用+物品比价+恐惧向量
 - 🏹 **Pillager/Vindicator/Ravager** - 安全反射+Raid检测+攻击目标筛选
-- 🧙 **Evoker** - 法术CD+Vex召唤+空地块检测（v1.1 NEW!）
-- 🔥 **Blaze** - 火焰弹CD+火柱空位检测（v1.1 NEW!）
-- 🌊 **Guardian/ElderGuardian** - 激光CD+水下玩家扫描（v1.1 NEW!）
+- 🧙 **Evoker** - 法术CD+Vex召唤+空地块检测
+- 🔥 **Blaze** - 火焰弹CD+火柱空位检测
+- 🌊 **Guardian/ElderGuardian** - 激光CD+水下玩家扫描
 - 🧠 **Brain Throttle** - AI降频，静止实体每10 tick思考一次
 - 🗺️ **Pathfinding Budget** - 寻路预算调度，平滑分散负载
 - 🔒 **Villager Job Claim Atomic** - 村民职业原子占坑，防止皮肤横跳
