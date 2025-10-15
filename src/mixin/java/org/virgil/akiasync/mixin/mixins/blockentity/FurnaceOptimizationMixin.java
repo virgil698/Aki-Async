@@ -17,10 +17,18 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 @Mixin(value = AbstractFurnaceBlockEntity.class, priority = 989)
 public class FurnaceOptimizationMixin {
     
-        // Delay markDirty (only safe method, like Witch v2.1)
+    // Skip empty furnace setChanged + delay markDirty
     @Inject(method = "setChanged", at = @At("HEAD"), cancellable = true)
-    private void aki$delayMarkDirty(CallbackInfo ci) {
+    private void aki$optimizeMarkDirty(CallbackInfo ci) {
         AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) (Object) this;
+        
+        // Skip if both fuel and input are empty
+        if (furnace.getItem(0).isEmpty() && furnace.getItem(1).isEmpty()) {
+            ci.cancel();
+            return;
+        }
+        
+        // Delay markDirty (reduce disk I/O)
         Level level = furnace.getLevel();
         if (level == null) return;
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {

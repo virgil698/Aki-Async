@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 /**
- * Chest hardcore optimization (delay markDirty + skip duplicate comparator)
+ * Chest hardcore optimization (skip when not open + delay markDirty)
  * 
  * @author Virgil
  */
@@ -17,9 +17,9 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 @Mixin(value = ChestBlockEntity.class, priority = 989)
 public class ChestOptimizationMixin {
     
-    // Delay markDirty (reduce disk I/O)
+    // Delay markDirty (reduce disk I/O, safe conservative approach)
     @Inject(method = "setChanged", at = @At("HEAD"), cancellable = true)
-    private void aki$delayChestMarkDirty(CallbackInfo ci) {
+    private void aki$delayMarkDirty(CallbackInfo ci) {
         ChestBlockEntity chest = (ChestBlockEntity) (Object) this;
         Level level = chest.getLevel();
         if (level == null) return;

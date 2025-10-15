@@ -18,10 +18,18 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 @Mixin(value = HopperBlockEntity.class, priority = 989)
 public class HopperOptimizationMixin {
     
-    // Delay markDirty (reduce disk I/O, only safe method)
+    // Skip empty hopper setChanged + delay markDirty
     @Inject(method = "setChanged", at = @At("HEAD"), cancellable = true)
-    private void aki$delayMarkDirty(CallbackInfo ci) {
+    private void aki$optimizeMarkDirty(CallbackInfo ci) {
         HopperBlockEntity hopper = (HopperBlockEntity) (Object) this;
+        
+        // Skip if empty (no items changed)
+        if (hopper.isEmpty()) {
+            ci.cancel();
+            return;
+        }
+        
+        // Delay markDirty (reduce disk I/O)
         Level level = hopper.getLevel();
         if (level == null) return;
         if (level instanceof ServerLevel serverLevel) {
