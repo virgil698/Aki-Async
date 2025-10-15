@@ -11,7 +11,7 @@
     "brain.BrainThrottleMixin",
     "brain.VillagerJobClaimMixin",
     "brain.PiglinBrainMixin",
-    "brain.WitchBrainMixin",
+    "brain.PillagerFamilyTickMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",

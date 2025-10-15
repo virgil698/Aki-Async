@@ -100,23 +100,13 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     }
     
     @Override
-    public boolean isWitchOptimizationEnabled() {
-        return config.isWitchOptimizationEnabled();
+    public boolean isPillagerFamilyOptimizationEnabled() {
+        return config.isPillagerFamilyOptimizationEnabled();
     }
     
     @Override
-    public boolean isWitchUsePOISnapshot() {
-        return config.isWitchUsePOISnapshot();
-    }
-    
-    @Override
-    public int getWitchScanDistance() {
-        return config.getWitchScanDistance();
-    }
-    
-    @Override
-    public boolean isWitchControlGoal() {
-        return config.isWitchControlGoal();
+    public boolean isPillagerFamilyUsePOISnapshot() {
+        return config.isPillagerFamilyUsePOISnapshot();
     }
     
     @Override
