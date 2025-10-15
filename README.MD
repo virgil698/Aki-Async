@@ -35,7 +35,7 @@
 - 🎯 **Parallel Entity Tick（实体级分批）** - 8实体/批，自适应超时，allOf聚合
 - 🐛 **Async Mob Spawning** - 异步生物生成，密度智能控制
 
-#### **光照优化** (个模块)
+#### **光照优化** (3个模块)
 - 💡 **16-Layer Propagation Queue** - Starlight核心算法，分层处理光照
 - 🔆 **Smart Batch Adjustment** - TPS自适应批量大小（8-64动态调整）
 - ☀️ **Skylight Cache + Deduplication** - 天空光缓存 + 去重（+30%效率）
@@ -651,76 +651,6 @@ cd Aki-Async
 | [Leaves](https://github.com/LeavesMC/Leaves) | Mixin支持和服务端基础 |
 
 详见 [REFERENCE_MODS.md](docs/REFERENCE_MODS.md)
-
-## 🔧 故障排查
-
-### 常见问题
-
-<details>
-<summary><b>Q: 插件无法加载？</b></summary>
-
-检查启动参数是否包含 `-Dleavesclip.enable.mixin=true`
-
-</details>
-
-<details>
-<summary><b>Q: MSPT 没有明显改善？</b></summary>
-
-1. 确认实体数量 > 50（少于50不会启用并行优化）
-2. 调整 `entity-tick-parallel.threads` 为CPU核心数的1.5倍
-3. 启用 `performance.enable-metrics` 查看详细统计
-
-</details>
-
-<details>
-<summary><b>Q: 光照异常或区块黑暗？</b></summary>
-
-临时禁用光照优化：
-```yaml
-lighting-optimizations:
-  async-lighting:
-    enabled: false
-```
-
-</details>
-
-<details>
-<summary><b>Q: 如何查看优化效果？</b></summary>
-
-使用 [Spark](https://spark.lucko.me/) 性能分析工具：
-```
-/spark profiler start
-# 运行一段时间后
-/spark profiler stop
-```
-
-</details>
-
-<details>
-<summary><b>Q: 如何启用零延迟异步AI？⚡ NEW!</b></summary>
-
-**村民优化**：
-```yaml
-async-ai:
-  villager-optimization:
-    enabled: true
-```
-
-**猪灵优化**：
-```yaml
-async-ai:
-  piglin-optimization:
-    enabled: true
-    look-distance: 16  # 猪灵太多卡可以改小
-```
-
-**验证**：
-- 观察控制台有没有报错
-- 村民找工作站是否正常
-- 猪灵看到金锭是否会追
-- /spark tps 看MSPT是否 ≤ 10ms
-
-</details>
 
 ---
 
