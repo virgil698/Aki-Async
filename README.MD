@@ -60,9 +60,11 @@
 </tr>
 </table>
 
-### 🔧 **优化模块（24个）**
+### 🔧 **优化模块（30个）**
 
 - ⚡ **异步AI优化**（11个）- 村民、猪灵、劫掠者、唤魔者、烈焰人、守卫者、女巫、通用模板 + 辅助
+- 🏭 **方块实体优化**（5个）- 漏斗、熔炉、箱子、酿造台、信标（延迟保存+空检查）
+- 💎 **掉落物优化**（1个）- 掉落物tick节流（减少90%处理频率）
 - 🎯 **并行优化**（3个）- 实体追踪、实体Tick、生物生成
 - 💡 **光照优化**（2个）- Starlight算法、天空光缓存
 - 💥 **性能优化**（3个）- 推挤、查找缓存、碰撞检测
@@ -119,132 +121,390 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
 <summary><b>📖 完整配置项（点击展开）</b></summary>
 
 ```yaml
-# 异步实体追踪器
+# ==========================================
+# AkiAsync 配置文件 / Configuration File
+# ==========================================
+# 版本 / Version: 1.1.0
+# 适用服务端 / Server: Leaves 1.21.8+
+# ==========================================
+
+# 异步实体追踪器 / Async Entity Tracker
+# 说明：将实体位置更新移至异步线程处理
+# Description: Offload entity position tracking to async threads
 entity-tracker:
   enabled: true
-  thread-pool-size: 4          # 线程池大小
-  update-interval-ticks: 1     # 更新间隔
-  max-queue-size: 1000         # 最大队列
-  batch-size: 50               # 批量大小
+  # 线程池大小 / Thread pool size
+  # 推荐值：CPU核心数 / Recommended: CPU core count
+  thread-pool-size: 4
+  # 更新间隔（tick）/ Update interval (ticks)
+  update-interval-ticks: 1
+  # 最大队列大小 / Maximum queue size
+  max-queue-size: 1000
+  # 批量处理大小 / Batch processing size
+  batch-size: 50
 
-# 异步生物生成
+# 异步生物生成 / Async Mob Spawning
+# 说明：异步处理生物自然生成逻辑
+# Description: Async natural mob spawning logic
 mob-spawning:
   enabled: true
-  spawner-optimization: true   # 刷怪笼优化
+  # 刷怪笼优化 / Spawner block optimization
+  spawner-optimization: true
 
-# 实体密度控制
+# 实体密度控制 / Entity Density Control
+# 说明：限制单区块实体数量
+# Description: Limit entities per chunk
 density:
-  max-per-chunk: 80           # 单区块最大实体数
+  # 单区块最大实体数 / Max entities per chunk
+  max-per-chunk: 80
 
-# 寻路预算
+# 寻路预算 / Pathfinding Budget
+# 说明：限制每tick寻路计算量
+# Description: Limit pathfinding computations per tick
 pathfinding:
-  tick-budget: 0              # 每tick预算（0=禁用）
+  # 每tick预算（0=禁用）/ Budget per tick (0=disabled)
+  tick-budget: 0
 
-# AI降频
+# AI降频 / Brain Throttle
+# 说明：静止实体降低AI更新频率
+# Description: Reduce AI update frequency for stationary entities
 brain:
+  # 启用降频 / Enable throttling
   throttle: true
-  throttle-interval: 10       # 降频间隔（tick）
+  # 降频间隔（tick）/ Throttle interval (ticks)
+  throttle-interval: 10
 
-# ========== 零延迟异步AI ==========
+# ==========================================
+# 零延迟异步AI / Zero-Latency Async AI
+# ==========================================
+# 核心思路 / Core Strategy:
+#   1. 主线程拍快照 / Main thread takes snapshot
+#   2. 异步线程计算 / Async thread computes
+#   3. 主线程写回结果 / Main thread writes back
+# ==========================================
 async-ai:
-  timeout-microseconds: 100   # 全局超时（微秒）
-  mode: simple                # 执行模式
+  # 全局超时时间（微秒）/ Global timeout (microseconds)
+  # 100μs = 0.1ms
+  timeout-microseconds: 100
   
-  # 村民优化
+  # 执行模式 / Execution mode
+  mode: simple
+  
+  # ---------- 村民优化 / Villager Optimization ----------
+  # 支持实体 / Supported: Villager, Wandering Trader
+  # 技术特性 / Features: POI快照 + 职业原子占坑
   villager-optimization:
-    enabled: false            # 默认关闭
+    # 启用开关 / Enable toggle
+    enabled: false
+    # 使用POI快照 / Use POI snapshot
+    # 说明：村民需要POI系统（床、工作站）
+    # Description: Villagers need POI system (beds, job sites)
     use-poi-snapshot: true
   
-  # 猪灵优化
+  # ---------- 猪灵家族优化 / Piglin Family Optimization ----------
+  # 支持实体 / Supported: Piglin, PiglinBrute
+  # 技术特性 / Features: UUID虚拟引用 + 物品比价 + 恐惧向量
   piglin-optimization:
     enabled: false
     use-poi-snapshot: false
+    # 注视距离（格）/ Look distance (blocks)
     look-distance: 16
+    # 交易距离（格）/ Barter distance (blocks)
     barter-distance: 16
   
-  # 劫掠者家族优化
+  # ---------- 掠夺者家族优化 / Pillager Family Optimization ----------
+  # 支持实体 / Supported: Pillager, Vindicator, Ravager
+  # 技术特性 / Features: 安全反射写字段 + Raid检测
+  # 注意 / Note: Evoker单独优化（见下方）
   pillager-family-optimization:
     enabled: false
     use-poi-snapshot: false
   
-  # 唤魔者优化
+  # ---------- 高级AI实体优化 / High-AI Entity Optimization ----------
+  # v1.1新增 / v1.1 New
+  
+  # Evoker优化 / Evoker Optimization
+  # 支持实体 / Supported: Evoker
+  # 计算内容 / Computations: 法术CD + 召唤Vex + 空地块检测
   evoker-optimization:
     enabled: false
   
-  # 烈焰人优化
+  # Blaze优化 / Blaze Optimization  
+  # 支持实体 / Supported: Blaze
+  # 计算内容 / Computations: 火焰弹CD + 火柱空位检测
   blaze-optimization:
     enabled: false
   
-  # 守卫者优化（含远古守卫者）
+  # Guardian优化 / Guardian Optimization
+  # 支持实体 / Supported: Guardian, ElderGuardian
+  # 计算内容 / Computations: 激光CD + 水下玩家扫描
+  # 说明：远古守卫者自动包含（Java继承）
+  # Description: Elder guardian auto-included (Java inheritance)
   guardian-optimization:
     enabled: false
   
-  # 女巫优化
+  # Witch优化 / Witch Optimization (v2.1: safe reflection)
+  # 支持实体 / Supported: Witch
+  # 计算内容 / Computations: 最近玩家目标筛选
+  # 技术特性 / Features: printStackTrace + no rethrow（安全异常处理）
   witch-optimization:
     enabled: false
   
-  # 通用AI优化（55种生物）
+  # ========== 统一AI优化 / Universal AI Optimization ==========
+  # 支持实体 / Supported: 所有剩余生物（见下方列表）
+  # 技术特性 / Features: 统一模板 + 配置化实体列表 + 区域数量异步
   universal-ai-optimization:
-    enabled: false
-    entities:                 # 实体列表（见config.yml）
+    enabled: true
+    # 启用的实体列表 / Enabled entity types
+    # 格式 / Format: "minecraft:entity_name"
+    entities:
+      # 攻击型 / Attack type (hostile)
       - "minecraft:skeleton"
       - "minecraft:zombie"
+      - "minecraft:creeper"
+      - "minecraft:spider"
+      - "minecraft:enderman"
+      - "minecraft:phantom"
+      - "minecraft:drowned"
+      - "minecraft:hoglin"
+      - "minecraft:zoglin"
+      - "minecraft:stray"
+      - "minecraft:husk"
+      - "minecraft:zombie_villager"
+      - "minecraft:shulker"
+      - "minecraft:silverfish"
+      - "minecraft:endermite"
+      - "minecraft:cave_spider"
+      # 防御型 / Defense type (golems)
+      - "minecraft:iron_golem"
+      - "minecraft:snow_golem"
+      # 被动型 / Passive type (animals)
       - "minecraft:pig"
-      # ... 共55种
+      - "minecraft:cow"
+      - "minecraft:sheep"
+      - "minecraft:chicken"
+      - "minecraft:rabbit"
+      - "minecraft:bat"
+      - "minecraft:fox"
+      - "minecraft:strider"
+      - "minecraft:frog"
+      - "minecraft:camel"
+      - "minecraft:goat"
+      - "minecraft:mushroom_cow"
+      # 水生型 / Aquatic type
+      - "minecraft:dolphin"
+      - "minecraft:squid"
+      - "minecraft:glow_squid"
+      - "minecraft:turtle"
+      - "minecraft:pufferfish"
+      - "minecraft:tropical_fish"
+      - "minecraft:cod"
+      - "minecraft:salmon"
+      - "minecraft:axolotl"
+      # 驯服/中立型 / Tamed/Neutral type
+      - "minecraft:wolf"
+      - "minecraft:cat"
+      - "minecraft:horse"
+      - "minecraft:donkey"
+      - "minecraft:mule"
+      - "minecraft:llama"
+      - "minecraft:parrot"
+      - "minecraft:polar_bear"
+      - "minecraft:panda"
+      - "minecraft:bee"
+      - "minecraft:ocelot"
+      - "minecraft:trader_llama"
+    # 节流间隔（tick）/ Tick interval
     tick-interval: 3
+    # 超时时间（微秒）/ Timeout (microseconds)
     timeout-us: 100
+    # 反射写回 / Reflection writeback
     control-goal: true
+    # 批量大小 / Batch size
     batch-size: 8
 
-# 并行实体Tick
+# ==========================================
+# 并行实体Tick / Parallel Entity Tick
+# ==========================================
+# 说明：将实体tick分批并行处理（76%热点优化）
+# Description: Batch entities for parallel tick processing
 entity-tick-parallel:
+  # 启用开关 / Enable toggle
   enabled: true
-  threads: 6                  # 线程数
-  min-entities: 50           # 最小实体阈值
-  batch-size: 8              # 批量大小
+  # 线程数 / Thread count
+  # 推荐：CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  threads: 6
+  # 最小实体数阈值 / Minimum entities threshold
+  # 说明：低于此值不启用并行（避免overhead）
+  # Description: Skip parallel if entities < threshold
+  min-entities: 50
+  # 批量大小（实体级粒度）/ Batch size (entity-level granularity)
+  # 说明：8个实体一批，任务均衡
+  # Description: 8 entities per batch, balanced task size
+  batch-size: 8
 
-# 性能优化套件
+# ==========================================
+# 性能优化套件 / Performance Optimizations
+# ==========================================
+# ServerCore启发 / ServerCore-inspired
 servercore-optimizations:
+  # 推挤优化 / Push optimization
+  # 热点占比 / Hotspot: 26.72%
   push-optimization:
     enabled: true
     interval: 2
+  
+  # 实体查找缓存 / Entity lookup cache
+  # 热点占比 / Hotspot: 23.12%
   entity-lookup-cache:
     enabled: true
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
     duration-ms: 50
+  
+  # 碰撞检测优化 / Collision optimization
+  # 热点占比 / Hotspot: 9%
   collision-optimization:
     enabled: true
     min-movement: 0.001
 
-# 内存优化套件
+# ==========================================
+# 内存优化套件 / Memory Optimizations
+# ==========================================
+# FerriteCore启发 / FerriteCore-inspired
 memory-optimizations:
+  # 谓词缓存 / Predicate cache
+  # 说明：缓存常用谓词，降低GC压力
+  # Description: Cache common predicates, reduce GC pressure
   predicate-cache:
     enabled: true
+  
+  # BlockPos对象池 / BlockPos object pool
+  # 说明：复用BlockPos对象，减少26%内存分配
+  # Description: Reuse BlockPos objects, 26% allocation reduction
   blockpos-pool:
     enabled: true
+  
+  # 列表预分配 / List pre-allocation
+  # 说明：预分配容量，减少ArrayList扩容
+  # Description: Pre-allocate capacity, reduce ArrayList resizing
   list-prealloc:
     enabled: true
+    # 默认初始容量 / Default initial capacity
     default-capacity: 32
 
-# 光照优化套件
+# ==========================================
+# 掉落物优化 / Item Entity Optimizations (v5.0)
+# ==========================================
+# 说明：掉落物是红石频控、刷石机的"第二性能瓶弹"
+# Description: ItemEntity is the 2nd performance bottleneck for redstone farms
+item-entity-optimizations:
+  enabled: true  # v5.0启用
+  # Tick节流间隔 / Tick throttle interval
+  # 说明：每N tick更新一次掉落物（默认每tick）
+  # Description: Update item entity every N ticks (default: every tick)
+  # 推荐值 / Recommended: 5-10 (reduce 80-90% tick frequency)
+  age-increment-interval: 10
+
+# ==========================================
+# 方块实体优化 / Block Entity Optimizations
+# ==========================================
+block-entity-optimizations:
+  # 支持实体 / Supported: Furnace, Hopper, Chest, Barrel
+  # 技术特性 / Features: 配方缓存+物品传输+库存扫描异步化
+  zero-delay-factory-optimization:
+    enabled: true  # v3.0启用
+    # 启用的实体列表 / Enabled entity types
+    entities:
+      - "minecraft:furnace"
+      - "minecraft:blast_furnace"
+      - "minecraft:smoker"
+      - "minecraft:hopper"
+      - "minecraft:chest"
+      - "minecraft:barrel"
+      - "minecraft:trapped_chest"
+    tick-interval: 1      # 每tick提交（生电需要0 tick延迟）
+    timeout-us: 100
+    control-goal: true
+    batch-size: 8
+  
+  # 熔炉空闲优化 / Furnace idle skip
+  # 说明：空闲时跳过tick（已被v3.0包含）
+  # Description: Skip tick when idle (included in v3.0)
+  furnace-optimization:
+    enabled: false  # 关闭（被v3.0替代）
+
+# ==========================================
+# 光照优化套件 / Lighting Optimizations
+# ==========================================
+# Starlight/ScalableLux启发 / Starlight-inspired
 lighting-optimizations:
+  # 异步光照 / Async lighting
   async-lighting:
     enabled: true
+    # 光照线程池大小 / Lighting thread pool size
     thread-pool-size: 2
+    # 批量处理阈值 / Batch threshold
     batch-threshold: 16
+  
+  # 光照传播队列 / Propagation queue
   propagation-queue:
+    # 分层队列（Starlight核心算法）/ Layered queue (Starlight core)
+    # 说明：16层队列，按光照等级0-15分层处理
+    # Description: 16-layer queue, processes by light level 0-15
     use-layered-queue: true
+    # 最大传播距离 / Max propagation distance
     max-propagation-distance: 15
+  
+  # 天空光缓存 / Skylight cache
   skylight-cache:
     enabled: true
+    # 缓存有效期（毫秒）/ Cache duration (milliseconds)
     cache-duration-ms: 100
+  
+  # 高级优化 / Advanced optimizations
   advanced:
+    # 启用去重 / Enable deduplication
+    # 说明：防止同一位置重复排队
+    # Description: Prevent same position from queuing multiple times
     enable-deduplication: true
+    # 动态批量大小调整 / Dynamic batch adjustment
+    # 说明：根据TPS自动调整批量大小
+    # Description: Auto-adjust batch size based on TPS
     dynamic-batch-adjustment: true
+    # 输出高级统计 / Log advanced stats
+    log-advanced-stats: false
 
-# 性能监控
+# ==========================================
+# 性能监控 / Performance Monitoring
+# ==========================================
 performance:
+  # 调试日志 / Debug logging
+  # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
+  
+  # 性能指标收集 / Metrics collection
+  # 说明：显示异步任务执行时间和队列大小
+  # Description: Show async task execution times and queue sizes
   enable-metrics: true
+
+# ==========================================
+# 配置建议 / Configuration Tips
+# ==========================================
+# 小型服务器 / Small servers (1-10人):
+#   - thread-pool-size: 2-4
+#   - threads: 4
+#
+# 中型服务器 / Medium servers (10-50人):
+#   - thread-pool-size: 4-8
+#   - threads: 6-8
+#
+# 大型服务器 / Large servers (50+人):
+#   - thread-pool-size: 8-16
+#   - threads: 8-12
+#
+# 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
+# More threads ≠ better performance! Start with recommended values.
+
 ```
 
 </details>
