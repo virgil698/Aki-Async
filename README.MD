@@ -2,7 +2,7 @@
 
 # 🚀 AkiAsync
 
-**Leaves服务端专用的零延迟异步AI优化插件**
+**🍃 用于 Leaves 服务器的综合异步优化插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
