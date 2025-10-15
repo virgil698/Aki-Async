@@ -81,7 +81,7 @@
 </details>
 
 <details>
-<summary><b>💡 增强版异步光照 (Enhanced Async Lighting)</b> - Starlight算法</summary>
+<summary><b>💡 异步光照增强 (Async Lighting Enhanced)</b></summary>
 
 **基础优化**：
 - 区块加载时的异步光照计算
@@ -116,7 +116,7 @@
 </details>
 
 <details>
-<invoke name="🐷 零延迟异步AI - 猪灵/蛮兵</b></summary>
+<summary><b>🐷 零延迟异步AI - 猪灵/蛮兵</b></summary>
 
 **支持**：Piglin（猪灵）+ PiglinBrute（猪灵蛮兵）
 
