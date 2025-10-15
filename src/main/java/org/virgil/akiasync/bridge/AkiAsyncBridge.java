@@ -122,6 +122,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isWitchOptimizationEnabled() { return config.isWitchOptimizationEnabled(); }
     
     @Override
+    public boolean isUniversalAiOptimizationEnabled() { return config.isUniversalAiOptimizationEnabled(); }
+    
+    @Override
+    public java.util.Set<String> getUniversalAiEntities() { return config.getUniversalAiEntities(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }

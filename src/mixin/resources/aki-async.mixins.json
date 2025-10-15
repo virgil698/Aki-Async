@@ -16,6 +16,7 @@
     "brain.BlazeTickMixin",
     "brain.GuardianTickMixin",
     "brain.WitchTickMixin",
+    "brain.UniversalAiFamilyTickMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",

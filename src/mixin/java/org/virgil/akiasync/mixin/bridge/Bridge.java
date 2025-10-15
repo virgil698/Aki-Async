@@ -116,6 +116,8 @@ public interface Bridge {
     boolean isBlazeOptimizationEnabled();
     boolean isGuardianOptimizationEnabled();
     boolean isWitchOptimizationEnabled();
+    boolean isUniversalAiOptimizationEnabled();
+    java.util.Set<String> getUniversalAiEntities();
     
     /**
      * Check if simple entities optimization is enabled

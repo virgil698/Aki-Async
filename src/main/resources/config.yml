@@ -127,13 +127,78 @@ async-ai:
   witch-optimization:
     enabled: false
   
-  # 简单实体优化 / Simple Entities Optimization
-  # 支持实体 / Supported: Zombie, Skeleton, Creeper, etc
-  # 说明：不依赖POI的简单AI实体
-  # Description: Simple AI entities without POI dependency
-  simple-entities:
-    enabled: false
-    use-poi-snapshot: false
+  # ========== 统一AI优化 / Universal AI Optimization ==========
+  # 支持实体 / Supported: 所有剩余生物（见下方列表）
+  # 技术特性 / Features: 统一模板 + 配置化实体列表 + 区域数量异步
+  universal-ai-optimization:
+    enabled: true
+    # 启用的实体列表 / Enabled entity types
+    # 格式 / Format: "minecraft:entity_name"
+    entities:
+      # 攻击型 / Attack type (hostile)
+      - "minecraft:skeleton"
+      - "minecraft:zombie"
+      - "minecraft:creeper"
+      - "minecraft:spider"
+      - "minecraft:enderman"
+      - "minecraft:phantom"
+      - "minecraft:drowned"
+      - "minecraft:hoglin"
+      - "minecraft:zoglin"
+      - "minecraft:stray"
+      - "minecraft:husk"
+      - "minecraft:zombie_villager"
+      - "minecraft:shulker"
+      - "minecraft:silverfish"
+      - "minecraft:endermite"
+      - "minecraft:cave_spider"
+      # 防御型 / Defense type (golems)
+      - "minecraft:iron_golem"
+      - "minecraft:snow_golem"
+      # 被动型 / Passive type (animals)
+      - "minecraft:pig"
+      - "minecraft:cow"
+      - "minecraft:sheep"
+      - "minecraft:chicken"
+      - "minecraft:rabbit"
+      - "minecraft:bat"
+      - "minecraft:fox"
+      - "minecraft:strider"
+      - "minecraft:frog"
+      - "minecraft:camel"
+      - "minecraft:goat"
+      - "minecraft:mushroom_cow"
+      # 水生型 / Aquatic type
+      - "minecraft:dolphin"
+      - "minecraft:squid"
+      - "minecraft:glow_squid"
+      - "minecraft:turtle"
+      - "minecraft:pufferfish"
+      - "minecraft:tropical_fish"
+      - "minecraft:cod"
+      - "minecraft:salmon"
+      - "minecraft:axolotl"
+      # 驯服/中立型 / Tamed/Neutral type
+      - "minecraft:wolf"
+      - "minecraft:cat"
+      - "minecraft:horse"
+      - "minecraft:donkey"
+      - "minecraft:mule"
+      - "minecraft:llama"
+      - "minecraft:parrot"
+      - "minecraft:polar_bear"
+      - "minecraft:panda"
+      - "minecraft:bee"
+      - "minecraft:ocelot"
+      - "minecraft:trader_llama"
+    # 节流间隔（tick）/ Tick interval
+    tick-interval: 3
+    # 超时时间（微秒）/ Timeout (microseconds)
+    timeout-us: 100
+    # 反射写回 / Reflection writeback
+    control-goal: true
+    # 批量大小 / Batch size
+    batch-size: 8
 
 # ==========================================
 # 并行实体Tick / Parallel Entity Tick
