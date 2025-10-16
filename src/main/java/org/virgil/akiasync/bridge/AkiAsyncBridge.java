@@ -140,6 +140,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getItemEntityAgeInterval() { return config.getItemEntityAgeInterval(); }
     
     @Override
+    public int getItemEntityMinNearbyItems() { return config.getItemEntityMinNearbyItems(); }
+    
+    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {
         return config.isSimpleEntitiesOptimizationEnabled();
     }

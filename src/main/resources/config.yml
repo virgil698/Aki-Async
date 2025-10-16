@@ -277,10 +277,14 @@ memory-optimizations:
 item-entity-optimizations:
   enabled: true  # v5.0启用
   # Tick节流间隔 / Tick throttle interval
-  # 说明：每N tick更新一次掉落物（默认每tick）
-  # Description: Update item entity every N ticks (default: every tick)
+  # 说明：每N tick更新一次掉落物（空区域悬浮时）
+  # Description: Update item entity every N ticks (when in empty region)
   # 推荐值 / Recommended: 5-10 (reduce 80-90% tick frequency)
   age-increment-interval: 10
+  # 最少附近物品数 / Minimum nearby items for merge
+  # 说明：附近物品少于此值时跳过tryToMerge检查
+  # Description: Skip tryToMerge when nearby items < threshold
+  min-nearby-items: 3
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations

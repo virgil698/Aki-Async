@@ -18,6 +18,7 @@
     "brain.WitchTickMixin",
     "brain.UniversalAiFamilyTickMixin",
     "entity.ItemEntityOptimizationMixin",
+    "entity.MinecartHopperOptimizationMixin",
     "blockentity.HopperOptimizationMixin",
     "blockentity.FurnaceOptimizationMixin",
     "blockentity.ChestOptimizationMixin",

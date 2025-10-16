@@ -51,6 +51,7 @@ public class ConfigManager {
     private java.util.Set<String> zeroDelayFactoryEntities;
     private boolean itemEntityOptimizationEnabled;
     private int itemEntityAgeInterval;
+    private int itemEntityMinNearbyItems;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     // Parallel EntityTickList
@@ -139,6 +140,7 @@ public class ConfigManager {
         zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
         itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
         itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
+        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -327,6 +329,7 @@ public class ConfigManager {
     public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
     public boolean isItemEntityOptimizationEnabled() { return itemEntityOptimizationEnabled; }
     public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
+    public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }

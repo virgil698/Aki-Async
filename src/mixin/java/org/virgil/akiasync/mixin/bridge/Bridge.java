@@ -122,6 +122,7 @@ public interface Bridge {
     java.util.Set<String> getZeroDelayFactoryEntities();
     boolean isItemEntityOptimizationEnabled();
     int getItemEntityAgeInterval();
+    int getItemEntityMinNearbyItems();
     
     /**
      * Check if simple entities optimization is enabled
