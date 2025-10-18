@@ -38,7 +38,6 @@ public final class PillagerSnapshot {
         boolean charging = illager instanceof net.minecraft.world.entity.monster.Pillager ?
             ((net.minecraft.world.entity.monster.Pillager) illager).isChargingCrossbow() : false;
         
-        // Scan 32-block players (UUID)
         AABB box = illager.getBoundingBox().inflate(32.0);
         List<PlayerHealthInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class, box
@@ -46,11 +45,9 @@ public final class PillagerSnapshot {
             .map(p -> new PlayerHealthInfo(p.getUUID(), p.blockPosition(), p.getHealth() / p.getMaxHealth()))
             .collect(Collectors.toList());
         
-        // Raid center (simplified)
         net.minecraft.world.entity.raid.Raid raid = level.getRaidAt(illager.blockPosition());
         BlockPos raidCenter = raid != null ? raid.getCenter() : null;
         
-        // Nearby POIs (Patrol候选)
         List<BlockPos> pois = level.getPoiManager().getInRange(
             poi -> true, illager.blockPosition(), 32, net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy.ANY
         ).map(poi -> poi.getPos()).limit(16).collect(Collectors.toList());

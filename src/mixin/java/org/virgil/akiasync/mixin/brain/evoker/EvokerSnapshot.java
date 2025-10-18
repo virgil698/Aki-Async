@@ -17,9 +17,9 @@ import net.minecraft.world.phys.AABB;
 public final class EvokerSnapshot {
     
     private final double health;
-    private final double spellCd;  // 法术CD (0=ready)
-    private final List<PlayerInfo> nearbyPlayers;  // 32格玩家
-    private final int emptyBlocks;  // 3x3空地块数量（召唤Vex用）
+    private final double spellCd;
+    private final List<PlayerInfo> nearbyPlayers;
+    private final int emptyBlocks;
     
     private EvokerSnapshot(double health, double spellCd, List<PlayerInfo> players, int empty) {
         this.health = health;
@@ -31,10 +31,7 @@ public final class EvokerSnapshot {
     public static EvokerSnapshot capture(Evoker evoker, ServerLevel level) {
         double health = evoker.getHealth();
         
-        // Spell CD detection (simplified: CPU simulation)
-        double spellCd = health < 10.0 ? 0.0 : 50.0;  // Low health = ready to cast
-        
-        // Scan 32-block players
+        double spellCd = health < 10.0 ? 0.0 : 50.0;
         AABB box = evoker.getBoundingBox().inflate(32.0);
         List<PlayerInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class, box
@@ -42,7 +39,6 @@ public final class EvokerSnapshot {
             .map(p -> new PlayerInfo(p.getUUID(), p.blockPosition()))
             .collect(Collectors.toList());
         
-        // Empty blocks for Vex summon (3x3 area around evoker)
         int emptyBlocks = 0;
         BlockPos pos = evoker.blockPosition();
         for (int x = -1; x <= 1; x++) {
