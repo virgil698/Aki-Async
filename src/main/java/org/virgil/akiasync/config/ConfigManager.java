@@ -96,6 +96,17 @@ public class ConfigManager {
     private int tntBatchSize;
     private boolean tntDebugEnabled;
     
+    // Hopper Chain Optimization
+    private boolean asyncHopperChainEnabled;
+    private boolean hopperNBTCacheEnabled;
+    private int hopperChainThreads;
+    
+    // Villager Breed Optimization
+    private boolean asyncVillagerBreedEnabled;
+    private boolean villagerAgeThrottleEnabled;
+    private int villagerBreedThreads;
+    private int villagerBreedCheckInterval;
+    
     // Performance settings
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
@@ -183,6 +194,17 @@ public class ConfigManager {
         redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
+        
+        // Load hopper chain optimization settings
+        asyncHopperChainEnabled = config.getBoolean("hopper-chain-optimization.async-hopper-chain", true);
+        hopperNBTCacheEnabled = config.getBoolean("hopper-chain-optimization.nbt-cache", true);
+        hopperChainThreads = config.getInt("hopper-chain-optimization.threads", 4);
+        
+        // Load villager breed optimization settings
+        asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
+        villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
+        villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
+        villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
         
         // Load TNT explosion optimization settings
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
@@ -402,6 +424,17 @@ public class ConfigManager {
     public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
+    
+    // Hopper Chain Optimization getters
+    public boolean isAsyncHopperChainEnabled() { return asyncHopperChainEnabled; }
+    public boolean isHopperNBTCacheEnabled() { return hopperNBTCacheEnabled; }
+    public int getHopperChainThreads() { return hopperChainThreads; }
+    
+    // Villager Breed Optimization getters
+    public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
+    public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
+    public int getVillagerBreedThreads() { return villagerBreedThreads; }
+    public int getVillagerBreedCheckInterval() { return villagerBreedCheckInterval; }
     
     // TNT Explosion Optimization getters
     public boolean isTNTOptimizationEnabled() { return tntOptimizationEnabled; }

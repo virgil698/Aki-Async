@@ -404,5 +404,51 @@ public interface Bridge {
      * @return true if enabled
      */
     boolean isTNTDebugEnabled();
+    
+    // ========== Hopper Chain Optimization ==========
+    
+    /**
+     * Check if async hopper chain is enabled
+     * @return true if enabled
+     */
+    boolean isAsyncHopperChainEnabled();
+    
+    /**
+     * Check if hopper NBT cache is enabled
+     * @return true if enabled
+     */
+    boolean isHopperNBTCacheEnabled();
+    
+    /**
+     * Get hopper chain thread pool size
+     * @return thread count
+     */
+    int getHopperChainThreads();
+    
+    // ========== Villager Breed Optimization ==========
+    
+    /**
+     * Check if async villager breed is enabled
+     * @return true if enabled
+     */
+    boolean isAsyncVillagerBreedEnabled();
+    
+    /**
+     * Check if villager age throttle is enabled
+     * @return true if enabled
+     */
+    boolean isVillagerAgeThrottleEnabled();
+    
+    /**
+     * Get villager breed thread pool size
+     * @return thread count
+     */
+    int getVillagerBreedThreads();
+    
+    /**
+     * Get villager breed check interval
+     * @return interval in ticks
+     */
+    int getVillagerBreedCheckInterval();
 }
 

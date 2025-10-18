@@ -384,5 +384,44 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isTNTDebugEnabled() {
         return config.isTNTDebugEnabled();
     }
+    
+    // ========== Hopper Chain Optimization ==========
+    
+    @Override
+    public boolean isAsyncHopperChainEnabled() {
+        return config.isAsyncHopperChainEnabled();
+    }
+    
+    @Override
+    public boolean isHopperNBTCacheEnabled() {
+        return config.isHopperNBTCacheEnabled();
+    }
+    
+    @Override
+    public int getHopperChainThreads() {
+        return config.getHopperChainThreads();
+    }
+    
+    // ========== Villager Breed Optimization ==========
+    
+    @Override
+    public boolean isAsyncVillagerBreedEnabled() {
+        return config.isAsyncVillagerBreedEnabled();
+    }
+    
+    @Override
+    public boolean isVillagerAgeThrottleEnabled() {
+        return config.isVillagerAgeThrottleEnabled();
+    }
+    
+    @Override
+    public int getVillagerBreedThreads() {
+        return config.getVillagerBreedThreads();
+    }
+    
+    @Override
+    public int getVillagerBreedCheckInterval() {
+        return config.getVillagerBreedCheckInterval();
+    }
 }
 

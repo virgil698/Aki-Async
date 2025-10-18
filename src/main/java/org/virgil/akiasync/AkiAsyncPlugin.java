@@ -44,6 +44,14 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
         }
         
+        // Hopper chain and villager breed executors are auto-initialized on first use
+        if (configManager.isAsyncHopperChainEnabled()) {
+            getLogger().info("[AkiAsync] Hopper chain async I/O enabled with " + configManager.getHopperChainThreads() + " threads");
+        }
+        if (configManager.isAsyncVillagerBreedEnabled()) {
+            getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
+        }
+        
         // Validate and display all configurations (Mixins will lazy load from Bridge)
         BridgeManager.validateAndDisplayConfigurations();
         
@@ -84,6 +92,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         // Shutdown TNT thread pool
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
+        
+        // Shutdown hopper and villager executors
+        org.virgil.akiasync.mixin.async.hopper.HopperChainExecutor.shutdown();
+        org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
         
         // Shutdown executor managers
         if (executorManager != null) {
