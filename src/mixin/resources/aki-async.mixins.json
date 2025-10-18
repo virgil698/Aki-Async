@@ -19,6 +19,7 @@
     "brain.UniversalAiFamilyTickMixin",
     "entity.ItemEntityOptimizationMixin",
     "entity.MinecartHopperOptimizationMixin",
+    "explosion.TNTExplosionMixin",
     "blockentity.HopperOptimizationMixin",
     "blockentity.FurnaceOptimizationMixin",
     "blockentity.ChestOptimizationMixin",

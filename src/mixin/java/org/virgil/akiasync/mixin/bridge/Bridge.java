@@ -360,5 +360,49 @@ public interface Bridge {
      * @return cache duration in ms
      */
     int getRedstoneCacheDurationMs();
+    
+    // ========== TNT Explosion Optimization ==========
+    
+    /**
+     * Check if TNT explosion optimization is enabled
+     * @return true if enabled
+     */
+    boolean isTNTOptimizationEnabled();
+    
+    /**
+     * Get the enabled TNT explosion entities
+     * @return entity IDs set
+     */
+    java.util.Set<String> getTNTExplosionEntities();
+    
+    /**
+     * Get the TNT thread pool size
+     * @return thread count
+     */
+    int getTNTThreads();
+    
+    /**
+     * Get the maximum blocks per explosion
+     * @return max blocks
+     */
+    int getTNTMaxBlocks();
+    
+    /**
+     * Get the TNT timeout in microseconds
+     * @return timeout in microseconds
+     */
+    long getTNTTimeoutMicros();
+    
+    /**
+     * Get the TNT batch size
+     * @return batch size
+     */
+    int getTNTBatchSize();
+    
+    /**
+     * Check if TNT debug mode is enabled
+     * @return true if enabled
+     */
+    boolean isTNTDebugEnabled();
 }
 

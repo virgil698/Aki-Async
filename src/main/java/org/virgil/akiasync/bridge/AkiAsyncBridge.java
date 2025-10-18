@@ -347,5 +347,42 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getRedstoneCacheDurationMs() {
         return config.getRedstoneCacheDurationMs();
     }
+    
+    // ========== TNT Explosion Optimization ==========
+    
+    @Override
+    public boolean isTNTOptimizationEnabled() {
+        return config.isTNTOptimizationEnabled();
+    }
+    
+    @Override
+    public java.util.Set<String> getTNTExplosionEntities() {
+        return config.getTNTExplosionEntities();
+    }
+    
+    @Override
+    public int getTNTThreads() {
+        return config.getTNTThreads();
+    }
+    
+    @Override
+    public int getTNTMaxBlocks() {
+        return config.getTNTMaxBlocks();
+    }
+    
+    @Override
+    public long getTNTTimeoutMicros() {
+        return config.getTNTTimeoutMicros();
+    }
+    
+    @Override
+    public int getTNTBatchSize() {
+        return config.getTNTBatchSize();
+    }
+    
+    @Override
+    public boolean isTNTDebugEnabled() {
+        return config.isTNTDebugEnabled();
+    }
 }
 

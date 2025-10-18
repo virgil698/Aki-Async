@@ -87,6 +87,15 @@ public class ConfigManager {
     private boolean redstoneCacheEnabled;
     private int redstoneCacheDurationMs;
     
+    // TNT Explosion Optimization
+    private boolean tntOptimizationEnabled;
+    private java.util.Set<String> tntExplosionEntities;
+    private int tntThreads;
+    private int tntMaxBlocks;
+    private long tntTimeoutMicros;
+    private int tntBatchSize;
+    private boolean tntDebugEnabled;
+    
     // Performance settings
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
@@ -175,6 +184,21 @@ public class ConfigManager {
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
         
+        // Load TNT explosion optimization settings
+        tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
+        tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
+        // Default entities if not configured
+        if (tntExplosionEntities.isEmpty()) {
+            tntExplosionEntities.add("minecraft:tnt");
+            tntExplosionEntities.add("minecraft:tnt_minecart");
+            tntExplosionEntities.add("minecraft:wither_skull");
+        }
+        tntThreads = config.getInt("tnt-explosion-optimization.threads", 6);
+        tntMaxBlocks = config.getInt("tnt-explosion-optimization.max-blocks", 4096);
+        tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
+        tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
+        tntDebugEnabled = config.getBoolean("tnt-explosion-optimization.debug", false);
+        
         // Load performance settings
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
@@ -251,6 +275,22 @@ public class ConfigManager {
         if (redstoneUpdateBatchThreshold > 50) redstoneUpdateBatchThreshold = 50;
         if (redstoneCacheDurationMs < 0) redstoneCacheDurationMs = 0;
         if (redstoneCacheDurationMs > 1000) redstoneCacheDurationMs = 1000;
+        
+        // Validate TNT explosion optimization settings
+        if (tntThreads < 1) {
+            plugin.getLogger().warning("TNT threads cannot be less than 1, setting to 1");
+            tntThreads = 1;
+        }
+        if (tntThreads > 32) {
+            plugin.getLogger().warning("TNT threads cannot be more than 32, setting to 32");
+            tntThreads = 32;
+        }
+        if (tntMaxBlocks < 256) tntMaxBlocks = 256;
+        if (tntMaxBlocks > 16384) tntMaxBlocks = 16384;
+        if (tntTimeoutMicros < 10) tntTimeoutMicros = 10;
+        if (tntTimeoutMicros > 10000) tntTimeoutMicros = 10000;
+        if (tntBatchSize < 8) tntBatchSize = 8;
+        if (tntBatchSize > 256) tntBatchSize = 256;
     }
     
     /**
@@ -362,5 +402,14 @@ public class ConfigManager {
     public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
+    
+    // TNT Explosion Optimization getters
+    public boolean isTNTOptimizationEnabled() { return tntOptimizationEnabled; }
+    public java.util.Set<String> getTNTExplosionEntities() { return tntExplosionEntities; }
+    public int getTNTThreads() { return tntThreads; }
+    public int getTNTMaxBlocks() { return tntMaxBlocks; }
+    public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
+    public int getTNTBatchSize() { return tntBatchSize; }
+    public boolean isTNTDebugEnabled() { return tntDebugEnabled; }
 }
 

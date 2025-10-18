@@ -38,6 +38,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         getLogger().info("[AkiAsync] Bridge registered successfully (Leaves template pattern)");
         
+        // Initialize TNT thread pool if enabled
+        if (configManager.isTNTOptimizationEnabled()) {
+            org.virgil.akiasync.mixin.async.TNTThreadPool.init(configManager.getTNTThreads());
+            getLogger().info("[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
+        }
+        
         // Validate and display all configurations (Mixins will lazy load from Bridge)
         BridgeManager.validateAndDisplayConfigurations();
         
@@ -75,6 +81,9 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
         }
+        
+        // Shutdown TNT thread pool
+        org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
         // Shutdown executor managers
         if (executorManager != null) {
