@@ -9,8 +9,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 
 /**
- * ItemEntity zero-scan optimization v6.0
- * Throttles tick without breaking Paper/Spigot merge configs
+ * ItemEntity zero-scan optimization v6.1
+ * Throttles merge check only, preserves physics (no bounce bug)
  * 
  * @author Virgil
  */
@@ -18,17 +18,15 @@ import net.minecraft.world.entity.item.ItemEntity;
 @Mixin(value = ItemEntity.class, priority = 989)
 public class ItemEntityOptimizationMixin {
     
-    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
-    private void aki$throttleTick(CallbackInfo ci) {
-        ItemEntity self = (ItemEntity) (Object) this;
-        if (self.level() instanceof ServerLevel sl && sl.getGameTime() % 10 != 0) {
-            ci.cancel();
-        }
-    }
-    
     @Inject(method = "tryToMerge", at = @At("HEAD"), cancellable = true)
-    private void aki$skipSelfMerge(CallbackInfo ci) {
-        ci.cancel();
+    private void aki$throttleMerge(CallbackInfo ci) {
+        ItemEntity self = (ItemEntity) (Object) this;
+        if (self.level() instanceof ServerLevel sl) {
+            // Only check merge every 10 ticks (preserve physics every tick)
+            if (sl.getGameTime() % 10 != 0) {
+                ci.cancel();
+            }
+        }
     }
 }
 
