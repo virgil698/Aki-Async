@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import org.virgil.akiasync.cache.CacheManager;
 import org.virgil.akiasync.command.ReloadCommand;
+import org.virgil.akiasync.command.DebugCommand;
 import org.virgil.akiasync.config.ConfigManager;
 import org.virgil.akiasync.executor.AsyncExecutorManager;
 import org.virgil.akiasync.listener.ConfigReloadListener;
@@ -32,18 +33,18 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         bridge = new AkiAsyncBridge(this, executorManager.getExecutorService(), executorManager.getLightingExecutor());
         BridgeManager.setBridge(bridge);
         
-        getLogger().info("[AkiAsync] Bridge registered successfully (Leaves template pattern)");
+        getLogger().info("§a[AkiAsync] Bridge registered successfully");
         
         if (configManager.isTNTOptimizationEnabled()) {
             org.virgil.akiasync.mixin.async.TNTThreadPool.init(configManager.getTNTThreads());
-            getLogger().info("[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
+            getLogger().info("§e[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
         }
         
         if (configManager.isAsyncHopperChainEnabled()) {
-            getLogger().info("[AkiAsync] Hopper chain async I/O enabled with " + configManager.getHopperChainThreads() + " threads");
+            getLogger().info("§e[AkiAsync] Hopper chain async I/O enabled with " + configManager.getHopperChainThreads() + " threads");
         }
         if (configManager.isAsyncVillagerBreedEnabled()) {
-            getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
+            getLogger().info("§e[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
         
         BridgeManager.validateAndDisplayConfigurations();
@@ -51,28 +52,36 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
         
         registerCommand("aki-reload", new ReloadCommand());
+        registerCommand("aki-debug", new DebugCommand(this));
         
         if (configManager.isPerformanceMetricsEnabled()) {
             startCombinedMetrics();
         }
         
-        getLogger().info("========================================");
-        getLogger().info("  AkiAsync - Async Optimization Plugin");
-        getLogger().info("========================================");
-        getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Features enabled:");
-        getLogger().info("  - Async Entity Tracker: " + configManager.isEntityTrackerEnabled());
-        getLogger().info("  - Async Mob Spawning: " + configManager.isMobSpawningEnabled());
-        getLogger().info("Thread pool size: " + configManager.getThreadPoolSize());
-        getLogger().info("Density max-per-chunk: " + configManager.getMaxEntitiesPerChunk());
-        getLogger().info("Brain throttle: " + configManager.isBrainThrottleEnabled() + ", interval: " + configManager.getBrainThrottleInterval());
-        getLogger().info("EntityTickList Parallel: " + configManager.isEntityTickParallel() + ", threads: " + configManager.getEntityTickThreads() + ", min: " + configManager.getMinEntitiesForParallel());
-        getLogger().info("Async Lighting (Enhanced): " + configManager.isAsyncLightingEnabled() + ", threads: " + configManager.getLightingThreadPoolSize() + ", 16-layer queue + dedup + dynamic batch");
-        getLogger().info("Update interval: " + configManager.getUpdateIntervalTicks() + " ticks");
-        getLogger().info("ServerCore optimizations: enabled");
-        getLogger().info("FerriteCore memory optimizations: enabled");
-        getLogger().info("========================================");
-        getLogger().info("Plugin enabled successfully!");
+        getLogger().info("§6========================================");
+        getLogger().info("§6  §lAkiAsync §r§6- Async Optimization Plugin");
+        getLogger().info("§6========================================");
+        getLogger().info("§7Version: §f" + getDescription().getVersion());
+        getLogger().info("§7Commands: §f/aki-reload §7| §f/aki-debug <true|false>");
+        getLogger().info("");
+        getLogger().info("§a• Core Features:");
+        getLogger().info("§7  • Async Entity Tracker: §f" + (configManager.isEntityTrackerEnabled() ? "§aEnabled" : "§cDisabled"));
+        getLogger().info("§7  • Async Mob Spawning: §f" + (configManager.isMobSpawningEnabled() ? "§aEnabled" : "§cDisabled"));
+        getLogger().info("§7  • Entity Tick Parallel: §f" + (configManager.isEntityTickParallel() ? "§aEnabled" : "§cDisabled") + " §7(§f" + configManager.getEntityTickThreads() + " threads§7)");
+        getLogger().info("§7  • Async Lighting: §f" + (configManager.isAsyncLightingEnabled() ? "§aEnabled" : "§cDisabled") + " §7(§f" + configManager.getLightingThreadPoolSize() + " threads§7)");
+        getLogger().info("");
+        getLogger().info("§e• Performance Settings:");
+        getLogger().info("§7  • Thread Pool Size: §f" + configManager.getThreadPoolSize());
+        getLogger().info("§7  • Max Entities/Chunk: §f" + configManager.getMaxEntitiesPerChunk());
+        getLogger().info("§7  • Brain Throttle: §f" + (configManager.isBrainThrottleEnabled() ? "§aEnabled" : "§cDisabled") + " §7(§f" + configManager.getBrainThrottleInterval() + " ticks§7)");
+        getLogger().info("§7  • Update Interval: §f" + configManager.getUpdateIntervalTicks() + " ticks");
+        getLogger().info("");
+        getLogger().info("§b• Optimizations:");
+        getLogger().info("§7  • ServerCore optimizations: §aEnabled");
+        getLogger().info("§7  • FerriteCore memory optimizations: §aEnabled");
+        getLogger().info("§7  • 16-layer lighting queue: §aEnabled");
+        getLogger().info("§6========================================");
+        getLogger().info("§a§lPlugin enabled successfully! §7Use §f/aki-reload §7to reload config");
     }
     
     @Override
@@ -91,7 +100,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (executorManager != null) {
             executorManager.shutdown();
         }
-        getLogger().info("AkiAsync disabled. All async tasks have been gracefully shut down.");
+        getLogger().info("§c[AkiAsync] Plugin disabled. All async tasks have been gracefully shut down.");
         instance = null;
     }
     
@@ -107,6 +116,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         metricsScheduler.scheduleAtFixedRate(() -> {
             try {
+                if (!configManager.isDebugLoggingEnabled()) {
+                    return;
+                }
+                
                 java.util.concurrent.ThreadPoolExecutor generalExecutor = 
                     (java.util.concurrent.ThreadPoolExecutor) executorManager.getExecutorService();
                 
@@ -119,20 +132,18 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 
                 double generalThroughput = genCompletedPeriod / 60.0;
                 
+                getLogger().info("§6============== AkiAsync Metrics (60s period) ==============");
                 getLogger().info(String.format(
-                    "============== AkiAsync Metrics (60s period) =============="
-                ));
-                getLogger().info(String.format(
-                    "[General Pool] Submitted: %d | Completed: %d (%.2f/s) | Active: %d/%d | Queue: %d",
+                    "§7[General Pool] §fSubmitted: %d §7| §fCompleted: %d §7(§f%.2f/s§7) | §fActive: %d/%d §7| §fQueue: %d",
                     genSubmittedPeriod, genCompletedPeriod, generalThroughput,
                     generalExecutor.getActiveCount(), generalExecutor.getPoolSize(),
                     generalExecutor.getQueue().size()
                 ));
                 getLogger().info(String.format(
-                    "[Lifetime]     Completed: %d/%d tasks",
+                    "§7[Lifetime]     §fCompleted: %d/%d tasks",
                     genCompleted, genTotal
                 ));
-                getLogger().info("===========================================================");
+                getLogger().info("§6===========================================================");
                 
             } catch (Exception e) {
                 getLogger().warning("[Metrics] Error: " + e.getMessage());

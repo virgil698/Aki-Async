@@ -300,6 +300,12 @@ public class ConfigManager {
         return enableDebugLogging;
     }
     
+    public void setDebugLoggingEnabled(boolean enabled) {
+        this.enableDebugLogging = enabled;
+        config.set("performance.debug-logging", enabled);
+        plugin.saveConfig();
+    }
+    
     public boolean isPerformanceMetricsEnabled() {
         return enablePerformanceMetrics;
     }
