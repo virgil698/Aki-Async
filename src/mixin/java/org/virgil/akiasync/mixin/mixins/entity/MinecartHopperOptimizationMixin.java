@@ -4,18 +4,19 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.vehicle.MinecartHopper;
 
 /**
- * MinecartHopper optimization v6.0
- * Throttle empty minecart ticks (ilmango: 1 minecart = 16 hoppers lag)
+ * MinecartHopper optimization v7.0
+ * Throttle with container whitelist (preserve hopper-to-container transfer)
  * 
  * @author Virgil
  */
 @SuppressWarnings("unused")
-@Mixin(value = MinecartHopper.class, priority = 987)
+@Mixin(value = MinecartHopper.class, priority = 1200)
 public class MinecartHopperOptimizationMixin {
     
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
@@ -26,6 +27,23 @@ public class MinecartHopperOptimizationMixin {
             if (sl.getGameTime() % 20 != 0) {
                 ci.cancel();
             }
+        }
+    }
+    
+    @Inject(method = "suckInItems", at = @At("HEAD"), cancellable = true)
+    private void aki$throttlePush(CallbackInfoReturnable<Boolean> cir) {
+        MinecartHopper minecart = (MinecartHopper) (Object) this;
+        if (!(minecart.level() instanceof ServerLevel sl)) return;
+        
+        net.minecraft.core.BlockPos pos = minecart.blockPosition();
+        net.minecraft.world.level.block.entity.BlockEntity be = sl.getBlockEntity(pos.above());
+        
+        if (be instanceof net.minecraft.world.Container) {
+            return;
+        }
+        
+        if (sl.getGameTime() % 10 != 0) {
+            cir.setReturnValue(false);
         }
     }
 }

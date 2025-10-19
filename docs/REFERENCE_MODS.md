@@ -63,28 +63,6 @@
 
 ---
 
-## 🚀 创新超越（AkiAsync独创）
-
-### 零延迟异步AI系列（v1.0-v2.0）
-- ✅ UUID虚拟引用模板（破解Player跨线程难题）
-- ✅ 安全REFLECTIONS工具（lazy init避免static块崩溃）
-- ✅ 女巫v2.1（printStackTrace + no rethrow全栈防崩）
-- ✅ UniversalAi统一模板（65种生物覆盖）
-- ✅ ExpirableValue时间校正（0类型污染）
-- ✅ VillagerJobClaimAtomic（职业原子占坑）
-- ✅ brain文件夹8子目录重构
-- ✅ Prometheus Metrics埋点
-
-### 零扫描优化系列（v6.0-v8.0）
-- ✅ **ItemEntity v7.0** - 异步步进物理（新生物品0回弹，静止20 tick降频）
-- ✅ **TNT Explosion v7.0** - 3阶段异步（异步射线+批量合并+0延迟写回，500 TNT: 380ms→28ms ↓92%）
-- ✅ **Hopper Chain v8.0** - 16×16分区异步I/O（600漏斗: 12ms→4ms ↓67%）
-- ✅ **Villager Breed v8.0** - 年龄降频+繁殖节流（200村民: 5ms→2ms ↓60%）
-- ✅ 含水保护（waterlogged blocks）+ 火焰处理（FireBlock tick）
-- ✅ 零破坏设计（完全兼容Paper item-merge-radius / only-merge-items-horizontally）
-
----
-
 ## ⏳ 待实现（5个进阶项目，v2.1+）
 
 ### 0. Akarin ⏳ **[最高优先级]**

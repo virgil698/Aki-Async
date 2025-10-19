@@ -64,10 +64,17 @@ public class ItemEntityOptimizationMixin {
     @Inject(method = "tryToMerge", at = @At("HEAD"), cancellable = true)
     private void aki$throttleMerge(CallbackInfo ci) {
         ItemEntity self = (ItemEntity) (Object) this;
-        if (self.level() instanceof ServerLevel sl) {
-            if (sl.getGameTime() % 10 != 0) {
-                ci.cancel();
-            }
+        if (!(self.level() instanceof ServerLevel sl)) return;
+        
+        net.minecraft.core.BlockPos pos = self.blockPosition();
+        net.minecraft.world.level.block.entity.BlockEntity be = sl.getBlockEntity(pos.below());
+        
+        if (be instanceof net.minecraft.world.Container) {
+            return;
+        }
+        
+        if (sl.getGameTime() % 10 != 0) {
+            ci.cancel();
         }
     }
 }
