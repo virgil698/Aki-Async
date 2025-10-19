@@ -13,7 +13,7 @@ import net.minecraft.world.entity.npc.Villager;
  * Villager Breed Async Optimization - 32×32 region-based breed check
  * 
  * Hook: customServerAiStep() (1.21.8 correct method)
- * Performance: 200 villagers → MSPT -3 ms, 4 breed threads, 50% idle throttle
+ * Performance: 200 villagers �?MSPT -3 ms, 4 breed threads, 50% idle throttle
  * 
  * @author Virgil
  */

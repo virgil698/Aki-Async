@@ -16,11 +16,6 @@ import org.virgil.akiasync.mixin.brain.universal.UniversalAiSnapshot;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 
-/**
- * Universal AI Family optimization.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = Mob.class, priority = 990)
 public abstract class UniversalAiFamilyTickMixin {

@@ -7,11 +7,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-/**
- * Mixin configuration plugin for AkiAsync.
- * 
- * @author Virgil
- */
 public class AkiAsyncMixinPlugin implements IMixinConfigPlugin {
     
     @Override

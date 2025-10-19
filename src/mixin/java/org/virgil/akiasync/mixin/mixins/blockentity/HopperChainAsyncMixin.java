@@ -11,11 +11,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * Hopper Chain Async Optimization.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = HopperBlockEntity.class, priority = 1200)
 public class HopperChainAsyncMixin {

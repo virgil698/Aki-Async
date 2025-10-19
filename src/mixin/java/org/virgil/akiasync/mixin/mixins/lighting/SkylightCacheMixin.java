@@ -11,14 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.lighting.SkyLightEngine;
 
-/**
- * Skylight cache optimization (reduces repeated calculations).
- * Caches skylight values for frequently accessed positions.
- * 
- * Inspired by ScalableLux's caching strategy.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = SkyLightEngine.class, priority = 1100)
 public abstract class SkylightCacheMixin {
@@ -31,9 +23,6 @@ public abstract class SkylightCacheMixin {
     private static long lastCleanup = System.currentTimeMillis();
     private static final long CLEANUP_INTERVAL = 5000;
     
-    /**
-     * Cache skylight computation results
-     */
     @Inject(method = "computeLevelFromNeighbor", at = @At("HEAD"), cancellable = true)
     private void cacheSkylight(long blockPos, long neighborPos, int currentLevel, CallbackInfoReturnable<Integer> cir) {
         if (!initialized) { akiasync$initSkylightCache(); }
@@ -54,9 +43,6 @@ public abstract class SkylightCacheMixin {
         }
     }
     
-    /**
-     * Store computed value in cache
-     */
     @Inject(method = "computeLevelFromNeighbor", at = @At("RETURN"))
     private void storeCachedValue(long blockPos, long neighborPos, int currentLevel, CallbackInfoReturnable<Integer> cir) {
         if (!initialized || !enabled) return;
@@ -71,18 +57,12 @@ public abstract class SkylightCacheMixin {
         }
     }
     
-    /**
-     * Clean expired cache entries (prevent memory leak)
-     */
     private static void cleanupCache(long currentTime) {
         SKYLIGHT_CACHE.entrySet().removeIf(entry -> 
             currentTime - entry.getValue().timestamp > cacheDurationMs * 10
         );
     }
-    
-    /**
-     * Initialize skylight cache settings from Bridge
-     */
+
     private static synchronized void akiasync$initSkylightCache() {
         if (initialized) return;
         
@@ -99,10 +79,7 @@ public abstract class SkylightCacheMixin {
         System.out.println("[AkiAsync] SkylightCacheMixin initialized: enabled=" + enabled + 
             ", duration=" + cacheDurationMs + "ms");
     }
-    
-    /**
-     * Cached skylight value with timestamp
-     */
+
     private static class CachedSkylightValue {
         final int value;
         final long timestamp;

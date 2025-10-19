@@ -36,7 +36,7 @@ import net.minecraft.world.entity.schedule.Activity;
  * Core strategy:
  * 1. Main thread tick start: Generate POI snapshot (read-only)
  * 2. Async thread: Brain executes with snapshot, produces diff
- * 3. Main thread within same tick: Wait ≤100μs, write back diff immediately
+ * 3. Main thread within same tick: Wait �?00μs, write back diff immediately
  * 
  * Advantages:
  * - 0 tick latency: Completes within same tick, entity behavior unchanged

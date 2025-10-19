@@ -296,9 +296,6 @@ public abstract class LightEngineAsyncMixin {
         }
     }
     
-    /**
-     * Initialize light engine optimization settings from Bridge
-     */
     private static synchronized void akiasync$initLightEngine() {
         if (initialized) return;
         

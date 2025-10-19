@@ -15,10 +15,6 @@ import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 
-/**
- * Brain CPU-intensive calculator.
- * @author Virgil
- */
 public final class BrainCpuCalculator {
     
     private static class ScoredPoi {

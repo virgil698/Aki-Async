@@ -12,10 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
-/**
- * Cache entity lookup results (23.12% hotspot) - ServerCore inspired.
- * Reduce redundant getEntities() calls by caching recent queries.
- */
 @SuppressWarnings("unused")
 @Mixin(Level.class)
 public abstract class EntityLookupCacheMixin {

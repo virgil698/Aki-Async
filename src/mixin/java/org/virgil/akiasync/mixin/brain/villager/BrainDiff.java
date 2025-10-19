@@ -6,10 +6,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 
-/**
- * Brain state differential recorder.
- * @author Virgil
- */
 public final class BrainDiff {
     
     private BlockPos topPoi;

@@ -7,10 +7,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.world.entity.Entity;
 
-/**
- * Optimize collision detection (9% hotspot) - ServerCore inspired.
- * Skip collision checks for stationary entities.
- */
 @SuppressWarnings("unused")
 @Mixin(Entity.class)
 public abstract class CollisionOptimizationMixin {

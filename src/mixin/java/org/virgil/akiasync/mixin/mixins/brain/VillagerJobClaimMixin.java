@@ -15,10 +15,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 
-/**
- * Villager job acquisition atomicity fix.
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = Villager.class, priority = 1200)
 public abstract class VillagerJobClaimMixin {

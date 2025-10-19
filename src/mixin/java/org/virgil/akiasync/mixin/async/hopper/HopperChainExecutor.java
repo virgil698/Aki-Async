@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerLevel;
  * Hopper Chain Async Executor - 16×16 region-based I/O parallelization
  * 
  * Optimization targets:
- * - 600 hoppers tick: 8-12 ms → 3-4 ms (↓67%)
+ * - 600 hoppers tick: 8-12 ms �?3-4 ms (�?7%)
  * - Region granularity: One thread per 16×16 chunk
  * - 1 tick delay acceptable (hopper transfer already has cooldown)
  * 

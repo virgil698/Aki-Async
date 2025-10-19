@@ -6,10 +6,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/**
- * Pre-allocate entity lists to reduce ArrayList resizing (FerriteCore inspired).
- * Estimate initial capacity based on query context.
- */
 @SuppressWarnings("unused")
 @Mixin(net.minecraft.world.level.Level.class)
 public abstract class EntityListPreallocMixin {
@@ -18,10 +14,6 @@ public abstract class EntityListPreallocMixin {
     private static volatile int defaultCapacity;
     private static volatile boolean initialized = false;
 
-    /**
-     * Redirect ArrayList creation to use pre-allocated capacity.
-     * FerriteCore pattern: avoid multiple resize operations.
-     */
     @Redirect(
         method = {
             "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;",
@@ -40,9 +32,6 @@ public abstract class EntityListPreallocMixin {
         return new ArrayList<>(defaultCapacity);
     }
     
-    /**
-     * Special case: for collision queries, use smaller capacity.
-     */
     @Redirect(
         method = "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;",
         at = @At(

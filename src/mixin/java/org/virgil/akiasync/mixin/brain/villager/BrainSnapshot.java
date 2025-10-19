@@ -10,10 +10,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
-/**
- * Brain snapshot.
- * @author Virgil
- */
 public final class BrainSnapshot {
     
     private final Map<MemoryModuleType<?>, Optional<?>> values;

@@ -6,9 +6,6 @@ import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 
-/**
- * Witch differential.
- */
 public final class WitchDiff {
     private static final Field TARGET_FIELD;
     

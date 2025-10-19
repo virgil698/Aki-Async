@@ -28,8 +28,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         this.lightingExecutor = lightingExecutor;
     }
     
-    // ========== Entity Tick Parallel ==========
-    
     @Override
     public boolean isEntityTickParallel() {
         return config.isEntityTickParallel();
@@ -50,8 +48,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.getEntityTickBatchSize();
     }
     
-    // ========== Brain Throttle ==========
-    
     @Override
     public boolean isBrainThrottleEnabled() {
         return config.isBrainThrottleEnabled();
@@ -61,8 +57,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getBrainThrottleInterval() {
         return config.getBrainThrottleInterval();
     }
-    
-    // ========== Async AI (Zero Latency) - Per-Entity Optimization ==========
     
     @Override
     public long getAsyncAITimeoutMicros() {
@@ -152,8 +146,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.isSimpleEntitiesUsePOISnapshot();
     }
     
-    // ========== Mob Spawning ==========
-    
     @Override
     public boolean isMobSpawningEnabled() {
         return config.isMobSpawningEnabled();
@@ -169,80 +161,60 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.isSpawnerOptimizationEnabled();
     }
     
-    // ========== Entity Tracker ==========
-    
     @Override
     public boolean isEntityTrackerEnabled() {
         return config.isEntityTrackerEnabled();
     }
-    
-    // ========== Pathfinding ==========
     
     @Override
     public int getPathfindingTickBudget() {
         return config.getPathfindingTickBudget();
     }
     
-    // ========== Memory Optimizations ==========
-    
     @Override
     public boolean isPredicateCacheEnabled() {
-        // Always enabled by default
         return true;
     }
     
     @Override
     public boolean isBlockPosPoolEnabled() {
-        // Always enabled by default
         return true;
     }
     
     @Override
     public boolean isListPreallocEnabled() {
-        // Always enabled by default
         return true;
     }
     
     @Override
     public int getListPreallocCapacity() {
-        // Default capacity
         return 32;
     }
     
-    // ========== ServerCore Optimizations ==========
-    
     @Override
     public boolean isPushOptimizationEnabled() {
-        // Always enabled by default
         return true;
     }
     
     @Override
     public boolean isEntityLookupCacheEnabled() {
-        // Always enabled by default
         return true;
     }
     
     @Override
     public int getEntityLookupCacheDurationMs() {
-        // Default duration
         return 50;
     }
     
     @Override
     public boolean isCollisionOptimizationEnabled() {
-        // Always enabled by default
         return true;
     }
-    
-    // ========== Executors ==========
     
     @Override
     public ExecutorService getGeneralExecutor() {
         return generalExecutor;
     }
-    
-    // ========== Lighting Optimizations (ScalableLux/Starlight) ==========
     
     @Override
     public boolean isAsyncLightingEnabled() {
@@ -294,8 +266,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.isAdvancedLightingStatsEnabled();
     }
     
-    // ========== VMP (Very Many Players) Optimizations ==========
-    
     @Override
     public boolean isPlayerChunkLoadingOptimizationEnabled() {
         return config.isPlayerChunkLoadingOptimizationEnabled();
@@ -315,8 +285,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public double getEntityTrackingRangeMultiplier() {
         return config.getEntityTrackingRangeMultiplier();
     }
-    
-    // ========== Redstone Optimizations (Alternate Current + Carpet Turbo) ==========
     
     @Override
     public boolean isAlternateCurrentEnabled() {
@@ -347,8 +315,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getRedstoneCacheDurationMs() {
         return config.getRedstoneCacheDurationMs();
     }
-    
-    // ========== TNT Explosion Optimization ==========
     
     @Override
     public boolean isTNTOptimizationEnabled() {
@@ -385,8 +351,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         return config.isTNTDebugEnabled();
     }
     
-    // ========== Hopper Chain Optimization ==========
-    
     @Override
     public boolean isAsyncHopperChainEnabled() {
         return config.isAsyncHopperChainEnabled();
@@ -401,8 +365,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getHopperChainThreads() {
         return config.getHopperChainThreads();
     }
-    
-    // ========== Villager Breed Optimization ==========
     
     @Override
     public boolean isAsyncVillagerBreedEnabled() {

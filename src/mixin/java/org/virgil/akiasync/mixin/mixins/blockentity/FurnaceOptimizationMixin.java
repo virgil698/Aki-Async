@@ -8,11 +8,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
-/**
- * Furnace hardcore optimization.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = AbstractFurnaceBlockEntity.class, priority = 989)
 public class FurnaceOptimizationMixin {

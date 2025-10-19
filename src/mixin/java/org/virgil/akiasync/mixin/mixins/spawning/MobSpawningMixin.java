@@ -17,9 +17,6 @@ import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.phys.AABB;
 
-/**
- * Mob spawning density control - reads from BridgeManager.
- */
 @SuppressWarnings("unused")
 @Mixin(NaturalSpawner.class)
 public abstract class MobSpawningMixin {

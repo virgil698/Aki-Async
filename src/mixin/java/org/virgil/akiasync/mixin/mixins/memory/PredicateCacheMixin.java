@@ -22,8 +22,6 @@ import net.minecraft.world.level.Level;
 @SuppressWarnings("unused")
 @Mixin(Level.class)
 public abstract class PredicateCacheMixin {
-
-    // Cached predicates - reused across all queries
     private static final Predicate<Entity> LIVING_ENTITY = e -> e instanceof LivingEntity;
     private static final Predicate<Entity> MOB_ENTITY = e -> e instanceof Mob;
     private static final Predicate<Entity> ANIMAL_ENTITY = e -> e instanceof Animal;

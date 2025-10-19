@@ -15,9 +15,6 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Pathfinding budget - reads from BridgeManager.
- */
 @SuppressWarnings("unused")
 @Mixin(PathNavigation.class)
 public abstract class PathfindingBudgetMixin {

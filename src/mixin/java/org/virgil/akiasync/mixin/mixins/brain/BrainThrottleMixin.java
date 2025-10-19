@@ -9,11 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Brain throttle for stationary entities.
- * Config loaded from BridgeManager.
- * Lower priority to execute AFTER ExpensiveAIMixin.
- */
 @SuppressWarnings("unused")
 @Mixin(value = Brain.class, priority = 1100)
 public abstract class BrainThrottleMixin<E extends LivingEntity> {

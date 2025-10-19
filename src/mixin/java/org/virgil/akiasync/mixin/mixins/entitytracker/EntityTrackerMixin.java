@@ -26,8 +26,6 @@ public abstract class EntityTrackerMixin {
     private static volatile java.util.concurrent.ExecutorService cached_executor;
     private static volatile boolean initialized = false;
     private static int asyncTaskCount = 0;
-    
-    // Async mod optimization: Batch processing
     private static final java.util.concurrent.ConcurrentLinkedQueue<Runnable> BATCH_QUEUE = 
         new java.util.concurrent.ConcurrentLinkedQueue<>();
     private static final int BATCH_SIZE = 50;  // Async mod: optimal batch size
@@ -45,30 +43,19 @@ public abstract class EntityTrackerMixin {
     private void preUpdatePlayer(ServerPlayer player, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTracker(); }
         if (!cached_enabled || cached_executor == null || entity instanceof ServerPlayer) return;
-        
-        // VMP/Nitori optimization: Don't send tracking packets for stationary entities
-        // Reduces network overhead significantly for idle entities
         if (entity.getDeltaMovement().lengthSqr() < 1.0E-7 && 
             !entity.isPassenger() && 
             !entity.hasPassenger(player)) {
-            // Entity is stationary and not riding/being ridden - skip this update cycle
-            // The entity is still tracked, just no packet sent
             return;
         }
         
         long currentTime = System.currentTimeMillis();
-        
-        // Schedule async distance calculation every 50ms
         if (currentTime - lastAsyncUpdate > 50) {
             lastAsyncUpdate = currentTime;
-            
-            // Capture current positions (thread-safe)
             final double entityX = entity.getX();
             final double entityY = entity.getY();
             final double entityZ = entity.getZ();
             final int trackingRange = this.range;
-            
-            // Async mod optimization: Add to batch queue instead of immediate execution
             Runnable trackingTask = () -> {
                 try {
                     java.util.List<?> players = entity.level().players();
@@ -82,26 +69,17 @@ public abstract class EntityTrackerMixin {
                         double dz = p.getZ() - entityZ;
                         double distSq = dx * dx + dy * dy + dz * dz;
                         double rangeSq = trackingRange * trackingRange;
-                        
-                        // Pre-calculate tracking distance (optimization)
                         boolean shouldTrack = distSq <= rangeSq;
                     }
                 } catch (Throwable t) {
-                    // Silent failure
                 }
             };
-            
-            // Add task to batch queue
             BATCH_QUEUE.add(trackingTask);
-            
-            // Async mod pattern: Submit batch when threshold reached
             if (BATCH_QUEUE.size() >= BATCH_SIZE && batchSubmitted.compareAndSet(false, true)) {
                 asyncTaskCount++;
                 if (asyncTaskCount <= 3) {
                     System.out.println("[AkiAsync-Batch] Submitting batch of " + BATCH_QUEUE.size() + " tracking tasks");
                 }
-                
-                // Collect batch
                 java.util.List<Runnable> batch = new java.util.ArrayList<>(BATCH_SIZE);
                 Runnable task;
                 while ((task = BATCH_QUEUE.poll()) != null && batch.size() < BATCH_SIZE) {
@@ -109,15 +87,11 @@ public abstract class EntityTrackerMixin {
                 }
                 
                 final int batchSize = batch.size();
-                
-                // Submit batch for parallel execution
                 cached_executor.execute(() -> {
                     try {
                         if (asyncTaskCount <= 2) {
                             System.out.println("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
                         }
-                        
-                        // Parallel process all tasks in batch
                         batch.parallelStream().forEach(Runnable::run);
                         
                         if (asyncTaskCount <= 3) {

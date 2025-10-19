@@ -7,10 +7,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.world.entity.LivingEntity;
 
-/**
- * Optimize pushEntities (26.72% hotspot) - ServerCore inspired.
- * Skip pushing for stationary entities or apply interval-based throttle.
- */
 @SuppressWarnings("unused")
 @Mixin(LivingEntity.class)
 public abstract class PushEntitiesOptimizationMixin {

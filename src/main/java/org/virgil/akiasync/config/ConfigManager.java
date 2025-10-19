@@ -13,25 +13,17 @@ public class ConfigManager {
     
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
-    
-    // Entity Tracker settings
     private boolean entityTrackerEnabled;
     private int threadPoolSize;
     private int updateIntervalTicks;
     private int maxQueueSize;
-    
-    // Mob Spawning settings
     private boolean mobSpawningEnabled;
     private boolean spawnerOptimizationEnabled;
-    
-    // Density & pathfinding
     private int maxEntitiesPerChunk;
     private int aiCooldownTicks;
     private int pathfindingTickBudget;
-    // Brain throttle
     private boolean brainThrottle;
     private int brainThrottleInterval;
-    // Async AI - Zero Latency (per-entity optimization)
     private long asyncAITimeoutMicros;
     private boolean villagerOptimizationEnabled;
     private boolean villagerUsePOISnapshot;
@@ -54,13 +46,10 @@ public class ConfigManager {
     private int itemEntityMinNearbyItems;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
-    // Parallel EntityTickList
     private boolean entityTickParallel;
     private int entityTickThreads;
     private int minEntitiesForParallel;
     private int entityTickBatchSize;
-    
-    // Lighting optimizations (ScalableLux/Starlight inspired)
     private boolean asyncLightingEnabled;
     private int lightingThreadPoolSize;
     private int lightBatchThreshold;
@@ -68,26 +57,19 @@ public class ConfigManager {
     private int maxLightPropagationDistance;
     private boolean skylightCacheEnabled;
     private int skylightCacheDurationMs;
-    // Advanced lighting optimizations
     private boolean lightDeduplicationEnabled;
     private boolean dynamicBatchAdjustmentEnabled;
     private boolean advancedLightingStatsEnabled;
-    
-    // VMP (Very Many Players) optimizations
     private boolean playerChunkLoadingOptimizationEnabled;
     private int maxConcurrentChunkLoadsPerPlayer;
     private boolean entityTrackingRangeOptimizationEnabled;
     private double entityTrackingRangeMultiplier;
-    
-    // Redstone optimizations (Alternate Current + Carpet Turbo)
     private boolean alternateCurrentEnabled;
     private boolean redstoneWireTurboEnabled;
     private boolean redstoneUpdateBatchingEnabled;
     private int redstoneUpdateBatchThreshold;
     private boolean redstoneCacheEnabled;
     private int redstoneCacheDurationMs;
-    
-    // TNT Explosion Optimization
     private boolean tntOptimizationEnabled;
     private java.util.Set<String> tntExplosionEntities;
     private int tntThreads;
@@ -95,19 +77,13 @@ public class ConfigManager {
     private long tntTimeoutMicros;
     private int tntBatchSize;
     private boolean tntDebugEnabled;
-    
-    // Hopper Chain Optimization
     private boolean asyncHopperChainEnabled;
     private boolean hopperNBTCacheEnabled;
     private int hopperChainThreads;
-    
-    // Villager Breed Optimization
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
     private int villagerBreedCheckInterval;
-    
-    // Performance settings
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
     
@@ -119,28 +95,20 @@ public class ConfigManager {
      * Load configuration from config.yml
      */
     public void loadConfig() {
-        // Save default config if not exists
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
         config = plugin.getConfig();
-        
-        // Load entity tracker settings
         entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
         maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
-        
-        // Load mob spawning settings
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
-        
-        // Density & budget
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
         aiCooldownTicks = config.getInt("density.ai-cooldown-ticks", 10);
         pathfindingTickBudget = config.getInt("pathfinding.tick-budget", 0);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
-        // Async AI settings (per-entity optimization)
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
         villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
         villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
@@ -167,8 +135,6 @@ public class ConfigManager {
         entityTickThreads = config.getInt("entity-tick-parallel.threads", 4);
         minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
         entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
-        
-        // Load lighting optimization settings
         asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
@@ -176,40 +142,28 @@ public class ConfigManager {
         maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
         skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
         skylightCacheDurationMs = config.getInt("lighting-optimizations.skylight-cache.cache-duration-ms", 100);
-        // Advanced lighting optimizations
         lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
         dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
         advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
-        
-        // Load VMP (Very Many Players) optimization settings
         playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
         maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
         entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
         entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
-        
-        // Load redstone optimization settings
         alternateCurrentEnabled = config.getBoolean("redstone-optimizations.alternate-current.enabled", true);
         redstoneWireTurboEnabled = config.getBoolean("redstone-optimizations.wire-turbo.enabled", true);
         redstoneUpdateBatchingEnabled = config.getBoolean("redstone-optimizations.update-batching.enabled", true);
         redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
-        
-        // Load hopper chain optimization settings
         asyncHopperChainEnabled = config.getBoolean("hopper-chain-optimization.async-hopper-chain", true);
         hopperNBTCacheEnabled = config.getBoolean("hopper-chain-optimization.nbt-cache", true);
         hopperChainThreads = config.getInt("hopper-chain-optimization.threads", 4);
-        
-        // Load villager breed optimization settings
         asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
         villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
         villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
         villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
-        
-        // Load TNT explosion optimization settings
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
-        // Default entities if not configured
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
             tntExplosionEntities.add("minecraft:tnt_minecart");
@@ -220,12 +174,8 @@ public class ConfigManager {
         tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
         tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
         tntDebugEnabled = config.getBoolean("tnt-explosion-optimization.debug", false);
-        
-        // Load performance settings
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        
-        // Validate configuration
         validateConfig();
     }
     
@@ -264,7 +214,6 @@ public class ConfigManager {
         if (brainThrottleInterval < 0) {
             brainThrottleInterval = 0;
         }
-        // Validate async AI settings
         if (asyncAITimeoutMicros < 100) {
             plugin.getLogger().warning("Async AI timeout too low, setting to 100μs");
             asyncAITimeoutMicros = 100;
@@ -276,8 +225,6 @@ public class ConfigManager {
         if (entityTickThreads < 1) entityTickThreads = 1;
         if (entityTickThreads > 16) entityTickThreads = 16;
         if (minEntitiesForParallel < 10) minEntitiesForParallel = 10;
-        
-        // Validate lighting settings
         if (lightingThreadPoolSize < 1) lightingThreadPoolSize = 1;
         if (lightingThreadPoolSize > 8) lightingThreadPoolSize = 8;
         if (lightBatchThreshold < 1) lightBatchThreshold = 1;
@@ -285,20 +232,14 @@ public class ConfigManager {
         if (maxLightPropagationDistance < 1) maxLightPropagationDistance = 1;
         if (maxLightPropagationDistance > 32) maxLightPropagationDistance = 32;
         if (skylightCacheDurationMs < 0) skylightCacheDurationMs = 0;
-        
-        // Validate VMP settings
         if (maxConcurrentChunkLoadsPerPlayer < 1) maxConcurrentChunkLoadsPerPlayer = 1;
         if (maxConcurrentChunkLoadsPerPlayer > 20) maxConcurrentChunkLoadsPerPlayer = 20;
         if (entityTrackingRangeMultiplier < 0.1) entityTrackingRangeMultiplier = 0.1;
         if (entityTrackingRangeMultiplier > 2.0) entityTrackingRangeMultiplier = 2.0;
-        
-        // Validate redstone settings
         if (redstoneUpdateBatchThreshold < 1) redstoneUpdateBatchThreshold = 1;
         if (redstoneUpdateBatchThreshold > 50) redstoneUpdateBatchThreshold = 50;
         if (redstoneCacheDurationMs < 0) redstoneCacheDurationMs = 0;
         if (redstoneCacheDurationMs > 1000) redstoneCacheDurationMs = 1000;
-        
-        // Validate TNT explosion optimization settings
         if (tntThreads < 1) {
             plugin.getLogger().warning("TNT threads cannot be less than 1, setting to 1");
             tntThreads = 1;
@@ -322,8 +263,6 @@ public class ConfigManager {
         loadConfig();
         plugin.getLogger().info("Configuration reloaded successfully!");
     }
-    
-    // Getters
     
     public boolean isEntityTrackerEnabled() {
         return entityTrackerEnabled;
@@ -371,7 +310,6 @@ public class ConfigManager {
     
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
-    // Async AI getters (per-entity optimization)
     public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
     public boolean isVillagerOptimizationEnabled() { return villagerOptimizationEnabled; }
     public boolean isVillagerUsePOISnapshot() { return villagerUsePOISnapshot; }
@@ -398,8 +336,6 @@ public class ConfigManager {
     public int getEntityTickThreads() { return entityTickThreads; }
     public int getMinEntitiesForParallel() { return minEntitiesForParallel; }
     public int getEntityTickBatchSize() { return entityTickBatchSize; }
-    
-    // Lighting optimization getters
     public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }
     public int getLightingThreadPoolSize() { return lightingThreadPoolSize; }
     public int getLightBatchThreshold() { return lightBatchThreshold; }
@@ -410,33 +346,23 @@ public class ConfigManager {
     public boolean isLightDeduplicationEnabled() { return lightDeduplicationEnabled; }
     public boolean isDynamicBatchAdjustmentEnabled() { return dynamicBatchAdjustmentEnabled; }
     public boolean isAdvancedLightingStatsEnabled() { return advancedLightingStatsEnabled; }
-    
-    // VMP optimization getters
     public boolean isPlayerChunkLoadingOptimizationEnabled() { return playerChunkLoadingOptimizationEnabled; }
     public int getMaxConcurrentChunkLoadsPerPlayer() { return maxConcurrentChunkLoadsPerPlayer; }
     public boolean isEntityTrackingRangeOptimizationEnabled() { return entityTrackingRangeOptimizationEnabled; }
     public double getEntityTrackingRangeMultiplier() { return entityTrackingRangeMultiplier; }
-    
-    // Redstone optimization getters
     public boolean isAlternateCurrentEnabled() { return alternateCurrentEnabled; }
     public boolean isRedstoneWireTurboEnabled() { return redstoneWireTurboEnabled; }
     public boolean isRedstoneUpdateBatchingEnabled() { return redstoneUpdateBatchingEnabled; }
     public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
-    
-    // Hopper Chain Optimization getters
     public boolean isAsyncHopperChainEnabled() { return asyncHopperChainEnabled; }
     public boolean isHopperNBTCacheEnabled() { return hopperNBTCacheEnabled; }
     public int getHopperChainThreads() { return hopperChainThreads; }
-    
-    // Villager Breed Optimization getters
     public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
     public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
     public int getVillagerBreedThreads() { return villagerBreedThreads; }
     public int getVillagerBreedCheckInterval() { return villagerBreedCheckInterval; }
-    
-    // TNT Explosion Optimization getters
     public boolean isTNTOptimizationEnabled() { return tntOptimizationEnabled; }
     public java.util.Set<String> getTNTExplosionEntities() { return tntExplosionEntities; }
     public int getTNTThreads() { return tntThreads; }

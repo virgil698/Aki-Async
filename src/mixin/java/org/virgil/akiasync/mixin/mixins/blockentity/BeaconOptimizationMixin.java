@@ -7,10 +7,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 
-/**
- * Beacon optimization.
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = BeaconBlockEntity.class, priority = 989)
 public class BeaconOptimizationMixin {

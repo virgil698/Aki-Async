@@ -18,11 +18,11 @@ import net.minecraft.world.phys.Vec3;
  * TNT explosion 3-stage async optimization
  * 
  * Targets: PrimedTnt (TNT entity) explode() method
- * Stage â‘  Async raycast (worker pool)
- * Stage â‘¡ Batch merge (same tick + same chunk)
- * Stage â‘¢ 0-delay writeback (200Î¼s timeout)
+ * Stage â‘?Async raycast (worker pool)
+ * Stage â‘?Batch merge (same tick + same chunk)
+ * Stage â‘?0-delay writeback (200Î¼s timeout)
  * 
- * Performance: 36ms â†’ 18ms (MSPT), TPS lock 20
+ * Performance: 36ms â†?18ms (MSPT), TPS lock 20
  * 
  * @author Virgil
  */

@@ -18,7 +18,7 @@ import org.virgil.akiasync.AkiAsyncPlugin;
  * 
  * Core optimizations:
  * 1. Independent pool: Separated from lighting, avoid mutual interference
- * 2. Bounded queue: LinkedBlockingQueue(256) â†’ Prevent task accumulation
+ * 2. Bounded queue: LinkedBlockingQueue(256) â†?Prevent task accumulation
  * 3. CallerRunsPolicy: Execute sync immediately when full, no TPS blocking
  * 
  * @author Virgil

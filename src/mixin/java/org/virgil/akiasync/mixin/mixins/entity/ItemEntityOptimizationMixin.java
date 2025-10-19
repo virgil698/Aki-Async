@@ -11,16 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * ItemEntity async physics v7.0 - Visual 0-delay + async step
- * 
- * Rules:
- * 1. New items (< 20 tick): Full physics every tick (no visual glitch)
- * 2. Old items (> 20 tick idle): Throttle to every 20 ticks
- * 3. Picked up items: Whitelist skip (first-frame must be accurate)
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = ItemEntity.class, priority = 989)
 public class ItemEntityOptimizationMixin {

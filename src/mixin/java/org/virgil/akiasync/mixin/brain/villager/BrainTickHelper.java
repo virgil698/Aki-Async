@@ -7,11 +7,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.schedule.Activity;
 
-/**
- * Brain Tick helper.
- * 
- * @author Virgil
- */
 public class BrainTickHelper {
     
     @SuppressWarnings("unchecked")

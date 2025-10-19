@@ -9,12 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.vehicle.MinecartHopper;
 
-/**
- * MinecartHopper optimization v7.0
- * Throttle with container whitelist (preserve hopper-to-container transfer)
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = MinecartHopper.class, priority = 1200)
 public class MinecartHopperOptimizationMixin {

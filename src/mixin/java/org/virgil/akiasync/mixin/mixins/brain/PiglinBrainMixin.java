@@ -16,11 +16,6 @@ import org.virgil.akiasync.mixin.brain.piglin.PiglinSnapshot;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 
-/**
- * Piglin + PiglinBrute async AI optimization.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = {Piglin.class, net.minecraft.world.entity.monster.piglin.PiglinBrute.class}, priority = 998)
 public abstract class PiglinBrainMixin {

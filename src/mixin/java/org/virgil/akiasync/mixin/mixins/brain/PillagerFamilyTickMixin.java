@@ -34,7 +34,6 @@ public abstract class PillagerFamilyTickMixin {
     
     @Inject(method = "tick", at = @At("TAIL"))
     private void aki$pillagerFamilySnapshot(CallbackInfo ci) {
-        // Filter: Only process 4 illagers
         if (!((Object) this instanceof net.minecraft.world.entity.monster.Pillager ||
               (Object) this instanceof net.minecraft.world.entity.monster.Evoker ||
               (Object) this instanceof net.minecraft.world.entity.monster.Vindicator ||
@@ -48,8 +47,6 @@ public abstract class PillagerFamilyTickMixin {
         AbstractIllager illager = (AbstractIllager) (Object) this;
         ServerLevel level = (ServerLevel) illager.level();
         if (level == null) return;
-        
-        // Throttle: 3 ticks
         if (level.getGameTime() < this.aki$nextAsyncTick) return;
         this.aki$nextAsyncTick = level.getGameTime() + 3;
         

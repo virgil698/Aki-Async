@@ -12,10 +12,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * Hopper optimization.
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = HopperBlockEntity.class, priority = 989)
 public class HopperOptimizationMixin {

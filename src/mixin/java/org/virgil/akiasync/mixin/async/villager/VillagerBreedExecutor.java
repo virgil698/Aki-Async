@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerLevel;
  * Villager Breed Async Executor - 32×32 region-based breed check
  * 
  * Optimization targets:
- * - 200 villagers + doors + beds scan: 3-5 ms → 1-2 ms (↓60%)
+ * - 200 villagers + doors + beds scan: 3-5 ms �?1-2 ms (�?0%)
  * - Region granularity: One thread per 32×32 area
  * - Age throttle: Skip idle villagers (no movement for 20 ticks)
  * 

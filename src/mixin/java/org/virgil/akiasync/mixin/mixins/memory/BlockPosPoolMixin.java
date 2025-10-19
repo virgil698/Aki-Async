@@ -12,10 +12,6 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * BlockPos object pool to reduce allocations.
- * PathNavigation creates many BlockPos - reuse MutableBlockPos instead.
- */
 @SuppressWarnings("unused")
 @Mixin(PathNavigation.class)
 public abstract class BlockPosPoolMixin {
@@ -28,10 +24,6 @@ public abstract class BlockPosPoolMixin {
     private static volatile boolean enabled;
     private static volatile boolean initialized = false;
 
-    /**
-     * Reuse MutableBlockPos for Vec3 -> BlockPos conversion.
-     * Avoids allocating new BlockPos on every createPath call.
-     */
     @Inject(method = "createPath(Lnet/minecraft/world/phys/Vec3;I)Lnet/minecraft/world/level/pathfinder/Path;", at = @At("HEAD"), cancellable = true, require = 0)
     private void reuseBlockPos(Vec3 target, int accuracy, CallbackInfoReturnable<Path> cir) {
         if (!initialized) { akiasync$initBlockPosPool(); }

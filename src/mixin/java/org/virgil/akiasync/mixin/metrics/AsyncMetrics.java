@@ -2,11 +2,6 @@ package org.virgil.akiasync.mixin.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Async AI metrics collector.
- * 
- * @author Virgil
- */
 public final class AsyncMetrics {
     
     private static final AtomicLong currentMspt = new AtomicLong(0);
