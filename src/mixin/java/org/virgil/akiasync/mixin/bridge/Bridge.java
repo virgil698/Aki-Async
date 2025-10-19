@@ -132,6 +132,8 @@ public interface Bridge {
     
     boolean isTNTDebugEnabled();
     
+    boolean isDebugLoggingEnabled();
+    
     boolean isAsyncHopperChainEnabled();
     
     boolean isHopperNBTCacheEnabled();

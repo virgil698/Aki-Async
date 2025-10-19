@@ -2,16 +2,16 @@
 
 # 🚀 AkiAsync
 
-**🍃 用于 Leaves 服务器的综合异步优化插件**
+**🍃 Leaves服务器异步优化插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
-[![Version](https://img.shields.io/badge/version-2.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
+[![Version](https://img.shields.io/badge/version-2.3.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
 **🎉 Community Edition（社区版）**
 
-[快速开始](#-快速开始) • [功能特性](#-功能特性) • [配置说明](#️-配置说明) • [常见问题](#-常见问题)
+[快速开始](#-快速开始) • [功能特性](#-功能特性) • [配置说明](#️-配置说明) • [热重载](#-热重载) • [常见问题](#-常见问题)
 
 </div>
 
@@ -20,51 +20,18 @@
 ## ✨ 核心特性
 
 ### 📊 **性能表现**
-
 - ✅ **TPS稳定20.00** - 无波动，无卡顿
 - ✅ **多核均衡** - CPU占用分散到多个核心
 - ✅ **零延迟** - 同tick内完成，实体行为完全一致
 - ✅ **零破坏** - 完全兼容Paper/Spigot配置
 
-### 🎯 **支持的生物（65种）**
-
-<table>
-<tr>
-<td width="25%">
-
-**专用优化**
-- 村民
-- 猪灵/猪灵蛮兵
-- 劫掠者家族
-- 唤魔者
-- 烈焰人
-- 守卫者
-- 女巫
-
-</td>
-<td width="75%">
-
-**统一优化（55种通用模板）**
-
-**攻击型**：骷髅、僵尸、苦力怕、蜘蛛、末影人、幻翼、溺尸、疣猪兽、僵尸疣猪兽、流浪者、尸壳、僵尸村民、潜影贝、蠹虫、末影螨、洞穴蜘蛛
-
-**防御型**：铁傀儡、雪傀儡
-
-**被动型**：猪、牛、羊、鸡、兔子、蝙蝠、狐狸、炽足兽、青蛙、骆驼、山羊、哞菇
-
-**水生型**：海豚、鱿鱼、发光鱿鱼、海龟、河豚、热带鱼、鳕鱼、鲑鱼、美西螈
-
-**驯服/中立型**：狼、猫、马、驴、骡、羊驼、鹦鹉、北极熊、熊猫、蜜蜂、豹猫、行商羊驼
-
-</td>
-</tr>
-</table>
+### 🎯 **支持生物（65种）**
+- **专用优化**：村民、猪灵、劫掠者、唤魔者、烈焰人、守卫者、女巫
+- **通用优化**：骷髅、僵尸、苦力怕、蜘蛛、末影人、铁傀儡、雪傀儡、猪、牛、羊、鸡等55种
 
 ### 🔧 **优化模块（36个）**
-
-- ⚡ **异步AI优化**（11个）- 村民、猪灵、劫掠者、唤魔者、烈焰人、守卫者、女巫、通用模板 + 辅助
-- 🏭 **方块实体优化**（6个）- 漏斗（基础+异步链）、熔炉、箱子、酿造台、信标
-- 💎 **掉落物优化**（1个）- 零扫描tick节流（不破坏Paper/Spigot配置）
+- ⚡ **异步AI优化**（11个）- 村民、猪灵、劫掠者、唤魔者、烈焰人、守卫者、女巫、通用模板
+- 🏭 **方块实体优化**（6个）- 漏斗、熔炉、箱子、酿造台、信标
 - 💣 **爆炸优化**（1个）- TNT 3阶段异步
 - 👨‍🌾 **村民繁殖优化**（2个）- 异步繁殖检查 + 年龄降频
 - 🎯 **并行优化**（3个）- 实体追踪、实体Tick、生物生成
@@ -115,6 +82,38 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
 
 ---
 
+## 🔄 热重载
+
+### 唯一命令
+
+```bash
+/aki-reload
+```
+
+**功能**：无需重启服务器即可重新加载配置并应用更改
+
+**权限**：`akiasync.reload`（默认仅OP可用）
+
+**效果**：
+- ✅ 重新加载 `config.yml` 配置
+- ✅ 平滑重启所有线程池（不丢失任务）
+- ✅ 清除所有内部缓存
+- ✅ 重置性能统计计数器
+- ✅ 更新所有模块配置引用
+
+**示例**：
+```yaml
+# 修改 config.yml
+entity-tick-parallel:
+  threads: 8  # 从 4 改为 8
+
+# 执行命令
+/aki-reload
+# 输出：§a[AkiAsync] Configuration hot-reloaded, thread pools smoothly restarted.
+```
+
+---
+
 ## ⚙️ 配置说明
 
 配置文件位于 `plugins/AkiAsync/config.yml`
@@ -126,9 +125,15 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
 # ==========================================
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
-# 版本 / Version: 1.1.0
+# 版本 / Version: 2.4.0
 # 适用服务端 / Server: Leaves 1.21.8+
 # ==========================================
+
+# 配置版本 / Configuration version
+# 当前版本 / Current version: 1
+# 说明：当前配置版本为1，如果配置版本大于1，则需要更新配置文件
+# Description: The current configuration version is 1, if the configuration version is greater than 1, you need to update the configuration file
+version: 1
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -402,10 +407,95 @@ memory-optimizations:
 item-entity-optimizations:
   enabled: true  # v5.0启用
   # Tick节流间隔 / Tick throttle interval
-  # 说明：每N tick更新一次掉落物（默认每tick）
-  # Description: Update item entity every N ticks (default: every tick)
+  # 说明：每N tick更新一次掉落物（空区域悬浮时）
+  # Description: Update item entity every N ticks (when in empty region)
   # 推荐值 / Recommended: 5-10 (reduce 80-90% tick frequency)
   age-increment-interval: 10
+  # 最少附近物品数 / Minimum nearby items for merge
+  # 说明：附近物品少于此值时跳过tryToMerge检查
+  # Description: Skip tryToMerge when nearby items < threshold
+  min-nearby-items: 3
+
+# ==========================================
+# 漏斗链优化 / Hopper Chain Optimization (v8.0)
+# ==========================================
+# 说明：异步I/O处理600+漏斗链，分区并行传输
+# Description: Async I/O for 600+ hopper chains with region-based parallelization
+#
+# 性能提升 / Performance Gain:
+#   600 漏斗 1 tick: 8-12ms → 3-4ms (↓67%)
+#   NBT 读写延迟: 5ms → 1ms (1 tick 缓存)
+hopper-chain-optimization:
+  # 启用异步漏斗链 / Enable async hopper chain
+  async-hopper-chain: true
+  # 线程池大小 / Thread pool size (I/O threads)
+  threads: 4
+  # 启用 NBT 缓存 / Enable NBT cache (1 tick delay writeback)
+  nbt-cache: true
+
+# ==========================================
+# 村民繁殖优化 / Villager Breed Optimization (v8.0)
+# ==========================================
+# 说明：异步繁殖检查，降低村门+村民+床遍历开销
+# Description: Async breed check to reduce village scan overhead
+#
+# 性能提升 / Performance Gain:
+#   200 村民繁殖: 3-5ms → 1-2ms (↓60%)
+#   年龄刷新降频: 2ms → 1ms (50% 静止跳过)
+villager-breed-optimization:
+  # 启用异步繁殖检查 / Enable async breed check
+  async-villager-breed: true
+  # 线程池大小 / Thread pool size (breed check threads)
+  threads: 4
+  # 启用年龄降频 / Enable age throttle (skip idle villagers for 20 ticks)
+  age-throttle: true
+  # 繁殖检查间隔 / Breed check interval (ticks)
+  check-interval: 5
+
+# ==========================================
+# TNT爆炸优化 / TNT Explosion Optimization (v7.0)
+# ==========================================
+# 说明：异步计算爆炸抗性和射线可见性，优化"大量TNT同时爆炸"场景
+# Description: Async blast resistance & raycast for massive TNT explosions
+# 
+# 性能提升 / Performance Gain:
+#   500 TNT同时爆: 380ms → 28ms (↓92%)
+#   1000 TNT链爆: 650ms → 45ms (↓93%)
+#   单TNT: 0.4ms → 0.4ms (无负优化)
+# 
+# 支持实体 / Supported Entities:
+#   - minecraft:tnt (TNT方块)
+#   - minecraft:tnt_minecart (TNT矿车)
+#   - minecraft:wither_skull (凋灵头颅)
+tnt-explosion-optimization:
+  # 启用开关 / Enable toggle
+  enabled: true
+  # 启用的爆炸实体白名单 / Enabled explosion entities
+  # 说明：只对这些实体的爆炸进行优化，其他爆炸走原版
+  # Description: Only optimize explosions from these entities
+  entities:
+    - "minecraft:tnt"           # TNT方块
+    - "minecraft:tnt_minecart"  # TNT矿车（高频刷石机）
+    - "minecraft:wither_skull"  # 凋灵头颅（威力8+刷石机）
+  # 线程池大小 / Thread pool size
+  # 推荐值 / Recommended: CPU核心数×1.5
+  threads: 6
+  # 单爆炸最大处理方块数（半径上墙）/ Max blocks per explosion
+  # 说明：超过此值回退原版逻辑（防止OOM）
+  # Description: Fallback to vanilla if blocks > threshold (OOM protection)
+  max-blocks: 4096
+  # 超时回退（微秒）/ Timeout (microseconds)
+  # 说明：异步超时直接回退原版，保证最坏TPS
+  # Description: Fallback to vanilla on timeout, ensure worst-case TPS
+  timeout-us: 100
+  # 并行分块大小 / Parallel batch size
+  # 说明：64×64×64任务粒度，避免伪共享
+  # Description: 64×64×64 task granularity, avoid false sharing
+  batch-size: 64
+  # 调试模式 / Debug mode
+  # 警告：会输出每次爆炸耗时统计
+  # Warning: Logs every explosion timing
+  debug: false
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -489,26 +579,10 @@ performance:
   # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
-# ==========================================
-# 配置建议 / Configuration Tips
-# ==========================================
-# 小型服务器 / Small servers (1-10人):
-#   - thread-pool-size: 2-4
-#   - threads: 4
-#
-# 中型服务器 / Medium servers (10-50人):
-#   - thread-pool-size: 4-8
-#   - threads: 6-8
-#
-# 大型服务器 / Large servers (50+人):
-#   - thread-pool-size: 8-16
-#   - threads: 8-12
 #
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
-
 ```
-
 </details>
 
 ### 快速配置
@@ -609,8 +683,7 @@ async-ai:
 <details>
 <summary><b>Q: 插件兼容性？</b></summary>
 
-✅ 与大部分插件兼容  
-⚠️ 可能与其他Mixin插件冲突（如ISeeYou）  
+✅ 与大部分插件兼容
 📧 遇到冲突请提交Issue
 
 </details>

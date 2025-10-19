@@ -3,11 +3,7 @@ package org.virgil.akiasync.mixin.async;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
-/**
- * Dedicated thread pool for TNT explosion calculations.
- * 
- * @author Virgil
- */
+
 public class TNTThreadPool {
     private static ExecutorService executor;
     private static int threadCount = Math.max(6, Runtime.getRuntime().availableProcessors() * 3 / 2);
@@ -18,7 +14,6 @@ public class TNTThreadPool {
         }
         threadCount = threads;
         executor = new ForkJoinPool(threadCount);
-        System.out.println("[AkiAsync] TNT thread pool initialized with " + threadCount + " threads");
     }
     
     public static ExecutorService getExecutor() {
@@ -32,6 +27,25 @@ public class TNTThreadPool {
         if (executor != null) {
             executor.shutdown();
             executor = null;
+        }
+    }
+    
+    public static void restartSmooth() {
+        if (executor != null) {
+            ExecutorService oldExecutor = executor;
+            
+            executor = new ForkJoinPool(threadCount);
+            
+            oldExecutor.shutdown();
+            try {
+                if (!oldExecutor.awaitTermination(500, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                    oldExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                oldExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            
         }
     }
 }

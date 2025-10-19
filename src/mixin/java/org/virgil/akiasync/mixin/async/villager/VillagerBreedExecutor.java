@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 
 public class VillagerBreedExecutor {
     private static final int THREAD_POOL_SIZE = 4;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(
+    private static ExecutorService executor = Executors.newFixedThreadPool(
         THREAD_POOL_SIZE,
         r -> {
             Thread t = new Thread(r, "AkiAsync-Villager-Breed");
@@ -30,7 +30,6 @@ public class VillagerBreedExecutor {
                 task.run();
                 movementCache.put(villagerUUID, level.getGameTime());
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Villager breed async error: " + e.getMessage());
             }
         });
     }
@@ -69,6 +68,30 @@ public class VillagerBreedExecutor {
     
     public static ExecutorService getExecutor() {
         return executor;
+    }
+    
+    public static void restartSmooth() {
+        ExecutorService oldExecutor = executor;
+        
+        executor = Executors.newFixedThreadPool(
+            THREAD_POOL_SIZE,
+            r -> {
+                Thread t = new Thread(r, "AkiAsync-Villager-Smooth");
+                t.setDaemon(true);
+                return t;
+            }
+        );
+        
+        oldExecutor.shutdown();
+        try {
+            if (!oldExecutor.awaitTermination(500, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                oldExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            oldExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        
     }
 }
 

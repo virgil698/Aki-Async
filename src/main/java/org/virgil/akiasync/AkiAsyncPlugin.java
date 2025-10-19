@@ -2,15 +2,13 @@ package org.virgil.akiasync;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.virgil.akiasync.bridge.AkiAsyncBridge;
+import org.virgil.akiasync.cache.CacheManager;
+import org.virgil.akiasync.command.ReloadCommand;
 import org.virgil.akiasync.config.ConfigManager;
 import org.virgil.akiasync.executor.AsyncExecutorManager;
+import org.virgil.akiasync.listener.ConfigReloadListener;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-/**
- * AkiAsync - Async optimizations for Leaves server.
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 public final class AkiAsyncPlugin extends JavaPlugin {
     
@@ -18,6 +16,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private ConfigManager configManager;
     private AsyncExecutorManager executorManager;
     private AkiAsyncBridge bridge;
+    private CacheManager cacheManager;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
     
     @Override
@@ -27,6 +26,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
         
+        cacheManager = new CacheManager(this);
         executorManager = new AsyncExecutorManager(this);
         
         bridge = new AkiAsyncBridge(this, executorManager.getExecutorService(), executorManager.getLightingExecutor());
@@ -47,6 +47,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
         
         BridgeManager.validateAndDisplayConfigurations();
+        
+        getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
+        
+        registerCommand("aki-reload", new ReloadCommand());
         
         if (configManager.isPerformanceMetricsEnabled()) {
             startCombinedMetrics();
@@ -91,9 +95,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         instance = null;
     }
     
-    /**
-     * Start combined metrics reporting for all executors.
-     */
     private void startCombinedMetrics() {
         metricsScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "AkiAsync-Combined-Metrics");
@@ -139,28 +140,37 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }, 60, 60, java.util.concurrent.TimeUnit.SECONDS);
     }
     
-    /**
-     * Get plugin instance.
-     * @return Plugin instance
-     */
     public static AkiAsyncPlugin getInstance() {
         return instance;
     }
     
-    /**
-     * Get configuration manager
-     * @return ConfigManager instance
-     */
     public ConfigManager getConfigManager() {
         return configManager;
     }
     
-    /**
-     * Get async executor manager
-     * @return AsyncExecutorManager instance
-     */
     public AsyncExecutorManager getExecutorManager() {
         return executorManager;
+    }
+    
+    public CacheManager getCacheManager() {
+        return cacheManager;
+    }
+    
+    public AkiAsyncBridge getBridge() {
+        return bridge;
+    }
+    
+    public void restartMetricsScheduler() {
+        stopMetricsScheduler();
+        
+        startCombinedMetrics();
+    }
+    
+    public void stopMetricsScheduler() {
+        if (metricsScheduler != null) {
+            metricsScheduler.shutdownNow();
+            metricsScheduler = null;
+        }
     }
     
 }

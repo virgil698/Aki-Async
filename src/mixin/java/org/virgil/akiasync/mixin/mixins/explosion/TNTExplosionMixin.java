@@ -42,10 +42,15 @@ public class TNTExplosionMixin {
             new org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot(sl, center, power, createFire);
         
         org.virgil.akiasync.mixin.async.TNTThreadPool.getExecutor().execute(() -> {
+            long startTime = System.nanoTime();
             try {
                 org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator calculator = 
                     new org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator(snapshot);
                 org.virgil.akiasync.mixin.async.explosion.ExplosionResult result = calculator.calculate();
+                
+                if (bridge.isTNTDebugEnabled()) {
+                    long duration = System.nanoTime() - startTime;
+                }
                 
                 sl.getServer().execute(() -> {
                     try {
@@ -83,11 +88,9 @@ public class TNTExplosionMixin {
                             }
                         }
                     } catch (Exception ex) {
-                        System.err.println("[AkiAsync] TNT writeback error: " + ex.getMessage());
                     }
                 });
             } catch (Exception ex) {
-                System.err.println("[AkiAsync] TNT async error: " + ex.getMessage());
             }
         });
         

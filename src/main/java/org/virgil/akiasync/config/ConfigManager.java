@@ -3,12 +3,6 @@ package org.virgil.akiasync.config;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
-/**
- * Configuration manager for AkiAsync plugin
- * Handles loading and accessing configuration values
- * 
- * @author Virgil
- */
 public class ConfigManager {
     
     private final AkiAsyncPlugin plugin;
@@ -86,14 +80,12 @@ public class ConfigManager {
     private int villagerBreedCheckInterval;
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
+    private int configVersion;
     
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
     
-    /**
-     * Load configuration from config.yml
-     */
     public void loadConfig() {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
@@ -176,12 +168,39 @@ public class ConfigManager {
         tntDebugEnabled = config.getBoolean("tnt-explosion-optimization.debug", false);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
+        configVersion = config.getInt("version", 1);
+        
+        validateConfigVersion();
         validateConfig();
     }
     
-    /**
-     * Validate configuration values
-     */
+    private void validateConfigVersion() {
+        final int CURRENT_CONFIG_VERSION = 1;
+        
+        if (configVersion < CURRENT_CONFIG_VERSION) {
+            plugin.getLogger().warning("==========================================");
+            plugin.getLogger().warning("  CONFIG VERSION WARNING");
+            plugin.getLogger().warning("==========================================");
+            plugin.getLogger().warning("Your config.yml is outdated!");
+            plugin.getLogger().warning("Current version: " + CURRENT_CONFIG_VERSION);
+            plugin.getLogger().warning("Your version: " + configVersion);
+            plugin.getLogger().warning("");
+            plugin.getLogger().warning("Please update your config.yml to avoid issues.");
+            plugin.getLogger().warning("The plugin will continue with default values for new options.");
+            plugin.getLogger().warning("==========================================");
+        } else if (configVersion > CURRENT_CONFIG_VERSION) {
+            plugin.getLogger().warning("==========================================");
+            plugin.getLogger().warning("  CONFIG VERSION WARNING");
+            plugin.getLogger().warning("==========================================");
+            plugin.getLogger().warning("Your config.yml is from a newer version!");
+            plugin.getLogger().warning("Current supported version: " + CURRENT_CONFIG_VERSION);
+            plugin.getLogger().warning("Your version: " + configVersion);
+            plugin.getLogger().warning("");
+            plugin.getLogger().warning("Please update the plugin or downgrade your config.");
+            plugin.getLogger().warning("==========================================");
+        }
+    }
+    
     private void validateConfig() {
         if (threadPoolSize < 1) {
             plugin.getLogger().warning("Thread pool size cannot be less than 1, setting to 1");
@@ -256,9 +275,6 @@ public class ConfigManager {
         if (tntBatchSize > 256) tntBatchSize = 256;
     }
     
-    /**
-     * Reload configuration
-     */
     public void reload() {
         loadConfig();
         plugin.getLogger().info("Configuration reloaded successfully!");
@@ -370,5 +386,9 @@ public class ConfigManager {
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
     public boolean isTNTDebugEnabled() { return tntDebugEnabled; }
+    
+    public int getConfigVersion() {
+        return configVersion;
+    }
 }
 

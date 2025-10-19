@@ -8,18 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Async Brain executor
- * Provides timeout-controlled async execution with guaranteed return within specified time
- * 
- * Core features:
- * - 100μs timeout protection (configurable)
- * - CompletableFuture async pattern
- * - Immediate fallback on timeout, no main thread blocking
- * - Statistics tracking for success and timeout rates
- * 
- * @author Virgil
- */
 public class AsyncBrainExecutor {
     
     private static final AtomicInteger totalExecutions = new AtomicInteger(0);
@@ -33,9 +21,20 @@ public class AsyncBrainExecutor {
         executorService = executor;
     }
     
+    private static boolean getDebugEnabled() {
+        try {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            return bridge != null && bridge.isDebugLoggingEnabled();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
     public static <T> CompletableFuture<T> runSync(Callable<T> task, long timeout, TimeUnit unit) {
         totalExecutions.incrementAndGet();
         long startNanos = org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncStart();
+        
+        final boolean debugEnabled = getDebugEnabled();
         
         if (executorService == null || executorService.isShutdown()) {
             return CompletableFuture.supplyAsync(() -> {
@@ -68,6 +67,10 @@ public class AsyncBrainExecutor {
                 errorCount.incrementAndGet();
             } else {
                 successCount.incrementAndGet();
+            }
+            
+            if (debugEnabled) {
+                long duration = System.nanoTime() - startNanos;
             }
             
             org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, success, isTimeout);
@@ -123,6 +126,24 @@ public class AsyncBrainExecutor {
         successCount.set(0);
         timeoutCount.set(0);
         errorCount.set(0);
+    }
+    
+    public static void restartSmooth() {
+        if (executorService != null) {
+            ExecutorService oldExecutor = executorService;
+            
+            oldExecutor.shutdown();
+            try {
+                if (!oldExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                    oldExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                oldExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            
+            resetStatistics();
+        }
     }
 }
 

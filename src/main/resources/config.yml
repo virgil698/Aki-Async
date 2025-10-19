@@ -1,9 +1,15 @@
 # ==========================================
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
-# 版本 / Version: 1.1.0
+# 版本 / Version: 2.4.0
 # 适用服务端 / Server: Leaves 1.21.8+
 # ==========================================
+
+# 配置版本 / Configuration version
+# 当前版本 / Current version: 1
+# 说明：当前配置版本为1，如果配置版本大于1，则需要更新配置文件
+# Description: The current configuration version is 1, if the configuration version is greater than 1, you need to update the configuration file
+version: 1
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -449,20 +455,6 @@ performance:
   # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
-# ==========================================
-# 配置建议 / Configuration Tips
-# ==========================================
-# 小型服务器 / Small servers (1-10人):
-#   - thread-pool-size: 2-4
-#   - threads: 4
-#
-# 中型服务器 / Medium servers (10-50人):
-#   - thread-pool-size: 4-8
-#   - threads: 6-8
-#
-# 大型服务器 / Large servers (50+人):
-#   - thread-pool-size: 8-16
-#   - threads: 8-12
 #
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.

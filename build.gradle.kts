@@ -33,6 +33,7 @@ val pluginJson = leavesPluginJson {
         accessWidener = "aki-async.accesswidener"
         mixins.add("aki-async.mixins.json")
     }
+    
     // TODO: add your plugin dependencies
     // please check https://docs.papermc.io/paper/dev/getting-started/paper-plugins/#dependency-declaration
     // e.g.,

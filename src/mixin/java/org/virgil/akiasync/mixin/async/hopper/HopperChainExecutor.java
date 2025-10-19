@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 
 public class HopperChainExecutor {
     private static final int THREAD_POOL_SIZE = 4;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(
+    private static ExecutorService executor = Executors.newFixedThreadPool(
         THREAD_POOL_SIZE,
         r -> {
             Thread t = new Thread(r, "AkiAsync-Hopper-IO");
@@ -28,7 +28,6 @@ public class HopperChainExecutor {
                 task.run();
                 nbtCache.put(pos, level.getGameTime());
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Hopper async error at " + pos + ": " + e.getMessage());
             }
         });
     }
@@ -52,6 +51,30 @@ public class HopperChainExecutor {
     
     public static ExecutorService getExecutor() {
         return executor;
+    }
+    
+    public static void restartSmooth() {
+        ExecutorService oldExecutor = executor;
+        
+        executor = Executors.newFixedThreadPool(
+            THREAD_POOL_SIZE,
+            r -> {
+                Thread t = new Thread(r, "AkiAsync-Hopper-Smooth");
+                t.setDaemon(true);
+                return t;
+            }
+        );
+        
+        oldExecutor.shutdown();
+        try {
+            if (!oldExecutor.awaitTermination(500, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                oldExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            oldExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        
     }
 }
 
