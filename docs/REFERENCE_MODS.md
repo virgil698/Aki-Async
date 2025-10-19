@@ -89,6 +89,7 @@
 
 ### 0. Akarin ⏳ **[最高优先级]**
 - **链接**: [Akarin-project/Akarin](https://github.com/Akarin-project/Akarin)
+- **重点分支**: [ver/1.21.4](https://github.com/Akarin-project/Akarin/tree/ver/1.21.4/patches-1.16.5/server)
 - **关注点**: 全服异步架构（ServerTick 16×16分区 + ForkJoinPool + 0延迟写回）
 - **核心技术**:
   - **ServerTick 分区**: 把 `ServerLevel.tick()` 按 16×16 区块切成任务
