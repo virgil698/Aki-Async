@@ -9,21 +9,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
 
-/**
- * Villager Breed Async Optimization - 32Ã—32 region-based breed check
- * 
- * Hook: customServerAiStep() (1.21.8 correct method)
- * Performance: 200 villagers â†?MSPT -3 ms, 4 breed threads, 50% idle throttle
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = Villager.class, priority = 1200)
 public class VillagerBreedAsyncMixin {
     
-    /**
-     * Hook villager customServerAiStep - throttle breed check
-     */
     @Inject(method = "customServerAiStep", at = @At("HEAD"), cancellable = true)
     private void aki$throttleBreedCheck(CallbackInfo ci) {
         Villager villager = (Villager) (Object) this;

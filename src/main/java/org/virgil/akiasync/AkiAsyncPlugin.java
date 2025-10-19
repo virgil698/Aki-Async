@@ -119,7 +119,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 double generalThroughput = genCompletedPeriod / 60.0;
                 
                 getLogger().info(String.format(
-                    "══════════════�?AkiAsync Metrics (60s period) ══════════════�?
+                    "============== AkiAsync Metrics (60s period) =============="
                 ));
                 getLogger().info(String.format(
                     "[General Pool] Submitted: %d | Completed: %d (%.2f/s) | Active: %d/%d | Queue: %d",
@@ -131,7 +131,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                     "[Lifetime]     Completed: %d/%d tasks",
                     genCompleted, genTotal
                 ));
-                getLogger().info("════════════════════════════════════════════════════════════�?);
+                getLogger().info("===========================================================");
                 
             } catch (Exception e) {
                 getLogger().warning("[Metrics] Error: " + e.getMessage());

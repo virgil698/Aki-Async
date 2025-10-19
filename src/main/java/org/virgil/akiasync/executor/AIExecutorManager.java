@@ -13,16 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.virgil.akiasync.AkiAsyncPlugin;
 
-/**
- * AI dedicated thread pool manager
- * 
- * Core optimizations:
- * 1. Independent pool: Separated from lighting, avoid mutual interference
- * 2. Bounded queue: LinkedBlockingQueue(256) â†?Prevent task accumulation
- * 3. CallerRunsPolicy: Execute sync immediately when full, no TPS blocking
- * 
- * @author Virgil
- */
 public class AIExecutorManager {
     
     private final AkiAsyncPlugin plugin;
@@ -57,13 +47,6 @@ public class AIExecutorManager {
         plugin.getLogger().info("AI executor initialized: " + aiThreads + " threads (prestarted: " + prestarted + ")");
     }
     
-    /**
-     * Submit AI task (with timeout)
-     * 
-     * @param task Task to execute
-     * @param timeoutMicros Timeout in microseconds
-     * @return Future
-     */
     public <T> CompletableFuture<T> submitWithTimeout(Callable<T> task, long timeoutMicros) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -75,14 +58,6 @@ public class AIExecutorManager {
         .orTimeout(timeoutMicros, TimeUnit.MICROSECONDS);
     }
     
-    /**
-     * Sync wait for result (main thread invocation)
-     * 
-     * @param future Future object
-     * @param timeoutMicros Timeout in microseconds
-     * @param fallback Timeout callback (execute sync immediately)
-     * @return Result, null on timeout with fallback executed
-     */
     public <T> T getOrRunSync(CompletableFuture<T> future, long timeoutMicros, Runnable fallback) {
         try {
             return future.get(timeoutMicros, TimeUnit.MICROSECONDS);
@@ -97,16 +72,10 @@ public class AIExecutorManager {
         }
     }
     
-    /**
-     * Get executor
-     */
     public ExecutorService getExecutor() {
         return aiExecutor;
     }
     
-    /**
-     * Shutdown
-     */
     public void shutdown() {
         plugin.getLogger().info("Shutting down AI executor...");
         aiExecutor.shutdown();
@@ -121,9 +90,6 @@ public class AIExecutorManager {
         plugin.getLogger().info("AI executor shut down successfully");
     }
     
-    /**
-     * Get statistics
-     */
     public String getStatistics() {
         return String.format(
             "AI Pool: %d/%d | Active: %d | Queue: %d | Completed: %d",

@@ -30,27 +30,6 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.schedule.Activity;
 
-/**
- * Zero-latency async AI optimization for expensive entity brains
- * 
- * Core strategy:
- * 1. Main thread tick start: Generate POI snapshot (read-only)
- * 2. Async thread: Brain executes with snapshot, produces diff
- * 3. Main thread within same tick: Wait â‰?00Î¼s, write back diff immediately
- * 
- * Advantages:
- * - 0 tick latency: Completes within same tick, entity behavior unchanged
- * - Lock-free concurrency: Snapshot is read-only, thread-safe
- * - Rollback capable: Timeout/exception fallback to vanilla logic
- * - Order consistent: Main thread execution within ServerLevel.tick() single-threaded context
- * 
- * Per-entity optimization:
- * - Villager category (Villager + Wandering Trader) - independent toggle
- * - Piglin category (Piglin) - independent toggle  
- * - Simple entities - independent toggle
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = Brain.class, priority = 999)
 public abstract class ExpensiveAIMixin<E extends LivingEntity> {
@@ -75,9 +54,6 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     @Unique private static int successCount = 0;
     @Unique private static int timeoutCount = 0;
     
-    /**
-     * Take snapshot before Brain.tick begins
-     */
     @Inject(method = "tick", at = @At("HEAD"))
     private void aki$takeSnapshot(ServerLevel level, E entity, CallbackInfo ci) {
         if (!initialized) { aki$initAsyncAI(); }
@@ -120,9 +96,6 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
         this.aki$brainSnapshot = BrainSnapshot.capture(brain, level);
     }
     
-    /**
-     * Offload Brain computation after Brain.tick completes
-     */
     @Inject(method = "tick", at = @At("RETURN"))
     private void aki$offloadBrain(ServerLevel level, E entity, CallbackInfo ci) {
         boolean isVillager = entity instanceof Villager || entity instanceof WanderingTrader;
@@ -180,9 +153,6 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
         }
     }
     
-    /**
-     * Initialize configuration
-     */
     @Unique
     private static synchronized void aki$initAsyncAI() {
         if (initialized) return;

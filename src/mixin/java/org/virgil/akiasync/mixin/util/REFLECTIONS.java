@@ -2,12 +2,6 @@ package org.virgil.akiasync.mixin.util;
 
 import java.lang.reflect.Field;
 
-/**
- * Safe reflection utility
- * Lazy initialization, no static block crashes
- * 
- * @author Virgil
- */
 public final class REFLECTIONS {
     
     public static boolean setField(Object obj, String fieldName, Object value) {

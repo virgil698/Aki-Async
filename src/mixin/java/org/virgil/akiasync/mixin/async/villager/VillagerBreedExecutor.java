@@ -9,16 +9,6 @@ import java.util.concurrent.Executors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-/**
- * Villager Breed Async Executor - 32Ã—32 region-based breed check
- * 
- * Optimization targets:
- * - 200 villagers + doors + beds scan: 3-5 ms â†?1-2 ms (â†?0%)
- * - Region granularity: One thread per 32Ã—32 area
- * - Age throttle: Skip idle villagers (no movement for 20 ticks)
- * 
- * @author Virgil
- */
 public class VillagerBreedExecutor {
     private static final int THREAD_POOL_SIZE = 4;
     private static final ExecutorService executor = Executors.newFixedThreadPool(
@@ -64,9 +54,6 @@ public class VillagerBreedExecutor {
         return (currentTick - lastMovement) >= IDLE_THRESHOLD_TICKS;
     }
     
-    /**
-     * Clear old cache entries
-     */
     public static void clearOldCache(long currentTick) {
         movementCache.entrySet().removeIf(entry -> 
             (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100
@@ -74,9 +61,6 @@ public class VillagerBreedExecutor {
         lastPositionCache.clear();
     }
     
-    /**
-     * Shutdown executor
-     */
     public static void shutdown() {
         executor.shutdown();
         movementCache.clear();

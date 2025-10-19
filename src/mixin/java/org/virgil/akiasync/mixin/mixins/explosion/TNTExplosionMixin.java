@@ -14,25 +14,10 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * TNT explosion 3-stage async optimization
- * 
- * Targets: PrimedTnt (TNT entity) explode() method
- * Stage â‘?Async raycast (worker pool)
- * Stage â‘?Batch merge (same tick + same chunk)
- * Stage â‘?0-delay writeback (200Î¼s timeout)
- * 
- * Performance: 36ms â†?18ms (MSPT), TPS lock 20
- * 
- * @author Virgil
- */
 @SuppressWarnings("unused")
 @Mixin(value = PrimedTnt.class, priority = 1200)
 public class TNTExplosionMixin {
     
-    /**
-     * Hook PrimedTnt.explode() - submit async task then cancel vanilla
-     */
     @Inject(method = "explode", at = @At("HEAD"), cancellable = true)
     private void aki$asyncExplosion(CallbackInfo ci) {
         PrimedTnt tnt = (PrimedTnt) (Object) this;
@@ -67,7 +52,7 @@ public class TNTExplosionMixin {
                         for (BlockPos pos : result.getToDestroy()) {
                             net.minecraft.world.level.block.state.BlockState state = sl.getBlockState(pos);
                             
-                            if (state.getBlock() instanceof net.minecraft.world.level.block.FireBlock) {
+                            if (state.getBlock() == net.minecraft.world.level.block.Blocks.FIRE) {
                                 java.util.List<net.minecraft.world.entity.item.ItemEntity> items = 
                                     sl.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, 
                                         new net.minecraft.world.phys.AABB(pos));

@@ -8,16 +8,6 @@ import java.util.concurrent.Executors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-/**
- * Hopper Chain Async Executor - 16Ã—16 region-based I/O parallelization
- * 
- * Optimization targets:
- * - 600 hoppers tick: 8-12 ms â†?3-4 ms (â†?7%)
- * - Region granularity: One thread per 16Ã—16 chunk
- * - 1 tick delay acceptable (hopper transfer already has cooldown)
- * 
- * @author Virgil
- */
 public class HopperChainExecutor {
     private static final int THREAD_POOL_SIZE = 4;
     private static final ExecutorService executor = Executors.newFixedThreadPool(
@@ -43,27 +33,18 @@ public class HopperChainExecutor {
         });
     }
     
-    /**
-     * Check if NBT cache is valid (within 1 tick)
-     */
     public static boolean isCacheValid(BlockPos pos, long currentTick) {
         Long lastAccess = nbtCache.get(pos);
         if (lastAccess == null) return false;
         return (currentTick - lastAccess) <= NBT_CACHE_TICKS;
     }
     
-    /**
-     * Clear old NBT cache entries
-     */
     public static void clearOldCache(long currentTick) {
         nbtCache.entrySet().removeIf(entry -> 
             (currentTick - entry.getValue()) > NBT_CACHE_TICKS * 20
         );
     }
     
-    /**
-     * Shutdown executor
-     */
     public static void shutdown() {
         executor.shutdown();
         nbtCache.clear();

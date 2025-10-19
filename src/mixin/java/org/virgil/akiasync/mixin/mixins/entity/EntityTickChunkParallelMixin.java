@@ -14,17 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityTickList;
 
-/**
- * Entity-level batched parallel EntityTickList (capacity expansion optimized version)
- * 
- * Optimizations:
- * â‘?Task granularity refinement: chunk-level â†?entity-level batching (8-16 entities/batch)
- * â‘?Dynamic timeout: MSPT adaptive (< 20ms=100ms, 20-30ms=50ms, >30ms=25ms)
- * â‘?Independent thread pool: Dedicated executor (Java 21+, no blocking)
- * â‘?Player region priority: Entities within 32 blocks processed first
- * 
- * @author Virgil
- */
 @SuppressWarnings({"unused", "CatchMayIgnoreException"})
 @Mixin(value = EntityTickList.class, priority = 1100)
 public abstract class EntityTickChunkParallelMixin {
