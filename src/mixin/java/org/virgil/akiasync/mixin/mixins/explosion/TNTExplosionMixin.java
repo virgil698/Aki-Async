@@ -69,9 +69,9 @@ public class TNTExplosionMixin {
                 // Apply result in main thread (schedule back)
                 sl.getServer().execute(() -> {
                     try {
-                        // Destroy blocks
+                        // Destroy blocks with drops
                         for (BlockPos pos : result.getToDestroy()) {
-                            sl.removeBlock(pos, false);
+                            sl.destroyBlock(pos, true, tnt); // drop = true, source = TNT
                         }
                         
                         // Apply entity damage & knockback

@@ -82,11 +82,20 @@ public class ExplosionCalculator {
                         BlockState state = snapshot.getBlockState(pos);
                         
                         if (!state.isAir()) {
-                            // Get blast resistance
                             float resistance = Math.max(0.0f, state.getBlock().getExplosionResistance());
                             rayPower -= (resistance + 0.3f) * 0.3f;
                             
                             if (rayPower > 0.0f && !toDestroy.contains(pos)) {
+                                // Water protection: skip waterlogged blocks
+                                if (!state.getFluidState().isEmpty()) {
+                                    continue; // Skip waterlogged blocks
+                                }
+                                
+                                // Check if block can be destroyed by explosion
+                                if (state.canBeReplaced()) {
+                                    continue; // Skip replaceable blocks (water sources)
+                                }
+                                
                                 toDestroy.add(pos);
                             }
                         }
