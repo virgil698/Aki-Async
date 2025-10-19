@@ -65,7 +65,26 @@ public class TNTExplosionMixin {
                 sl.getServer().execute(() -> {
                     try {
                         for (BlockPos pos : result.getToDestroy()) {
+                            net.minecraft.world.level.block.state.BlockState state = sl.getBlockState(pos);
+                            
+                            if (state.getBlock() instanceof net.minecraft.world.level.block.FireBlock) {
+                                java.util.List<net.minecraft.world.entity.item.ItemEntity> items = 
+                                    sl.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, 
+                                        new net.minecraft.world.phys.AABB(pos));
+                                for (net.minecraft.world.entity.item.ItemEntity item : items) {
+                                    if (item.fireImmune()) continue;
+                                    item.setRemainingFireTicks(100);
+                                    item.hurt(sl.damageSources().onFire(), 1.0F);
+                                }
+                            }
+                            
                             sl.destroyBlock(pos, true, tnt);
+                            
+                            if (result.isFire() && sl.getRandom().nextInt(3) == 0) {
+                                if (state.is(net.minecraft.world.level.block.Blocks.FIRE)) {
+                                    sl.setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.FIRE.defaultBlockState());
+                                }
+                            }
                         }
                         
                         for (Map.Entry<UUID, Vec3> entry : result.getToHurt().entrySet()) {
