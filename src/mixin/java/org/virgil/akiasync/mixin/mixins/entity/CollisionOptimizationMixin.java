@@ -26,7 +26,6 @@ public abstract class CollisionOptimizationMixin {
         
         Entity self = (Entity) (Object) this;
         
-        // ServerCore pattern: skip collision for stationary entities
         if (self.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
@@ -38,7 +37,6 @@ public abstract class CollisionOptimizationMixin {
         
         Entity self = (Entity) (Object) this;
         
-        // Skip mutual push if both stationary
         if (self.getDeltaMovement().lengthSqr() < minMovement && 
             other.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();

@@ -11,7 +11,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Brain throttle for stationary entities.
- * Config loaded from BridgeManager (Leaves template pattern).
+ * Config loaded from BridgeManager.
  * Lower priority to execute AFTER ExpensiveAIMixin.
  */
 @SuppressWarnings("unused")

@@ -7,28 +7,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Piglin snapshot (1.21.8 specific)
- * 
- * Snapshot contents (main thread < 0.05 ms):
- * 1. inventory - Item list (copied ItemStack array)
- * 2. nearbyPlayers - Player positions + gold holding status within 16 blocks
- * 3. nearbyThreats - Soul fire blocks within 12 blocks
- * 4. isHunted - HUNTED_RECENTLY flag
- * 
+ * Piglin snapshot.
  * @author Virgil
  */
 public final class PiglinSnapshot {
     
-    // Inventory snapshot (ItemStack array copy required for snapshot)
     private final ItemStack[] inventoryItems;
     
-    // Nearby players snapshot (position + gold holding status only)
     private final java.util.List<PlayerGoldInfo> nearbyPlayers;
     
-    // Nearby threats snapshot (soul fire blocks)
     private final java.util.List<net.minecraft.core.BlockPos> nearbyThreats;
     
-    // Hunted flag (Boolean)
     private final boolean isHunted;
     
     private PiglinSnapshot(
@@ -43,22 +32,13 @@ public final class PiglinSnapshot {
         this.isHunted = hunted;
     }
     
-    /**
-     * Capture piglin snapshot (main thread invocation, full version)
-     * 
-     * @param piglin Piglin entity (has inventory)
-     * @param level ServerLevel
-     * @return Snapshot
-     */
     public static PiglinSnapshot capture(Piglin piglin, ServerLevel level) {
-        // 1. Copy inventory list (SimpleContainer → ItemStack[])
         SimpleContainer inv = piglin.getInventory();
         ItemStack[] items = new ItemStack[inv.getContainerSize()];
         for (int i = 0; i < items.length; i++) {
-            items[i] = inv.getItem(i).copy();  // copy to avoid reference sharing
+            items[i] = inv.getItem(i).copy();
         }
         
-        // 2. Scan players within 16 blocks (UUID + position + gold status)
         AABB scanBox = piglin.getBoundingBox().inflate(16.0);
         java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
@@ -71,7 +51,6 @@ public final class PiglinSnapshot {
             ))
             .collect(java.util.stream.Collectors.toList());
         
-        // 3. Scan threats within 12 blocks (soul fire blocks)
         java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>();
         net.minecraft.core.BlockPos piglinPos = piglin.blockPosition();
         for (int x = -12; x <= 12; x++) {
@@ -85,7 +64,6 @@ public final class PiglinSnapshot {
             }
         }
         
-        // 4. Read hunted flag (Boolean)
         boolean hunted = piglin.getBrain()
             .getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HUNTED_RECENTLY)
             .orElse(false);
@@ -93,21 +71,12 @@ public final class PiglinSnapshot {
         return new PiglinSnapshot(items, players, threats, hunted);
     }
     
-    /**
-     * Capture simplified snapshot (PiglinBrute specific, no inventory)
-     * 
-     * @param brute PiglinBrute entity (no inventory)
-     * @param level ServerLevel
-     * @return Snapshot
-     */
     public static PiglinSnapshot captureSimple(
             net.minecraft.world.entity.monster.piglin.PiglinBrute brute,
             ServerLevel level
     ) {
-        // 1. Empty inventory (brutes don't barter)
         ItemStack[] items = new ItemStack[0];
         
-        // 2-4. Same logic for other aspects (scan players, threats, hunted flag)
         AABB scanBox = brute.getBoundingBox().inflate(16.0);
         java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
@@ -140,24 +109,17 @@ public final class PiglinSnapshot {
         return new PiglinSnapshot(items, players, threats, hunted);
     }
     
-    /**
-     * Check if player is holding gold items
-     */
     private static boolean isHoldingGold(net.minecraft.world.entity.player.Player player) {
         ItemStack mainHand = player.getMainHandItem();
         return mainHand.is(net.minecraft.world.item.Items.GOLD_INGOT) ||
                mainHand.is(net.minecraft.world.item.Items.GOLD_BLOCK);
     }
     
-    // Getters
     public ItemStack[] getInventoryItems() { return inventoryItems; }
     public java.util.List<PlayerGoldInfo> getNearbyPlayers() { return nearbyPlayers; }
     public java.util.List<net.minecraft.core.BlockPos> getNearbyThreats() { return nearbyThreats; }
     public boolean isHunted() { return isHunted; }
     
-    /**
-     * Player gold info (virtual reference: UUID + BlockPos)
-     */
     public static class PlayerGoldInfo {
         final java.util.UUID playerId;
         final net.minecraft.core.BlockPos pos;

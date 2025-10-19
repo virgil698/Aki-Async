@@ -36,7 +36,7 @@ public abstract class LightEngineAsyncMixin {
     private static volatile boolean enabled;
     private static volatile ExecutorService lightingExecutor;
     private static volatile int batchThreshold = 16;
-    private static volatile int baseBatchThreshold = 16;  // Base threshold for dynamic adjustment
+    private static volatile int baseBatchThreshold = 16;
     private static volatile boolean useLayeredQueue = true;
     private static volatile int maxPropagationDistance = 15;
     private static volatile boolean deduplicationEnabled = true;
@@ -44,28 +44,22 @@ public abstract class LightEngineAsyncMixin {
     private static volatile boolean advancedStatsEnabled = false;
     private static volatile boolean initialized = false;
     
-    // Advanced optimization 1: 16-layer queue (Starlight core algorithm)
-    // Using Map<BlockPos, Long> where Long = (lightLevel << 32) | timestamp
     @SuppressWarnings("unchecked")
     private static final Queue<BlockPos>[] LAYERED_QUEUES = new Queue[16];
     private static final AtomicInteger[] layerSizes = new AtomicInteger[16];
     private static final Map<BlockPos, Long> UPDATE_METADATA = new ConcurrentHashMap<>();
     
-    // Advanced optimization 4: Deduplication set
     private static final Set<BlockPos> PENDING_UPDATES = ConcurrentHashMap.newKeySet();
     
-    // Legacy fallback queue
     private static final Queue<BlockPos> LIGHT_UPDATE_QUEUE = new ConcurrentLinkedQueue<>();
     private static final AtomicInteger queueSize = new AtomicInteger(0);
     private static volatile boolean processing = false;
     private static int batchCount = 0;
     
-    // Advanced optimization 3: Dynamic batch adjustment metrics
     private static long lastAdjustmentTime = System.currentTimeMillis();
-    private static final long ADJUSTMENT_INTERVAL = 5000; // Adjust every 5 seconds
+    private static final long ADJUSTMENT_INTERVAL = 5000;
     
     static {
-        // Initialize layered queues
         for (int i = 0; i < 16; i++) {
             LAYERED_QUEUES[i] = new ConcurrentLinkedQueue<>();
             layerSizes[i] = new AtomicInteger(0);
@@ -82,35 +76,29 @@ public abstract class LightEngineAsyncMixin {
         
         BlockPos immutablePos = pos.immutable();
         
-        // Optimization 4: Deduplication - skip if already pending
         if (deduplicationEnabled) {
             if (!PENDING_UPDATES.add(immutablePos)) {
-                ci.cancel(); // Already in queue
+                ci.cancel();
                 return;
             }
         }
         
         if (useLayeredQueue) {
-            // Optimization 1: Add to layered queue based on light level
             int lightLevel = getLightLevel(pos);
             LAYERED_QUEUES[lightLevel].offer(immutablePos);
             layerSizes[lightLevel].incrementAndGet();
-            // Store metadata: (lightLevel << 32) | timestamp
             UPDATE_METADATA.put(immutablePos, ((long)lightLevel << 32) | System.currentTimeMillis());
         } else {
-            // Fallback: simple queue
             LIGHT_UPDATE_QUEUE.offer(immutablePos);
             queueSize.incrementAndGet();
         }
         
         int totalSize = getTotalQueueSize();
         
-        // Optimization 3: Dynamic batch adjustment
         if (dynamicAdjustmentEnabled) {
             adjustBatchSize();
         }
         
-        // Process batch when threshold reached
         if (totalSize >= batchThreshold && !processing) {
             processing = true;
             ci.cancel();
@@ -154,19 +142,17 @@ public abstract class LightEngineAsyncMixin {
             int totalProcessed = 0;
             int maxProcess = batchThreshold * 2;
             
-            // Process from high to low light levels (Starlight core algorithm)
             for (int level = 15; level >= 0 && totalProcessed < maxProcess; level--) {
                 Queue<BlockPos> queue = LAYERED_QUEUES[level];
                 BlockPos pos;
                 
                 while ((pos = queue.poll()) != null && totalProcessed < maxProcess) {
-                    // Optimization 2: Age check
                     Long metadata = UPDATE_METADATA.remove(pos);
                     if (metadata != null) {
                         long timestamp = metadata & 0xFFFFFFFFL;
                         long age = System.currentTimeMillis() - timestamp;
                         
-                        if (age > 5000) { // Skip stale updates (> 5 seconds old)
+                        if (age > 5000) {
                             PENDING_UPDATES.remove(pos);
                             layerSizes[level].decrementAndGet();
                             continue;
@@ -177,10 +163,8 @@ public abstract class LightEngineAsyncMixin {
                         lightEngine.checkBlock(pos);
                         totalProcessed++;
                     } catch (Exception e) {
-                        // Skip failed updates
                     }
                     
-                    // Optimization 4: Remove from dedup set
                     PENDING_UPDATES.remove(pos);
                     layerSizes[level].decrementAndGet();
                 }
@@ -190,7 +174,6 @@ public abstract class LightEngineAsyncMixin {
                 if (totalProcessed > 0) {
                     System.out.println("[AkiAsync-LightEngine] Layered batch processed " + totalProcessed + " updates");
                     if (advancedStatsEnabled) {
-                        // Log per-layer statistics
                         for (int i = 15; i >= 0; i--) {
                             int size = layerSizes[i].get();
                             if (size > 0) {
@@ -201,13 +184,12 @@ public abstract class LightEngineAsyncMixin {
                 }
             }
         } catch (Exception e) {
-            // Clear on error
             clearAllQueues();
         }
     }
     
     /**
-     * Fallback: Process simple batch
+     * Process simple batch
      */
     private void processBatch() {
         try {
@@ -221,7 +203,6 @@ public abstract class LightEngineAsyncMixin {
                     lightEngine.checkBlock(pos);
                     processed++;
                 } catch (Exception e) {
-                    // Skip failed updates
                 }
                 PENDING_UPDATES.remove(pos);
                 queueSize.decrementAndGet();
@@ -250,24 +231,18 @@ public abstract class LightEngineAsyncMixin {
         lastAdjustmentTime = currentTime;
         
         try {
-            // Try to get server TPS (this is a simplified version)
-            // In production, you would get this from the server
             double tps = getApproximateTPS();
             
             if (tps < 18.0) {
-                // Low TPS - increase batch size to reduce overhead
                 batchThreshold = Math.min(baseBatchThreshold * 3, 64);
             } else if (tps < 19.0) {
                 batchThreshold = Math.min(baseBatchThreshold * 2, 48);
             } else if (tps > 19.8) {
-                // High TPS - can afford smaller batches for lower latency
                 batchThreshold = Math.max(baseBatchThreshold / 2, 8);
             } else {
-                // Normal - use base threshold
                 batchThreshold = baseBatchThreshold;
             }
         } catch (Exception e) {
-            // If TPS detection fails, use base threshold
             batchThreshold = baseBatchThreshold;
         }
     }
@@ -276,8 +251,6 @@ public abstract class LightEngineAsyncMixin {
      * Get approximate TPS (simplified)
      */
     private double getApproximateTPS() {
-        // Simplified - always return 20.0
-        // In production, access server.getCurrentTPS() or similar
         return 20.0;
     }
     
@@ -312,16 +285,14 @@ public abstract class LightEngineAsyncMixin {
     }
     
     /**
-     * Get light level for a position (simplified)
+     * Get light level for a position
      */
     private int getLightLevel(BlockPos pos) {
         try {
             LightEngine lightEngine = (LightEngine) (Object) this;
-            // Try to get light level - this is simplified
-            // In production, use lightEngine.getLightValue(pos) or similar
-            return 15; // Default to max for now
+            return 15;
         } catch (Exception e) {
-            return 15; // Default to max
+            return 15;
         }
     }
     

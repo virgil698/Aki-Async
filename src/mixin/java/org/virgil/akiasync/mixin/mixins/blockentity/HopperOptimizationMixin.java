@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Hopper optimization v7.0
- * Skip item entity scan when covered by container + delayed markDirty
- * 
+ * Hopper optimization.
  * @author Virgil
  */
 @SuppressWarnings("unused")

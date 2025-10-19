@@ -10,19 +10,16 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Universal AI snapshot (covers all remaining mobs)
- * 
- * Unified fields for attack/defense/neutral/passive/tamed types
- * 
+ * Universal AI snapshot.
  * @author Virgil
  */
 public final class UniversalAiSnapshot {
     
     private final double health;
-    private final double level;  // Y-level for flying mobs
-    private final List<PlayerInfo> nearbyPlayers;  // 32-block players
-    private final List<MobInfo> nearbyMobs;  // 16-block mobs (attack/defend)
-    private final List<BlockPos> nearbyPOIs;  // POI candidates (16 max)
+    private final double level;
+    private final List<PlayerInfo> nearbyPlayers;
+    private final List<MobInfo> nearbyMobs;
+    private final List<BlockPos> nearbyPOIs;
     
     private UniversalAiSnapshot(double health, double level, List<PlayerInfo> players, 
                                 List<MobInfo> mobs, List<BlockPos> pois) {
@@ -37,19 +34,16 @@ public final class UniversalAiSnapshot {
         double health = mob.getHealth();
         double level = mob.position().y;
         
-        // Scan 32-block players
         AABB box = mob.getBoundingBox().inflate(32.0);
         List<PlayerInfo> players = world.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class, box
         ).stream().map(p -> new PlayerInfo(p.getUUID(), p.blockPosition())).collect(Collectors.toList());
         
-        // Scan 16-block mobs (for attack/defend/panic)
         AABB mobBox = mob.getBoundingBox().inflate(16.0);
         List<MobInfo> mobs = world.getEntitiesOfClass(
             Mob.class, mobBox, e -> e instanceof Mob
         ).stream().map(m -> new MobInfo(m.blockPosition())).collect(Collectors.toList());
         
-        // POI candidates (simplified: empty list, universal doesn't need POI)
         List<BlockPos> pois = java.util.Collections.emptyList();
         
         return new UniversalAiSnapshot(health, level, players, mobs, pois);

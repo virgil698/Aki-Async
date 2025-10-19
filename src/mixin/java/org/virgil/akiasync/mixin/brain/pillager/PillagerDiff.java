@@ -6,14 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.monster.AbstractIllager;
 
 /**
- * Pillager family differential (safe reflection via REFLECTIONS util)
- * 
- * Fields (written via REFLECTIONS.setField):
- * - chargeScore → Pillager.crossbow...StartTime
- * - attackTarget (UUID) → Mob.target
- * - raidTarget (BlockPos) → Pillager.raidCenter (if exists)
- * - patrolTarget (BlockPos) → Pillager.patrolTarget
- * 
+ * Pillager family differential.
  * @author Virgil
  */
 public final class PillagerDiff {
@@ -31,11 +24,7 @@ public final class PillagerDiff {
     public void setRaidTarget(BlockPos pos) { this.raidTarget = pos; changeCount++; }
     public void setPatrolTarget(BlockPos pos) { this.patrolTarget = pos; changeCount++; }
     
-    /**
-     * Apply via safe reflection (REFLECTIONS util, no static block crash)
-     */
     public void applyTo(AbstractIllager illager, net.minecraft.server.level.ServerLevel level) {
-        // 1. Crossbow charge: Write crossbowChargedStartTime (if charging score > 0)
         if (chargeScore > 0) {
             org.virgil.akiasync.mixin.util.REFLECTIONS.setField(
                 illager, "crossbowChargedStartTime", 
@@ -43,7 +32,6 @@ public final class PillagerDiff {
             );
         }
         
-        // 2. Attack target: Write Mob.target
         if (attackTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(attackTarget);
             if (player != null && !player.isRemoved()) {
@@ -51,12 +39,10 @@ public final class PillagerDiff {
             }
         }
         
-        // 3. Raid center: Write Pillager.raidCenter (optional field)
         if (raidTarget != null) {
             org.virgil.akiasync.mixin.util.REFLECTIONS.setField(illager, "raidCenter", raidTarget);
         }
         
-        // 4. Patrol target: Write Pillager.patrolTarget
         if (patrolTarget != null) {
             org.virgil.akiasync.mixin.util.REFLECTIONS.setField(illager, "patrolTarget", patrolTarget);
         }

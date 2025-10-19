@@ -10,17 +10,14 @@ import net.minecraft.world.entity.monster.Evoker;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Evoker snapshot (spell CD + Vex summon + empty blocks)
- * 
+ * Evoker snapshot.
  * @author Virgil
  */
 public final class EvokerSnapshot {
-    
     private final double health;
     private final double spellCd;
     private final List<PlayerInfo> nearbyPlayers;
     private final int emptyBlocks;
-    
     private EvokerSnapshot(double health, double spellCd, List<PlayerInfo> players, int empty) {
         this.health = health;
         this.spellCd = spellCd;

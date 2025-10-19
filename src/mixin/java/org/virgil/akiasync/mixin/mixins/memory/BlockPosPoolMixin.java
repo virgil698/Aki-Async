@@ -13,7 +13,7 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * BlockPos object pool to reduce allocations (FerriteCore inspired).
+ * BlockPos object pool to reduce allocations.
  * PathNavigation creates many BlockPos - reuse MutableBlockPos instead.
  */
 @SuppressWarnings("unused")
@@ -22,7 +22,6 @@ public abstract class BlockPosPoolMixin {
 
     @Shadow protected Mob mob;
     
-    // Thread-local BlockPos pool (FerriteCore pattern)
     private static final ThreadLocal<BlockPos.MutableBlockPos> POS_POOL = 
         ThreadLocal.withInitial(BlockPos.MutableBlockPos::new);
     
@@ -38,11 +37,9 @@ public abstract class BlockPosPoolMixin {
         if (!initialized) { akiasync$initBlockPosPool(); }
         if (!enabled) return;
         
-        // Use pooled MutableBlockPos instead of BlockPos.containing()
         BlockPos.MutableBlockPos pooled = POS_POOL.get();
         pooled.set(target.x, target.y, target.z);
         
-        // Call createPath(BlockPos, int) with pooled pos
         PathNavigation nav = (PathNavigation) (Object) this;
         Path result = nav.createPath(pooled, accuracy);
         cir.setReturnValue(result);

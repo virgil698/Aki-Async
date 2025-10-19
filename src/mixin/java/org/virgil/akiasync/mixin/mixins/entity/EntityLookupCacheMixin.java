@@ -35,13 +35,11 @@ public abstract class EntityLookupCacheMixin {
         
         long now = System.currentTimeMillis();
         
-        // Check cache validity (ServerCore pattern)
         if (cachedEntities != null && 
             cachedBox != null && 
             cachedBox.equals(box) && 
             now - cacheTime < cacheDuration) {
             
-            // Filter cached result
             List<Entity> filtered = new java.util.ArrayList<>();
             for (Entity entity : cachedEntities) {
                 if (entity != except && (predicate == null || predicate.test(entity))) {

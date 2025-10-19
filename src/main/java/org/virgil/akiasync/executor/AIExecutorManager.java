@@ -31,7 +31,6 @@ public class AIExecutorManager {
     public AIExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         
-        // AI thread pool: 4 threads + bounded queue(256)
         int aiThreads = 4;
         ThreadFactory aiThreadFactory = new ThreadFactory() {
             private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -49,12 +48,11 @@ public class AIExecutorManager {
             aiThreads,
             aiThreads,
             60L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(256),  // Bounded queue, prevent explosion
+            new LinkedBlockingQueue<>(256),
             aiThreadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()  // Execute sync when full, no TPS blocking
+            new ThreadPoolExecutor.CallerRunsPolicy()
         );
         
-        // Prestart all threads
         int prestarted = aiExecutor.prestartAllCoreThreads();
         plugin.getLogger().info("AI executor initialized: " + aiThreads + " threads (prestarted: " + prestarted + ")");
     }
@@ -89,7 +87,6 @@ public class AIExecutorManager {
         try {
             return future.get(timeoutMicros, TimeUnit.MICROSECONDS);
         } catch (TimeoutException e) {
-            // Timeout: execute sync immediately, no TPS blocking
             future.cancel(true);
             if (fallback != null) {
                 fallback.run();

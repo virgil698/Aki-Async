@@ -20,7 +20,7 @@ import net.minecraft.server.level.ServerLevel;
  * @author Virgil
  */
 public class VillagerBreedExecutor {
-    private static final int THREAD_POOL_SIZE = 4; // 4 breed check threads
+    private static final int THREAD_POOL_SIZE = 4;
     private static final ExecutorService executor = Executors.newFixedThreadPool(
         THREAD_POOL_SIZE,
         r -> {
@@ -30,21 +30,14 @@ public class VillagerBreedExecutor {
         }
     );
     
-    // Age throttle cache: Villager UUID -> Last movement tick
     private static final Map<UUID, Long> movementCache = new ConcurrentHashMap<>();
     private static final Map<UUID, BlockPos> lastPositionCache = new ConcurrentHashMap<>();
-    private static final int IDLE_THRESHOLD_TICKS = 20; // 20 ticks = 1 second
+    private static final int IDLE_THRESHOLD_TICKS = 20;
     
-    /**
-     * Submit breed check task (async)
-     */
     public static void submit(ServerLevel level, UUID villagerUUID, BlockPos pos, Runnable task) {
         executor.execute(() -> {
             try {
-                // Execute breed check in worker thread
                 task.run();
-                
-                // Update movement cache
                 movementCache.put(villagerUUID, level.getGameTime());
             } catch (Exception e) {
                 System.err.println("[AkiAsync] Villager breed async error: " + e.getMessage());
@@ -52,24 +45,17 @@ public class VillagerBreedExecutor {
         });
     }
     
-    /**
-     * Check if villager is idle (no movement for 20 ticks)
-     * Returns true if should SKIP breed check
-     */
     public static boolean isIdle(UUID villagerUUID, BlockPos currentPos, long currentTick) {
-        BlockPos lastPos = lastPositionCache.get(currentPos);
+        BlockPos lastPos = lastPositionCache.get(villagerUUID);
         Long lastMovement = movementCache.get(villagerUUID);
         
-        // Update position
         lastPositionCache.put(villagerUUID, currentPos);
         
-        // Check if moved
         if (lastPos == null || !lastPos.equals(currentPos)) {
             movementCache.put(villagerUUID, currentTick);
-            return false; // Moved, not idle
+            return false;
         }
         
-        // Check idle duration
         if (lastMovement == null) {
             movementCache.put(villagerUUID, currentTick);
             return false;
@@ -85,7 +71,7 @@ public class VillagerBreedExecutor {
         movementCache.entrySet().removeIf(entry -> 
             (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100
         );
-        lastPositionCache.clear(); // Clear position cache every call
+        lastPositionCache.clear();
     }
     
     /**

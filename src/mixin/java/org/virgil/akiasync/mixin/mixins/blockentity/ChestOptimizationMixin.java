@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 /**
- * Chest hardcore optimization (skip when not open + delay markDirty)
+ * Chest hardcore optimization.
  * 
  * @author Virgil
  */
@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 @Mixin(value = ChestBlockEntity.class, priority = 989)
 public class ChestOptimizationMixin {
     
-    // Delay markDirty (reduce disk I/O, safe conservative approach)
     @Inject(method = "setChanged", at = @At("HEAD"), cancellable = true)
     private void aki$delayMarkDirty(CallbackInfo ci) {
         ChestBlockEntity chest = (ChestBlockEntity) (Object) this;
@@ -25,7 +24,7 @@ public class ChestOptimizationMixin {
         if (level == null) return;
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             if (serverLevel.getGameTime() % 40 != 0) {
-                ci.cancel();  // Only save every 40 ticks
+                ci.cancel();
             }
         }
     }

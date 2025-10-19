@@ -4,10 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
 /**
- * Dedicated thread pool for TNT explosion calculations
- * 
- * Pool size: CPU cores * 1.5 (configurable)
- * Reuses existing thread pool infrastructure if available
+ * Dedicated thread pool for TNT explosion calculations.
  * 
  * @author Virgil
  */

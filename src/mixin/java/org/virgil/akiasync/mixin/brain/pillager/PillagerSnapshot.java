@@ -10,10 +10,7 @@ import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Pillager family snapshot (Pillager/Evoker/Vindicator/Ravager)
- * 
- * Unified snapshot for all illagers (reuse Witch structure)
- * 
+ * Pillager family snapshot.
  * @author Virgil
  */
 public final class PillagerSnapshot {

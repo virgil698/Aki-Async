@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 
 /**
  * Hopper Chain Async Executor - 16×16 region-based I/O parallelization
@@ -20,7 +19,7 @@ import net.minecraft.world.level.ChunkPos;
  * @author Virgil
  */
 public class HopperChainExecutor {
-    private static final int THREAD_POOL_SIZE = 4; // 4 I/O threads
+    private static final int THREAD_POOL_SIZE = 4;
     private static final ExecutorService executor = Executors.newFixedThreadPool(
         THREAD_POOL_SIZE,
         r -> {
@@ -30,22 +29,13 @@ public class HopperChainExecutor {
         }
     );
     
-    // NBT cache: BlockPos -> Last access tick
     private static final Map<BlockPos, Long> nbtCache = new ConcurrentHashMap<>();
-    private static final int NBT_CACHE_TICKS = 1; // 1 tick delay
+    private static final int NBT_CACHE_TICKS = 1;
     
-    /**
-     * Submit hopper tick task (async I/O)
-     */
     public static void submit(ServerLevel level, BlockPos pos, Runnable task) {
-        ChunkPos chunkPos = new ChunkPos(pos);
-        
         executor.execute(() -> {
             try {
-                // Execute hopper logic in worker thread
                 task.run();
-                
-                // Update NBT cache timestamp
                 nbtCache.put(pos, level.getGameTime());
             } catch (Exception e) {
                 System.err.println("[AkiAsync] Hopper async error at " + pos + ": " + e.getMessage());

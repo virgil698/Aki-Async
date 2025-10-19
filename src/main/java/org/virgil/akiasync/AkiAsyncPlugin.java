@@ -7,8 +7,7 @@ import org.virgil.akiasync.executor.AsyncExecutorManager;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 /**
- * AkiAsync - Async optimizations for Leaves server
- * Main plugin class that initializes and manages async optimizations
+ * AkiAsync - Async optimizations for Leaves server.
  * 
  * @author Virgil
  */
@@ -25,26 +24,21 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         
-        // Initialize configuration
         configManager = new ConfigManager(this);
         configManager.loadConfig();
         
-        // Initialize async executor manager
         executorManager = new AsyncExecutorManager(this);
         
-        // Create and register bridge implementation (Leaves template pattern)
         bridge = new AkiAsyncBridge(this, executorManager.getExecutorService(), executorManager.getLightingExecutor());
         BridgeManager.setBridge(bridge);
         
         getLogger().info("[AkiAsync] Bridge registered successfully (Leaves template pattern)");
         
-        // Initialize TNT thread pool if enabled
         if (configManager.isTNTOptimizationEnabled()) {
             org.virgil.akiasync.mixin.async.TNTThreadPool.init(configManager.getTNTThreads());
             getLogger().info("[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
         }
         
-        // Hopper chain and villager breed executors are auto-initialized on first use
         if (configManager.isAsyncHopperChainEnabled()) {
             getLogger().info("[AkiAsync] Hopper chain async I/O enabled with " + configManager.getHopperChainThreads() + " threads");
         }
@@ -52,15 +46,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
         
-        // Validate and display all configurations (Mixins will lazy load from Bridge)
         BridgeManager.validateAndDisplayConfigurations();
         
-        // Start combined metrics reporting
         if (configManager.isPerformanceMetricsEnabled()) {
             startCombinedMetrics();
         }
         
-        // Log startup information
         getLogger().info("========================================");
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
@@ -82,22 +73,17 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     
     @Override
     public void onDisable() {
-        // Clear bridge
         BridgeManager.clearBridge();
         
-        // Shutdown metrics scheduler
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
         }
         
-        // Shutdown TNT thread pool
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
-        // Shutdown hopper and villager executors
         org.virgil.akiasync.mixin.async.hopper.HopperChainExecutor.shutdown();
         org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
         
-        // Shutdown executor managers
         if (executorManager != null) {
             executorManager.shutdown();
         }
@@ -106,7 +92,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     }
     
     /**
-     * Start combined metrics reporting for all executors
+     * Start combined metrics reporting for all executors.
      */
     private void startCombinedMetrics() {
         metricsScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
@@ -123,7 +109,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 java.util.concurrent.ThreadPoolExecutor generalExecutor = 
                     (java.util.concurrent.ThreadPoolExecutor) executorManager.getExecutorService();
                 
-                // General executor stats
                 long genCompleted = generalExecutor.getCompletedTaskCount();
                 long genTotal = generalExecutor.getTaskCount();
                 long genCompletedPeriod = genCompleted - lastGeneralCompleted[0];
@@ -131,10 +116,8 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 lastGeneralCompleted[0] = genCompleted;
                 lastGeneralTotal[0] = genTotal;
                 
-                // Calculate throughput
                 double generalThroughput = genCompletedPeriod / 60.0;
                 
-                // Log metrics
                 getLogger().info(String.format(
                     "═══════════════ AkiAsync Metrics (60s period) ═══════════════"
                 ));
@@ -157,7 +140,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     }
     
     /**
-     * Get plugin instance
+     * Get plugin instance.
      * @return Plugin instance
      */
     public static AkiAsyncPlugin getInstance() {

@@ -33,7 +33,6 @@ public class ExplosionSnapshot {
         this.fire = fire;
         this.blocks = new HashMap<>();
         
-        // Snapshot AABB (power * 2 radius)
         int minX = (int) Math.floor(center.x - power - 1);
         int minY = (int) Math.floor(center.y - power - 1);
         int minZ = (int) Math.floor(center.z - power - 1);
@@ -41,11 +40,9 @@ public class ExplosionSnapshot {
         int maxY = (int) Math.ceil(center.y + power + 1);
         int maxZ = (int) Math.ceil(center.z + power + 1);
         
-        // Clamp to world bounds
         minY = Math.max(level.getMinY(), minY);
         maxY = Math.min(level.getMaxY(), maxY);
         
-        // Snapshot blocks (only BlockState, no TE/NBT)
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
@@ -55,7 +52,6 @@ public class ExplosionSnapshot {
             }
         }
         
-        // Snapshot entities (position + UUID reference)
         double radius = power * 2.0;
         this.entities = level.getEntities(null, 
             new net.minecraft.world.phys.AABB(

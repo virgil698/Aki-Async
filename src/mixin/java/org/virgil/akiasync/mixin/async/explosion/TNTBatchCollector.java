@@ -34,10 +34,8 @@ public class TNTBatchCollector {
         
         ExplosionBatch batch = batches.computeIfAbsent(key, k -> new ExplosionBatch(level, chunkPos, tick));
         
-        // Add explosion to batch
         batch.addExplosion(center, power, fire);
         
-        // Execute if batch is ready (>= 2 explosions or max size)
         if (batch.getSize() >= 2 || batch.getSize() >= MAX_BATCH_SIZE) {
             batches.remove(key);
             return true;

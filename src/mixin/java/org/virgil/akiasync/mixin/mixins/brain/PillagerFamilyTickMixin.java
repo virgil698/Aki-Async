@@ -18,11 +18,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.AbstractIllager;
 
 /**
- * Pillager family async optimization (Mob.tick injection with instanceof filter)
- * 
- * Supported: Pillager, Evoker, Vindicator, Ravager (4 illagers)
- * 
- * Strategy: Paper/Leaves inlined all illager methods → inject parent Mob.tick()
+ * Pillager family async optimization.
  * 
  * @author Virgil
  */

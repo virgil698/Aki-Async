@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 
 /**
- * Universal AI differential (unified target field)
+ * Universal AI differential.
  * 
  * @author Virgil
  */

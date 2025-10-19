@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
  * @author Virgil
  */
 public class ExplosionCalculator {
-    private static final int RAYCAST_SAMPLES = 16; // 16 rays per block (vanilla)
+    private static final int RAYCAST_SAMPLES = 16;
     
     private final ExplosionSnapshot snapshot;
     private final List<BlockPos> toDestroy = new ArrayList<>();
@@ -30,37 +30,25 @@ public class ExplosionCalculator {
         this.snapshot = snapshot;
     }
     
-    /**
-     * Calculate explosion (main entry point)
-     */
     public ExplosionResult calculate() {
-        // Step 1: Raycast to find affected blocks
         calculateAffectedBlocks();
-        
-        // Step 2: Calculate entity damage & knockback
         calculateEntityDamage();
-        
         return new ExplosionResult(toDestroy, toHurt, snapshot.isFire());
     }
     
-    /**
-     * Step 1: Raycast explosion (vanilla algorithm)
-     */
     private void calculateAffectedBlocks() {
         Vec3 center = snapshot.getCenter();
         float power = snapshot.getPower();
         
-        // Raycast in 16x16x16 directions (vanilla)
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
                 for (int rayZ = 0; rayZ < RAYCAST_SAMPLES; rayZ++) {
                     if (rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
                         rayY != 0 && rayY != RAYCAST_SAMPLES - 1 &&
                         rayZ != 0 && rayZ != RAYCAST_SAMPLES - 1) {
-                        continue; // Skip internal rays
+                        continue;
                     }
                     
-                    // Ray direction
                     double dirX = (double) rayX / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
                     double dirY = (double) rayY / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
                     double dirZ = (double) rayZ / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
@@ -69,10 +57,8 @@ public class ExplosionCalculator {
                     dirY /= length;
                     dirZ /= length;
                     
-                    // Ray power
                     float rayPower = power * (0.7f + snapshot.getLevel().getRandom().nextFloat() * 0.6f);
                     
-                    // Cast ray
                     double x = center.x;
                     double y = center.y;
                     double z = center.z;
@@ -86,21 +72,18 @@ public class ExplosionCalculator {
                             rayPower -= (resistance + 0.3f) * 0.3f;
                             
                             if (rayPower > 0.0f && !toDestroy.contains(pos)) {
-                                // Water protection: skip waterlogged blocks
                                 if (!state.getFluidState().isEmpty()) {
-                                    continue; // Skip waterlogged blocks
+                                    continue;
                                 }
                                 
-                                // Check if block can be destroyed by explosion
                                 if (state.canBeReplaced()) {
-                                    continue; // Skip replaceable blocks (water sources)
+                                    continue;
                                 }
                                 
                                 toDestroy.add(pos);
                             }
                         }
                         
-                        // Move ray forward
                         x += dirX * 0.3;
                         y += dirY * 0.3;
                         z += dirZ * 0.3;
@@ -111,9 +94,6 @@ public class ExplosionCalculator {
         }
     }
     
-    /**
-     * Step 2: Calculate entity damage & knockback
-     */
     private void calculateEntityDamage() {
         Vec3 center = snapshot.getCenter();
         float power = snapshot.getPower();
@@ -127,10 +107,8 @@ public class ExplosionCalculator {
             
             if (dist >= radius) continue;
             
-            // Calculate exposure (raycast from explosion to entity)
             double exposure = calculateExposure(center, entity);
             
-            // Calculate knockback
             double impact = (1.0 - dist / radius) * exposure;
             double knockbackX = dx / dist * impact;
             double knockbackY = dy / dist * impact;

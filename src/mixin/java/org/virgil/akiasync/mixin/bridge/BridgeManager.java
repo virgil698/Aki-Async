@@ -74,11 +74,9 @@ public final class BridgeManager {
         System.out.println("[AkiAsync] ========== Mixin Configuration Status ==========");
         
         try {
-            // Brain mixins
             System.out.println("  [Brain] Throttle: enabled=" + bridge.isBrainThrottleEnabled() + 
                 ", interval=" + bridge.getBrainThrottleInterval());
             
-            // Entity mixins
             System.out.println("  [Entity] TickParallel: enabled=" + bridge.isEntityTickParallel() + 
                 ", threads=" + bridge.getEntityTickThreads() + 
                 ", minEntities=" + bridge.getMinEntitiesForParallel());
@@ -89,12 +87,10 @@ public final class BridgeManager {
             System.out.println("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() + 
                 ", executor=" + (bridge.getGeneralExecutor() != null));
             
-            // Pathfinding & Spawning
             System.out.println("  [Pathfinding] Budget: " + bridge.getPathfindingTickBudget());
             System.out.println("  [Spawning] Enabled: " + bridge.isMobSpawningEnabled() + 
                 ", maxPerChunk=" + bridge.getMaxEntitiesPerChunk());
             
-            // Memory optimizations
             System.out.println("  [Memory] PredicateCache: " + bridge.isPredicateCacheEnabled());
             System.out.println("  [Memory] BlockPosPool: " + bridge.isBlockPosPoolEnabled());
             System.out.println("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() + 

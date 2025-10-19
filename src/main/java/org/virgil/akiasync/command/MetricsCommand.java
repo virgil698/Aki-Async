@@ -17,7 +17,6 @@ public class MetricsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length > 0 && args[0].equalsIgnoreCase("metrics")) {
-            // Output Prometheus-style metrics
             sender.sendMessage("§a[AkiAsync] Metrics:");
             sender.sendMessage("§7" + AsyncMetrics.getPrometheusMetrics().replace("\n", "\n§7"));
             return true;

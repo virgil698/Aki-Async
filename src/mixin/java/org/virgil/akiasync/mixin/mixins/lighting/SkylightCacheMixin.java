@@ -27,10 +27,9 @@ public abstract class SkylightCacheMixin {
     private static volatile int cacheDurationMs = 100;
     private static volatile boolean initialized = false;
     
-    // Cache structure: BlockPos -> CachedValue
     private static final Map<BlockPos, CachedSkylightValue> SKYLIGHT_CACHE = new ConcurrentHashMap<>();
     private static long lastCleanup = System.currentTimeMillis();
-    private static final long CLEANUP_INTERVAL = 5000; // Clean every 5 seconds
+    private static final long CLEANUP_INTERVAL = 5000;
     
     /**
      * Cache skylight computation results
@@ -43,14 +42,12 @@ public abstract class SkylightCacheMixin {
         BlockPos pos = BlockPos.of(blockPos);
         long currentTime = System.currentTimeMillis();
         
-        // Check cache
         CachedSkylightValue cached = SKYLIGHT_CACHE.get(pos);
         if (cached != null && currentTime - cached.timestamp < cacheDurationMs) {
             cir.setReturnValue(cached.value);
             return;
         }
         
-        // Periodic cleanup (FerriteCore pattern)
         if (currentTime - lastCleanup > CLEANUP_INTERVAL) {
             cleanupCache(currentTime);
             lastCleanup = currentTime;
@@ -67,17 +64,15 @@ public abstract class SkylightCacheMixin {
         BlockPos pos = BlockPos.of(blockPos);
         int computedValue = cir.getReturnValue();
         
-        // Store in cache
         SKYLIGHT_CACHE.put(pos.immutable(), new CachedSkylightValue(computedValue, System.currentTimeMillis()));
         
-        // Limit cache size (prevent memory leak)
         if (SKYLIGHT_CACHE.size() > 10000) {
             cleanupCache(System.currentTimeMillis());
         }
     }
     
     /**
-     * Clean expired cache entries
+     * Clean expired cache entries (prevent memory leak)
      */
     private static void cleanupCache(long currentTime) {
         SKYLIGHT_CACHE.entrySet().removeIf(entry -> 

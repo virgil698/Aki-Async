@@ -12,15 +12,11 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Explosion calculation result
  * 
- * Contains:
- * - toDestroy: List of BlockPos to destroy
- * - toHurt: Map of Entity UUID -> Knockback vector
- * 
  * @author Virgil
  */
 public class ExplosionResult {
     private final List<BlockPos> toDestroy;
-    private final Map<UUID, Vec3> toHurt; // UUID -> knockback vector
+    private final Map<UUID, Vec3> toHurt;
     private final boolean fire;
     
     public ExplosionResult(List<BlockPos> toDestroy, Map<UUID, Vec3> toHurt, boolean fire) {

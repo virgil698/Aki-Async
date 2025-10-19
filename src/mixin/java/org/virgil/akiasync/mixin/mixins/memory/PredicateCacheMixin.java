@@ -52,7 +52,6 @@ public abstract class PredicateCacheMixin {
         if (!initialized) { akiasync$initPredicateCache(); }
         if (!enabled) return original.call(list);
         
-        // Return stream directly - predicate optimization happens at call site
         return original.call(list);
     }
     

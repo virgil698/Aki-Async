@@ -37,8 +37,6 @@ public abstract class EntityListPreallocMixin {
         if (!initialized) { akiasync$initListPrealloc(); }
         if (!enabled) return new ArrayList<>();
         
-        // Pre-allocate reasonable capacity (FerriteCore: based on chunk entity average)
-        // Typical chunk has 10-50 entities, so 32 is good default
         return new ArrayList<>(defaultCapacity);
     }
     
@@ -56,7 +54,6 @@ public abstract class EntityListPreallocMixin {
     private <T> ArrayList<T> preallocateListWithSize(int size) {
         if (!enabled) return new ArrayList<>(size);
         
-        // Use max of requested size and our default
         return new ArrayList<>(Math.max(size, defaultCapacity));
     }
     

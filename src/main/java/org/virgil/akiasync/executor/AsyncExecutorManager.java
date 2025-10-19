@@ -33,7 +33,6 @@ public class AsyncExecutorManager {
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
         int maxQueueSize = plugin.getConfigManager().getMaxQueueSize();
         
-        // Create thread pool with custom thread factory
         ThreadFactory threadFactory = new ThreadFactory() {
             private final AtomicInteger threadNumber = new AtomicInteger(1);
             
@@ -46,23 +45,19 @@ public class AsyncExecutorManager {
             }
         };
         
-        // Create executor with bounded queue
         BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maxQueueSize);
         
-        // Use ThreadPoolExecutor directly to access statistics
         this.executorService = new ThreadPoolExecutor(
-            threadPoolSize, // core pool size
-            threadPoolSize, // maximum pool size
-            60L, TimeUnit.SECONDS, // keep-alive time
+            threadPoolSize,
+            threadPoolSize,
+            60L, TimeUnit.SECONDS,
             workQueue,
             threadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy() // fallback policy
+            new ThreadPoolExecutor.CallerRunsPolicy()
         );
         
-        // Prestart all core threads for immediate availability
         int prestarted = executorService.prestartAllCoreThreads();
         
-        // Create lighting executor (ScalableLux/Starlight inspired)
         int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
         ThreadFactory lightingThreadFactory = new ThreadFactory() {
             private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -71,7 +66,7 @@ public class AsyncExecutorManager {
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r, "AkiAsync-Lighting-" + threadNumber.getAndIncrement());
                 thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY - 1); // Slightly lower priority
+                thread.setPriority(Thread.NORM_PRIORITY - 1);
                 return thread;
             }
         };
@@ -80,13 +75,12 @@ public class AsyncExecutorManager {
             lightingThreads,
             lightingThreads,
             60L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(500), // Smaller queue for lighting
+            new LinkedBlockingQueue<>(500),
             lightingThreadFactory,
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
         int lightingPrestarted = lightingExecutor.prestartAllCoreThreads();
         
-        // Create metrics executor
         this.metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "AkiAsync-Metrics");
             thread.setDaemon(true);
@@ -98,7 +92,7 @@ public class AsyncExecutorManager {
     }
     
     /**
-     * Submit a task for async execution
+     * Submit a task for async execution.
      * @param task The task to execute
      * @return Future representing the task
      */

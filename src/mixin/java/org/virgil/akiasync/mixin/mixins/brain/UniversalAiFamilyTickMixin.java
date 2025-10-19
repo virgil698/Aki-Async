@@ -17,14 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 
 /**
- * Universal AI Family optimization (covers all remaining mobs)
- * 
- * Supported: Skeleton, Zombie, Creeper, Spider, Enderman, Wolf, 
- * Pig, Cow, Chicken, IronGolem, SnowGolem, Llama, Panda, Polar Bear,
- * Phantom, Drowned, Hoglin, Zoglin, Rabbit, Bat, Squid, Fish, Turtle,
- * Fox, Strider, Goat, Frog, Camel, Horse, Donkey, Mule, Cat, Parrot, etc.
- * 
- * Strategy: Mob.tick() injection with configurable entity list filter
+ * Universal AI Family optimization.
  * 
  * @author Virgil
  */
@@ -44,16 +37,15 @@ public abstract class UniversalAiFamilyTickMixin {
         if (!init) { aki$init(); }
         if (!enabled) return;
         
-        // Filter by entity type (config-based whitelist)
         String entityType = ((Mob)(Object)this).getType().toString();
         if (enabledEntities != null && !enabledEntities.contains(entityType)) {
-            return;  // Not in whitelist
+            return;
         }
         
         Mob mob = (Mob) (Object) this;
         ServerLevel level = (ServerLevel) mob.level();
         if (level == null || level.getGameTime() < aki$next) return;
-        aki$next = level.getGameTime() + 3;  // 3 tick interval
+        aki$next = level.getGameTime() + 3;
         
         try {
             aki$snap = UniversalAiSnapshot.capture(mob, level);

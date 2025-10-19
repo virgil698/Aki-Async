@@ -3,54 +3,36 @@ package org.virgil.akiasync.mixin.metrics;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Async AI metrics collector (Prometheus-style)
- * 
- * Metrics exposed:
- * - akiasync_mspt_current - Current tick MSPT
- * - akiasync_async_cpu_percent - CompletableFuture CPU usage %
- * - akiasync_fallback_count - Timeout fallback count
- * - akiasync_success_rate - Async success rate %
+ * Async AI metrics collector.
  * 
  * @author Virgil
  */
 public final class AsyncMetrics {
     
-    // MSPT tracking
     private static final AtomicLong currentMspt = new AtomicLong(0);
     private static final AtomicLong lastTickTime = new AtomicLong(System.nanoTime());
     
-    // Async execution metrics
     private static final AtomicLong totalExecutions = new AtomicLong(0);
     private static final AtomicLong successCount = new AtomicLong(0);
     private static final AtomicLong timeoutCount = new AtomicLong(0);
     private static final AtomicLong fallbackCount = new AtomicLong(0);
     
-    // CPU usage tracking (CompletableFuture.run() time)
     private static final AtomicLong asyncCpuNanos = new AtomicLong(0);
     private static final AtomicLong totalCpuNanos = new AtomicLong(0);
     
-    /**
-     * Record tick MSPT (called every tick)
-     */
     public static void recordTickMspt() {
         long now = System.nanoTime();
         long elapsed = now - lastTickTime.get();
-        currentMspt.set(elapsed / 1_000_000);  // Convert to milliseconds
+        currentMspt.set(elapsed / 1_000_000);
         lastTickTime.set(now);
         totalCpuNanos.addAndGet(elapsed);
     }
     
-    /**
-     * Record async execution start
-     */
     public static long recordAsyncStart() {
         totalExecutions.incrementAndGet();
         return System.nanoTime();
     }
     
-    /**
-     * Record async execution end
-     */
     public static void recordAsyncEnd(long startNanos, boolean success, boolean timeout) {
         long elapsed = System.nanoTime() - startNanos;
         asyncCpuNanos.addAndGet(elapsed);
@@ -64,41 +46,26 @@ public final class AsyncMetrics {
         }
     }
     
-    /**
-     * Get current MSPT
-     */
     public static long getCurrentMspt() {
         return currentMspt.get();
     }
     
-    /**
-     * Get async CPU usage percentage
-     */
     public static double getAsyncCpuPercent() {
         long total = totalCpuNanos.get();
         if (total == 0) return 0.0;
         return (asyncCpuNanos.get() * 100.0) / total;
     }
     
-    /**
-     * Get success rate percentage
-     */
     public static double getSuccessRate() {
         long total = totalExecutions.get();
         if (total == 0) return 100.0;
         return (successCount.get() * 100.0) / total;
     }
     
-    /**
-     * Get fallback count
-     */
     public static long getFallbackCount() {
         return fallbackCount.get();
     }
     
-    /**
-     * Get Prometheus-style metrics output
-     */
     public static String getPrometheusMetrics() {
         return String.format(
             "# HELP akiasync_mspt_current Current tick MSPT in milliseconds\n" +
@@ -123,9 +90,6 @@ public final class AsyncMetrics {
         );
     }
     
-    /**
-     * Reset all metrics
-     */
     public static void reset() {
         totalExecutions.set(0);
         successCount.set(0);

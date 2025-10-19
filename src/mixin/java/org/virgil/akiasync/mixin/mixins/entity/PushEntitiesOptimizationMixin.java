@@ -26,13 +26,11 @@ public abstract class PushEntitiesOptimizationMixin {
         
         LivingEntity self = (LivingEntity) (Object) this;
         
-        // Skip if entity is not moving (ServerCore pattern)
         if (self.getDeltaMovement().lengthSqr() < 1.0E-7) {
             ci.cancel();
             return;
         }
         
-        // Throttle: only push every N ticks
         if (interval > 1 && self.tickCount % interval != 0) {
             ci.cancel();
         }
