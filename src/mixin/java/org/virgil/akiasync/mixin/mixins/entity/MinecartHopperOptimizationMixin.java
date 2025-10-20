@@ -4,7 +4,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.vehicle.MinecartHopper;
@@ -24,22 +23,5 @@ public class MinecartHopperOptimizationMixin {
         }
     }
     
-    @Inject(method = "suckInItems", at = @At("HEAD"), cancellable = true)
-    private void aki$throttlePush(CallbackInfoReturnable<Boolean> cir) {
-        MinecartHopper minecart = (MinecartHopper) (Object) this;
-        if (!(minecart.level() instanceof ServerLevel sl)) return;
-        
-        net.minecraft.core.BlockPos pos = minecart.blockPosition();
-        net.minecraft.world.level.block.entity.BlockEntity be = sl.getBlockEntity(pos.above());
-        
-        if (be instanceof net.minecraft.world.Container) {
-            System.out.println("[AkiAsync] Skip throttle: Container at " + pos);
-            return;
-        }
-        
-        if (sl.getGameTime() % 10 != 0) {
-            cir.setReturnValue(false);
-        }
-    }
 }
 

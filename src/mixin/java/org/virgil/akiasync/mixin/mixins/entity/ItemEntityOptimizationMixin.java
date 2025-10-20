@@ -60,7 +60,6 @@ public class ItemEntityOptimizationMixin {
         net.minecraft.world.level.block.entity.BlockEntity be = sl.getBlockEntity(pos.below());
         
         if (be instanceof net.minecraft.world.Container) {
-            System.out.println("[AkiAsync] Skip throttle: Container at " + pos);
             return;
         }
         
