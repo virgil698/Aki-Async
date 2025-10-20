@@ -85,7 +85,7 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
 ## 📋 命令列表
 
 <details>
-<summary><b>💡 `/aki-reload` - 热重载配置</b></summary>
+<summary><b>💡 /aki-reload - 热重载配置</b></summary>
 
 **功能**：无需重启服务器即可重新加载配置并应用更改
 
@@ -117,7 +117,7 @@ entity-tick-parallel:
 </details>
 
 <details>
-<summary><b>🔍 `/aki-debug <true|false>` - 调试模式</b></summary>
+<summary><b>🔍 /aki-debug <true|false> - 调试模式</b></summary>
 
 **功能**：动态开启/关闭调试日志输出
 
