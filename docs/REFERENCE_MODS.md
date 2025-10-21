@@ -63,9 +63,9 @@
 
 ---
 
-## ⏳ 待实现（5个进阶项目，v2.1+）
+## ⏳ 待实现（6个进阶项目，v3.0+）
 
-### 0. Akarin ⏳ **[最高优先级]**
+### 1. Akarin ⏳ **[最高优先级]**
 - **链接**: [Akarin-project/Akarin](https://github.com/Akarin-project/Akarin)
 - **重点分支**: [ver/1.21.4](https://github.com/Akarin-project/Akarin/tree/ver/1.21.4/patches-1.16.5/server)
 - **关注点**: 全服异步架构（ServerTick 16×16分区 + ForkJoinPool + 0延迟写回）
@@ -74,11 +74,6 @@
   - **ChunkTick 并行**: 每 chunk 内 BlockEntity/Entity 再切子任务
   - **0 延迟写回**: 所有异步结果在同一 tick 末尾 `join()` 批量写回
   - **失败回落**: 任何子任务超时 → 立即 `invokeAll()` 回落同步
-- **预期收益**:
-  - MSPT 中位数: 10ms → 6ms (↓40%)
-  - ChunkTick 占比: 8ms → 3ms (↓62%)
-  - ForkJoinPool 占比: 0% → 20%+
-  - TPS 最低: 20 锁死
 - **实施计划**:
   1. **Step 1 MVP**: ServerTick 分区 + ForkJoinPool（预计 MSPT ↓4ms）
   2. **Step 2 细化**: ChunkTick 子任务（漏斗/村民/红石全并行）
@@ -89,25 +84,55 @@
   - 超时回落: 动态调整超时阈值（200μs起）
 - **状态**: ⏳ v2.1 规划中 - 核心框架设计完成，待实施
 
-### 1. VMP-fabric (Very Many Players) ⏳
+### 2. VMP-fabric (Very Many Players) ⏳
 - **链接**: https://github.com/RelativityMC/VMP-fabric
 - **关注点**: 多人高并发优化（网络、区块/实体交互路径）
 - **融合思路**: 借鉴高并发下的分层与背压策略
 - **状态**: ⏳ 待v2.1+ - 需适配Leaves API（方法名不匹配）
 
-### 2. fabric-carpet ⏳
+### 3. MCMT (Minecraft Multi-Threading) ⏳
+- **链接**: [himekifee/MCMTFabric](https://github.com/himekifee/MCMTFabric/tree/1.21/src/main/java/net/himeki/mcmtfabric/mixin)
+- **关注点**: 维度级别并行化（每个World独立线程）+ 区块并行tick
+- **核心技术**:
+  - **World并行**: 每个ServerLevel在独立线程中tick（主世界、下界、末地）
+  - **ChunkMap并行**: 区块tick通过ForkJoinPool并行处理
+  - **ThreadLocal隔离**: 使用ThreadLocal避免跨线程竞争
+  - **锁分离**: 细粒度锁设计，最小化锁竞争
+- **关键特性**:
+  - **维度隔离**: 不同维度完全并行，无需同步
+  - **区块并行**: 16×16区块批量并行处理
+  - **实体并行**: Entity tick通过线程池并行
+  - **方块实体并行**: BlockEntity tick并行处理
+- **技术挑战**:
+  - **线程安全**: Bukkit API不是线程安全的，需要大量同步
+  - **跨维度交互**: 传送门、末地折跃门需要特殊处理
+  - **调度开销**: 过多线程切换可能降低性能
+  - **兼容性**: 与其他插件的线程安全冲突
+- **实施计划**:
+  1. **Step 1**: World级别并行（3个维度并行tick）
+  2. **Step 2**: ChunkMap并行化（区块批量并行）
+  3. **Step 3**: Entity/BlockEntity并行tick
+  4. **Step 4**: 线程安全审查和锁优化
+- **适配难度**:
+  - Fabric → Bukkit API适配
+  - AccessTransformer → AccessWidener转换
+  - Mixin注入点迁移
+  - 线程安全问题排查
+- **状态**: ⏳ 待v2.2+ - Akarin完成后实施，需要大量线程安全改造
+
+### 4. fabric-carpet ⏳
 - **链接**: https://github.com/gnembon/fabric-carpet
 - **关注点**: 可配置规则、调试与基准能力
 - **融合思路**: 引入开关/诊断思路，增强运行时观测
 - **状态**: ⏳ 待v2.1+ - RedstoneWireTurbo需适配Leaves API
 
-### 3. Alternate Current ⏳
+### 5. Alternate Current ⏳
 - **链接**: https://github.com/SpaceWalkerRS/alternate-current
 - **关注点**: 红石更新算法重写（图论替代递归）
 - **融合思路**: 优化方块更新顺序，减少递归调用
 - **状态**: ⏳ 待v2.1+ - 需深入研究Leaves方块更新API
 
-### 4. Ceres ⏳
+### 6. Ceres ⏳
 - **链接**: https://github.com/dreamforSh/Ceres
 - **关注点**: 区块加载优先级优化
 - **融合思路**: 区块优先级思路结合分层队列设计
