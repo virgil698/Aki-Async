@@ -69,41 +69,41 @@
 - **链接**: [Akarin-project/Akarin](https://github.com/Akarin-project/Akarin)
 - **重点分支**: [ver/1.21.4](https://github.com/Akarin-project/Akarin/tree/ver/1.21.4/patches-1.16.5/server)
 - **关注点**: 全服异步架构（ServerTick 16×16分区 + ForkJoinPool + 0延迟写回）
-- **核心技术**:
+- **核心参考点**:
   - **ServerTick 分区**: 把 `ServerLevel.tick()` 按 16×16 区块切成任务
   - **ChunkTick 并行**: 每 chunk 内 BlockEntity/Entity 再切子任务
   - **0 延迟写回**: 所有异步结果在同一 tick 末尾 `join()` 批量写回
   - **失败回落**: 任何子任务超时 → 立即 `invokeAll()` 回落同步
-- **实施计划**:
+- **实施参考计划**:
   1. **Step 1 MVP**: ServerTick 分区 + ForkJoinPool（预计 MSPT ↓4ms）
   2. **Step 2 细化**: ChunkTick 子任务（漏斗/村民/红石全并行）
   3. **Step 3 回落**: 超时检测 + CallerRunsPolicy（不掉TPS）
-- **技术风险**:
+- **技术参考风险**:
   - 线程安全: 只读快照 + 写回隔离
   - 调度开销: 16×16粗粒度减少任务数
   - 超时回落: 动态调整超时阈值（200μs起）
-- **状态**: ⏳ v2.1 规划中 - 核心框架设计完成，待实施
+- **状态**: ⏳ v3.0 规划中 - 核心框架设计完成，待实施
 
 ### 2. VMP-fabric (Very Many Players) ⏳
 - **链接**: https://github.com/RelativityMC/VMP-fabric
 - **关注点**: 多人高并发优化（网络、区块/实体交互路径）
 - **融合思路**: 借鉴高并发下的分层与背压策略
-- **状态**: ⏳ 待v2.1+ - 需适配Leaves API（方法名不匹配）
+- **状态**: ⏳ 待v3.0+ - 需适配Leaves API（方法名不匹配）
 
 ### 3. MCMT (Minecraft Multi-Threading) ⏳
 - **链接**: [himekifee/MCMTFabric](https://github.com/himekifee/MCMTFabric/tree/1.21/src/main/java/net/himeki/mcmtfabric/mixin)
 - **关注点**: 维度级别并行化（每个World独立线程）+ 区块并行tick
-- **核心技术**:
+- **核心参考点**:
   - **World并行**: 每个ServerLevel在独立线程中tick（主世界、下界、末地）
   - **ChunkMap并行**: 区块tick通过ForkJoinPool并行处理
   - **ThreadLocal隔离**: 使用ThreadLocal避免跨线程竞争
   - **锁分离**: 细粒度锁设计，最小化锁竞争
-- **关键特性**:
+- **关键参考点**:
   - **维度隔离**: 不同维度完全并行，无需同步
   - **区块并行**: 16×16区块批量并行处理
   - **实体并行**: Entity tick通过线程池并行
   - **方块实体并行**: BlockEntity tick并行处理
-- **技术挑战**:
+- **技术参考挑战**:
   - **线程安全**: Bukkit API不是线程安全的，需要大量同步
   - **跨维度交互**: 传送门、末地折跃门需要特殊处理
   - **调度开销**: 过多线程切换可能降低性能
@@ -113,30 +113,30 @@
   2. **Step 2**: ChunkMap并行化（区块批量并行）
   3. **Step 3**: Entity/BlockEntity并行tick
   4. **Step 4**: 线程安全审查和锁优化
-- **适配难度**:
+- **技术参考适配难度**:
   - Fabric → Bukkit API适配
   - AccessTransformer → AccessWidener转换
   - Mixin注入点迁移
   - 线程安全问题排查
-- **状态**: ⏳ 待v2.2+ - Akarin完成后实施，需要大量线程安全改造
+- **状态**: ⏳ 待v3.0+ - Akarin完成后实施，需要大量线程安全改造
 
 ### 4. fabric-carpet ⏳
 - **链接**: https://github.com/gnembon/fabric-carpet
 - **关注点**: 可配置规则、调试与基准能力
 - **融合思路**: 引入开关/诊断思路，增强运行时观测
-- **状态**: ⏳ 待v2.1+ - RedstoneWireTurbo需适配Leaves API
+- **状态**: ⏳ 待v3.0+ - RedstoneWireTurbo需适配Leaves API
 
 ### 5. Alternate Current ⏳
 - **链接**: https://github.com/SpaceWalkerRS/alternate-current
 - **关注点**: 红石更新算法重写（图论替代递归）
 - **融合思路**: 优化方块更新顺序，减少递归调用
-- **状态**: ⏳ 待v2.1+ - 需深入研究Leaves方块更新API
+- **状态**: ⏳ 待v3.0+ - 需深入研究Leaves方块更新API
 
 ### 6. Ceres ⏳
 - **链接**: https://github.com/dreamforSh/Ceres
 - **关注点**: 区块加载优先级优化
 - **融合思路**: 区块优先级思路结合分层队列设计
-- **状态**: ⏳ 待v2.1+ - 需适配Leaves API（方法签名不匹配）
+- **状态**: ⏳ 待v3.0+ - 需适配Leaves API（方法签名不匹配）
 
 ---
 
@@ -157,35 +157,8 @@
 **核心参考项目**: 6/6 (100%) ✅  
 **直接参考项目**: 2/2 (100%) ✅  
 **v2.0 创新优化**: 4/4 (100%) ✅ (ItemEntity/TNT/Hopper/Villager)  
-**进阶项目**: 0/5 (0%) ⏳ 留到v2.1+  
+**进阶项目**: 0/6 (0%) ⏳ 留到v3.0+  
 
-**总体完成度**: 12/15 (80%) - v2.0 核心功能全部完成，Akarin架构待v2.1实施
-
----
-
-## 📝 版本更新日志
-
-### v2.0.0 (2025-10-18)
-**新增优化（4个模块）：**
-- ✅ ItemEntity v7.0 - 异步步进物理（零回弹）
-- ✅ TNT Explosion v7.0 - 3阶段异步（↓92% MSPT）
-- ✅ Hopper Chain v8.0 - 16×16异步I/O（↓67% MSPT）
-- ✅ Villager Breed v8.0 - 年龄降频（↓60% MSPT）
-
-**修复问题：**
-- ✅ 修复掉落物回弹问题（只节流merge，保留physics）
-- ✅ 修复TNT含水保护（waterlogged blocks + canBeReplaced）
-- ✅ 修复TNT火焰逻辑（FireBlock tick + item burning）
-- ✅ 全代码英文化（删除745行中文注释）
-
-**架构规划：**
-- 📋 Akarin全服异步架构设计完成（待v2.1实施）
-
-### v2.1.0 (规划中)
-**目标：Akarin 全服异步架构**
-- ⏳ ServerTick 16×16分区
-- ⏳ ForkJoinPool 工作窃取
-- ⏳ 0延迟批量写回
-- ⏳ 失败回落策略
+**总体完成度**: 12/15 (80%) - v2.0 核心功能全部完成，Akarin架构待v3.0实施
 
 
