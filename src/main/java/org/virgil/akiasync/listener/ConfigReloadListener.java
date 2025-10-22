@@ -30,10 +30,6 @@ public class ConfigReloadListener implements Listener {
                 org.virgil.akiasync.mixin.async.TNTThreadPool.restartSmooth();
             }
             
-            if (plugin.getConfigManager().isAsyncHopperChainEnabled()) {
-                org.virgil.akiasync.mixin.async.hopper.HopperChainExecutor.restartSmooth();
-            }
-            
             if (plugin.getConfigManager().isAsyncVillagerBreedEnabled()) {
                 org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.restartSmooth();
             }

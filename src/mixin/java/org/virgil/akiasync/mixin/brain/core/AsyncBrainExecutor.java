@@ -1,5 +1,4 @@
 package org.virgil.akiasync.mixin.brain.core;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -7,20 +6,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-
 public class AsyncBrainExecutor {
-    
     private static final AtomicInteger totalExecutions = new AtomicInteger(0);
     private static final AtomicInteger successCount = new AtomicInteger(0);
     private static final AtomicInteger timeoutCount = new AtomicInteger(0);
     private static final AtomicInteger errorCount = new AtomicInteger(0);
-    
     private static volatile ExecutorService executorService = null;
-    
     public static void setExecutor(ExecutorService executor) {
         executorService = executor;
     }
-    
     private static boolean getDebugEnabled() {
         try {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -29,13 +23,10 @@ public class AsyncBrainExecutor {
             return false;
         }
     }
-    
     public static <T> CompletableFuture<T> runSync(Callable<T> task, long timeout, TimeUnit unit) {
         totalExecutions.incrementAndGet();
         long startNanos = org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncStart();
-        
         final boolean debugEnabled = getDebugEnabled();
-        
         if (executorService == null || executorService.isShutdown()) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
@@ -48,7 +39,6 @@ public class AsyncBrainExecutor {
                 }
             });
         }
-        
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return task.call();
@@ -60,7 +50,6 @@ public class AsyncBrainExecutor {
         .whenComplete((result, throwable) -> {
             boolean success = throwable == null;
             boolean isTimeout = throwable instanceof TimeoutException;
-            
             if (isTimeout) {
                 timeoutCount.incrementAndGet();
             } else if (!success) {
@@ -68,15 +57,12 @@ public class AsyncBrainExecutor {
             } else {
                 successCount.incrementAndGet();
             }
-            
             if (debugEnabled) {
                 long duration = System.nanoTime() - startNanos;
             }
-            
             org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, success, isTimeout);
         });
     }
-    
     public static <T> T getWithTimeoutOrRunSync(CompletableFuture<T> future, long timeout, TimeUnit unit, Callable<T> fallbackTask) {
         try {
             return future.get(timeout, unit);
@@ -92,7 +78,6 @@ public class AsyncBrainExecutor {
             return null;
         }
     }
-    
     public static <T> T getWithTimeout(CompletableFuture<T> future, long timeout, TimeUnit unit) {
         try {
             return future.get(timeout, unit);
@@ -103,35 +88,28 @@ public class AsyncBrainExecutor {
             return null;
         }
     }
-    
     public static String getStatistics() {
         int total = totalExecutions.get();
         if (total == 0) return "AsyncBrain: No executions yet";
-        
         int success = successCount.get();
         int timeout = timeoutCount.get();
         int error = errorCount.get();
-        
         double successRate = (success * 100.0) / total;
         double timeoutRate = (timeout * 100.0) / total;
-        
         return String.format(
             "AsyncBrain[Total: %d | Success: %d(%.1f%%) | Timeout: %d(%.1f%%) | Error: %d]",
             total, success, successRate, timeout, timeoutRate, error
         );
     }
-    
     public static void resetStatistics() {
         totalExecutions.set(0);
         successCount.set(0);
         timeoutCount.set(0);
         errorCount.set(0);
     }
-    
     public static void restartSmooth() {
         if (executorService != null) {
             ExecutorService oldExecutor = executorService;
-            
             oldExecutor.shutdown();
             try {
                 if (!oldExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
@@ -141,9 +119,7 @@ public class AsyncBrainExecutor {
                 oldExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
-            
             resetStatistics();
         }
     }
 }
-

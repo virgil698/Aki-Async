@@ -1,20 +1,14 @@
 package org.virgil.akiasync.mixin.metrics;
-
 import java.util.concurrent.atomic.AtomicLong;
-
 public final class AsyncMetrics {
-    
     private static final AtomicLong currentMspt = new AtomicLong(0);
     private static final AtomicLong lastTickTime = new AtomicLong(System.nanoTime());
-    
     private static final AtomicLong totalExecutions = new AtomicLong(0);
     private static final AtomicLong successCount = new AtomicLong(0);
     private static final AtomicLong timeoutCount = new AtomicLong(0);
     private static final AtomicLong fallbackCount = new AtomicLong(0);
-    
     private static final AtomicLong asyncCpuNanos = new AtomicLong(0);
     private static final AtomicLong totalCpuNanos = new AtomicLong(0);
-    
     public static void recordTickMspt() {
         long now = System.nanoTime();
         long elapsed = now - lastTickTime.get();
@@ -22,16 +16,13 @@ public final class AsyncMetrics {
         lastTickTime.set(now);
         totalCpuNanos.addAndGet(elapsed);
     }
-    
     public static long recordAsyncStart() {
         totalExecutions.incrementAndGet();
         return System.nanoTime();
     }
-    
     public static void recordAsyncEnd(long startNanos, boolean success, boolean timeout) {
         long elapsed = System.nanoTime() - startNanos;
         asyncCpuNanos.addAndGet(elapsed);
-        
         if (success) {
             successCount.incrementAndGet();
         }
@@ -40,27 +31,22 @@ public final class AsyncMetrics {
             fallbackCount.incrementAndGet();
         }
     }
-    
     public static long getCurrentMspt() {
         return currentMspt.get();
     }
-    
     public static double getAsyncCpuPercent() {
         long total = totalCpuNanos.get();
         if (total == 0) return 0.0;
         return (asyncCpuNanos.get() * 100.0) / total;
     }
-    
     public static double getSuccessRate() {
         long total = totalExecutions.get();
         if (total == 0) return 100.0;
         return (successCount.get() * 100.0) / total;
     }
-    
     public static long getFallbackCount() {
         return fallbackCount.get();
     }
-    
     public static String getPrometheusMetrics() {
         return String.format(
             "# HELP akiasync_mspt_current Current tick MSPT in milliseconds\n" +
@@ -84,7 +70,6 @@ public final class AsyncMetrics {
             getSuccessRate()
         );
     }
-    
     public static void reset() {
         totalExecutions.set(0);
         successCount.set(0);

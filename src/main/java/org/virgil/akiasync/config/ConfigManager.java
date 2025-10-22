@@ -71,13 +71,13 @@ public class ConfigManager {
     private long tntTimeoutMicros;
     private int tntBatchSize;
     private boolean tntDebugEnabled;
-    private boolean asyncHopperChainEnabled;
-    private boolean hopperNBTCacheEnabled;
-    private int hopperChainThreads;
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
     private int villagerBreedCheckInterval;
+    private boolean chunkTickAsyncEnabled;
+    private int chunkTickThreads;
+    private long chunkTickTimeoutMicros;
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
     private int configVersion;
@@ -147,13 +147,13 @@ public class ConfigManager {
         redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
-        asyncHopperChainEnabled = config.getBoolean("hopper-chain-optimization.async-hopper-chain", true);
-        hopperNBTCacheEnabled = config.getBoolean("hopper-chain-optimization.nbt-cache", true);
-        hopperChainThreads = config.getInt("hopper-chain-optimization.threads", 4);
         asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
         villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
         villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
         villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
+        chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
+        chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
+        chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
@@ -175,7 +175,7 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 1;
+        final int CURRENT_CONFIG_VERSION = 2;
         
         if (configVersion < CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -378,9 +378,6 @@ public class ConfigManager {
     public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
-    public boolean isAsyncHopperChainEnabled() { return asyncHopperChainEnabled; }
-    public boolean isHopperNBTCacheEnabled() { return hopperNBTCacheEnabled; }
-    public int getHopperChainThreads() { return hopperChainThreads; }
     public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
     public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
     public int getVillagerBreedThreads() { return villagerBreedThreads; }
@@ -392,9 +389,11 @@ public class ConfigManager {
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
     public boolean isTNTDebugEnabled() { return tntDebugEnabled; }
+    public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
+    public int getChunkTickThreads() { return chunkTickThreads; }
+    public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
     
     public int getConfigVersion() {
         return configVersion;
     }
 }
-

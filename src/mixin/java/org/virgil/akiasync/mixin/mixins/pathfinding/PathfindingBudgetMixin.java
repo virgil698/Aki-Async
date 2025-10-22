@@ -1,12 +1,10 @@
 package org.virgil.akiasync.mixin.mixins.pathfinding;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -14,21 +12,16 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
-
 @SuppressWarnings("unused")
 @Mixin(PathNavigation.class)
 public abstract class PathfindingBudgetMixin {
-
     private static volatile int cached_budget;
     private static volatile boolean initialized = false;
-
     @Shadow protected Mob mob;
-
     private static long akiasync$lastTick;
     private static int akiasync$remaining;
     private static final java.util.Map<Mob, Object[]> DEFERRED = new java.util.WeakHashMap<>();
     private static final int KIND_BLOCK = 0, KIND_VEC = 1, KIND_ENTITY = 2;
-
     @Inject(method = "createPath(Lnet/minecraft/core/BlockPos;I)Lnet/minecraft/world/level/pathfinder/Path;", at = @At("HEAD"), cancellable = true, require = 0)
     private void akiasync$budgetBlock(BlockPos target, int accuracy, CallbackInfoReturnable<Path> cir) {
         if (!initialized) { akiasync$initPathfindingBudget(); }
@@ -37,7 +30,6 @@ public abstract class PathfindingBudgetMixin {
             cir.setReturnValue(null);
         }
     }
-
     @Inject(method = "createPath(Lnet/minecraft/world/phys/Vec3;I)Lnet/minecraft/world/level/pathfinder/Path;", at = @At("HEAD"), cancellable = true, require = 0)
     private void akiasync$budgetVec(Vec3 target, int accuracy, CallbackInfoReturnable<Path> cir) {
         if (shouldSkip()) {
@@ -45,7 +37,6 @@ public abstract class PathfindingBudgetMixin {
             cir.setReturnValue(null);
         }
     }
-
     @Inject(method = "createPath(Lnet/minecraft/world/entity/Entity;I)Lnet/minecraft/world/level/pathfinder/Path;", at = @At("HEAD"), cancellable = true, require = 0)
     private void akiasync$budgetEntity(Entity target, int accuracy, CallbackInfoReturnable<Path> cir) {
         if (shouldSkip()) {
@@ -53,7 +44,6 @@ public abstract class PathfindingBudgetMixin {
             cir.setReturnValue(null);
         }
     }
-
     @Inject(method = "tick", at = @At("TAIL"), require = 0)
     private void akiasync$processDeferred(CallbackInfo ci) {
         try {
@@ -73,7 +63,6 @@ public abstract class PathfindingBudgetMixin {
             }
         } catch (Throwable ignored) {}
     }
-
     private boolean shouldSkip() {
         try {
             if (cached_budget <= 0) return false;
@@ -84,7 +73,6 @@ public abstract class PathfindingBudgetMixin {
             return false;
         } catch (Throwable t) { return false; }
     }
-    
     private static synchronized void akiasync$initPathfindingBudget() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -97,4 +85,3 @@ public abstract class PathfindingBudgetMixin {
         System.out.println("[AkiAsync] PathfindingBudgetMixin initialized: budget=" + cached_budget);
     }
 }
-

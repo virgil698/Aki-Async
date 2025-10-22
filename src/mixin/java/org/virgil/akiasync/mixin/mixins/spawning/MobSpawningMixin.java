@@ -1,11 +1,8 @@
 package org.virgil.akiasync.mixin.mixins.spawning;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -16,15 +13,12 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.phys.AABB;
-
 @SuppressWarnings("unused")
 @Mixin(NaturalSpawner.class)
 public abstract class MobSpawningMixin {
-    
     private static volatile boolean cached_enabled;
     private static volatile int cached_maxPerChunk;
     private static volatile boolean initialized = false;
-
     @WrapOperation(
         method = "spawnCategoryForPosition",
         at = @At(
@@ -41,7 +35,6 @@ public abstract class MobSpawningMixin {
         }
         return ok;
     }
-
     @WrapOperation(
         method = "spawnForChunk",
         at = @At(
@@ -58,7 +51,6 @@ public abstract class MobSpawningMixin {
         }
         return ok;
     }
-
     private static boolean isChunkOverDensity(ServerLevel level, MobCategory category, BlockPos pos) {
         try {
             int cx = (pos.getX() >> 4) << 4;
@@ -72,7 +64,6 @@ public abstract class MobSpawningMixin {
             return false;
         }
     }
-    
     private static synchronized void akiasync$initMobSpawning() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -87,4 +78,3 @@ public abstract class MobSpawningMixin {
         System.out.println("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
     }
 }
-

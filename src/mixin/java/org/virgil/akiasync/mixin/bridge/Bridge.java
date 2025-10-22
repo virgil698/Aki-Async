@@ -134,12 +134,6 @@ public interface Bridge {
     
     boolean isDebugLoggingEnabled();
     
-    boolean isAsyncHopperChainEnabled();
-    
-    boolean isHopperNBTCacheEnabled();
-    
-    int getHopperChainThreads();
-    
     boolean isAsyncVillagerBreedEnabled();
     
     boolean isVillagerAgeThrottleEnabled();
@@ -147,5 +141,10 @@ public interface Bridge {
     int getVillagerBreedThreads();
     
     int getVillagerBreedCheckInterval();
+    
+    boolean isChunkTickAsyncEnabled();
+    
+    int getChunkTickThreads();
+    
+    long getChunkTickTimeoutMicros();
 }
-

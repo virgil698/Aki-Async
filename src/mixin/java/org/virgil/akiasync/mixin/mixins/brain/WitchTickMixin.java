@@ -1,5 +1,4 @@
 package org.virgil.akiasync.mixin.mixins.brain;
-
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -9,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Witch;
 import java.util.concurrent.*;
-
 @SuppressWarnings("unused")
 @Mixin(value = Mob.class, priority = 991)
 public abstract class WitchTickMixin {
@@ -18,18 +16,15 @@ public abstract class WitchTickMixin {
     @Unique private static volatile boolean init = false;
     @Unique private WitchSnapshot aki$snap;
     @Unique private long aki$next = 0;
-    
     @Inject(method = "tick", at = @At("TAIL"))
     private void aki$witch(CallbackInfo ci) {
         if (!((Object) this instanceof Witch)) return;
         if (!init) { aki$init(); }
         if (!enabled) return;
-        
         Witch witch = (Witch) (Object) this;
         ServerLevel level = (ServerLevel) witch.level();
         if (level == null || level.getGameTime() < aki$next) return;
         aki$next = level.getGameTime() + 3;
-        
         try {
             aki$snap = WitchSnapshot.capture(witch, level);
             CompletableFuture<WitchDiff> future = AsyncBrainExecutor.runSync(() -> 
@@ -38,7 +33,6 @@ public abstract class WitchTickMixin {
             if (diff != null && diff.hasChanges()) diff.applyTo(witch, level);
         } catch (Exception ignored) {}
     }
-    
     @Unique private static synchronized void aki$init() {
         if (init) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -48,4 +42,3 @@ public abstract class WitchTickMixin {
         System.out.println("[AkiAsync] WitchTickMixin (v2.1) initialized: enabled=" + enabled + ", safe reflection with printStackTrace");
     }
 }
-

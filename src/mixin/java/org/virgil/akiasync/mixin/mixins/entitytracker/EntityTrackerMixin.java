@@ -1,44 +1,32 @@
 package org.virgil.akiasync.mixin.mixins.entitytracker;
-
 import java.util.Set;
-
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-
-/**
- * Entity tracker async optimization.
- * Pre-calculate distance checks asynchronously before actual tracking updates.
- */
 @SuppressWarnings("unused")
 @Mixin(ChunkMap.TrackedEntity.class)
 public abstract class EntityTrackerMixin {
-    
     private static volatile boolean cached_enabled;
     private static volatile java.util.concurrent.ExecutorService cached_executor;
     private static volatile boolean initialized = false;
     private static int asyncTaskCount = 0;
     private static final java.util.concurrent.ConcurrentLinkedQueue<Runnable> BATCH_QUEUE = 
         new java.util.concurrent.ConcurrentLinkedQueue<>();
-    private static final int BATCH_SIZE = 50;  // Async mod: optimal batch size
+    private static final int BATCH_SIZE = 50;
     private static final java.util.concurrent.atomic.AtomicBoolean batchSubmitted = 
         new java.util.concurrent.atomic.AtomicBoolean(false);
-    
     @Shadow @Final ServerEntity serverEntity;
     @Shadow @Final Entity entity;
     @Shadow @Final int range;
     @Shadow @Final Set<ServerPlayer> seenBy;
-    
     private volatile long lastAsyncUpdate = 0;
-    
     @Inject(method = "updatePlayer", at = @At("HEAD"), cancellable = true)
     private void preUpdatePlayer(ServerPlayer player, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTracker(); }
@@ -48,7 +36,6 @@ public abstract class EntityTrackerMixin {
             !entity.hasPassenger(player)) {
             return;
         }
-        
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastAsyncUpdate > 50) {
             lastAsyncUpdate = currentTime;
@@ -59,11 +46,9 @@ public abstract class EntityTrackerMixin {
             Runnable trackingTask = () -> {
                 try {
                     java.util.List<?> players = entity.level().players();
-                    
                     for (Object playerObj : players) {
                         if (!(playerObj instanceof ServerPlayer)) continue;
                         ServerPlayer p = (ServerPlayer) playerObj;
-                        
                         double dx = p.getX() - entityX;
                         double dy = p.getY() - entityY;
                         double dz = p.getZ() - entityZ;
@@ -85,7 +70,6 @@ public abstract class EntityTrackerMixin {
                 while ((task = BATCH_QUEUE.poll()) != null && batch.size() < BATCH_SIZE) {
                     batch.add(task);
                 }
-                
                 final int batchSize = batch.size();
                 cached_executor.execute(() -> {
                     try {
@@ -93,7 +77,6 @@ public abstract class EntityTrackerMixin {
                             System.out.println("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
                         }
                         batch.parallelStream().forEach(Runnable::run);
-                        
                         if (asyncTaskCount <= 3) {
                             System.out.println("[AkiAsync-Batch] Completed batch of " + batchSize + " tasks");
                         }
@@ -106,7 +89,6 @@ public abstract class EntityTrackerMixin {
             }
         }
     }
-    
     private static synchronized void akiasync$initEntityTracker() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -122,4 +104,3 @@ public abstract class EntityTrackerMixin {
             ", executor=" + (cached_executor != null));
     }
 }
-

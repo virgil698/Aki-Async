@@ -70,4 +70,3 @@ public final class BridgeManager {
         System.out.println("[AkiAsync] ========================================================");
     }
 }
-

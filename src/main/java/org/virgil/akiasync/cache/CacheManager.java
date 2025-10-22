@@ -20,12 +20,6 @@ public class CacheManager {
         globalCache.clear();
         
         try {
-            org.virgil.akiasync.mixin.async.hopper.HopperChainExecutor.clearOldCache(Long.MAX_VALUE);
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to clear hopper chain cache: " + e.getMessage());
-        }
-        
-        try {
             org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to clear villager breed cache: " + e.getMessage());

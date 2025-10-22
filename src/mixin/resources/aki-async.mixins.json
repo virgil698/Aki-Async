@@ -17,15 +17,8 @@
     "brain.GuardianTickMixin",
     "brain.WitchTickMixin",
     "brain.UniversalAiFamilyTickMixin",
-    "entity.ItemEntityOptimizationMixin",
     "entity.VillagerBreedAsyncMixin",
     "explosion.TNTExplosionMixin",
-    "blockentity.HopperOptimizationMixin",
-    "blockentity.HopperChainAsyncMixin",
-    "blockentity.FurnaceOptimizationMixin",
-    "blockentity.ChestOptimizationMixin",
-    "blockentity.BrewingStandOptimizationMixin",
-    "blockentity.BeaconOptimizationMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",
@@ -35,7 +28,8 @@
     "memory.EntityListPreallocMixin",
     "pathfinding.PathfindingBudgetMixin",
     "lighting.LightEngineAsyncMixin",
-    "lighting.SkylightCacheMixin"
+    "lighting.SkylightCacheMixin",
+    "chunk.ServerLevelTickBlockMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {

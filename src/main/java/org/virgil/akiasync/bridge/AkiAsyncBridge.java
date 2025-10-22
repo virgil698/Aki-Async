@@ -232,15 +232,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     }
     
     @Override
-    public boolean isAsyncHopperChainEnabled() {return config.isAsyncHopperChainEnabled();}
-    
-    @Override
-    public boolean isHopperNBTCacheEnabled() {return config.isHopperNBTCacheEnabled();}
-    
-    @Override
-    public int getHopperChainThreads() {return config.getHopperChainThreads();}
-    
-    @Override
     public boolean isAsyncVillagerBreedEnabled() {return config.isAsyncVillagerBreedEnabled();}
     
     @Override
@@ -251,5 +242,13 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
     @Override
     public int getVillagerBreedCheckInterval() {return config.getVillagerBreedCheckInterval();}
+    
+    @Override
+    public boolean isChunkTickAsyncEnabled() {return config.isChunkTickAsyncEnabled();}
+    
+    @Override
+    public int getChunkTickThreads() {return config.getChunkTickThreads();}
+    
+    @Override
+    public long getChunkTickTimeoutMicros() {return config.getChunkTickTimeoutMicros();}
 }
-
