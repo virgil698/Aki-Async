@@ -29,7 +29,10 @@
     "pathfinding.PathfindingBudgetMixin",
     "lighting.LightEngineAsyncMixin",
     "lighting.SkylightCacheMixin",
-    "chunk.ServerLevelTickBlockMixin"
+    "lighting.LightPropagateAsyncMixin",
+    "chunk.ServerLevelTickBlockMixin",
+    "chunk.ChunkSaveAsyncMixin",
+    "pathfinding.PathNavigationAsyncMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {
