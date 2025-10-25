@@ -151,7 +151,7 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
         }
         initialized = true;
         System.out.println(String.format(
-            "[AkiAsync] ExpensiveAIMixin initialized: timeout=%d渭s | villager=%s(POI:%s) | piglin=%s(POI:%s) | simple=%s(POI:%s)",
+            "[AkiAsync] ExpensiveAIMixin initialized: timeout=%d娓璼 | villager=%s(POI:%s) | piglin=%s(POI:%s) | simple=%s(POI:%s)",
             cached_timeoutMicros, 
             cached_villagerEnabled, cached_villagerUsePOI,
             cached_piglinEnabled, cached_piglinUsePOI,

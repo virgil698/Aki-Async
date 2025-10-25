@@ -59,10 +59,10 @@ public final class BridgeManager {
             System.out.println("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() + 
                 ", capacity=" + bridge.getListPreallocCapacity());
             
-            System.out.println("[AkiAsync] 锟?All configurations validated successfully");
-            System.out.println("[AkiAsync] 锟?Mixins will initialize on first use (lazy loading)");
+            System.out.println("[AkiAsync] 閿?All configurations validated successfully");
+            System.out.println("[AkiAsync] 閿?Mixins will initialize on first use (lazy loading)");
         } catch (Exception e) {
-            System.err.println("[AkiAsync] 锟?Configuration validation error: " + e.getMessage());
+            System.err.println("[AkiAsync] 閿?Configuration validation error: " + e.getMessage());
             e.printStackTrace();
         }
         

@@ -21,6 +21,13 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique private static volatile boolean initialized = false;
     
     @Unique
+    private static final java.util.Set<Class<?>> BLACKLIST = java.util.Set.of(
+        net.minecraft.world.level.block.EyeblossomBlock.class,
+        net.minecraft.world.level.block.ObserverBlock.class,
+        net.minecraft.world.level.block.RepeaterBlock.class
+    );
+    
+    @Unique
     private static final ExecutorService ASYNC_BLOCK_TICK_EXECUTOR = 
         java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "AkiAsync-BlockTick");
@@ -32,6 +39,10 @@ public abstract class ServerLevelTickBlockMixin {
     private void aki$asyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
         if (!initialized) aki$initBlockTickAsync();
         if (!cached_enabled) return;
+        
+        if (BLACKLIST.contains(block.getClass())) {
+            return;
+        }
         
         ServerLevel level = (ServerLevel) (Object) this;
         BlockState blockState = level.getBlockState(pos);
@@ -45,14 +56,10 @@ public abstract class ServerLevelTickBlockMixin {
             try {
                 blockState.tick(level, pos, level.random);
             } catch (Throwable t) {
+                System.out.println("[AkiAsync] Block tick failed at " + pos + " for " + block + ": " + t.getClass().getSimpleName());
                 level.getServer().execute(() -> {
-                    try {
-                        BlockState state = level.getBlockState(pos);
-                        if (state.is(block)) {
-                            state.tick(level, pos, level.random);
-                        }
-                    } catch (Exception ignored) {
-                    }
+                    BlockState state = level.getBlockState(pos);
+                    if (state.is(block)) state.tick(level, pos, level.random);
                 });
             }
         });

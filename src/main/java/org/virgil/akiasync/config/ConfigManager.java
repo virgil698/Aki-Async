@@ -229,11 +229,11 @@ public class ConfigManager {
             brainThrottleInterval = 0;
         }
         if (asyncAITimeoutMicros < 100) {
-            plugin.getLogger().warning("Async AI timeout too low, setting to 100渭s");
+            plugin.getLogger().warning("Async AI timeout too low, setting to 100娓璼");
             asyncAITimeoutMicros = 100;
         }
         if (asyncAITimeoutMicros > 5000) {
-            plugin.getLogger().warning("Async AI timeout too high, setting to 5000渭s (5ms)");
+            plugin.getLogger().warning("Async AI timeout too high, setting to 5000娓璼 (5ms)");
             asyncAITimeoutMicros = 5000;
         }
         if (entityTickThreads < 1) entityTickThreads = 1;
