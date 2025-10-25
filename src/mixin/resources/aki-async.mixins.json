@@ -26,10 +26,8 @@
     "memory.PredicateCacheMixin",
     "memory.BlockPosPoolMixin",
     "memory.EntityListPreallocMixin",
-    "pathfinding.PathfindingBudgetMixin",
     "lighting.LightEngineAsyncMixin",
     "lighting.SkylightCacheMixin",
-    "lighting.LightPropagateAsyncMixin",
     "chunk.ServerLevelTickBlockMixin",
     "chunk.ChunkSaveAsyncMixin",
     "pathfinding.PathNavigationAsyncMixin"

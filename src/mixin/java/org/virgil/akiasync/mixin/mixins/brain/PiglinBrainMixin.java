@@ -115,7 +115,7 @@ public abstract class PiglinBrainMixin {
         }
         initialized = true;
         System.out.println(String.format(
-            "[AkiAsync] PiglinBrainMixin initialized: enabled=%s, timeout=%dμs, interval=%d tick, entities=[Piglin, PiglinBrute]",
+            "[AkiAsync] PiglinBrainMixin initialized: enabled=%s, timeout=%d渭s, interval=%d tick, entities=[Piglin, PiglinBrute]",
             cached_enabled, cached_timeoutMicros, cached_tickInterval
         ));
     }

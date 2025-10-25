@@ -114,9 +114,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isEntityTrackerEnabled() {return config.isEntityTrackerEnabled();}
     
     @Override
-    public int getPathfindingTickBudget() {return config.getPathfindingTickBudget();}
-    
-    @Override
     public boolean isPredicateCacheEnabled() {return true;}
     
     @Override

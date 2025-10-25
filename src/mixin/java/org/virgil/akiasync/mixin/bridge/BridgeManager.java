@@ -51,7 +51,6 @@ public final class BridgeManager {
             System.out.println("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() + 
                 ", executor=" + (bridge.getGeneralExecutor() != null));
             
-            System.out.println("  [Pathfinding] Budget: " + bridge.getPathfindingTickBudget());
             System.out.println("  [Spawning] Enabled: " + bridge.isMobSpawningEnabled() + 
                 ", maxPerChunk=" + bridge.getMaxEntitiesPerChunk());
             
@@ -60,10 +59,10 @@ public final class BridgeManager {
             System.out.println("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() + 
                 ", capacity=" + bridge.getListPreallocCapacity());
             
-            System.out.println("[AkiAsync] �?All configurations validated successfully");
-            System.out.println("[AkiAsync] �?Mixins will initialize on first use (lazy loading)");
+            System.out.println("[AkiAsync] 锟?All configurations validated successfully");
+            System.out.println("[AkiAsync] 锟?Mixins will initialize on first use (lazy loading)");
         } catch (Exception e) {
-            System.err.println("[AkiAsync] �?Configuration validation error: " + e.getMessage());
+            System.err.println("[AkiAsync] 锟?Configuration validation error: " + e.getMessage());
             e.printStackTrace();
         }
         

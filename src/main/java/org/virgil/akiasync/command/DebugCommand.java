@@ -15,7 +15,7 @@ public class DebugCommand implements BasicCommand {
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (args.length != 1) {
-            source.getSender().sendMessage("§c[AkiAsync] Usage: /aki-debug <true|false>");
+            source.getSender().sendMessage("搂c[AkiAsync] Usage: /aki-debug <true|false>");
             return;
         }
         String arg = args[0].toLowerCase();
@@ -25,16 +25,16 @@ public class DebugCommand implements BasicCommand {
         } else if (arg.equals("false") || arg.equals("off") || arg.equals("disable")) {
             enableDebug = false;
         } else {
-            source.getSender().sendMessage("§c[AkiAsync] Invalid argument. Use 'true' or 'false'");
+            source.getSender().sendMessage("搂c[AkiAsync] Invalid argument. Use 'true' or 'false'");
             return;
         }
         try {
             plugin.getConfigManager().setDebugLoggingEnabled(enableDebug);
-            source.getSender().sendMessage("§a[AkiAsync] Debug logging " + (enableDebug ? "enabled" : "disabled") + " successfully!");
+            source.getSender().sendMessage("搂a[AkiAsync] Debug logging " + (enableDebug ? "enabled" : "disabled") + " successfully!");
             Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
-            source.getSender().sendMessage("§a[AkiAsync] Configuration reloaded to apply debug changes.");
+            source.getSender().sendMessage("搂a[AkiAsync] Configuration reloaded to apply debug changes.");
         } catch (Exception e) {
-            source.getSender().sendMessage("§c[AkiAsync] Failed to toggle debug logging: " + e.getMessage());
+            source.getSender().sendMessage("搂c[AkiAsync] Failed to toggle debug logging: " + e.getMessage());
             plugin.getLogger().severe("Error toggling debug logging: " + e.getMessage());
         }
     }

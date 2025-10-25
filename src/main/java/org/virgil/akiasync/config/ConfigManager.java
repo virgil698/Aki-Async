@@ -15,7 +15,6 @@ public class ConfigManager {
     private boolean spawnerOptimizationEnabled;
     private int maxEntitiesPerChunk;
     private int aiCooldownTicks;
-    private int pathfindingTickBudget;
     private boolean brainThrottle;
     private int brainThrottleInterval;
     private long asyncAITimeoutMicros;
@@ -98,7 +97,6 @@ public class ConfigManager {
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
         aiCooldownTicks = config.getInt("density.ai-cooldown-ticks", 10);
-        pathfindingTickBudget = config.getInt("pathfinding.tick-budget", 0);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
@@ -227,18 +225,15 @@ public class ConfigManager {
         if (aiCooldownTicks < 0) {
             aiCooldownTicks = 0;
         }
-        if (pathfindingTickBudget < 0) {
-            pathfindingTickBudget = 0;
-        }
         if (brainThrottleInterval < 0) {
             brainThrottleInterval = 0;
         }
         if (asyncAITimeoutMicros < 100) {
-            plugin.getLogger().warning("Async AI timeout too low, setting to 100μs");
+            plugin.getLogger().warning("Async AI timeout too low, setting to 100渭s");
             asyncAITimeoutMicros = 100;
         }
         if (asyncAITimeoutMicros > 5000) {
-            plugin.getLogger().warning("Async AI timeout too high, setting to 5000μs (5ms)");
+            plugin.getLogger().warning("Async AI timeout too high, setting to 5000渭s (5ms)");
             asyncAITimeoutMicros = 5000;
         }
         if (entityTickThreads < 1) entityTickThreads = 1;
@@ -324,10 +319,6 @@ public class ConfigManager {
     
     public int getAiCooldownTicks() {
         return aiCooldownTicks;
-    }
-    
-    public int getPathfindingTickBudget() {
-        return pathfindingTickBudget;
     }
     
     public boolean isBrainThrottleEnabled() { return brainThrottle; }

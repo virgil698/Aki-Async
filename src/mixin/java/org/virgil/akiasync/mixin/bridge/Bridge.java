@@ -58,8 +58,6 @@ public interface Bridge {
     
     boolean isEntityTrackerEnabled();
     
-    int getPathfindingTickBudget();
-    
     boolean isPredicateCacheEnabled();
     
     boolean isBlockPosPoolEnabled();

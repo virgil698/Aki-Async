@@ -44,8 +44,12 @@ public abstract class ServerLevelTickBlockMixin {
         ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
             try {
                 blockState.tick(level, pos, level.random);
+            } catch (IllegalStateException e) {
+                level.getServer().execute(() -> {
+                    BlockState state = level.getBlockState(pos);
+                    if (state.is(block)) state.tick(level, pos, level.random);
+                });
             } catch (Exception e) {
-                level.scheduleTick(pos, block, 1);
             }
         });
         

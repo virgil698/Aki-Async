@@ -10,7 +10,7 @@ public class ReloadCommand implements BasicCommand {
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
-        source.getSender().sendMessage("§a[AkiAsync] Configuration hot-reloaded, thread pools smoothly restarted.");
+        source.getSender().sendMessage("搂a[AkiAsync] Configuration hot-reloaded, thread pools smoothly restarted.");
     }
     @Override
     public @Nullable String permission() {

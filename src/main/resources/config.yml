@@ -41,16 +41,11 @@ density:
   # 单区块最大实体数 / Max entities per chunk
   max-per-chunk: 80
 
-# 寻路预算 / Pathfinding Budget
-# 说明：限制每tick寻路计算量
-# Description: Limit pathfinding computations per tick
-pathfinding:
-  # 每tick预算（0=禁用）/ Budget per tick (0=disabled)
-  tick-budget: 0
-
 # AI降频 / Brain Throttle
 # 说明：静止实体降低AI更新频率
 # Description: Reduce AI update frequency for stationary entities
+# 注意：UniversalAI会自动感知降频状态，保持一致性
+# Note: UniversalAI respects throttle state automatically for consistency
 brain:
   # 启用降频 / Enable throttling
   throttle: true
