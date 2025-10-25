@@ -5,6 +5,7 @@ import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import org.virgil.akiasync.cache.CacheManager;
 import org.virgil.akiasync.command.DebugCommand;
 import org.virgil.akiasync.command.ReloadCommand;
+import org.virgil.akiasync.command.VersionCommand;
 import org.virgil.akiasync.config.ConfigManager;
 import org.virgil.akiasync.executor.AsyncExecutorManager;
 import org.virgil.akiasync.listener.ConfigReloadListener;
@@ -50,6 +51,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         registerCommand("aki-reload", new ReloadCommand());
         registerCommand("aki-debug", new DebugCommand(this));
+        registerCommand("aki-version", new VersionCommand(this));
         
         if (configManager.isPerformanceMetricsEnabled()) {
             startCombinedMetrics();
@@ -59,26 +61,26 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
         getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Commands: /aki-reload | /aki-debug <true|false>");
+        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version");
         getLogger().info("");
-        getLogger().info("閳?Core Features:");
-        getLogger().info("  閳?Async Entity Tracker: " + (configManager.isEntityTrackerEnabled() ? "Enabled" : "Disabled"));
-        getLogger().info("  閳?Async Mob Spawning: " + (configManager.isMobSpawningEnabled() ? "Enabled" : "Disabled"));
-        getLogger().info("  閳?Entity Tick Parallel: " + (configManager.isEntityTickParallel() ? "Enabled" : "Disabled") + " (" + configManager.getEntityTickThreads() + " threads)");
-        getLogger().info("  閳?Async Lighting: " + (configManager.isAsyncLightingEnabled() ? "Enabled" : "Disabled") + " (" + configManager.getLightingThreadPoolSize() + " threads)");
+        getLogger().info("[+] Core Features:");
+        getLogger().info("  [+] Async Entity Tracker: " + (configManager.isEntityTrackerEnabled() ? "Enabled" : "Disabled"));
+        getLogger().info("  [+] Async Mob Spawning: " + (configManager.isMobSpawningEnabled() ? "Enabled" : "Disabled"));
+        getLogger().info("  [+] Entity Tick Parallel: " + (configManager.isEntityTickParallel() ? "Enabled" : "Disabled") + " (" + configManager.getEntityTickThreads() + " threads)");
+        getLogger().info("  [+] Async Lighting: " + (configManager.isAsyncLightingEnabled() ? "Enabled" : "Disabled") + " (" + configManager.getLightingThreadPoolSize() + " threads)");
         getLogger().info("");
-        getLogger().info("閳?Performance Settings:");
-        getLogger().info("  閳?Thread Pool Size: " + configManager.getThreadPoolSize());
-        getLogger().info("  閳?Max Entities/Chunk: " + configManager.getMaxEntitiesPerChunk());
-        getLogger().info("  閳?Brain Throttle: " + (configManager.isBrainThrottleEnabled() ? "Enabled" : "Disabled") + " (" + configManager.getBrainThrottleInterval() + " ticks)");
-        getLogger().info("  閳?Update Interval: " + configManager.getUpdateIntervalTicks() + " ticks");
+        getLogger().info("[*] Performance Settings:");
+        getLogger().info("  [*] Thread Pool Size: " + configManager.getThreadPoolSize());
+        getLogger().info("  [*] Max Entities/Chunk: " + configManager.getMaxEntitiesPerChunk());
+        getLogger().info("  [*] Brain Throttle: " + (configManager.isBrainThrottleEnabled() ? "Enabled" : "Disabled") + " (" + configManager.getBrainThrottleInterval() + " ticks)");
+        getLogger().info("  [*] Update Interval: " + configManager.getUpdateIntervalTicks() + " ticks");
         getLogger().info("");
-        getLogger().info("閳?Optimizations:");
-        getLogger().info("  閳?ServerCore optimizations: Enabled");
-        getLogger().info("  閳?FerriteCore memory optimizations: Enabled");
-        getLogger().info("  閳?16-layer lighting queue: Enabled");
+        getLogger().info("[#] Optimizations:");
+        getLogger().info("  [#] ServerCore optimizations: Enabled");
+        getLogger().info("  [#] FerriteCore memory optimizations: Enabled");
+        getLogger().info("  [#] 16-layer lighting queue: Enabled");
         getLogger().info("========================================");
-        getLogger().info("Plugin enabled successfully! Use /aki-reload to reload config");
+        getLogger().info("Plugin enabled successfully! Use /aki-version for details");
     }
     
     @Override
