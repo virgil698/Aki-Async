@@ -19,6 +19,7 @@ public abstract class ServerLevelTickBlockMixin {
     
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile boolean initialized = false;
+    @Unique private static final ThreadLocal<ServerLevel> levelRef = new ThreadLocal<>();
     
     @Unique
     private static final java.util.Set<Class<?>> BLACKLIST = java.util.Set.of(
@@ -29,11 +30,23 @@ public abstract class ServerLevelTickBlockMixin {
     
     @Unique
     private static final ExecutorService ASYNC_BLOCK_TICK_EXECUTOR = 
-        java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "AkiAsync-BlockTick");
-            t.setDaemon(true);
-            return t;
-        });
+        new java.util.concurrent.ThreadPoolExecutor(
+            2,
+            4,
+            30L, java.util.concurrent.TimeUnit.SECONDS,
+            new java.util.concurrent.LinkedBlockingQueue<>(1024),
+            new java.util.concurrent.ThreadFactory() {
+                public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "AkiAsync-BlockTick");
+                    t.setDaemon(true);
+                    return t;
+                }
+            },
+            (r, executor) -> {
+                ServerLevel level = levelRef.get();
+                if (level != null) level.getServer().execute(r);
+            }
+        );
     
     @Inject(method = "tickBlock", at = @At("HEAD"), cancellable = true)
     private void aki$asyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
@@ -52,6 +65,7 @@ public abstract class ServerLevelTickBlockMixin {
             return;
         }
         
+        levelRef.set(level);
         ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
             try {
                 blockState.tick(level, pos, level.random);
@@ -61,6 +75,8 @@ public abstract class ServerLevelTickBlockMixin {
                     BlockState state = level.getBlockState(pos);
                     if (state.is(block)) state.tick(level, pos, level.random);
                 });
+            } finally {
+                levelRef.remove();
             }
         });
         
