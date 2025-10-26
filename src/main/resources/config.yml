@@ -453,6 +453,5 @@ performance:
   # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
-#
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.

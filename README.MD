@@ -177,10 +177,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 1
-# 说明：当前配置版本为1，如果配置版本大于1，则需要更新配置文件
-# Description: The current configuration version is 1, if the configuration version is greater than 1, you need to update the configuration file
-version: 1
+# 当前版本 / Current version: 2
+# 说明：当前配置版本为2，如果配置版本大于或小于2，则需要更新配置文件
+# Description: The current configuration version is 2, if the configuration version is greater than 2, you need to update the configuration file
+version: 2
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -212,16 +212,11 @@ density:
   # 单区块最大实体数 / Max entities per chunk
   max-per-chunk: 80
 
-# 寻路预算 / Pathfinding Budget
-# 说明：限制每tick寻路计算量
-# Description: Limit pathfinding computations per tick
-pathfinding:
-  # 每tick预算（0=禁用）/ Budget per tick (0=disabled)
-  tick-budget: 0
-
 # AI降频 / Brain Throttle
 # 说明：静止实体降低AI更新频率
 # Description: Reduce AI update frequency for stationary entities
+# 注意：UniversalAI会自动感知降频状态，保持一致性
+# Note: UniversalAI respects throttle state automatically for consistency
 brain:
   # 启用降频 / Enable throttling
   throttle: true
@@ -464,23 +459,6 @@ item-entity-optimizations:
   min-nearby-items: 3
 
 # ==========================================
-# 漏斗链优化 / Hopper Chain Optimization (v8.0)
-# ==========================================
-# 说明：异步I/O处理600+漏斗链，分区并行传输
-# Description: Async I/O for 600+ hopper chains with region-based parallelization
-#
-# 性能提升 / Performance Gain:
-#   600 漏斗 1 tick: 8-12ms → 3-4ms (↓67%)
-#   NBT 读写延迟: 5ms → 1ms (1 tick 缓存)
-hopper-chain-optimization:
-  # 启用异步漏斗链 / Enable async hopper chain
-  async-hopper-chain: true
-  # 线程池大小 / Thread pool size (I/O threads)
-  threads: 4
-  # 启用 NBT 缓存 / Enable NBT cache (1 tick delay writeback)
-  nbt-cache: true
-
-# ==========================================
 # 村民繁殖优化 / Villager Breed Optimization (v8.0)
 # ==========================================
 # 说明：异步繁殖检查，降低村门+村民+床遍历开销
@@ -614,6 +592,26 @@ lighting-optimizations:
     log-advanced-stats: false
 
 # ==========================================
+# 区块Tick异步化 / Chunk Tick Async (Lithium + Akarin)
+# ==========================================
+# 说明：将区块Tick移至ForkJoinPool异步执行，失败回退主线程同步
+# Description: Offload chunk tick to ForkJoinPool async, fallback to main thread on timeout
+#
+# 性能提升 / Performance Gain:
+#   ChunkTick MSPT: 8ms → 3-4ms (↓50%)
+#   TPS: 20 (locked)
+chunk-tick-async:
+  # 启用开关 / Enable toggle
+  enabled: false
+  # 线程数 / Thread count
+  # 推荐值 / Recommended: 4
+  threads: 4
+  # 超时时间（微秒）/ Timeout (microseconds)
+  # 说明：超时立即回退主线程同步，保证最坏TPS
+  # Description: Fallback to sync on timeout, ensure worst-case TPS
+  timeout-us: 200
+
+# ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:
@@ -626,10 +624,10 @@ performance:
   # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
-#
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
 ```
+
 </details>
 
 ---
@@ -664,13 +662,15 @@ performance:
 
 观察MSPT变化和CompletableFuture占比
 
+如果出现一些性能问题请提交Issue并提交您的Spark报告链接或文件以供排查问题
+
 </details>
 
 <details>
 <summary><b>Q: 插件兼容性？</b></summary>
 
-✅ 与大部分插件兼容
-📧 遇到冲突请提交Issue
+- ✅ 与大部分插件兼容
+- 📧 遇到冲突请提交Issue
 
 </details>
 
