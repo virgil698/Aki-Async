@@ -159,6 +159,64 @@ entity-tick-parallel:
 
 </details>
 
+<details>
+<summary><b>📋 /aki-version - 版本信息</b></summary>
+
+**功能**：显示插件详细信息和系统环境
+
+**权限**：`akiasync.version`（默认仅OP可用）
+
+**使用方法**：
+```bash
+/aki-version   # 显示版本信息
+```
+
+**显示内容**：
+- ✅ 插件名称、版本号、作者
+- ✅ 服务器类型和版本（Leaves/Paper/Spigot）
+- ✅ Minecraft 版本
+- ✅ Java 版本
+- ✅ 操作系统信息
+- ✅ 当前启用的优化功能状态
+
+**使用场景**：
+- 🐛 反馈问题时提供版本信息
+- 📊 检查当前启用的优化功能
+- 🔍 确认服务器环境配置
+- 📝 生成技术支持报告
+
+**示例**：
+```bash
+# 查看版本信息
+/aki-version
+
+# 输出示例：
+# [AkiAsync] ========================================
+# [AkiAsync] Plugin: AkiAsync
+# [AkiAsync] Version: 3.0.0-SNAPSHOT
+# [AkiAsync] Authors: Virgil
+# [AkiAsync] 
+# [AkiAsync] Server: Leaves 1.21.4
+# [AkiAsync] Minecraft: 1.21.4
+# [AkiAsync] Java: 21.0.5
+# [AkiAsync] OS: Windows Server 2019 10.0
+# [AkiAsync] 
+# [AkiAsync] Active Optimizations:
+# [AkiAsync]   Entity Tracker: ON
+# [AkiAsync]   Mob Spawning: ON
+# [AkiAsync]   Entity Tick Parallel: ON
+# [AkiAsync]   Async Lighting: ON
+# [AkiAsync]   Chunk Tick Async: ON
+# [AkiAsync]   Brain Throttle: ON
+# [AkiAsync] ========================================
+```
+
+**提示**：
+- 💡 反馈 Bug 时建议先执行此命令，并附上输出截图
+- 💡 可用于快速检查配置是否生效
+
+</details>
+
 ---
 
 ## ⚙️ 配置说明
