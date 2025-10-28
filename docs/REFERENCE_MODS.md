@@ -42,7 +42,6 @@
   - ✅ LightEngineAsyncMixin（16层分层队列+去重）
   - ✅ SkylightCacheMixin（天空光缓存）
   - ✅ 动态批量调整（TPS自适应）
-  - ❌ ChunkLightingAsyncMixin（已删除，无效优化）
 
 ### 5. ServerCore ✅
 - **链接**: https://github.com/Wesley1808/ServerCore
@@ -69,20 +68,209 @@
 - **链接**: [Akarin-project/Akarin](https://github.com/Akarin-project/Akarin)
 - **重点分支**: [ver/1.21.4](https://github.com/Akarin-project/Akarin/tree/ver/1.21.4/patches-1.16.5/server)
 - **关注点**: 全服异步架构（ServerTick 16×16分区 + ForkJoinPool + 0延迟写回）
-- **核心参考点**:
-  - **ServerTick 分区**: 把 `ServerLevel.tick()` 按 16×16 区块切成任务
-  - **ChunkTick 并行**: 每 chunk 内 BlockEntity/Entity 再切子任务
-  - **0 延迟写回**: 所有异步结果在同一 tick 末尾 `join()` 批量写回
-  - **失败回落**: 任何子任务超时 → 立即 `invokeAll()` 回落同步
-- **实施参考计划**:
-  1. **Step 1 MVP**: ServerTick 分区 + ForkJoinPool（预计 MSPT ↓4ms）
-  2. **Step 2 细化**: ChunkTick 子任务（漏斗/村民/红石全并行）
-  3. **Step 3 回落**: 超时检测 + CallerRunsPolicy（不掉TPS）
-- **技术参考风险**:
-  - 线程安全: 只读快照 + 写回隔离
-  - 调度开销: 16×16粗粒度减少任务数
-  - 超时回落: 动态调整超时阈值（200μs起）
-- **状态**: ⏳ v3.0 规划中 - 核心框架设计完成，待实施
+
+---
+
+#### **核心参考点对比表**
+
+| 优化点 | Akarin 实现方案 | Aki-Async 当前状态 | 优先级 |
+|--------|----------------|-------------------|--------|
+| **1. ServerTick 16×16 区块分区** | `ServerLevel.tick()` 按 16×16 chunk 切分任务 | ❌ **未实现** | 🔥 **P0** |
+| **2. ForkJoinPool 工作窃取** | 使用 ForkJoinPool 作为主线程池 | ⚠️ **部分实现**：Entity tick 用 ForkJoinPool.commonPool()，其他用 ThreadPoolExecutor | 🔥 **P0** |
+| **3. 0 延迟写回架构** | 所有异步任务在同一 tick 末尾 join() 批量写回 | ❌ **未实现**：当前是异步执行立即写回 | 🔥 **P0** |
+| **4. ChunkTick 细粒度并行** | BlockEntity/Entity/RandomTick 分离子任务 | ⚠️ **部分实现**：Entity 并行 ✅，BlockEntity 异步 ✅，但未分区 | 🟡 **P1** |
+| **5. 超时回落机制** | 任务超时 → invokeAll() 同步回落 | ✅ **已实现**：CallerRunsPolicy + CompletableFuture timeout | ✅ |
+| **6. 动态超时阈值** | 从 200μs 起动态调整 | ⚠️ **部分实现**：固定 500μs-5000μs，有自适应但不动态 | 🟡 **P1** |
+| **7. 只读快照隔离** | 异步任务用快照，写回时验证 | ⚠️ **部分实现**：部分 AI 有 POI 快照，但不全面 | 🟡 **P1** |
+| **8. 调度开销优化** | 16×16 粗粒度 + 批量提交减少任务数 | ⚠️ **部分实现**：Entity 有 batch（8 entities/batch） | 🟢 **P2** |
+
+---
+
+#### **未实现的核心功能（按优先级）**
+
+##### **🔥 P0 - 架构级改造（必须实现）**
+
+1. **ServerTick 16×16 区块分区**
+   - **Akarin 方案**: 
+     ```java
+     // 伪代码示例
+     List<ChunkPos> loadedChunks = level.getLoadedChunks();
+     List<List<ChunkPos>> partitions = partition(loadedChunks, 16*16);
+     List<CompletableFuture<Void>> futures = partitions.stream()
+         .map(partition -> CompletableFuture.runAsync(() -> {
+             for (ChunkPos pos : partition) {
+                 tickChunk(level, pos);
+             }
+         }, forkJoinPool))
+         .collect(Collectors.toList());
+     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+     ```
+   - **当前问题**: Aki-Async 直接在 `EntityTickList.forEach` hook，没有区块级分区
+   - **预计收益**: MSPT ↓4-6ms（大型服务器）
+   - **实施难度**: ⭐⭐⭐⭐☆（需要重构核心 tick 流程）
+
+2. **ForkJoinPool 替换 ThreadPoolExecutor**
+   - **Akarin 方案**: 使用 ForkJoinPool 利用工作窃取（work-stealing）
+   - **当前问题**: 
+     - `AsyncExecutorManager` 用的是 `ThreadPoolExecutor`
+     - 只有 `EntityTickChunkParallelMixin` 用了 ForkJoinPool.commonPool()
+   - **改进方向**:
+     ```java
+     // 替换 AsyncExecutorManager 的 executorService
+     private final ForkJoinPool forkJoinPool = new ForkJoinPool(
+         threadPoolSize,
+         pool -> {
+             ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+             thread.setName("AkiAsync-ForkJoin-" + thread.getPoolIndex());
+             return thread;
+         },
+         null, // UncaughtExceptionHandler
+         true  // asyncMode
+     );
+     ```
+   - **预计收益**: 任务窃取提升 15-20% 吞吐量
+   - **实施难度**: ⭐⭐☆☆☆（代码改动小，但需要测试稳定性）
+
+3. **0 延迟写回架构**
+   - **Akarin 方案**: 
+     - 异步任务只读取数据 + 计算结果，不立即写入
+     - 在 tick 末尾统一 `join()` 所有 future，批量写回主线程
+   - **当前问题**: 
+     ```java
+     // 当前是这样（立即异步写回）
+     ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
+         blockState.tick(level, pos, level.random); // 直接异步执行可能不安全
+     });
+     ```
+   - **改进方向**:
+     ```java
+     // Step 1: 收集所有异步任务
+     List<CompletableFuture<BlockTickResult>> blockTickFutures = new ArrayList<>();
+     for (BlockPos pos : scheduledTicks) {
+         blockTickFutures.add(CompletableFuture.supplyAsync(() -> {
+             return calculateBlockTick(level, pos); // 只计算，不写入
+         }, forkJoinPool));
+     }
+     
+     // Step 2: Tick 末尾批量写回
+     CompletableFuture.allOf(blockTickFutures.toArray(new CompletableFuture[0]))
+         .thenAccept(v -> {
+             // 主线程批量写回
+             blockTickFutures.forEach(f -> applyBlockTickResult(f.getNow(null)));
+         })
+         .join(); // 确保当前 tick 完成
+     ```
+   - **预计收益**: 减少线程竞争，提升稳定性
+   - **实施难度**: ⭐⭐⭐⭐⭐（需要彻底重构写回逻辑）
+
+---
+
+##### **🟡 P1 - 性能优化（推荐实现）**
+
+4. **ChunkTick 细粒度并行（BlockEntity/Entity 分离）**
+   - **Akarin 方案**: 
+     - Entity tick → 子任务 A
+     - BlockEntity tick → 子任务 B
+     - RandomTick → 子任务 C
+   - **当前状态**: 
+     - ✅ Entity tick 已并行（`EntityTickChunkParallelMixin`）
+     - ✅ BlockEntity tick 有异步（`ServerLevelTickBlockMixin`）
+     - ❌ 但没有按 chunk 分离和合并
+   - **改进方向**: 在 ServerTick 分区基础上，每个 chunk 再细分子任务
+   - **预计收益**: 大区块（200+ entities）MSPT ↓1-2ms
+   - **实施难度**: ⭐⭐⭐☆☆
+
+5. **动态超时阈值（200μs 起步）**
+   - **Akarin 方案**: 
+     - 初始 200μs 超时
+     - 根据 MSPT 动态调整：MSPT<20 → 500μs，MSPT>30 → 100μs
+   - **当前状态**: 
+     ```java
+     // EntityTickChunkParallelMixin 有简单自适应
+     if (mspt < 20) return 100;
+     if (mspt <= 30) return 50;
+     return 25;
+     ```
+     - ⚠️ 但没有从 200μs 起的微秒级超时
+   - **改进方向**: 
+     ```java
+     private long calculateDynamicTimeout(long mspt, int taskCount) {
+         long base = 200; // μs
+         if (mspt < 20) base = 500;
+         else if (mspt > 30) base = 100;
+         // 根据任务数量调整
+         return base + (taskCount / 100) * 50;
+     }
+     ```
+   - **预计收益**: 减少假超时，提升任务完成率 5-10%
+   - **实施难度**: ⭐⭐☆☆☆
+
+6. **全面只读快照隔离**
+   - **Akarin 方案**: 所有异步任务读取快照（POI、Entity、BlockState）
+   - **当前状态**: 
+     - ✅ 部分 AI 有 `villagerUsePOISnapshot`
+     - ❌ 大部分任务直接读取主线程数据
+   - **改进方向**: 
+     ```java
+     // Tick 开始时创建快照
+     WorldSnapshot snapshot = createWorldSnapshot(level);
+     // 异步任务只读快照
+     CompletableFuture.supplyAsync(() -> {
+         return processEntity(entity, snapshot);
+     }, forkJoinPool);
+     ```
+   - **预计收益**: 消除 ConcurrentModificationException，稳定性 ↑
+   - **实施难度**: ⭐⭐⭐⭐☆（快照开销需要优化）
+
+---
+
+##### **🟢 P2 - 进一步优化（可选）**
+
+7. **调度开销优化**
+   - **当前状态**: ✅ 已有 batch（`entityTickBatchSize = 8`）
+   - **改进空间**: 
+     - 根据 CPU 核心数动态调整 batch size
+     - 使用 ForkJoinTask.invokeAll() 替代 CompletableFuture（减少包装开销）
+
+---
+
+#### **实施路线图**
+
+```
+Phase 1 (v3.1) - 架构升级 [预计 2-3 周]
+├── ForkJoinPool 替换 ThreadPoolExecutor
+├── ServerTick 16×16 分区基础框架
+└── 0 延迟写回原型
+
+Phase 2 (v3.2) - 细化优化 [预计 1-2 周]
+├── ChunkTick 细粒度并行
+├── 动态超时阈值
+└── 全面快照隔离
+
+Phase 3 (v3.3) - 性能调优 [预计 1 周]
+├── 批量调度优化
+├── 压力测试 + 性能基准
+└── 文档和示例
+```
+
+---
+
+#### **技术参考风险**
+- **线程安全**: 只读快照 + 写回隔离（需要彻底审查所有 Mixin）
+- **调度开销**: 16×16 粗粒度可减少任务数，但需要平衡负载
+- **超时回落**: 动态调整超时阈值（200μs起），需要精细的 MSPT 监控
+- **内存开销**: 快照机制可能增加 100-200MB 内存（需要池化复用）
+
+---
+
+#### **关键代码参考位置**
+- Akarin ServerTick 分区: `patches-1.16.5/server/0XXX-Async-World-Tick.patch`
+- Akarin ForkJoinPool: `patches-1.16.5/server/0XXX-Parallel-Entity-Tick.patch`
+- Akarin 0 延迟写回: `patches-1.16.5/server/0XXX-Zero-Delay-Writeback.patch`
+
+---
+
+**状态**: ⏳ v3.0 规划中 - 核心框架设计完成，等待架构升级
 
 ### 2. VMP-fabric (Very Many Players) ⏳
 - **链接**: https://github.com/RelativityMC/VMP-fabric
