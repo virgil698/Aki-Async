@@ -84,7 +84,6 @@ public abstract class ServerLevelTickBlockMixin {
 
     @Unique
     private boolean isUnsafeBlock(String blockName) {
-        // 全面黑名单 - 只包含原版 Minecraft 方块
         return
                 blockName.contains("water") ||
                         blockName.contains("lava") ||
