@@ -10,6 +10,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Mixin(value = ServerLevel.class)
 public abstract class ServerLevelTickBlockMixin {
@@ -17,8 +22,32 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique
     private static final boolean ENABLED = true;
 
+    @Unique
+    private static volatile ExecutorService executorService;
+
+    @Unique
+    private static synchronized ExecutorService getExecutor() {
+        if (executorService == null) {
+            int poolSize = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
+            executorService = new ThreadPoolExecutor(
+                    poolSize,
+                    poolSize,
+                    60L, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(1000),
+                    r -> {
+                        Thread t = new Thread(r, "AkiAsync-Pool");
+                        t.setDaemon(true);
+                        return t;
+                    },
+                    new ThreadPoolExecutor.CallerRunsPolicy()
+            );
+            System.out.println("[AkiAsync] 线程池已初始化，大小: " + poolSize);
+        }
+        return executorService;
+    }
+
     @Inject(method = "tickBlock", at = @At("HEAD"), cancellable = true)
-    private void aki$conservativeAsyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
+    private void aki$optimizedAsyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
         if (!ENABLED) return;
 
         ServerLevel level = (ServerLevel) (Object) this;
@@ -38,27 +67,19 @@ public abstract class ServerLevelTickBlockMixin {
         final BlockPos taskPos = pos;
         final BlockState taskState = blockState;
 
-        Thread asyncThread = new Thread(() -> {
-            try {
-                taskState.tick(taskLevel, taskPos, taskLevel.random);
-            } catch (Throwable t) {
-                if (isAsyncError(t)) {
-                    taskLevel.getServer().execute(() -> {
-                        try {
-                            BlockState current = taskLevel.getBlockState(taskPos);
-                            if (current.is(block)) {
-                                current.tick(taskLevel, taskPos, taskLevel.random);
-                            }
-                        } catch (Throwable ignored) {}
-                    });
+        try {
+            getExecutor().execute(() -> {
+                try {
+                    taskState.tick(taskLevel, taskPos, taskLevel.random);
+                } catch (Throwable t) {
+                    handleAsyncError(taskLevel, taskPos, block, t);
                 }
-            }
-        }, "AkiAsync-Conservative");
+            });
 
-        asyncThread.setDaemon(true);
-        asyncThread.start();
-
-        ci.cancel();
+            ci.cancel();
+        } catch (Exception e) {
+            System.out.println("[AkiAsync] 线程池异常，回退到同步执行: " + e.getMessage());
+        }
     }
 
     @Unique
@@ -87,43 +108,23 @@ public abstract class ServerLevelTickBlockMixin {
                 blockName.contains("hopper") ||
                 blockName.contains("dispenser") ||
                 blockName.contains("dropper") ||
-                blockName.contains("brewing") ||
-                blockName.contains("beacon") ||
-                blockName.contains("conduit") ||
-                blockName.contains("enchant") ||
-                blockName.contains("ender") ||
-                blockName.contains("shulker") ||
-                blockName.contains("respawn") ||
-                blockName.contains("lodestone") ||
-                blockName.contains("target") ||
-                blockName.contains("bee") ||
-                blockName.contains("honey") ||
-                blockName.contains("crying") ||
-                blockName.contains("pointed") ||
-                blockName.contains("amethyst") ||
-                blockName.contains("copper") ||
-                blockName.contains("lightning") ||
-                blockName.contains("candle") ||
-                blockName.contains("cake") ||
-                blockName.contains("farmland") ||
-                blockName.contains("grass") ||
-                blockName.contains("mycelium") ||
-                blockName.contains("nylium") ||
-                blockName.contains("coral") ||
-                blockName.contains("sea") ||
-                blockName.contains("kelp") ||
-                blockName.contains("azalea") ||
-                blockName.contains("mangrove") ||
-                blockName.contains("frog") ||
-                blockName.contains("sculk") ||
-                blockName.contains("reinforced") ||
-                blockName.contains("spore") ||
-                blockName.contains("hanging") ||
-                blockName.contains("decorated") ||
-                blockName.contains("chiseled") ||
-                blockName.contains("infested") ||
                 blockName.contains("tnt") ||
                 blockName.contains("sponge");
+    }
+
+    @Unique
+    private void handleAsyncError(ServerLevel level, BlockPos pos, Block block, Throwable t) {
+        if (isAsyncError(t)) {
+            level.getServer().execute(() -> {
+                try {
+                    BlockState current = level.getBlockState(pos);
+                    if (current.is(block)) {
+                        current.tick(level, pos, level.random);
+                        System.out.println("[AkiAsync] 异步失败，已回退到同步执行: " + block);
+                    }
+                } catch (Throwable ignored) {}
+            });
+        }
     }
 
     @Unique
