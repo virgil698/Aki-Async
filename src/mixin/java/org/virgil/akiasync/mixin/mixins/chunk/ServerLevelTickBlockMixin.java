@@ -84,32 +84,66 @@ public abstract class ServerLevelTickBlockMixin {
 
     @Unique
     private boolean isUnsafeBlock(String blockName) {
-        return blockName.contains("leaves") ||
-                blockName.contains("redstone") ||
-                blockName.contains("piston") ||
+        // 全面黑名单 - 只包含原版 Minecraft 方块
+        return
                 blockName.contains("water") ||
-                blockName.contains("lava") ||
-                blockName.contains("command") ||
-                blockName.contains("structure") ||
-                blockName.contains("observer") ||
-                blockName.contains("comparator") ||
-                blockName.contains("repeater") ||
-                blockName.contains("bubble") ||
-                blockName.contains("magma") ||
-                blockName.contains("soul") ||
-                blockName.contains("fire") ||
-                blockName.contains("portal") ||
-                blockName.contains("sculk") ||
-                blockName.contains("spawner") ||
-                blockName.contains("bed") ||
-                blockName.contains("door") ||
-                blockName.contains("chest") ||
-                blockName.contains("furnace") ||
-                blockName.contains("hopper") ||
-                blockName.contains("dispenser") ||
-                blockName.contains("dropper") ||
-                blockName.contains("tnt") ||
-                blockName.contains("sponge");
+                        blockName.contains("lava") ||
+                        blockName.contains("bubble") ||
+                        blockName.contains("redstone") ||
+                        blockName.contains("comparator") ||
+                        blockName.contains("repeater") ||
+                        blockName.contains("observer") ||
+                        blockName.contains("piston") ||
+                        blockName.contains("dispenser") ||
+                        blockName.contains("dropper") ||
+                        blockName.contains("hopper") ||
+                        blockName.contains("lever") ||
+                        blockName.contains("button") ||
+                        blockName.contains("pressure_plate") ||
+                        blockName.contains("tripwire") ||
+                        blockName.contains("target") ||
+                        blockName.contains("daylight_detector") ||
+                        blockName.contains("tnt") ||
+                        blockName.contains("note_block") ||
+                        blockName.contains("leaves") ||
+                        blockName.contains("sapling") ||
+                        blockName.contains("grass") ||
+                        blockName.contains("fern") ||
+                        blockName.contains("flower") ||
+                        blockName.contains("mushroom") ||
+                        blockName.contains("vine") ||
+                        blockName.contains("lily") ||
+                        blockName.contains("cactus") ||
+                        blockName.contains("sugar_cane") ||
+                        blockName.contains("bamboo") ||
+                        blockName.contains("kelp") ||
+                        blockName.contains("seagrass") ||
+                        blockName.contains("sea_pickle") ||
+                        blockName.contains("coral") ||
+                        blockName.contains("azalea") ||
+                        blockName.contains("mangrove") ||
+                        blockName.contains("cherry") ||
+                        blockName.contains("spore_blossom") ||
+                        blockName.contains("moss") ||
+                        blockName.contains("chorus") ||
+                        blockName.contains("portal") ||
+                        blockName.contains("end_gateway") ||
+                        blockName.contains("dragon_egg") ||
+                        blockName.contains("sponge") ||
+                        blockName.contains("cake") ||
+                        blockName.contains("scaffolding") ||
+                        blockName.contains("pointed_dripstone") ||
+                        blockName.contains("lightning_rod") ||
+                        blockName.contains("powder_snow") ||
+                        blockName.contains("amethyst_cluster") ||
+                        blockName.contains("budding_amethyst") ||
+                        blockName.contains("calibrated_sculk_sensor") ||
+                        blockName.contains("reinforced_deepslate") ||
+                        blockName.contains("decorated_pot") ||
+                        blockName.contains("suspicious_sand") ||
+                        blockName.contains("suspicious_gravel") ||
+                        blockName.contains("trial_spawner") ||
+                        blockName.contains("vault") ;
     }
 
     @Unique
