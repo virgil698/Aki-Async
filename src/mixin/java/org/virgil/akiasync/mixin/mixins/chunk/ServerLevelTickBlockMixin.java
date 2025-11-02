@@ -123,6 +123,9 @@ public abstract class ServerLevelTickBlockMixin {
                         blockName.contains("coral") ||
                         blockName.contains("azalea") ||
                         blockName.contains("mangrove") ||
+                        blockName.contains("magma") ||
+                        blockName.contains("soul") ||
+                        blockName.contains("crying_obsidian") ||
                         blockName.contains("cherry") ||
                         blockName.contains("spore_blossom") ||
                         blockName.contains("moss") ||
