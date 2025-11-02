@@ -100,7 +100,7 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
 
 **效果**：
 - ✅ 重新加载 `config.yml` 配置
-- ✅ 平滑重启所有线程池（不丢失任务）
+- ✅ 平滑重启与初始化所有线程池（不丢失任务）
 - ✅ 清除所有内部缓存
 - ✅ 重置性能统计计数器
 - ✅ 更新所有模块配置引用
@@ -193,11 +193,11 @@ entity-tick-parallel:
 # 输出示例：
 # [AkiAsync] ========================================
 # [AkiAsync] Plugin: AkiAsync
-# [AkiAsync] Version: 3.0.0-SNAPSHOT
+# [AkiAsync] Version: 11.45.14-SNAPSHOT
 # [AkiAsync] Authors: Virgil
 # [AkiAsync] 
-# [AkiAsync] Server: Leaves 1.21.4
-# [AkiAsync] Minecraft: 1.21.4
+# [AkiAsync] Server: Leaves 1.21.8
+# [AkiAsync] Minecraft: 1.21.8
 # [AkiAsync] Java: 21.0.5
 # [AkiAsync] OS: Windows Server 2019 10.0
 # [AkiAsync] 
@@ -757,7 +757,7 @@ cd Aki-Async
 ./gradlew clean build
 
 # 产物位于
-build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
+build/libs/Aki-Async-x.x.x-SNAPSHOT.jar
 ```
 
 ---
