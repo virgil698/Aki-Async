@@ -1,7 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.chunk;
 
-import java.util.concurrent.ExecutorService;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,17 +11,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-@SuppressWarnings("unused")
-@Mixin(value = ServerLevel.class, priority = 1200)
+@Mixin(value = ServerLevel.class)
 public abstract class ServerLevelTickBlockMixin {
-    @Unique private static volatile boolean cached_enabled;
-    @Unique private static volatile boolean initialized = false;
-    @Unique private static ExecutorService ASYNC_BLOCK_TICK_EXECUTOR;
+
+    @Unique
+    private static final boolean ENABLED = true;
 
     @Inject(method = "tickBlock", at = @At("HEAD"), cancellable = true)
-    private void aki$asyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
-        if (!initialized) aki$initBlockTickAsync();
-        if (!cached_enabled) return;
+    private void aki$conservativeAsyncTickBlock(BlockPos pos, Block block, CallbackInfo ci) {
+        if (!ENABLED) return;
 
         ServerLevel level = (ServerLevel) (Object) this;
         BlockState blockState = level.getBlockState(pos);
@@ -33,53 +29,112 @@ public abstract class ServerLevelTickBlockMixin {
             return;
         }
 
-        ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
+        String blockName = block.getDescriptionId().toLowerCase();
+        if (isUnsafeBlock(blockName)) {
+            return;
+        }
+
+        final ServerLevel taskLevel = level;
+        final BlockPos taskPos = pos;
+        final BlockState taskState = blockState;
+
+        Thread asyncThread = new Thread(() -> {
             try {
-                blockState.tick(level, pos, level.random);
+                taskState.tick(taskLevel, taskPos, taskLevel.random);
             } catch (Throwable t) {
-                StackTraceElement[] stack = t.getStackTrace();
-                boolean isAsyncCatcherError = stack.length > 0 && 
-                    stack[0].getClassName().equals("org.spigotmc.AsyncCatcher");
-                
-                if (isAsyncCatcherError) {
-                    level.getServer().execute(() -> {
+                if (isAsyncError(t)) {
+                    taskLevel.getServer().execute(() -> {
                         try {
-                            BlockState state = level.getBlockState(pos);
-                            if (state.is(block)) state.tick(level, pos, level.random);
-                        } catch (Throwable ignored) {
-                        }
-                    });
-                } else {
-                    System.out.println("[AkiAsync] Block tick failed at " + pos + " for " + block + ": " + t.getClass().getSimpleName());
-                    level.getServer().execute(() -> {
-                        try {
-                            BlockState state = level.getBlockState(pos);
-                            if (state.is(block)) state.tick(level, pos, level.random);
-                        } catch (Throwable ignored) {
-                        }
+                            BlockState current = taskLevel.getBlockState(taskPos);
+                            if (current.is(block)) {
+                                current.tick(taskLevel, taskPos, taskLevel.random);
+                            }
+                        } catch (Throwable ignored) {}
                     });
                 }
             }
-        });
+        }, "AkiAsync-Conservative");
+
+        asyncThread.setDaemon(true);
+        asyncThread.start();
 
         ci.cancel();
     }
 
     @Unique
-    private static synchronized void aki$initBlockTickAsync() {
-        if (initialized) return;
+    private boolean isUnsafeBlock(String blockName) {
+        return blockName.contains("leaves") ||
+                blockName.contains("redstone") ||
+                blockName.contains("piston") ||
+                blockName.contains("water") ||
+                blockName.contains("lava") ||
+                blockName.contains("command") ||
+                blockName.contains("structure") ||
+                blockName.contains("observer") ||
+                blockName.contains("comparator") ||
+                blockName.contains("repeater") ||
+                blockName.contains("bubble") ||
+                blockName.contains("magma") ||
+                blockName.contains("soul") ||
+                blockName.contains("fire") ||
+                blockName.contains("portal") ||
+                blockName.contains("sculk") ||
+                blockName.contains("spawner") ||
+                blockName.contains("bed") ||
+                blockName.contains("door") ||
+                blockName.contains("chest") ||
+                blockName.contains("furnace") ||
+                blockName.contains("hopper") ||
+                blockName.contains("dispenser") ||
+                blockName.contains("dropper") ||
+                blockName.contains("brewing") ||
+                blockName.contains("beacon") ||
+                blockName.contains("conduit") ||
+                blockName.contains("enchant") ||
+                blockName.contains("ender") ||
+                blockName.contains("shulker") ||
+                blockName.contains("respawn") ||
+                blockName.contains("lodestone") ||
+                blockName.contains("target") ||
+                blockName.contains("bee") ||
+                blockName.contains("honey") ||
+                blockName.contains("crying") ||
+                blockName.contains("pointed") ||
+                blockName.contains("amethyst") ||
+                blockName.contains("copper") ||
+                blockName.contains("lightning") ||
+                blockName.contains("candle") ||
+                blockName.contains("cake") ||
+                blockName.contains("farmland") ||
+                blockName.contains("grass") ||
+                blockName.contains("mycelium") ||
+                blockName.contains("nylium") ||
+                blockName.contains("coral") ||
+                blockName.contains("sea") ||
+                blockName.contains("kelp") ||
+                blockName.contains("azalea") ||
+                blockName.contains("mangrove") ||
+                blockName.contains("frog") ||
+                blockName.contains("sculk") ||
+                blockName.contains("reinforced") ||
+                blockName.contains("spore") ||
+                blockName.contains("hanging") ||
+                blockName.contains("decorated") ||
+                blockName.contains("chiseled") ||
+                blockName.contains("infested") ||
+                blockName.contains("tnt") ||
+                blockName.contains("sponge");
+    }
 
-        var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        cached_enabled = bridge != null && bridge.isChunkTickAsyncEnabled();
-
-        if (bridge != null) {
-            ASYNC_BLOCK_TICK_EXECUTOR = bridge.getGeneralExecutor();
-        }
-
-        initialized = true;
-        System.out.println("[AkiAsync] ServerLevelTickBlockMixin initialized: enabled=" + cached_enabled);
-        System.out.println("[AkiAsync]   ✅ Hooked: ServerLevel#tickBlock()");
-        System.out.println("[AkiAsync]   💡 Strategy: Offload blockState.tick() to Bridge executor");
-        System.out.println("[AkiAsync]   ⚠️  Risk: Thread safety depends on block implementation");
+    @Unique
+    private boolean isAsyncError(Throwable t) {
+        if (t == null) return false;
+        String msg = t.getMessage();
+        String className = t.getClass().getName();
+        return (msg != null && (
+                msg.contains("async") ||
+                        msg.contains("main thread") ||
+                        msg.contains("thread")
+        )) || className.contains("AsyncCatcher");
     }
 }
