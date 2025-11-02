@@ -107,6 +107,8 @@ public abstract class ServerLevelTickBlockMixin {
                         blockName.contains("leaves") ||
                         blockName.contains("sapling") ||
                         blockName.contains("grass") ||
+                        blockName.contains("big_dripleaf") ||
+                        blockName.contains("dripleaf") ||
                         blockName.contains("fern") ||
                         blockName.contains("flower") ||
                         blockName.contains("mushroom") ||
