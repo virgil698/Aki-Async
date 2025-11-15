@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 AkiAsyn
+# 🚀 AkiAsync
 > Leaves / Luminol 系列服务端独占的异步优化插件，皆在为了不改变核心特性下提高 Leaves / Luminol 的性能提升
 
 **🍃 Leaves / Luminol 服务器异步优化插件**
