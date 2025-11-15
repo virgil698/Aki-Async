@@ -130,6 +130,20 @@ public interface Bridge {
     
     boolean isTNTDebugEnabled();
     
+    boolean isTNTVanillaCompatibilityEnabled();
+    
+    boolean isTNTUseVanillaPower();
+    
+    boolean isTNTUseVanillaFireLogic();
+    
+    boolean isTNTUseVanillaDamageCalculation();
+    
+    boolean isTNTUseFullRaycast();
+    
+    boolean isTNTUseVanillaBlockDestruction();
+    
+    boolean isTNTUseVanillaDrops();
+    
     boolean isDebugLoggingEnabled();
     
     boolean isAsyncVillagerBreedEnabled();

@@ -8,29 +8,42 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+
 public class ExplosionCalculator {
     private static final int RAYCAST_SAMPLES = 16;
     private final ExplosionSnapshot snapshot;
     private final List<BlockPos> toDestroy = new ArrayList<>();
     private final Map<UUID, Vec3> toHurt = new HashMap<>();
+    private final boolean useFullRaycast;
+
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
         this.snapshot = snapshot;
+        // 从Bridge获取是否使用完整射线投射的配置
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        this.useFullRaycast = bridge != null && 
+            bridge.isTNTVanillaCompatibilityEnabled() && 
+            bridge.isTNTUseFullRaycast();
     }
+
     public ExplosionResult calculate() {
         calculateAffectedBlocks();
         calculateEntityDamage();
         return new ExplosionResult(toDestroy, toHurt, snapshot.isFire());
     }
+
     private void calculateAffectedBlocks() {
         Vec3 center = snapshot.getCenter();
         float power = snapshot.getPower();
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
                 for (int rayZ = 0; rayZ < RAYCAST_SAMPLES; rayZ++) {
-                    if (rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
+                    // 根据配置决定是否跳过内部射线
+                    if (!useFullRaycast && 
+                        rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
                         rayY != 0 && rayY != RAYCAST_SAMPLES - 1 &&
                         rayZ != 0 && rayZ != RAYCAST_SAMPLES - 1) {
-                        continue;
+                        continue; // 优化模式：只使用边界射线
                     }
                     double dirX = (double) rayX / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
                     double dirY = (double) rayY / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;

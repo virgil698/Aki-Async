@@ -325,8 +325,8 @@ tnt-explosion-optimization:
   # 启用开关 / Enable toggle
   enabled: true
   # 启用的爆炸实体白名单 / Enabled explosion entities
-  # 说明：只对这些实体的爆炸进行优化，其他爆炸走原版
-  # Description: Only optimize explosions from these entities
+  # 说明：只对这些实体的爆炸进行异步计算优化，其他爆炸走原版
+  # Description: Only async optimize explosions from these entities
   entities:
     - "minecraft:tnt"           # TNT方块
     - "minecraft:tnt_minecart"  # TNT矿车（高频刷石机）
@@ -334,21 +334,7 @@ tnt-explosion-optimization:
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: CPU核心数×1.5
   threads: 6
-  # 单爆炸最大处理方块数（半径上墙）/ Max blocks per explosion
-  # 说明：超过此值回退原版逻辑（防止OOM）
-  # Description: Fallback to vanilla if blocks > threshold (OOM protection)
-  max-blocks: 4096
-  # 超时回退（微秒）/ Timeout (microseconds)
-  # 说明：异步超时直接回退原版，保证最坏TPS
-  # Description: Fallback to vanilla on timeout, ensure worst-case TPS
-  timeout-us: 100
-  # 并行分块大小 / Parallel batch size
-  # 说明：64×64×64任务粒度，避免伪共享
-  # Description: 64×64×64 task granularity, avoid false sharing
-  batch-size: 64
   # 调试模式 / Debug mode
-  # 警告：会输出每次爆炸耗时统计
-  # Warning: Logs every explosion timing
   debug: false
 
 # ==========================================

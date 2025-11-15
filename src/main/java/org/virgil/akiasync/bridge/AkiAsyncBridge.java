@@ -222,6 +222,27 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isTNTDebugEnabled() {return config.isTNTDebugEnabled();}
     
     @Override
+    public boolean isTNTVanillaCompatibilityEnabled() {return config.isTNTVanillaCompatibilityEnabled();}
+    
+    @Override
+    public boolean isTNTUseVanillaPower() {return config.isTNTUseVanillaPower();}
+    
+    @Override
+    public boolean isTNTUseVanillaFireLogic() {return config.isTNTUseVanillaFireLogic();}
+    
+    @Override
+    public boolean isTNTUseVanillaDamageCalculation() {return config.isTNTUseVanillaDamageCalculation();}
+    
+    @Override
+    public boolean isTNTUseFullRaycast() {return config.isTNTUseFullRaycast();}
+    
+    @Override
+    public boolean isTNTUseVanillaBlockDestruction() {return config.isTNTUseVanillaBlockDestruction();}
+    
+    @Override
+    public boolean isTNTUseVanillaDrops() {return config.isTNTUseVanillaDrops();}
+    
+    @Override
     public boolean isDebugLoggingEnabled() {return config.isDebugLoggingEnabled();}
     
     public void updateConfiguration(ConfigManager newConfig) {

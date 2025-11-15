@@ -70,6 +70,13 @@ public class ConfigManager {
     private long tntTimeoutMicros;
     private int tntBatchSize;
     private boolean tntDebugEnabled;
+    private boolean tntVanillaCompatibilityEnabled;
+    private boolean tntUseVanillaPower;
+    private boolean tntUseVanillaFireLogic;
+    private boolean tntUseVanillaDamageCalculation;
+    private boolean tntUseFullRaycast;
+    private boolean tntUseVanillaBlockDestruction;
+    private boolean tntUseVanillaDrops;
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
@@ -164,6 +171,13 @@ public class ConfigManager {
         tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
         tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
         tntDebugEnabled = config.getBoolean("tnt-explosion-optimization.debug", false);
+        tntVanillaCompatibilityEnabled = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.enabled", true);
+        tntUseVanillaPower = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-power", true);
+        tntUseVanillaFireLogic = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-fire-logic", true);
+        tntUseVanillaDamageCalculation = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-damage-calculation", true);
+        tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
+        tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
+        tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 1);
@@ -380,6 +394,13 @@ public class ConfigManager {
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
     public boolean isTNTDebugEnabled() { return tntDebugEnabled; }
+    public boolean isTNTVanillaCompatibilityEnabled() { return tntVanillaCompatibilityEnabled; }
+    public boolean isTNTUseVanillaPower() { return tntUseVanillaPower; }
+    public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
+    public boolean isTNTUseVanillaDamageCalculation() { return tntUseVanillaDamageCalculation; }
+    public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
+    public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
+    public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
     public int getChunkTickThreads() { return chunkTickThreads; }
     public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
