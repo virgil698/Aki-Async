@@ -31,6 +31,7 @@ public class TNTExplosionMixin {
         ci.cancel();
         
         Vec3 center = tnt.position();
+        boolean inWater = !sl.getFluidState(BlockPos.containing(center)).isEmpty();
         
         org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot snapshot = 
             new org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot(sl, center, 4.0F, false);
@@ -48,7 +49,7 @@ public class TNTExplosionMixin {
                             net.minecraft.world.level.Explosion.BlockInteraction.DESTROY
                         );
                         
-                        applyExplosionResults(sl, explosion, result, tnt, center);
+                        applyExplosionResults(sl, explosion, result, tnt, center, inWater);
                         
                         if (bridge.isTNTDebugEnabled()) {
                             System.out.println("[AkiAsync-TNT] Async explosion completed at " + center);
@@ -79,7 +80,7 @@ public class TNTExplosionMixin {
     private static void applyExplosionResults(ServerLevel level, 
                                             net.minecraft.world.level.ServerExplosion explosion,
                                             org.virgil.akiasync.mixin.async.explosion.ExplosionResult result,
-                                            PrimedTnt tnt, Vec3 center) {
+                                            PrimedTnt tnt, Vec3 center, boolean inWater) {
         try {
             level.playSound(null, center.x, center.y, center.z, 
                 net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE, 
@@ -98,15 +99,17 @@ public class TNTExplosionMixin {
                     offsetX * 0.1, offsetY * 0.1, offsetZ * 0.1);
             }
             
-            for (BlockPos pos : result.getToDestroy()) {
-                net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
-                if (!state.isAir()) {
-                    boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
-                    level.destroyBlock(pos, shouldDrop, tnt);
+            if (!inWater) {
+                for (BlockPos pos : result.getToDestroy()) {
+                    net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+                    if (!state.isAir()) {
+                        boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
+                        level.destroyBlock(pos, shouldDrop, tnt);
+                    }
                 }
             }
             
-            if (result.isFire()) {
+            if (!inWater && result.isFire()) {
                 for (BlockPos pos : result.getToDestroy()) {
                     if (level.getRandom().nextInt(3) == 0 && level.getBlockState(pos).isAir()) {
                         net.minecraft.world.level.block.state.BlockState belowState = level.getBlockState(pos.below());
