@@ -3,7 +3,7 @@
 # 🚀 AkiAsyn
 > Leaves / Luminol 系列服务端独占的异步优化插件，皆在为了不改变核心特性下提高 Leaves / Luminol 的性能提升
 
-**🍃 Leaves服务器异步优化插件**
+**🍃 Leaves / Luminol 服务器异步优化插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
