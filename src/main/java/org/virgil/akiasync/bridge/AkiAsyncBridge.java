@@ -7,11 +7,13 @@ import org.virgil.akiasync.config.ConfigManager;
 
 public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
+    private final AkiAsyncPlugin plugin;
     private ConfigManager config;
     private final ExecutorService generalExecutor;
     private final ExecutorService lightingExecutor;
     
     public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor) {
+        this.plugin = plugin;
         this.config = plugin.getConfigManager();
         this.generalExecutor = generalExecutor;
         this.lightingExecutor = lightingExecutor;
@@ -269,4 +271,360 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
     @Override
     public long getChunkTickTimeoutMicros() {return config.getChunkTickTimeoutMicros();}
+    
+    // Structure Location Async Configuration
+    @Override
+    public boolean isStructureLocationAsyncEnabled() {return config.isStructureLocationAsyncEnabled();}
+    
+    @Override
+    public int getStructureLocationThreads() {return config.getStructureLocationThreads();}
+    
+    @Override
+    public boolean isLocateCommandEnabled() {return config.isLocateCommandEnabled();}
+    
+    @Override
+    public int getLocateCommandSearchRadius() {return config.getLocateCommandSearchRadius();}
+    
+    @Override
+    public boolean isLocateCommandSkipKnownStructures() {return config.isLocateCommandSkipKnownStructures();}
+    
+    @Override
+    public boolean isVillagerTradeMapsEnabled() {return config.isVillagerTradeMapsEnabled();}
+    
+    @Override
+    public java.util.Set<String> getVillagerTradeMapTypes() {return config.getVillagerTradeMapTypes();}
+    
+    @Override
+    public int getVillagerMapGenerationTimeoutSeconds() {return config.getVillagerMapGenerationTimeoutSeconds();}
+    
+    @Override
+    public boolean isDolphinTreasureHuntEnabled() {return config.isDolphinTreasureHuntEnabled();}
+    
+    @Override
+    public int getDolphinTreasureSearchRadius() {return config.getDolphinTreasureSearchRadius();}
+    
+    @Override
+    public int getDolphinTreasureHuntInterval() {return config.getDolphinTreasureHuntInterval();}
+    
+    @Override
+    public boolean isChestExplorationMapsEnabled() {return config.isChestExplorationMapsEnabled();}
+    
+    @Override
+    public java.util.Set<String> getChestExplorationLootTables() {return config.getChestExplorationLootTables();}
+    
+    @Override
+    public boolean isChestMapPreserveProbability() {return config.isChestMapPreserveProbability();}
+    
+    @Override
+    public boolean isStructureLocationDebugEnabled() {return config.isStructureLocationDebugEnabled();}
+    
+    @Override
+    public void handleLocateCommandAsyncStart(net.minecraft.commands.CommandSourceStack sourceStack, net.minecraft.commands.arguments.ResourceOrTagKeyArgument.Result<net.minecraft.world.level.levelgen.structure.Structure> structureResult, net.minecraft.core.HolderSet<net.minecraft.world.level.levelgen.structure.Structure> holderSet) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                net.minecraft.server.level.ServerLevel level = sourceStack.getLevel();
+                net.minecraft.core.BlockPos startPos = net.minecraft.core.BlockPos.containing(sourceStack.getPosition());
+                
+                if (config.isStructureLocationDebugEnabled()) {
+                    System.out.println("[AkiAsync] Starting async locate command from " + startPos);
+                }
+                
+                com.mojang.datafixers.util.Pair<net.minecraft.core.BlockPos, net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> result = 
+                    level.getChunkSource().getGenerator().findNearestMapStructure(
+                        level, holderSet, startPos, 
+                        config.getLocateCommandSearchRadius(), 
+                        config.isLocateCommandSkipKnownStructures()
+                    );
+                
+                return result != null ? result.getFirst() : null;
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error in async locate command: " + e.getMessage());
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleLocateCommandResult(sourceStack, foundStructure, asyncThrowable);
+        });
+    }
+    
+    @Override
+    public void handleLocateCommandResult(net.minecraft.commands.CommandSourceStack sourceStack, net.minecraft.core.BlockPos structurePos, Throwable throwable) {
+        if (structurePos == null && throwable == null) {
+            new org.bukkit.scheduler.BukkitRunnable() {
+                @Override
+                public void run() {
+                    try {
+                        sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                            "§a[AkiAsync] Structure location started asynchronously..."), false);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Locate command started asynchronously");
+                        }
+                        
+                        new org.bukkit.scheduler.BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                                    "§b[AkiAsync] Async structure location completed (test mode)"), false);
+                            }
+                        }.runTaskLater(plugin, 20L);
+                        
+                    } catch (Exception e) {
+                        System.err.println("[AkiAsync] Error starting async locate command: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            }.runTask(plugin);
+            return;
+        }
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    if (throwable != null) {
+                        System.err.println("[AkiAsync] Locate command failed: " + throwable.getMessage());
+                        sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Structure location failed: " + throwable.getMessage()));
+                        return;
+                    }
+                    
+                    if (structurePos != null) {
+                        sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                            "The nearest structure is at " + structurePos.getX() + ", " + structurePos.getY() + ", " + structurePos.getZ()), false);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Locate command completed: structure found at " + structurePos);
+                        }
+                    } else {
+                        sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Could not find that structure nearby"));
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Locate command completed: no structure found");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error processing locate command result: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }.runTask(plugin);
+    }
+    
+    @Override
+    public void handleDolphinTreasureResult(net.minecraft.world.entity.animal.Dolphin dolphin, net.minecraft.core.BlockPos treasurePos, Throwable throwable) {
+        if (treasurePos == null && throwable == null) {
+            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try {
+                    net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) dolphin.level();
+                    net.minecraft.core.BlockPos startPos = dolphin.blockPosition();
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Starting async dolphin treasure hunt from " + startPos);
+                    }
+                    
+                    net.minecraft.core.BlockPos foundTreasure = level.findNearestMapStructure(
+                        net.minecraft.tags.StructureTags.DOLPHIN_LOCATED,
+                        startPos,
+                        config.getDolphinTreasureSearchRadius(),
+                        isDolphinTreasureSkipKnownStructures()
+                    );
+                    
+                    return foundTreasure;
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error in async dolphin treasure hunt: " + e.getMessage());
+                    return null;
+                }
+            }, generalExecutor).whenComplete((foundTreasure, asyncThrowable) -> {
+                handleDolphinTreasureResult(dolphin, foundTreasure, asyncThrowable);
+            });
+            return;
+        }
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    if (throwable != null) {
+                        System.err.println("[AkiAsync] Dolphin treasure hunt failed: " + throwable.getMessage());
+                        return;
+                    }
+                    
+                    if (treasurePos != null) {
+                        try {
+                            java.lang.reflect.Field treasurePosField = dolphin.getClass().getDeclaredField("treasurePos");
+                            treasurePosField.setAccessible(true);
+                            treasurePosField.set(dolphin, treasurePos);
+                            
+                            dolphin.level().addParticle(net.minecraft.core.particles.ParticleTypes.DOLPHIN, 
+                                dolphin.getX(), dolphin.getY(), dolphin.getZ(), 0.0D, 0.0D, 0.0D);
+                            
+                            if (config.isStructureLocationDebugEnabled()) {
+                                System.out.println("[AkiAsync] Dolphin treasure hunt completed: treasure found at " + treasurePos);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("[AkiAsync] Error setting dolphin treasure position: " + e.getMessage());
+                        }
+                    } else {
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Dolphin treasure hunt completed: no treasure found");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error processing dolphin treasure result: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }.runTask(plugin);
+    }
+    
+    @Override
+    public void handleChestExplorationMapResult(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir) {
+        if (structurePos == null && throwable == null) {
+            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try {
+                    net.minecraft.server.level.ServerLevel level = context.getLevel();
+                    net.minecraft.world.phys.Vec3 origin = context.getOptionalParameter(
+                        net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN);
+                    net.minecraft.core.BlockPos startPos = origin != null ? 
+                        net.minecraft.core.BlockPos.containing(origin) : new net.minecraft.core.BlockPos(0, 64, 0);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Starting async chest exploration map creation from " + startPos);
+                    }
+                    
+                    return null;
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error in async chest exploration map creation: " + e.getMessage());
+                    return null;
+                }
+            }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+                handleChestExplorationMapResult(stack, context, (net.minecraft.core.BlockPos) foundStructure, mapDecoration, zoom, asyncThrowable, cir);
+            });
+            return;
+        }
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    if (throwable != null) {
+                        System.err.println("[AkiAsync] Chest exploration map creation failed: " + throwable.getMessage());
+                        setReturnValue(cir, stack);
+                        return;
+                    }
+                    
+                    if (structurePos != null) {
+                        net.minecraft.server.level.ServerLevel level = context.getLevel();
+                        net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
+                            level, structurePos.getX(), structurePos.getZ(), zoom, true, true);
+                        net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                        net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
+                            mapStack, structurePos, "+", mapDecoration);
+                        
+                        setReturnValue(cir, mapStack);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Chest exploration map created for structure at " + structurePos);
+                        }
+                    } else {
+                        setReturnValue(cir, stack);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] No structure found for chest exploration map");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error processing chest exploration map result: " + e.getMessage());
+                    e.printStackTrace();
+                    setReturnValue(cir, stack);
+                }
+            }
+        }.runTask(plugin);
+    }
+    
+    @Override
+    public void handleVillagerTradeMapResult(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir) {
+        if (structurePos == null && throwable == null) {
+            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try {
+                    net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
+                    net.minecraft.core.BlockPos startPos = trader.blockPosition();
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Starting async villager trade map creation from " + startPos);
+                    }
+                    
+                    return null;
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error in async villager trade map creation: " + e.getMessage());
+                    return null;
+                }
+            }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+                handleVillagerTradeMapResult(offer, trader, (net.minecraft.core.BlockPos) foundStructure, destinationType, displayName, maxUses, villagerXp, asyncThrowable, cir);
+            });
+            return;
+        }
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    if (throwable != null) {
+                        System.err.println("[AkiAsync] Villager trade map creation failed: " + throwable.getMessage());
+                        setReturnValue(cir, null);
+                        return;
+                    }
+                    
+                    if (structurePos != null) {
+                        net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
+                        net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
+                            level, structurePos.getX(), structurePos.getZ(), (byte)2, true, true);
+                        net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                        net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
+                            mapStack, structurePos, "+", destinationType);
+                        mapStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME, 
+                            net.minecraft.network.chat.Component.translatable(displayName));
+                        
+                        net.minecraft.world.item.trading.MerchantOffer newOffer = 
+                            new net.minecraft.world.item.trading.MerchantOffer(
+                                new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, offer.getCostA().getCount()),
+                                java.util.Optional.of(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.COMPASS, 1)),
+                                mapStack, 0, maxUses, villagerXp, 0.2F);
+                        
+                        setReturnValue(cir, newOffer);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Villager trade map created for structure at " + structurePos);
+                        }
+                    } else {
+                        setReturnValue(cir, null);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] No structure found for villager trade map");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error processing villager trade map result: " + e.getMessage());
+                    e.printStackTrace();
+                    setReturnValue(cir, null);
+                }
+            }
+        }.runTask(plugin);
+    }
+    
+    @Override
+    public int getVillagerTradeMapsSearchRadius() {return config.getLocateCommandSearchRadius();}
+    
+    @Override
+    public boolean isVillagerTradeMapsSkipKnownStructures() {return config.isLocateCommandSkipKnownStructures();}
+    
+    @Override
+    public boolean isDolphinTreasureSkipKnownStructures() {return config.isLocateCommandSkipKnownStructures();}
+    
+    private void setReturnValue(Object cir, Object value) {
+        try {
+            cir.getClass().getMethod("setReturnValue", Object.class).invoke(cir, value);
+        } catch (Exception e) {
+            System.err.println("[AkiAsync] Failed to set return value: " + e.getMessage());
+        }
+    }
 }

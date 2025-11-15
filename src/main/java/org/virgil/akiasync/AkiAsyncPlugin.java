@@ -45,6 +45,11 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
         
+        if (configManager.isStructureLocationAsyncEnabled()) {
+            org.virgil.akiasync.mixin.async.StructureLocatorBridge.initialize();
+            getLogger().info("[AkiAsync] Async structure location enabled with " + configManager.getStructureLocationThreads() + " threads");
+        }
+        
         BridgeManager.validateAndDisplayConfigurations();
         
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
@@ -94,6 +99,8 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
         org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
+        // 关闭异步结构定位器
+        org.virgil.akiasync.mixin.async.StructureLocatorBridge.shutdown();
         
         if (executorManager != null) {
             executorManager.shutdown();
@@ -179,6 +186,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
             metricsScheduler = null;
+        }
+    }
+    
+    private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
+        org.bukkit.command.PluginCommand command = getCommand(name);
+        if (command != null) {
+            command.setExecutor(executor);
         }
     }
     

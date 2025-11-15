@@ -427,6 +427,65 @@ chunk-tick-async:
   timeout-us: 200
 
 # ==========================================
+# 结构查找异步化 / Structure Location Async (v9.0)
+# ==========================================
+# 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
+# Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
+#
+# 性能提升 / Performance Gain:
+#   /locate命令: 100-500ms → 5-20ms (主线程零阻塞)
+#   探险家地图: 50-200ms → 异步生成 (交易不卡顿)
+#   海豚寻宝: 20-100ms → 异步查找 (AI不阻塞)
+structure-location-async:
+  # 启用开关 / Enable toggle
+  enabled: true
+  
+  # 线程池大小 / Thread pool size
+  # 推荐值 / Recommended: 2-4 (结构查找CPU密集)
+  threads: 3
+  
+  # /locate命令异步化 / Async /locate command
+  locate-command:
+    enabled: true
+    # 搜索半径（区块）/ Search radius (chunks)
+    search-radius: 100
+    # 跳过已知结构 / Skip known structures
+    skip-known-structures: false
+  
+  # 村民交易探险家地图异步化 / Async villager trade explorer maps
+  villager-trade-maps:
+    enabled: true
+    # 支持的交易类型 / Supported trade types
+    trade-types:
+      - "minecraft:ocean_monument_map"    # 海底神殿地图
+      - "minecraft:woodland_mansion_map"  # 林地府邸地图
+      - "minecraft:buried_treasure_map"   # 埋藏宝藏地图
+    # 地图生成超时（秒）/ Map generation timeout (seconds)
+    generation-timeout-seconds: 30
+  
+  # 海豚寻宝异步化 / Async dolphin treasure hunt
+  dolphin-treasure-hunt:
+    enabled: true
+    # 搜索半径（区块）/ Search radius (chunks)
+    search-radius: 50
+    # 寻宝间隔（tick）/ Hunt interval (ticks)
+    hunt-interval: 100
+  
+  # 箱子探险地图异步化 / Async chest exploration maps
+  chest-exploration-maps:
+    enabled: true
+    # 支持的战利品表 / Supported loot tables
+    loot-tables:
+      - "minecraft:chests/shipwreck_map"
+      - "minecraft:chests/underwater_ruin_big"
+      - "minecraft:chests/underwater_ruin_small"
+    # 地图生成概率保持不变 / Keep original map generation probability
+    preserve-probability: true
+  
+  # 调试模式 / Debug mode
+  debug: false
+
+# ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:

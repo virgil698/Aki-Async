@@ -88,6 +88,22 @@ public class ConfigManager {
     private boolean enablePerformanceMetrics;
     private int configVersion;
     
+    private boolean structureLocationAsyncEnabled;
+    private int structureLocationThreads;
+    private boolean locateCommandEnabled;
+    private int locateCommandSearchRadius;
+    private boolean locateCommandSkipKnownStructures;
+    private boolean villagerTradeMapsEnabled;
+    private java.util.Set<String> villagerTradeMapTypes;
+    private int villagerMapGenerationTimeoutSeconds;
+    private boolean dolphinTreasureHuntEnabled;
+    private int dolphinTreasureSearchRadius;
+    private int dolphinTreasureHuntInterval;
+    private boolean chestExplorationMapsEnabled;
+    private java.util.Set<String> chestExplorationLootTables;
+    private boolean chestMapPreserveProbability;
+    private boolean structureLocationDebugEnabled;
+    
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
@@ -181,6 +197,32 @@ public class ConfigManager {
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 1);
+        
+        structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
+        structureLocationThreads = config.getInt("structure-location-async.threads", 3);
+        locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
+        locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
+        locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
+        villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
+        villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
+        if (villagerTradeMapTypes.isEmpty()) {
+            villagerTradeMapTypes.add("minecraft:ocean_monument_map");
+            villagerTradeMapTypes.add("minecraft:woodland_mansion_map");
+            villagerTradeMapTypes.add("minecraft:buried_treasure_map");
+        }
+        villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
+        dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
+        dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
+        dolphinTreasureHuntInterval = config.getInt("structure-location-async.dolphin-treasure-hunt.hunt-interval", 100);
+        chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
+        chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
+        if (chestExplorationLootTables.isEmpty()) {
+            chestExplorationLootTables.add("minecraft:chests/shipwreck_map");
+            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
+            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
+        }
+        chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
+        structureLocationDebugEnabled = config.getBoolean("structure-location-async.debug", false);
         
         validateConfigVersion();
         validateConfig();
@@ -282,6 +324,23 @@ public class ConfigManager {
         if (tntTimeoutMicros > 10000) tntTimeoutMicros = 10000;
         if (tntBatchSize < 8) tntBatchSize = 8;
         if (tntBatchSize > 256) tntBatchSize = 256;
+        
+        if (structureLocationThreads < 1) {
+            plugin.getLogger().warning("Structure location threads cannot be less than 1, setting to 1");
+            structureLocationThreads = 1;
+        }
+        if (structureLocationThreads > 8) {
+            plugin.getLogger().warning("Structure location threads cannot be more than 8, setting to 8");
+            structureLocationThreads = 8;
+        }
+        if (locateCommandSearchRadius < 10) locateCommandSearchRadius = 10;
+        if (locateCommandSearchRadius > 1000) locateCommandSearchRadius = 1000;
+        if (villagerMapGenerationTimeoutSeconds < 5) villagerMapGenerationTimeoutSeconds = 5;
+        if (villagerMapGenerationTimeoutSeconds > 300) villagerMapGenerationTimeoutSeconds = 300;
+        if (dolphinTreasureSearchRadius < 10) dolphinTreasureSearchRadius = 10;
+        if (dolphinTreasureSearchRadius > 200) dolphinTreasureSearchRadius = 200;
+        if (dolphinTreasureHuntInterval < 20) dolphinTreasureHuntInterval = 20;
+        if (dolphinTreasureHuntInterval > 1200) dolphinTreasureHuntInterval = 1200;
     }
     
     public void reload() {
@@ -408,4 +467,20 @@ public class ConfigManager {
     public int getConfigVersion() {
         return configVersion;
     }
+    
+    public boolean isStructureLocationAsyncEnabled() { return structureLocationAsyncEnabled; }
+    public int getStructureLocationThreads() { return structureLocationThreads; }
+    public boolean isLocateCommandEnabled() { return locateCommandEnabled; }
+    public int getLocateCommandSearchRadius() { return locateCommandSearchRadius; }
+    public boolean isLocateCommandSkipKnownStructures() { return locateCommandSkipKnownStructures; }
+    public boolean isVillagerTradeMapsEnabled() { return villagerTradeMapsEnabled; }
+    public java.util.Set<String> getVillagerTradeMapTypes() { return villagerTradeMapTypes; }
+    public int getVillagerMapGenerationTimeoutSeconds() { return villagerMapGenerationTimeoutSeconds; }
+    public boolean isDolphinTreasureHuntEnabled() { return dolphinTreasureHuntEnabled; }
+    public int getDolphinTreasureSearchRadius() { return dolphinTreasureSearchRadius; }
+    public int getDolphinTreasureHuntInterval() { return dolphinTreasureHuntInterval; }
+    public boolean isChestExplorationMapsEnabled() { return chestExplorationMapsEnabled; }
+    public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
+    public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
+    public boolean isStructureLocationDebugEnabled() { return structureLocationDebugEnabled; }
 }
