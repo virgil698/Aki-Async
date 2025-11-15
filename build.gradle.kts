@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.0.0-SNAPSHOT"
+version = "3.2.0"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -96,6 +96,13 @@ dependencies {
         paperweight.devBundle(libs.leavesDevBundle)
     }
 
+    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("org.slf4j:slf4j-simple:1.7.36")
+    apply `api and server source`@{
+        compileOnly(libs.leavesApi)
+        paperweight.devBundle(libs.leavesDevBundle)
+    }
+
     apply `mixin dependencies`@{
         // Main source set CAN access mixin source set (for ConfigBridge)
         // This is OK because ConfigBridge is in mixin but outside mixin.* package
@@ -110,6 +117,8 @@ dependencies {
             compileOnly(libs.spongeMixin)
             compileOnly(libs.mixinCondition)
             accessWiden(compileOnly(files(getMappedServerJar()))!!)
+
+            compileOnly("org.slf4j:slf4j-api:1.7.36")
         }
     }
 }

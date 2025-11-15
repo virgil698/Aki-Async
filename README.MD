@@ -2,6 +2,7 @@
 
 # 🚀 AkiAsync
 > Leaves / Luminol 系列服务端独占的异步优化插件，皆在为了不改变核心特性下提高 Leaves / Luminol 的性能提升
+> 注意本Fork注重修复与数据包/插件的兼容性
 
 **🍃 Leaves / Luminol 服务器异步优化插件**
 
@@ -34,13 +35,13 @@
 ### 🔧 **优化模块（36个）**
 - ⚡ **异步AI优化**（11个）- 村民、猪灵、劫掠者、唤魔者、烈焰人、守卫者、女巫、通用模板
 - 🏭 **方块实体优化**（6个）- 漏斗、熔炉、箱子、酿造台、信标
-- 💣 **爆炸优化**（1个）- TNT 分三阶段异步进行 保证稳定性
+- 💣 **爆炸优化**（1个）- TNT 分三阶段异步进行（未经大量测试 实验性功能）
 - 👨‍🌾 **村民繁殖优化**（2个）- 异步繁殖检查 + 年龄降频
 - 🎯 **并行优化**（3个）- 实体追踪、实体Tick、生物生成
 - 💡 **光照优化**（2个）- Starlight算法、天空光缓存
 - 💥 **性能优化**（3个）- 推挤、查找缓存、碰撞检测
 - 🗄️ **内存优化**（3个）- 对象池、谓词缓存、列表预分配，减轻GC回收压力
-- 🔧 **其他优化**（3个）- AI降频、寻路预算、漏斗智能跳过
+- 🔧 **其他优化**（5个）- 区块异步加载、Locate异步定位、AI降频、寻路预算、漏斗智能跳过
 > 注意有些功能为实验性功能，请根据实际需要进行开启
 
 ---
@@ -67,7 +68,7 @@
 
 ```bash
 # 将JAR文件放入plugins文件夹
-cp Aki-Async-2.0.0.jar /path/to/server/plugins/
+cp Aki-Async-x.x.0.jar /path/to/server/plugins/
 ```
 
 ### 3. 启用Mixin支持
@@ -91,7 +92,7 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar server.jar
 <details>
 <summary><b>💡 /aki-reload - 热重载配置</b></summary>
 
-**功能**：无需重启服务器即可重新加载配置并应用更改
+**功能**：无需重启服务器即可重新加载配置并应用更改(实验性功能 存在不稳定性)
 
 **权限**：`akiasync.reload`（默认仅OP可用）
 
@@ -102,7 +103,7 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar server.jar
 
 **效果**：
 - ✅ 重新加载 `config.yml` 配置
-- ✅ 平滑重启所有线程池（不丢失任务）
+- ✅ 平滑重启与初始化所有线程池（不丢失任务）
 - ✅ 清除所有内部缓存
 - ✅ 重置性能统计计数器
 - ✅ 更新所有模块配置引用
@@ -195,11 +196,11 @@ entity-tick-parallel:
 # 输出示例：
 # [AkiAsync] ========================================
 # [AkiAsync] Plugin: AkiAsync
-# [AkiAsync] Version: 3.0.0-SNAPSHOT
+# [AkiAsync] Version: 11.45.14-SNAPSHOT
 # [AkiAsync] Authors: Virgil
 # [AkiAsync] 
-# [AkiAsync] Server: Leaves 1.21.4
-# [AkiAsync] Minecraft: 1.21.4
+# [AkiAsync] Server: Leaves 1.21.8
+# [AkiAsync] Minecraft: 1.21.8
 # [AkiAsync] Java: 21.0.5
 # [AkiAsync] OS: Windows Server 2019 10.0
 # [AkiAsync] 
@@ -759,7 +760,7 @@ cd Aki-Async
 ./gradlew clean build
 
 # 产物位于
-build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
+build/libs/Aki-Async-x.x.x-SNAPSHOT.jar
 ```
 
 ---
@@ -770,7 +771,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 
 ### 🆓 AkiAsync Community Edition（社区版）
 
-这是**完全免费的社区版本**：
+这是**坚持开源精神的社区版本**：
 - ✅ 完全免费使用
 - ✅ 允许商业用途
 - ✅ 源代码开放
@@ -797,6 +798,8 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 | [ServerCore](https://github.com/Wesley1808/ServerCore) | 热点优化方案 |
 | [FerriteCore](https://github.com/malte0811/FerriteCore) | 内存优化策略 |
 | [Async](https://github.com/AxalotLDev/Async) | 异步化边界设计 |
+| [Horizon](https://github.com/LeavesMC/Leaves) | 数据包优化（暂未实现） |
+| [Leaf](https://github.com/LeavesMC/Leaves) | Locate思路提供 |
 | [Leaves](https://github.com/LeavesMC/Leaves) | Mixin支持 |
 
 ---
