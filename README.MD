@@ -1,12 +1,13 @@
 <div align="center">
 
 # 🚀 AkiAsyn
-> Leaves服务端独占的异步优化插件，皆在为了不改变核心特性下提高Leaves的性能提升
+> Leaves / Luminol 系列服务端独占的异步优化插件，皆在为了不改变核心特性下提高 Leaves / Luminol 的性能提升
 
 **🍃 Leaves服务器异步优化插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
+[![Luminol](https://img.shields.io/badge/Luminol-1.21.8+-purple.svg)](https://github.com/LuminolMC/Luminol)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 [![Version](https://img.shields.io/badge/version-2.3.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
@@ -48,7 +49,8 @@
 
 | 组件 | 要求 |
 |------|------|
-| **服务端** | [Leaves](https://github.com/LeavesMC/Leaves) 1.21.8+ |
+| **服务端** | [Leaves](https://github.com/LeavesMC/Leaves) 或 [Luminol](https://github.com/LuminolMC/Luminol) 以及其分支 |
+| **服务端版本** | 1.21.8+ |
 | **JDK** | Java 21＋ |
 | **内存** | 推荐6GB+ |
 | **CPU** | 推荐4核心+(虽多线程优化，但依旧以单核性能为主)|
@@ -73,7 +75,7 @@ cp Aki-Async-2.0.0.jar /path/to/server/plugins/
 **修改启动脚本，添加以下参数：**
 
 ```bash
-java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar leaves.jar
+java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar server.jar
 ```
 
 ⚠️ **重要**：必须添加 `-Dleavesclip.enable.mixin=true` 参数，否则插件无法工作
