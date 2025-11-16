@@ -19,19 +19,21 @@ public class CacheManager {
         
         globalCache.clear();
         
-        try {
-            org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to clear villager breed cache: " + e.getMessage());
-        }
+        plugin.getExecutorManager().getExecutorService().execute(() -> {
+            try {
+                org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to clear villager breed cache: " + e.getMessage());
+            }
+            
+            try {
+                org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to reset brain executor statistics: " + e.getMessage());
+            }
+        });
         
-        try {
-            org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to reset brain executor statistics: " + e.getMessage());
-        }
-        
-        plugin.getLogger().info("[AkiAsync] All caches invalidated successfully");
+        plugin.getLogger().info("[AkiAsync] Main caches cleared, controlled cleanup in progress");
     }
     
     public void put(String key, Object value) {

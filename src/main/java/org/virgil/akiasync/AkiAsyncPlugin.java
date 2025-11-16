@@ -99,7 +99,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
         org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
-        // 关闭异步结构定位器
+
         org.virgil.akiasync.mixin.async.StructureLocatorBridge.shutdown();
         
         if (executorManager != null) {
@@ -113,6 +113,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         metricsScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "AkiAsync-Combined-Metrics");
             t.setDaemon(true);
+            t.setPriority(Thread.MIN_PRIORITY);
             return t;
         });
         

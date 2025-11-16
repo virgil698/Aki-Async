@@ -17,27 +17,51 @@ public class ConfigReloadListener implements Listener {
     public void onConfigReload(ConfigReloadEvent event) {
         plugin.getLogger().info("[AkiAsync] Configuration reload event received, starting hot-reload...");
         
+        plugin.getExecutorManager().getExecutorService().execute(() -> {
+            performReload();
+        });
+    }
+    
+    private void performReload() {
+        long startTime = System.currentTimeMillis();
+        
         try {
             plugin.getConfigManager().reload();
             plugin.getCacheManager().invalidateAll();
-            
             org.virgil.akiasync.mixin.metrics.AsyncMetrics.reset();
-            plugin.getLogger().info("[AkiAsync] Configuration reloaded from file");
             
-            plugin.getExecutorManager().restartSmooth();
+            org.virgil.akiasync.manager.MixinStateManager.resetAllMixinStates();
             
-            if (plugin.getConfigManager().isTNTOptimizationEnabled()) {
-                org.virgil.akiasync.mixin.async.TNTThreadPool.restartSmooth();
-            }
+            plugin.getLogger().info("[AkiAsync] Phase 3: Restarting executors in batches...");
             
             if (plugin.getConfigManager().isAsyncVillagerBreedEnabled()) {
                 org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.restartSmooth();
+                Thread.sleep(100);
+            }
+            
+            plugin.getExecutorManager().restartSmooth();
+            Thread.sleep(100);
+            
+            if (plugin.getConfigManager().isTNTOptimizationEnabled()) {
+                org.virgil.akiasync.mixin.async.TNTThreadPool.restartSmooth();
+                Thread.sleep(50);
             }
             
             org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.restartSmooth();
+            Thread.sleep(100);
             
+            if (plugin.getConfigManager().isChunkTickAsyncEnabled()) {
+                org.virgil.akiasync.mixin.async.chunk.ChunkTickExecutor.setThreadCount(
+                    plugin.getConfigManager().getChunkTickThreads()
+                );
+                org.virgil.akiasync.mixin.async.chunk.ChunkTickExecutor.restartSmooth();
+                Thread.sleep(100);
+            }
+            
+            plugin.getLogger().info("[AkiAsync] Phase 4: Updating configuration and metrics...");
             plugin.getBridge().updateConfiguration(plugin.getConfigManager());
             
+            Thread.sleep(50);
             if (plugin.getConfigManager().isPerformanceMetricsEnabled()) {
                 plugin.restartMetricsScheduler();
                 plugin.getLogger().info("[AkiAsync] Metrics scheduler restarted");
@@ -46,11 +70,26 @@ public class ConfigReloadListener implements Listener {
                 plugin.getLogger().info("[AkiAsync] Metrics scheduler stopped");
             }
             
-            org.virgil.akiasync.mixin.bridge.BridgeManager.validateAndDisplayConfigurations();
+            Thread.sleep(50);
+            plugin.getLogger().info("[AkiAsync] Phase 5: Validating configuration...");
             
-            plugin.getLogger().info("[AkiAsync] Config hot-reloaded, all caches invalidated.");
-            plugin.getLogger().info("[AkiAsync] Thread pools smoothly restarted with new configuration.");
+            try {
+                org.virgil.akiasync.mixin.bridge.BridgeManager.validateAndDisplayConfigurations();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Configuration validation failed: " + e.getMessage());
+            }
+            
+            long reloadTime = System.currentTimeMillis() - startTime;
+            
+            plugin.getLogger().info("========================================");
             plugin.getLogger().info("[AkiAsync] Hot-reload completed successfully!");
+            plugin.getLogger().info("  - Total time: " + reloadTime + "ms");
+            plugin.getLogger().info("  - Configuration reloaded from file");
+            plugin.getLogger().info("  - All caches invalidated");
+            plugin.getLogger().info("  - Thread pools smoothly restarted");
+            plugin.getLogger().info("  - Mixin states reset");
+            plugin.getLogger().info("  - MSPT impact: Minimized (controlled execution)");
+            plugin.getLogger().info("========================================");
             
         } catch (Exception e) {
             plugin.getLogger().severe("[AkiAsync] Error during hot-reload: " + e.getMessage());

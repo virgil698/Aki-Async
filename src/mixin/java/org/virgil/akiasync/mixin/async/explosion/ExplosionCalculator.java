@@ -38,12 +38,10 @@ public class ExplosionCalculator {
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
                 for (int rayZ = 0; rayZ < RAYCAST_SAMPLES; rayZ++) {
-                    // 根据配置决定是否跳过内部射线
                     if (!useFullRaycast && 
                         rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
                         rayY != 0 && rayY != RAYCAST_SAMPLES - 1 &&
                         rayZ != 0 && rayZ != RAYCAST_SAMPLES - 1) {
-                        continue; // 优化模式：只使用边界射线
                     }
                     double dirX = (double) rayX / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
                     double dirY = (double) rayY / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;

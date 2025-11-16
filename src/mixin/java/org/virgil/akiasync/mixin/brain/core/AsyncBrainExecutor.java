@@ -3,6 +3,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -108,18 +109,35 @@ public class AsyncBrainExecutor {
         errorCount.set(0);
     }
     public static void restartSmooth() {
+        System.out.println("[AkiAsync-Debug] Starting AsyncBrainExecutor smooth restart...");
+        
         if (executorService != null) {
             ExecutorService oldExecutor = executorService;
+            
+            // 创建新的执行器
+            executorService = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "AkiAsync-Brain-Smooth");
+                t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY - 1); // 降低优先级
+                return t;
+            });
+            
+            // 优雅关闭旧执行器
             oldExecutor.shutdown();
             try {
-                if (!oldExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                    System.out.println("[AkiAsync-Debug] AsyncBrainExecutor force shutdown");
                     oldExecutor.shutdownNow();
+                } else {
+                    System.out.println("[AkiAsync-Debug] AsyncBrainExecutor gracefully shutdown");
                 }
             } catch (InterruptedException e) {
                 oldExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
+            
             resetStatistics();
+            System.out.println("[AkiAsync-Debug] AsyncBrainExecutor restart completed");
         }
     }
 }

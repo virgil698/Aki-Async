@@ -131,7 +131,7 @@ public class AsyncExecutorManager {
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r, "AkiAsync-Smooth-" + threadNumber.getAndIncrement());
                 thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY);
+                thread.setPriority(Thread.NORM_PRIORITY - 1);
                 return thread;
             }
         };
@@ -168,11 +168,11 @@ public class AsyncExecutorManager {
         oldExecutor.shutdown();
         oldLightingExecutor.shutdown();
         try {
-            if (!oldExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+            if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
                 plugin.getLogger().warning("General executor did not terminate in time, forcing shutdown...");
                 oldExecutor.shutdownNow();
             }
-            if (!oldLightingExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+            if (!oldLightingExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
                 plugin.getLogger().warning("Lighting executor did not terminate in time, forcing shutdown...");
                 oldLightingExecutor.shutdownNow();
             }

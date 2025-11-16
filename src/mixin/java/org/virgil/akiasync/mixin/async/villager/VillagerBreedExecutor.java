@@ -57,23 +57,36 @@ public class VillagerBreedExecutor {
         return executor;
     }
     public static void restartSmooth() {
+        System.out.println("[AkiAsync-Debug] Starting VillagerBreedExecutor smooth restart...");
+        
+        movementCache.clear();
+        lastPositionCache.clear();
+        System.out.println("[AkiAsync-Debug] Cleared villager caches");
+        
         ExecutorService oldExecutor = executor;
         executor = Executors.newFixedThreadPool(
             THREAD_POOL_SIZE,
             r -> {
                 Thread t = new Thread(r, "AkiAsync-Villager-Smooth");
                 t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY - 1);
                 return t;
             }
         );
+        
         oldExecutor.shutdown();
         try {
-            if (!oldExecutor.awaitTermination(500, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+            if (!oldExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                System.out.println("[AkiAsync-Debug] VillagerBreedExecutor force shutdown");
                 oldExecutor.shutdownNow();
+            } else {
+                System.out.println("[AkiAsync-Debug] VillagerBreedExecutor gracefully shutdown");
             }
         } catch (InterruptedException e) {
             oldExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        
+        System.out.println("[AkiAsync-Debug] VillagerBreedExecutor restart completed");
     }
 }
