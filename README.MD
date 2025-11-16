@@ -9,7 +9,7 @@
 [![Leaves](https://img.shields.io/badge/Leaves-1.21.8+-green.svg)](https://github.com/LeavesMC/Leaves)
 [![Luminol](https://img.shields.io/badge/Luminol-1.21.8+-purple.svg)](https://github.com/LuminolMC/Luminol)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
-[![Version](https://img.shields.io/badge/version-2.3.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
+[![Version](https://img.shields.io/badge/version-3.0.0--Community-orange.svg)](https://github.com/virgil698/Aki-Async/releases)
 
 **🎉 Community Edition（社区版）**
 
@@ -715,7 +715,7 @@ performance:
 
 使用 [Spark](https://spark.lucko.me/) 性能分析工具：
 ```
-/spark profiler start --timeout 5m
+/spark profiler start --timeout 60
 # 等待5分钟
 /spark profiler stop
 ```

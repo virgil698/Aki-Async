@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.0.0-SNAPSHOT"
+version = "3.1.0-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -24,7 +24,7 @@ val pluginJson = leavesPluginJson {
     authors.add("Virgil")
     description = "Async optimizations for Leaves server - Entity Tracker & More"
     // TODO: support or not is decided by you
-    foliaSupported = false
+    foliaSupported = true
     apiVersion = libs.versions.leavesApi.extractMCVersion()
     // TODO: if your logic can work without mixin, can use `features.optional.add("mixin")`
     features.required.add("mixin")
@@ -163,7 +163,7 @@ tasks {
     }
 }
 
-val targetJavaVersion = 21
+val targetJavaVersion = 25
 java {
     val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion

@@ -4,6 +4,8 @@ import java.util.concurrent.ExecutorService;
 
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.config.ConfigManager;
+import org.virgil.akiasync.compat.FoliaSchedulerAdapter;
+import org.virgil.akiasync.compat.FoliaEntityAdapter;
 
 public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
@@ -349,64 +351,55 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public void handleLocateCommandResult(net.minecraft.commands.CommandSourceStack sourceStack, net.minecraft.core.BlockPos structurePos, Throwable throwable) {
         if (structurePos == null && throwable == null) {
-            new org.bukkit.scheduler.BukkitRunnable() {
-                @Override
-                public void run() {
-                    try {
-                        sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
-                            "§a[AkiAsync] Structure location started asynchronously..."), false);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Locate command started asynchronously");
-                        }
-                        
-                        new org.bukkit.scheduler.BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
-                                    "§b[AkiAsync] Async structure location completed (test mode)"), false);
-                            }
-                        }.runTaskLater(plugin, 20L);
-                        
-                    } catch (Exception e) {
-                        System.err.println("[AkiAsync] Error starting async locate command: " + e.getMessage());
-                        e.printStackTrace();
+            FoliaSchedulerAdapter.runTask(plugin, () -> {
+                try {
+                    sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                        "§a[AkiAsync] Structure location started asynchronously..."), false);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Locate command started asynchronously");
                     }
+                    
+                    FoliaSchedulerAdapter.runTaskLater(plugin, () -> {
+                        sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                            "§b[AkiAsync] Async structure location completed (test mode)"), false);
+                    }, 20L);
+                    
+                } catch (Exception e) {
+                    System.err.println("[AkiAsync] Error starting async locate command: " + e.getMessage());
+                    e.printStackTrace();
                 }
-            }.runTask(plugin);
+            });
             return;
         }
         
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    if (throwable != null) {
-                        System.err.println("[AkiAsync] Locate command failed: " + throwable.getMessage());
-                        sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Structure location failed: " + throwable.getMessage()));
-                        return;
-                    }
-                    
-                    if (structurePos != null) {
-                        sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
-                            "The nearest structure is at " + structurePos.getX() + ", " + structurePos.getY() + ", " + structurePos.getZ()), false);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Locate command completed: structure found at " + structurePos);
-                        }
-                    } else {
-                        sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Could not find that structure nearby"));
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Locate command completed: no structure found");
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error processing locate command result: " + e.getMessage());
-                    e.printStackTrace();
+        FoliaSchedulerAdapter.runTask(plugin, () -> {
+            try {
+                if (throwable != null) {
+                    System.err.println("[AkiAsync] Locate command failed: " + throwable.getMessage());
+                    sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Structure location failed: " + throwable.getMessage()));
+                    return;
                 }
+                
+                if (structurePos != null) {
+                    sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                        "The nearest structure is at " + structurePos.getX() + ", " + structurePos.getY() + ", " + structurePos.getZ()), false);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Locate command completed: structure found at " + structurePos);
+                    }
+                } else {
+                    sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Could not find that structure nearby"));
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Locate command completed: no structure found");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error processing locate command result: " + e.getMessage());
+                e.printStackTrace();
             }
-        }.runTask(plugin);
+        });
     }
     
     @Override
@@ -439,41 +432,38 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
             return;
         }
         
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    if (throwable != null) {
-                        System.err.println("[AkiAsync] Dolphin treasure hunt failed: " + throwable.getMessage());
-                        return;
-                    }
-                    
-                    if (treasurePos != null) {
-                        try {
-                            java.lang.reflect.Field treasurePosField = dolphin.getClass().getDeclaredField("treasurePos");
-                            treasurePosField.setAccessible(true);
-                            treasurePosField.set(dolphin, treasurePos);
-                            
-                            dolphin.level().addParticle(net.minecraft.core.particles.ParticleTypes.DOLPHIN, 
-                                dolphin.getX(), dolphin.getY(), dolphin.getZ(), 0.0D, 0.0D, 0.0D);
-                            
-                            if (config.isStructureLocationDebugEnabled()) {
-                                System.out.println("[AkiAsync] Dolphin treasure hunt completed: treasure found at " + treasurePos);
-                            }
-                        } catch (Exception e) {
-                            System.err.println("[AkiAsync] Error setting dolphin treasure position: " + e.getMessage());
-                        }
-                    } else {
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Dolphin treasure hunt completed: no treasure found");
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error processing dolphin treasure result: " + e.getMessage());
-                    e.printStackTrace();
+        FoliaEntityAdapter.safeEntityOperation(plugin, (org.bukkit.entity.Entity) dolphin.getBukkitEntity(), (entity) -> {
+            try {
+                if (throwable != null) {
+                    System.err.println("[AkiAsync] Dolphin treasure hunt failed: " + throwable.getMessage());
+                    return;
                 }
+                
+                if (treasurePos != null) {
+                    try {
+                        java.lang.reflect.Field treasurePosField = dolphin.getClass().getDeclaredField("treasurePos");
+                        treasurePosField.setAccessible(true);
+                        treasurePosField.set(dolphin, treasurePos);
+                        
+                        dolphin.level().addParticle(net.minecraft.core.particles.ParticleTypes.DOLPHIN, 
+                            dolphin.getX(), dolphin.getY(), dolphin.getZ(), 0.0D, 0.0D, 0.0D);
+                        
+                        if (config.isStructureLocationDebugEnabled()) {
+                            System.out.println("[AkiAsync] Dolphin treasure hunt completed: treasure found at " + treasurePos);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[AkiAsync] Error setting dolphin treasure position: " + e.getMessage());
+                    }
+                } else {
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Dolphin treasure hunt completed: no treasure found");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error processing dolphin treasure result: " + e.getMessage());
+                e.printStackTrace();
             }
-        }.runTask(plugin);
+        });
     }
     
     @Override
@@ -502,43 +492,40 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
             return;
         }
         
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    if (throwable != null) {
-                        System.err.println("[AkiAsync] Chest exploration map creation failed: " + throwable.getMessage());
-                        setReturnValue(cir, stack);
-                        return;
-                    }
-                    
-                    if (structurePos != null) {
-                        net.minecraft.server.level.ServerLevel level = context.getLevel();
-                        net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
-                            level, structurePos.getX(), structurePos.getZ(), zoom, true, true);
-                        net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
-                        net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
-                            mapStack, structurePos, "+", mapDecoration);
-                        
-                        setReturnValue(cir, mapStack);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Chest exploration map created for structure at " + structurePos);
-                        }
-                    } else {
-                        setReturnValue(cir, stack);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] No structure found for chest exploration map");
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error processing chest exploration map result: " + e.getMessage());
-                    e.printStackTrace();
+        FoliaSchedulerAdapter.runTask(plugin, () -> {
+            try {
+                if (throwable != null) {
+                    System.err.println("[AkiAsync] Chest exploration map creation failed: " + throwable.getMessage());
                     setReturnValue(cir, stack);
+                    return;
                 }
+                
+                if (structurePos != null) {
+                    net.minecraft.server.level.ServerLevel level = context.getLevel();
+                    net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
+                        level, structurePos.getX(), structurePos.getZ(), zoom, true, true);
+                    net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                    net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
+                        mapStack, structurePos, "+", mapDecoration);
+                    
+                    setReturnValue(cir, mapStack);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Chest exploration map created for structure at " + structurePos);
+                    }
+                } else {
+                    setReturnValue(cir, stack);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] No structure found for chest exploration map");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error processing chest exploration map result: " + e.getMessage());
+                e.printStackTrace();
+                setReturnValue(cir, stack);
             }
-        }.runTask(plugin);
+        });
     }
     
     @Override
@@ -564,51 +551,48 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
             return;
         }
         
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    if (throwable != null) {
-                        System.err.println("[AkiAsync] Villager trade map creation failed: " + throwable.getMessage());
-                        setReturnValue(cir, null);
-                        return;
-                    }
-                    
-                    if (structurePos != null) {
-                        net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
-                        net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
-                            level, structurePos.getX(), structurePos.getZ(), (byte)2, true, true);
-                        net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
-                        net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
-                            mapStack, structurePos, "+", destinationType);
-                        mapStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME, 
-                            net.minecraft.network.chat.Component.translatable(displayName));
-                        
-                        net.minecraft.world.item.trading.MerchantOffer newOffer = 
-                            new net.minecraft.world.item.trading.MerchantOffer(
-                                new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, offer.getCostA().getCount()),
-                                java.util.Optional.of(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.COMPASS, 1)),
-                                mapStack, 0, maxUses, villagerXp, 0.2F);
-                        
-                        setReturnValue(cir, newOffer);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Villager trade map created for structure at " + structurePos);
-                        }
-                    } else {
-                        setReturnValue(cir, null);
-                        
-                        if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] No structure found for villager trade map");
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error processing villager trade map result: " + e.getMessage());
-                    e.printStackTrace();
+        FoliaEntityAdapter.safeEntityOperation(plugin, (org.bukkit.entity.Entity) trader.getBukkitEntity(), (entity) -> {
+            try {
+                if (throwable != null) {
+                    System.err.println("[AkiAsync] Villager trade map creation failed: " + throwable.getMessage());
                     setReturnValue(cir, null);
+                    return;
                 }
+                
+                if (structurePos != null) {
+                    net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
+                    net.minecraft.world.item.ItemStack mapStack = net.minecraft.world.item.MapItem.create(
+                        level, structurePos.getX(), structurePos.getZ(), (byte)2, true, true);
+                    net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                    net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(
+                        mapStack, structurePos, "+", destinationType);
+                    mapStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME, 
+                        net.minecraft.network.chat.Component.translatable(displayName));
+                    
+                    net.minecraft.world.item.trading.MerchantOffer newOffer = 
+                        new net.minecraft.world.item.trading.MerchantOffer(
+                            new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, offer.getCostA().getCount()),
+                            java.util.Optional.of(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.COMPASS, 1)),
+                            mapStack, 0, maxUses, villagerXp, 0.2F);
+                    
+                    setReturnValue(cir, newOffer);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] Villager trade map created for structure at " + structurePos);
+                    }
+                } else {
+                    setReturnValue(cir, null);
+                    
+                    if (config.isStructureLocationDebugEnabled()) {
+                        System.out.println("[AkiAsync] No structure found for villager trade map");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error processing villager trade map result: " + e.getMessage());
+                e.printStackTrace();
+                setReturnValue(cir, null);
             }
-        }.runTask(plugin);
+        });
     }
     
     @Override
