@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.async.explosion;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class ExplosionSnapshot {
                 }
             }
         }
-        double radius = power * 2.0;
+        double radius = 8.0;
         this.entities = level.getEntities(null, 
             new net.minecraft.world.phys.AABB(
                 center.x - radius, center.y - radius, center.z - radius,
@@ -50,7 +51,7 @@ public class ExplosionSnapshot {
         return blocks.getOrDefault(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
     }
     public List<EntitySnapshot> getEntities() {
-        return entities;
+        return Collections.unmodifiableList(entities);
     }
     public Vec3 getCenter() {
         return center;

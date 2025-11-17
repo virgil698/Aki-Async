@@ -1,5 +1,6 @@
 package org.virgil.akiasync.mixin.async.explosion;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +17,10 @@ public class ExplosionResult {
         this.fire = fire;
     }
     public List<BlockPos> getToDestroy() {
-        return toDestroy;
+        return Collections.unmodifiableList(toDestroy);
     }
     public Map<UUID, Vec3> getToHurt() {
-        return toHurt;
+        return Collections.unmodifiableMap(toHurt);
     }
     public boolean isFire() {
         return fire;

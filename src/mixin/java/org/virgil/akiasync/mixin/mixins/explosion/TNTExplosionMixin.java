@@ -148,6 +148,10 @@ public class TNTExplosionMixin {
             for (BlockPos pos : result.getToDestroy()) {
                 net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
                 if (!state.isAir()) {
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-TNT] Destroying block at " + pos + ": " + state.getBlock().getDescriptionId());
+                    }
+                    
                     if (state.is(net.minecraft.world.level.block.Blocks.TNT)) {
                         level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 11);
                         
@@ -173,8 +177,13 @@ public class TNTExplosionMixin {
                                 0.0, 0.1, 0.0);
                         }
                     } else {
-                        boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
-                        level.destroyBlock(pos, shouldDrop, tnt);
+                        if (bridge != null && bridge.isTNTUseVanillaBlockDestruction()) {
+                            boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
+                            level.destroyBlock(pos, shouldDrop, tnt);
+                        } else {
+                            boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
+                            level.destroyBlock(pos, shouldDrop, tnt);
+                        }
                     }
                 }
             }
@@ -190,14 +199,29 @@ public class TNTExplosionMixin {
                 }
             }
             
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Processing " + result.getToHurt().size() + " entities for damage");
+            }
+            
             for (Map.Entry<UUID, Vec3> entry : result.getToHurt().entrySet()) {
                 net.minecraft.world.entity.Entity entity = level.getEntity(entry.getKey());
                 if (entity != null) {
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-TNT] Processing entity: " + entity.getType().getDescriptionId() + 
+                            " at " + entity.position());
+                    }
                     Vec3 knockback = entry.getValue();
                     
                     double distance = entity.position().distanceTo(center);
-                    double impact = (1.0 - distance / 8.0) * knockback.length();
-                    float baseDamage = (float) Math.max(0, (impact * (impact + 1.0) / 2.0 * 7.0 * 8.0 + 1.0));
+                     
+                    float baseDamage;
+                    if (bridge != null && bridge.isTNTUseVanillaDamageCalculation()) {
+                        double impact = Math.max(0.0, (8.0 - distance) / 8.0);
+                        baseDamage = (float) (impact * impact + impact) * 7.0F * 4.0F + 1.0F;
+                    } else {
+                        double impact = (1.0 - distance / 8.0) * knockback.length();
+                        baseDamage = (float) Math.max(0, (impact * (impact + 1.0) / 2.0 * 7.0 * 8.0 + 1.0));
+                    }
                     
                     boolean entityInWater = entity.isInWater() || !level.getFluidState(BlockPos.containing(entity.position())).isEmpty();
                     float finalDamage = baseDamage;
@@ -216,11 +240,14 @@ public class TNTExplosionMixin {
                     Vec3 finalKnockback = entityInWater ? knockback.scale(0.7) : knockback;
                     entity.setDeltaMovement(entity.getDeltaMovement().add(finalKnockback));
                     
-                    if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
-                        player.invulnerableTime = Math.max(player.invulnerableTime, 10);
+                    if (entity instanceof net.minecraft.world.entity.LivingEntity livingEntity) {
+                        livingEntity.invulnerableTime = Math.max(livingEntity.invulnerableTime, 10);
                         
                         if (bridge != null && bridge.isTNTDebugEnabled()) {
-                            bridge.debugLog("[AkiAsync-TNT] Player " + player.getName() + 
+                            String entityName = entity instanceof net.minecraft.server.level.ServerPlayer player ? 
+                                "Player " + player.getScoreboardName() : 
+                                entity.getType().getDescriptionId();
+                            bridge.debugLog("[AkiAsync-TNT] " + entityName + 
                                 " damaged: " + finalDamage + " (distance: " + String.format("%.2f", distance) + 
                                 ", inWater: " + entityInWater + ")");
                         }
