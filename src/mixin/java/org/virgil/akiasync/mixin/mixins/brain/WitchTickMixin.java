@@ -1,4 +1,6 @@
 package org.virgil.akiasync.mixin.mixins.brain;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,10 +37,12 @@ public abstract class WitchTickMixin {
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         enabled = bridge != null && bridge.isWitchOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
-        System.out.println("[AkiAsync] WitchTickMixin (v2.1) initialized: enabled=" + enabled + ", safe reflection with printStackTrace");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] WitchTickMixin initialized: enabled=" + enabled + ", safe reflection with printStackTrace");
+        }
     }
 }

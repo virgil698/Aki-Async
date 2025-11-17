@@ -4,6 +4,16 @@ import java.util.concurrent.ExecutorService;
 
 public interface Bridge {
     
+    boolean isNitoriOptimizationsEnabled();
+    
+    boolean isVirtualThreadEnabled();
+    
+    boolean isWorkStealingEnabled();
+    
+    boolean isBlockPosCacheEnabled();
+    
+    boolean isOptimizedCollectionsEnabled();
+    
     boolean isEntityTickParallel();
     
     int getEntityTickThreads();
@@ -205,4 +215,9 @@ public interface Bridge {
     boolean isVillagerTradeMapsSkipKnownStructures();
     
     boolean isDolphinTreasureSkipKnownStructures();
+    
+    void debugLog(String message);
+    void debugLog(String format, Object... args);
+    void errorLog(String message);
+    void errorLog(String format, Object... args);
 }

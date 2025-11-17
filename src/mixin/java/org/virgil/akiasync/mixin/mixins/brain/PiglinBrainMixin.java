@@ -78,17 +78,23 @@ public abstract class PiglinBrainMixin {
                 if (executionCount % 1000 == 0) {
                     double successRate = (successCount * 100.0) / executionCount;
                     double timeoutRate = (timeoutCount * 100.0) / executionCount;
-                    System.out.println(String.format(
-                        "[AkiAsync-PiglinAI] Stats: %d execs | %.1f%% success | %.1f%% timeout",
-                        executionCount, successRate, timeoutRate
-                    ));
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.debugLog(String.format(
+                            "[AkiAsync-PiglinAI] Stats: %d execs | %.1f%% success | %.1f%% timeout",
+                            executionCount, successRate, timeoutRate
+                        ));
+                    }
                 }
             } else {
                 timeoutCount++;
             }
         } catch (Exception e) {
             if (executionCount <= 3) {
-                System.err.println("[AkiAsync-PiglinAI] Error: " + e.getClass().getSimpleName());
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog("[AkiAsync-Debug] Piglin brain tick failed: " + e.getClass().getSimpleName());
+                }
             }
         } finally {
             this.aki$snapshot = null;
@@ -114,9 +120,9 @@ public abstract class PiglinBrainMixin {
             cached_barterDistance = 16;
         }
         initialized = true;
-        System.out.println(String.format(
-            "[AkiAsync] PiglinBrainMixin initialized: enabled=%s, timeout=%d娓璼, interval=%d tick, entities=[Piglin, PiglinBrute]",
-            cached_enabled, cached_timeoutMicros, cached_tickInterval
-        ));
+        org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge2 != null) {
+            bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + ", timeout=" + cached_timeoutMicros + "μs");
+        }
     }
 }

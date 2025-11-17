@@ -56,6 +56,8 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             cached_interval = 10;
         }
         initialized = true;
-        System.out.println("[AkiAsync] BrainThrottleMixin initialized: enabled=" + cached_enabled + ", interval=" + cached_interval);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] BrainThrottleMixin initialized: enabled=" + cached_enabled + ", interval=" + cached_interval);
+        }
     }
 }

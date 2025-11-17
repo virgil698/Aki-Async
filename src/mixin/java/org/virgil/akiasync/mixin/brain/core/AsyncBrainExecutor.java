@@ -15,6 +15,10 @@ public class AsyncBrainExecutor {
     private static volatile ExecutorService executorService = null;
     public static void setExecutor(ExecutorService executor) {
         executorService = executor;
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Brain] Executor set: " + (executor != null ? executor.getClass().getSimpleName() : "null"));
+        }
     }
     private static boolean getDebugEnabled() {
         try {
@@ -109,27 +113,34 @@ public class AsyncBrainExecutor {
         errorCount.set(0);
     }
     public static void restartSmooth() {
-        System.out.println("[AkiAsync-Debug] Starting AsyncBrainExecutor smooth restart...");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Debug] Starting AsyncBrainExecutor smooth restart...");
+        }
         
         if (executorService != null) {
             ExecutorService oldExecutor = executorService;
             
-            // 创建新的执行器
             executorService = Executors.newSingleThreadExecutor(r -> {
                 Thread t = new Thread(r, "AkiAsync-Brain-Smooth");
                 t.setDaemon(true);
-                t.setPriority(Thread.NORM_PRIORITY - 1); // 降低优先级
+                t.setPriority(Thread.NORM_PRIORITY - 1);
                 return t;
             });
             
-            // 优雅关闭旧执行器
             oldExecutor.shutdown();
             try {
                 if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                    System.out.println("[AkiAsync-Debug] AsyncBrainExecutor force shutdown");
+                    org.virgil.akiasync.mixin.bridge.Bridge brainForceShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (brainForceShutdownBridge != null) {
+                        brainForceShutdownBridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor force shutdown");
+                    }
                     oldExecutor.shutdownNow();
                 } else {
-                    System.out.println("[AkiAsync-Debug] AsyncBrainExecutor gracefully shutdown");
+                    org.virgil.akiasync.mixin.bridge.Bridge brainGracefulShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (brainGracefulShutdownBridge != null) {
+                        brainGracefulShutdownBridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor gracefully shutdown");
+                    }
                 }
             } catch (InterruptedException e) {
                 oldExecutor.shutdownNow();
@@ -137,7 +148,10 @@ public class AsyncBrainExecutor {
             }
             
             resetStatistics();
-            System.out.println("[AkiAsync-Debug] AsyncBrainExecutor restart completed");
+            org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge2 != null) {
+            bridge2.debugLog("[AkiAsync-Debug] AsyncBrainExecutor restart completed");
+        }
         }
     }
 }

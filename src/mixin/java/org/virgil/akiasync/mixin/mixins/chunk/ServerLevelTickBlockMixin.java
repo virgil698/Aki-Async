@@ -50,7 +50,10 @@ public abstract class ServerLevelTickBlockMixin {
                         }
                     });
                 } else {
-                    System.out.println("[AkiAsync] Block tick failed at " + pos + " for " + block + ": " + t.getClass().getSimpleName());
+                    org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (errorBridge != null) {
+                        errorBridge.errorLog("[AkiAsync-BlockTick] Error in async block tick: " + t.getMessage() + " for " + block + ": " + t.getClass().getSimpleName());
+                    }
                     level.getServer().execute(() -> {
                         try {
                             BlockState state = level.getBlockState(pos);
@@ -77,9 +80,11 @@ public abstract class ServerLevelTickBlockMixin {
         }
 
         initialized = true;
-        System.out.println("[AkiAsync] ServerLevelTickBlockMixin initialized: enabled=" + cached_enabled);
-        System.out.println("[AkiAsync]   ✅ Hooked: ServerLevel#tickBlock()");
-        System.out.println("[AkiAsync]   💡 Strategy: Offload blockState.tick() to Bridge executor");
-        System.out.println("[AkiAsync]   ⚠️  Risk: Thread safety depends on block implementation");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] ServerLevelTickBlockMixin initialized: enabled=" + cached_enabled);
+            bridge.debugLog("[AkiAsync]   Hooked: ServerLevel#tickBlock()");
+            bridge.debugLog("[AkiAsync]   Strategy: Offload blockState.tick() to Bridge executor");
+            bridge.debugLog("[AkiAsync]   Risk: Thread safety depends on block implementation");
+        }
     }
 }

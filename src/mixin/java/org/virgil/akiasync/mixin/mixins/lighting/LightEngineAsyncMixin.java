@@ -73,7 +73,10 @@ public abstract class LightEngineAsyncMixin {
             ci.cancel();
             batchCount++;
             if (batchCount <= 3) {
-                System.out.println("[AkiAsync-LightEngine] Processing batch of " + totalSize + " light updates (threshold: " + batchThreshold + ")");
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog("[AkiAsync-LightEngine] Processing batch of " + totalSize + " light updates (threshold: " + batchThreshold + ")");
+                }
             }
             if (lightingExecutor != null) {
                 CompletableFuture.runAsync(() -> {
@@ -85,7 +88,10 @@ public abstract class LightEngineAsyncMixin {
                 }, lightingExecutor).orTimeout(1000, TimeUnit.MILLISECONDS).whenComplete((result, ex) -> {
                     processing = false;
                     if (ex != null && batchCount <= 3) {
-                        System.out.println("[AkiAsync-LightEngine] Batch processing timeout/error, fallback to sync");
+                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (errorBridge != null) {
+                            errorBridge.debugLog("[AkiAsync-LightEngine] Batch processing timeout/error, fallback to sync");
+                        }
                     }
                 });
             } else {
@@ -128,12 +134,18 @@ public abstract class LightEngineAsyncMixin {
             }
             if (advancedStatsEnabled || batchCount <= 3) {
                 if (totalProcessed > 0) {
-                    System.out.println("[AkiAsync-LightEngine] Layered batch processed " + totalProcessed + " updates");
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.debugLog("[AkiAsync-LightEngine] Layered batch processed " + totalProcessed + " updates");
+                    }
                     if (advancedStatsEnabled) {
                         for (int i = 15; i >= 0; i--) {
                             int size = layerSizes[i].get();
                             if (size > 0) {
-                                System.out.println("  - Level " + i + ": " + size + " pending");
+                                org.virgil.akiasync.mixin.bridge.Bridge levelBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                if (levelBridge != null) {
+                                    levelBridge.debugLog("  - Level " + i + ": " + size + " pending");
+                                }
                             }
                         }
                     }
@@ -159,7 +171,10 @@ public abstract class LightEngineAsyncMixin {
                 queueSize.decrementAndGet();
             }
             if (batchCount <= 3 && processed > 0) {
-                System.out.println("[AkiAsync-LightEngine] Simple batch processed " + processed + " updates");
+                org.virgil.akiasync.mixin.bridge.Bridge simpleBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (simpleBridge != null) {
+                    simpleBridge.debugLog("[AkiAsync-LightEngine] Simple batch processed " + processed + " updates");
+                }
             }
         } catch (Exception e) {
             LIGHT_UPDATE_QUEUE.clear();
@@ -245,12 +260,15 @@ public abstract class LightEngineAsyncMixin {
         }
         baseBatchThreshold = batchThreshold;
         initialized = true;
-        System.out.println("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized:");
-        System.out.println("  - Enabled: " + enabled);
-        System.out.println("  - Batch threshold: " + batchThreshold + " (dynamic: " + dynamicAdjustmentEnabled + ")");
-        System.out.println("  - Layered queue (16 levels): " + useLayeredQueue);
-        System.out.println("  - Max propagation distance: " + maxPropagationDistance);
-        System.out.println("  - Deduplication: " + deduplicationEnabled);
-        System.out.println("  - Advanced stats: " + advancedStatsEnabled);
+        org.virgil.akiasync.mixin.bridge.Bridge initBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (initBridge != null) {
+            initBridge.debugLog("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized:");
+            initBridge.debugLog("  - Enabled: " + enabled);
+            initBridge.debugLog("  - Batch threshold: " + batchThreshold + " (dynamic: " + dynamicAdjustmentEnabled + ")");
+            initBridge.debugLog("  - Layered queue (16 levels): " + useLayeredQueue);
+            initBridge.debugLog("  - Max propagation distance: " + maxPropagationDistance);
+            initBridge.debugLog("  - Deduplication: " + deduplicationEnabled);
+            initBridge.debugLog("  - Advanced stats: " + advancedStatsEnabled);
+        }
     }
 }

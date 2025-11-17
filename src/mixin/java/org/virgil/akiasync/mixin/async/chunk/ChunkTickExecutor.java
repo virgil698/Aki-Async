@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 public final class ChunkTickExecutor {
     private static volatile ForkJoinPool POOL;
     private static volatile ThreadPoolExecutor FALLBACK_POOL;
@@ -42,7 +43,10 @@ public final class ChunkTickExecutor {
         );
         
         initialized = true;
-        System.out.println("[AkiAsync-Debug] ChunkTickExecutor initialized with " + threadCount + " threads");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor initialized with " + threadCount + " threads");
+        }
     }
     public static CompletableFuture<ChunkSnapshot> runAsync(ChunkSnapshot snap) {
         if (POOL == null || POOL.isShutdown()) {
@@ -74,7 +78,10 @@ public final class ChunkTickExecutor {
     }
     
     public static void restartSmooth() {
-        System.out.println("[AkiAsync-Debug] Starting ChunkTickExecutor smooth restart...");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Debug] Starting ChunkTickExecutor smooth restart...");
+        }
         
         if (POOL != null || FALLBACK_POOL != null) {
             ForkJoinPool oldPool = POOL;
@@ -88,10 +95,16 @@ public final class ChunkTickExecutor {
                 oldPool.shutdown();
                 try {
                     if (!oldPool.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                        System.out.println("[AkiAsync-Debug] ChunkTickExecutor main pool force shutdown");
+                        org.virgil.akiasync.mixin.bridge.Bridge shutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (shutdownBridge != null) {
+                            shutdownBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor main pool force shutdown");
+                        }
                         oldPool.shutdownNow();
                     } else {
-                        System.out.println("[AkiAsync-Debug] ChunkTickExecutor main pool gracefully shutdown");
+                        org.virgil.akiasync.mixin.bridge.Bridge gracefulBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (gracefulBridge != null) {
+                            gracefulBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor main pool gracefully shutdown");
+                        }
                     }
                 } catch (InterruptedException e) {
                     oldPool.shutdownNow();
@@ -103,10 +116,16 @@ public final class ChunkTickExecutor {
                 oldFallback.shutdown();
                 try {
                     if (!oldFallback.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                        System.out.println("[AkiAsync-Debug] ChunkTickExecutor fallback pool force shutdown");
+                        org.virgil.akiasync.mixin.bridge.Bridge fallbackShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (fallbackShutdownBridge != null) {
+                            fallbackShutdownBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor fallback pool force shutdown");
+                        }
                         oldFallback.shutdownNow();
                     } else {
-                        System.out.println("[AkiAsync-Debug] ChunkTickExecutor fallback pool gracefully shutdown");
+                        org.virgil.akiasync.mixin.bridge.Bridge fallbackGracefulBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (fallbackGracefulBridge != null) {
+                            fallbackGracefulBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor fallback pool gracefully shutdown");
+                        }
                     }
                 } catch (InterruptedException e) {
                     oldFallback.shutdownNow();
@@ -115,6 +134,9 @@ public final class ChunkTickExecutor {
             }
         }
         
-        System.out.println("[AkiAsync-Debug] ChunkTickExecutor restart completed, will reinitialize on next use");
+        org.virgil.akiasync.mixin.bridge.Bridge completeBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (completeBridge != null) {
+            completeBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor restart completed, will reinitialize on next use");
+        }
     }
 }

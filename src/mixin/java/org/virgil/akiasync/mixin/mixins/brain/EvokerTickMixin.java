@@ -44,6 +44,8 @@ public abstract class EvokerTickMixin {
         enabled = bridge != null && bridge.isEvokerOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
-        System.out.println("[AkiAsync] EvokerTickMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] EvokerTickMixin initialized: enabled=" + enabled);
+        }
     }
 }

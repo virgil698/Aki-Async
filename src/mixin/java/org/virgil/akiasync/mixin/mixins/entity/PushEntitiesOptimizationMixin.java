@@ -32,6 +32,8 @@ public abstract class PushEntitiesOptimizationMixin {
             enabled = true;
         }
         initialized = true;
-        System.out.println("[AkiAsync] PushOptimizationMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] PushOptimizationMixin initialized: enabled=" + enabled);
+        }
     }
 }

@@ -39,7 +39,11 @@ public class BrainTickHelper {
             sum += i * i;
         }
         if (sum < 0) {
-            System.out.println("Unreachable");
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-VillagerBrain] Async brain tick completed");
+            }
+            return snapshot;
         }
         return snapshot;
     }

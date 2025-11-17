@@ -11,6 +11,7 @@ import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiCpuCalculator;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiDiff;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiSnapshot;
+import org.virgil.akiasync.mixin.optimization.cache.BlockPosIterationCache;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -23,6 +24,9 @@ public abstract class UniversalAiFamilyTickMixin {
     @Unique private static volatile java.util.Set<String> enabledEntities;
     @Unique private static volatile boolean respectBrainThrottle;
     @Unique private static volatile boolean init = false;
+    @Unique private static volatile boolean debugEnabled = false;
+    @Unique private static long protectionCount = 0;
+    @Unique private static long totalChecks = 0;
     @Unique private UniversalAiSnapshot aki$snap;
     @Unique private long aki$next = 0;
     @Unique private Vec3 aki$lastPos;
@@ -65,12 +69,89 @@ public abstract class UniversalAiFamilyTickMixin {
         if (!mob.isInWater() && mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
+                // 检查是否应该保护这个生物的AI处理
+                if (aki$shouldProtectAI(mob)) {
+                    return false; // 不跳过AI处理
+                }
                 return true;
             }
         } else {
             aki$stillTicks = 0;
             aki$lastPos = cur;
         }
+        return false;
+    }
+    
+    @Unique
+    private boolean aki$shouldProtectAI(Mob mob) {
+        totalChecks++;
+        boolean shouldProtect = false;
+        if (mob.getNavigation() != null && !mob.getNavigation().isDone()) {
+            shouldProtect = true;
+            if (debugEnabled) protectionCount++;
+            return true;
+        }
+        
+        if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+            return true;
+        }
+        
+        if (mob.getTarget() != null) {
+            return true;
+        }
+        
+        if (mob.onGround() || mob.isInLiquid() || mob.isPassenger()) {
+            net.minecraft.world.phys.AABB searchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
+            java.util.List<net.minecraft.world.entity.Entity> nearbyEntities = 
+                mob.level().getEntities(mob, searchBox, entity -> 
+                    entity instanceof net.minecraft.world.entity.vehicle.AbstractMinecart);
+            
+            if (!nearbyEntities.isEmpty()) {
+                return true;
+            }
+        }
+        
+        if (mob.isPassenger() || mob.getVehicle() != null) {
+            return true;
+        }
+        
+        if (mob.getMoveControl() != null && mob.getMoveControl().hasWanted()) {
+            return true;
+        }
+        
+        if (mob instanceof net.minecraft.world.entity.monster.Monster) {
+            net.minecraft.world.phys.AABB playerSearchBox = mob.getBoundingBox().inflate(8.0, 4.0, 8.0);
+            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
+                mob.level().getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, playerSearchBox);
+            
+            if (!nearbyPlayers.isEmpty()) {
+                return true;
+            }
+            
+            if (nearbyPlayers.isEmpty()) {
+                net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
+                java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles = 
+                    mob.level().getEntities(mob, vehicleSearchBox, entity -> 
+                        entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
+                        entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse);
+                
+                if (!nearbyVehicles.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        
+        if (debugEnabled && totalChecks % 10000 == 0) {
+            double protectionRate = (protectionCount * 100.0) / totalChecks;
+            org.virgil.akiasync.mixin.bridge.Bridge debugBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (debugBridge != null) {
+                debugBridge.debugLog(
+                    "[AkiAsync-UniversalAI] Protection stats: %d/%d checks (%.2f%% protected)",
+                    protectionCount, totalChecks, protectionRate
+                );
+            }
+        }
+        
         return false;
     }
     @Unique private static synchronized void aki$init() {
@@ -80,9 +161,10 @@ public abstract class UniversalAiFamilyTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         enabledEntities = bridge != null ? bridge.getUniversalAiEntities() : java.util.Collections.emptySet();
         respectBrainThrottle = bridge != null && bridge.isBrainThrottleEnabled();
+        debugEnabled = bridge != null && bridge.isDebugLoggingEnabled();
         init = true;
-        System.out.println("[AkiAsync] UniversalAiFamilyTickMixin initialized: enabled=" + enabled + 
-            ", entities=" + (enabledEntities != null ? enabledEntities.size() : 0) + 
-            ", respectBrainThrottle=" + respectBrainThrottle);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized: enabled=" + enabled);
+        }
     }
 }

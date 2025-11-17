@@ -39,6 +39,8 @@ public abstract class GuardianTickMixin {
         enabled = bridge != null && bridge.isGuardianOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
-        System.out.println("[AkiAsync] GuardianTickMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] GuardianTickMixin initialized: enabled=" + enabled);
+        }
     }
 }

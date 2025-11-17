@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.virgil.akiasync.mixin.optimization.OptimizationManager;
+import org.virgil.akiasync.mixin.optimization.scheduler.WorkStealingTaskScheduler;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,9 +18,10 @@ import net.minecraft.world.phys.Vec3;
 public class ExplosionCalculator {
     private static final int RAYCAST_SAMPLES = 16;
     private final ExplosionSnapshot snapshot;
-    private final List<BlockPos> toDestroy = new ArrayList<>();
-    private final Map<UUID, Vec3> toHurt = new HashMap<>();
+    private final ConcurrentLinkedQueue<BlockPos> toDestroy = new ConcurrentLinkedQueue<>();
+    private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
     private final boolean useFullRaycast;
+    private final WorkStealingTaskScheduler scheduler;
 
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
         this.snapshot = snapshot;
@@ -24,12 +31,15 @@ public class ExplosionCalculator {
         this.useFullRaycast = bridge != null && 
             bridge.isTNTVanillaCompatibilityEnabled() && 
             bridge.isTNTUseFullRaycast();
+        
+        // 获取Nitori风格的工作窃取调度器
+        this.scheduler = OptimizationManager.getInstance().getTaskScheduler();
     }
 
     public ExplosionResult calculate() {
         calculateAffectedBlocks();
         calculateEntityDamage();
-        return new ExplosionResult(toDestroy, toHurt, snapshot.isFire());
+        return new ExplosionResult(new ArrayList<>(toDestroy), new HashMap<>(toHurt), snapshot.isFire());
     }
 
     private void calculateAffectedBlocks() {
@@ -89,11 +99,31 @@ public class ExplosionCalculator {
             double dz = entity.getPosition().z - center.z;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (dist >= radius) continue;
+            
+            // 计算暴露度（考虑方块遮挡）
             double exposure = calculateExposure(center, entity);
+            if (exposure <= 0) continue; // 完全被遮挡，不受伤害
+            
             double impact = (1.0 - dist / radius) * exposure;
+            
+            // 确保最小冲击力，避免过小的冲击
+            if (impact < 0.1) continue;
+            
+            // 计算冲击方向，添加一些随机性使效果更自然
             double knockbackX = dx / dist * impact;
-            double knockbackY = dy / dist * impact;
+            double knockbackY = Math.max(dy / dist * impact, impact * 0.3); // 确保有向上的冲击
             double knockbackZ = dz / dist * impact;
+            
+            // 限制最大冲击力，避免玩家被炸飞太远
+            double maxKnockback = 2.0;
+            double knockbackLength = Math.sqrt(knockbackX * knockbackX + knockbackY * knockbackY + knockbackZ * knockbackZ);
+            if (knockbackLength > maxKnockback) {
+                double scale = maxKnockback / knockbackLength;
+                knockbackX *= scale;
+                knockbackY *= scale;
+                knockbackZ *= scale;
+            }
+            
             toHurt.put(entity.getUuid(), new Vec3(knockbackX, knockbackY, knockbackZ));
         }
     }

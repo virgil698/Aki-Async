@@ -45,6 +45,8 @@ public abstract class PredicateCacheMixin {
             enabled = true;
         }
         initialized = true;
-        System.out.println("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);
+        }
     }
 }

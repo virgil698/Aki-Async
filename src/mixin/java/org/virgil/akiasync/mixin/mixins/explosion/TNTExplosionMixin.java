@@ -49,7 +49,7 @@ public class TNTExplosionMixin {
                     );
                     
                     if (bridge.isTNTDebugEnabled()) {
-                        System.out.println("[AkiAsync-TNT] Water explosion completed at " + center);
+                        bridge.debugLog("[AkiAsync-TNT] Water explosion completed at " + center);
                     }
                 } catch (Exception ex) {
                     System.err.println("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
@@ -78,7 +78,7 @@ public class TNTExplosionMixin {
                         applyExplosionResults(sl, explosion, result, tnt, center, false);
                         
                         if (bridge.isTNTDebugEnabled()) {
-                            System.out.println("[AkiAsync-TNT] Async explosion completed at " + center);
+                            bridge.debugLog("[AkiAsync-TNT] Async explosion completed at " + center);
                         }
                     } catch (Exception ex) {
                         System.err.println("[AkiAsync-TNT] Error applying explosion results: " + ex.getMessage());
@@ -108,6 +108,8 @@ public class TNTExplosionMixin {
                                             org.virgil.akiasync.mixin.async.explosion.ExplosionResult result,
                                             PrimedTnt tnt, Vec3 center, boolean inWater) {
         try {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             level.playSound(null, center.x, center.y, center.z, 
                 net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE, 
                 net.minecraft.sounds.SoundSource.BLOCKS, 4.0F, 
@@ -195,13 +197,34 @@ public class TNTExplosionMixin {
                     
                     double distance = entity.position().distanceTo(center);
                     double impact = (1.0 - distance / 8.0) * knockback.length();
-                    float damage = (float) Math.max(0, (impact * (impact + 1.0) / 2.0 * 7.0 * 8.0 + 1.0));
+                    float baseDamage = (float) Math.max(0, (impact * (impact + 1.0) / 2.0 * 7.0 * 8.0 + 1.0));
                     
-                    if (damage > 0) {
-                        entity.hurt(level.damageSources().explosion(explosion), damage);
+                    boolean entityInWater = entity.isInWater() || !level.getFluidState(BlockPos.containing(entity.position())).isEmpty();
+                    float finalDamage = baseDamage;
+                    
+                    if (entityInWater) {
+                        finalDamage = baseDamage * 0.6f;
+                        if (bridge != null && bridge.isTNTDebugEnabled()) {
+                            bridge.debugLog("[AkiAsync-TNT] Water damage reduction: " + baseDamage + " -> " + finalDamage);
+                        }
                     }
                     
-                    entity.setDeltaMovement(entity.getDeltaMovement().add(knockback));
+                    if (finalDamage > 0) {
+                        entity.hurt(level.damageSources().explosion(explosion), finalDamage);
+                    }
+                    
+                    Vec3 finalKnockback = entityInWater ? knockback.scale(0.7) : knockback;
+                    entity.setDeltaMovement(entity.getDeltaMovement().add(finalKnockback));
+                    
+                    if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
+                        player.invulnerableTime = Math.max(player.invulnerableTime, 10);
+                        
+                        if (bridge != null && bridge.isTNTDebugEnabled()) {
+                            bridge.debugLog("[AkiAsync-TNT] Player " + player.getName() + 
+                                " damaged: " + finalDamage + " (distance: " + String.format("%.2f", distance) + 
+                                ", inWater: " + entityInWater + ")");
+                        }
+                    }
                 }
             }
             

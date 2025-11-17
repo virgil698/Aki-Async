@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.spawning;
+import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -75,6 +76,8 @@ public abstract class MobSpawningMixin {
             cached_maxPerChunk = 80;
         }
         initialized = true;
-        System.out.println("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
+        }
     }
 }

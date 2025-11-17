@@ -44,6 +44,8 @@ public abstract class BlazeTickMixin {
         enabled = bridge != null && bridge.isBlazeOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
-        System.out.println("[AkiAsync] BlazeTickMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] BlazeTickMixin initialized: enabled=" + enabled);
+        }
     }
 }

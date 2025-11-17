@@ -53,6 +53,8 @@ public abstract class EntityLookupCacheMixin {
             cacheDuration = 50;
         }
         initialized = true;
-        System.out.println("[AkiAsync] EntityLookupCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDuration + "ms");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] EntityLookupCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDuration + "ms");
+        }
     }
 }

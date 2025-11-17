@@ -53,6 +53,8 @@ public abstract class VillagerJobClaimMixin {
             cached_enabled = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] VillagerJobClaimMixin initialized (atomic claim): enabled=" + cached_enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] VillagerJobClaimMixin initialized (atomic claim): enabled=" + cached_enabled);
+        }
     }
 }

@@ -37,6 +37,8 @@ public abstract class CollisionOptimizationMixin {
             enabled = true;
         }
         initialized = true;
-        System.out.println("[AkiAsync] CollisionOptimizationMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] CollisionOptimizationMixin initialized: enabled=" + enabled);
+        }
     }
 }

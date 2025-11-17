@@ -1,5 +1,7 @@
 package org.virgil.akiasync.mixin.mixins.structure;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +24,8 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 public class LocateCommandMixin {
     
     @Unique private static volatile boolean cached_enabled;
+    @Unique private static volatile int searchRadius;
+    @Unique private static volatile boolean skipKnownStructures;
     @Unique private static volatile boolean initialized = false;
     
     @Inject(
@@ -57,10 +61,16 @@ public class LocateCommandMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isLocateCommandEnabled();
+            searchRadius = bridge.getLocateCommandSearchRadius();
+            skipKnownStructures = bridge.isLocateCommandSkipKnownStructures();
         } else {
             cached_enabled = false;
+            searchRadius = 0;
+            skipKnownStructures = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] LocateCommandMixin initialized: enabled=" + cached_enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] LocateCommandMixin initialized: enabled=" + cached_enabled + ", radius=" + searchRadius + ", skipKnown=" + skipKnownStructures);
+        }
     }
 }

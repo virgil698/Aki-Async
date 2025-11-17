@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.entity;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +30,19 @@ public abstract class EntityTickChunkParallelMixin {
                 try {
                     tempField = EntityTickList.class.getDeclaredField(fieldName);
                     tempField.setAccessible(true);
-                    System.out.println("[AkiAsync] EntityTickList field cached successfully: " + fieldName);
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.debugLog("[AkiAsync] EntityTickList field cached successfully: " + fieldName);
+                    }
                     break;
                 } catch (NoSuchFieldException ignored) {
                 }
             }
             if (tempField == null) {
-                System.out.println("[AkiAsync] EntityTickList field not found, will use reflection fallback");
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog("[AkiAsync] EntityTickList field not found, will use reflection fallback");
+                }
             }
         } catch (Exception e) {
             System.err.println("[AkiAsync] Failed to cache field: " + e.getMessage());
@@ -71,10 +78,13 @@ public abstract class EntityTickChunkParallelMixin {
             java.util.concurrent.CompletableFuture.allOf(futures.toArray(java.util.concurrent.CompletableFuture[]::new))
                 .get(adaptiveTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
             if (executionCount % 100 == 0) {
-                System.out.println(String.format(
-                    "[AkiAsync-Parallel] Processed %d entities in %d batches (timeout: %dms)",
-                    cachedList.size(), batches.size(), adaptiveTimeout
-                ));
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog(
+                        "[AkiAsync-Parallel] Processed %d entities in %d batches (timeout: %dms)",
+                        cachedList.size(), batches.size(), adaptiveTimeout
+                    );
+                }
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
@@ -126,8 +136,10 @@ public abstract class EntityTickChunkParallelMixin {
             dedicatedPool = null;
         }
         initialized = true;
-        System.out.println("[AkiAsync] EntityTickParallelMixin initialized (entity-batched): enabled=" + enabled + 
-            ", batchSize=" + batchSize + ", minEntities=" + minEntities + 
-            ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] EntityTickParallelMixin initialized (entity-batched): enabled=" + enabled + 
+                ", batchSize=" + batchSize + ", minEntities=" + minEntities + 
+                ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
+        }
     }
 }

@@ -1,15 +1,15 @@
 # ==========================================
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
-# 版本 / Version: 2.4.0
+# 版本 / Version: 3.2.1
 # 适用服务端 / Server: Leaves 1.21.8+
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 2
-# 说明：当前配置版本为2，如果配置版本大于或小于2，则需要更新配置文件
-# Description: The current configuration version is 2, if the configuration version is greater than 2, you need to update the configuration file
-version: 2
+# 当前版本 / Current version: 3
+# 说明：当前配置版本为3，如果配置版本大于或小于3，则需要更新配置文件
+# Description: The current configuration version is 3, if the configuration version is greater than 3, you need to update the configuration file
+version: 3
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -334,8 +334,6 @@ tnt-explosion-optimization:
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: CPU核心数×1.5
   threads: 6
-  # 调试模式 / Debug mode
-  debug: false
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -481,15 +479,47 @@ structure-location-async:
       - "minecraft:chests/underwater_ruin_small"
     # 地图生成概率保持不变 / Keep original map generation probability
     preserve-probability: true
+
+# ==========================================
+# 高级并发优化 / Advanced Concurrency Optimizations
+# ==========================================
+# 说明：高级并发和内存优化技术，提供额外的性能提升
+# Description: Advanced concurrency and memory optimization techniques for additional performance gains
+advanced-optimizations:
+  # 总开关 / Master switch
+  # 说明：控制所有高级并发优化的启用/禁用
+  # Description: Controls enable/disable of all advanced concurrency optimizations
+  enabled: true
   
-  # 调试模式 / Debug mode
-  debug: false
+  # Virtual Thread支持 / Virtual Thread support
+  # 说明：Java 21+环境下使用Virtual Thread提升并发性能
+  # Description: Use Virtual Threads for better concurrency on Java 21+
+  # 注意：仅在Java 21+环境下有效，会自动降级到传统线程
+  # Note: Only effective on Java 21+, automatically falls back to regular threads
+  virtual-threads: true
+  
+  # 工作窃取调度器 / Work-stealing scheduler
+  # 说明：使用工作窃取模式进行批量任务处理，提升多核CPU利用率
+  # Description: Use work-stealing pattern for batch processing, improves multi-core utilization
+  work-stealing: true
+  
+  # BlockPos缓存预计算 / BlockPos cache pre-computation
+  # 说明：预计算常用范围的BlockPos，减少重复计算开销
+  # Description: Pre-compute common BlockPos ranges to reduce calculation overhead
+  blockpos-cache: true
+  
+  # 优化集合类 / Optimized collections
+  # 说明：使用高性能集合类替代原生集合，减少内存分配和提升访问速度
+  # Description: Use high-performance collections instead of native ones
+  optimized-collections: true
 
 # ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:
-  # 调试日志 / Debug logging
+  # 统一调试日志开关 / Unified debug logging switch
+  # 说明：控制所有模块的调试输出（TNT、结构定位等）
+  # Description: Controls debug output for all modules (TNT, structure location, etc.)
   # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
   

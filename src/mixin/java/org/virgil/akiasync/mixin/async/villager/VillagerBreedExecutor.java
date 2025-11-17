@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+
 public class VillagerBreedExecutor {
     private static final int THREAD_POOL_SIZE = 4;
     private static ExecutorService executor = Executors.newFixedThreadPool(
@@ -19,6 +20,7 @@ public class VillagerBreedExecutor {
     private static final Map<UUID, Long> movementCache = new ConcurrentHashMap<>();
     private static final Map<UUID, BlockPos> lastPositionCache = new ConcurrentHashMap<>();
     private static final int IDLE_THRESHOLD_TICKS = 20;
+
     public static void submit(ServerLevel level, UUID villagerUUID, BlockPos pos, Runnable task) {
         executor.execute(() -> {
             try {
@@ -28,6 +30,7 @@ public class VillagerBreedExecutor {
             }
         });
     }
+
     public static boolean isIdle(UUID villagerUUID, BlockPos currentPos, long currentTick) {
         BlockPos lastPos = lastPositionCache.get(villagerUUID);
         Long lastMovement = movementCache.get(villagerUUID);
@@ -42,26 +45,36 @@ public class VillagerBreedExecutor {
         }
         return (currentTick - lastMovement) >= IDLE_THRESHOLD_TICKS;
     }
+
     public static void clearOldCache(long currentTick) {
         movementCache.entrySet().removeIf(entry -> 
             (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100
         );
         lastPositionCache.clear();
     }
+
     public static void shutdown() {
         executor.shutdown();
         movementCache.clear();
         lastPositionCache.clear();
     }
+
     public static ExecutorService getExecutor() {
         return executor;
     }
+
     public static void restartSmooth() {
-        System.out.println("[AkiAsync-Debug] Starting VillagerBreedExecutor smooth restart...");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Debug] Starting VillagerBreedExecutor smooth restart...");
+        }
         
         movementCache.clear();
         lastPositionCache.clear();
-        System.out.println("[AkiAsync-Debug] Cleared villager caches");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge2 != null) {
+            bridge2.debugLog("[AkiAsync-VillagerBreed] Cleared villager caches");
+        }
         
         ExecutorService oldExecutor = executor;
         executor = Executors.newFixedThreadPool(
@@ -77,16 +90,25 @@ public class VillagerBreedExecutor {
         oldExecutor.shutdown();
         try {
             if (!oldExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.MILLISECONDS)) {
-                System.out.println("[AkiAsync-Debug] VillagerBreedExecutor force shutdown");
+                org.virgil.akiasync.mixin.bridge.Bridge forceShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (forceShutdownBridge != null) {
+                    forceShutdownBridge.debugLog("[AkiAsync-Debug] VillagerBreedExecutor force shutdown");
+                }
                 oldExecutor.shutdownNow();
             } else {
-                System.out.println("[AkiAsync-Debug] VillagerBreedExecutor gracefully shutdown");
+                org.virgil.akiasync.mixin.bridge.Bridge gracefulShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (gracefulShutdownBridge != null) {
+                    gracefulShutdownBridge.debugLog("[AkiAsync-Debug] VillagerBreedExecutor gracefully shutdown");
+                }
             }
         } catch (InterruptedException e) {
             oldExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
         
-        System.out.println("[AkiAsync-Debug] VillagerBreedExecutor restart completed");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge3 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge3 != null) {
+            bridge3.debugLog("[AkiAsync-Debug] VillagerBreedExecutor restart completed");
+        }
     }
 }

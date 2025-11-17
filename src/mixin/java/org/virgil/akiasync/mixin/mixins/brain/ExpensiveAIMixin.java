@@ -150,12 +150,6 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
             cached_simpleUsePOI = false;
         }
         initialized = true;
-        System.out.println(String.format(
-            "[AkiAsync] ExpensiveAIMixin initialized: timeout=%d娓璼 | villager=%s(POI:%s) | piglin=%s(POI:%s) | simple=%s(POI:%s)",
-            cached_timeoutMicros, 
-            cached_villagerEnabled, cached_villagerUsePOI,
-            cached_piglinEnabled, cached_piglinUsePOI,
-            cached_simpleEnabled, cached_simpleUsePOI
-        ));
+        bridge.debugLog("[AkiAsync] ExpensiveAIMixin initialized: timeout=" + cached_timeoutMicros + "μs | villager=" + cached_villagerEnabled + "(POI:" + cached_villagerUsePOI + ") | piglin=" + cached_piglinEnabled + "(POI:" + cached_piglinUsePOI + ") | simple=" + cached_simpleEnabled + "(POI:" + cached_simpleUsePOI + ")");
     }
 }

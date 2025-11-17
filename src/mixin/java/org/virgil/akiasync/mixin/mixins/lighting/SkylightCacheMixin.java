@@ -58,8 +58,9 @@ public abstract class SkylightCacheMixin {
             cacheDurationMs = 100;
         }
         initialized = true;
-        System.out.println("[AkiAsync] SkylightCacheMixin initialized: enabled=" + enabled + 
-            ", duration=" + cacheDurationMs + "ms");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] SkylightCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDurationMs + "ms");
+        }
     }
     private static class CachedSkylightValue {
         final int value;

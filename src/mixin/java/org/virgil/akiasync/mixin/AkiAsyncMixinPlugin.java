@@ -1,5 +1,4 @@
 package org.virgil.akiasync.mixin;
-
 import java.util.List;
 import java.util.Set;
 
@@ -11,9 +10,6 @@ public class AkiAsyncMixinPlugin implements IMixinConfigPlugin {
     
     @Override
     public void onLoad(String mixinPackage) {
-        System.out.println("[AkiAsync] Mixin plugin loaded: " + mixinPackage);
-        
-        System.out.println("[AkiAsync] Using Bridge pattern for mixin configuration (lazy loading from plugin)");
     }
     
     @Override

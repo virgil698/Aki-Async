@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.structure;
+import java.util.concurrent.CompletableFuture;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,6 +46,8 @@ public class DolphinMixin {
             cached_enabled = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] DolphinMixin initialized: enabled=" + cached_enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] DolphinMixin initialized: enabled=" + cached_enabled + ", skipKnown=" + false);
+        }
     }
 }

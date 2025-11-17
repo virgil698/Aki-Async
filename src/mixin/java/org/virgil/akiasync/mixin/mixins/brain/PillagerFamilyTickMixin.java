@@ -62,7 +62,8 @@ public abstract class PillagerFamilyTickMixin {
             cached_timeoutMicros = 100;
         }
         initialized = true;
-        System.out.println("[AkiAsync] PillagerFamilyTickMixin initialized: enabled=" + cached_enabled + 
-            ", entities=[Pillager, Evoker, Vindicator, Ravager]");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] PillagerFamilyTickMixin initialized: enabled=" + cached_enabled);
+        }
     }
 }

@@ -63,7 +63,10 @@ public abstract class EntityTrackerMixin {
             if (BATCH_QUEUE.size() >= BATCH_SIZE && batchSubmitted.compareAndSet(false, true)) {
                 asyncTaskCount++;
                 if (asyncTaskCount <= 3) {
-                    System.out.println("[AkiAsync-Batch] Submitting batch of " + BATCH_QUEUE.size() + " tracking tasks");
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.debugLog("[AkiAsync-Batch] Submitting batch of " + BATCH_QUEUE.size() + " tracking tasks");
+                    }
                 }
                 java.util.List<Runnable> batch = new java.util.ArrayList<>(BATCH_SIZE);
                 Runnable task;
@@ -74,14 +77,23 @@ public abstract class EntityTrackerMixin {
                 cached_executor.execute(() -> {
                     try {
                         if (asyncTaskCount <= 2) {
-                            System.out.println("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
+                            org.virgil.akiasync.mixin.bridge.Bridge debugBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (debugBridge != null) {
+                                debugBridge.debugLog("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
+                            }
                         }
                         batch.parallelStream().forEach(Runnable::run);
                         if (asyncTaskCount <= 3) {
-                            System.out.println("[AkiAsync-Batch] Completed batch of " + batchSize + " tasks");
+                            org.virgil.akiasync.mixin.bridge.Bridge completeBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (completeBridge != null) {
+                                completeBridge.debugLog("[AkiAsync-Batch] Completed batch of " + batchSize + " tasks");
+                            }
                         }
                     } catch (Throwable t) {
-                        System.err.println("[AkiAsync-Error] Batch processing failed: " + t.getMessage());
+                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (errorBridge != null) {
+                            errorBridge.errorLog("[AkiAsync-Error] Batch processing failed: " + t.getMessage());
+                        }
                     } finally {
                         batchSubmitted.set(false);
                     }
@@ -100,7 +112,8 @@ public abstract class EntityTrackerMixin {
             cached_executor = null;
         }
         initialized = true;
-        System.out.println("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + 
-            ", executor=" + (cached_executor != null));
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null));
+        }
     }
 }

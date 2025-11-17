@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.structure;
+import java.util.concurrent.CompletableFuture;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -60,6 +61,8 @@ public class ChestLootMixin {
             cached_enabled = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] ChestLootMixin initialized: enabled=" + cached_enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] ChestLootMixin initialized: enabled=" + cached_enabled);
+        }
     }
 }

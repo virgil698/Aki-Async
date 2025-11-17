@@ -22,6 +22,31 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     }
     
     @Override
+    public boolean isNitoriOptimizationsEnabled() { 
+        return config != null ? config.isNitoriOptimizationsEnabled() : true; 
+    }
+    
+    @Override
+    public boolean isVirtualThreadEnabled() { 
+        return config != null ? config.isVirtualThreadEnabled() : true; 
+    }
+    
+    @Override
+    public boolean isWorkStealingEnabled() { 
+        return config != null ? config.isWorkStealingEnabled() : true; 
+    }
+    
+    @Override
+    public boolean isBlockPosCacheEnabled() { 
+        return config != null ? config.isBlockPosCacheEnabled() : true; 
+    }
+    
+    @Override
+    public boolean isOptimizedCollectionsEnabled() { 
+        return config != null ? config.isOptimizedCollectionsEnabled() : true; 
+    }
+    
+    @Override
     public boolean isEntityTickParallel() { return config.isEntityTickParallel(); }
     
     @Override
@@ -251,6 +276,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
     public void updateConfiguration(ConfigManager newConfig) {
         this.config = newConfig;
+        org.virgil.akiasync.util.DebugLogger.updateDebugState(newConfig.isDebugLoggingEnabled());
     }
     
     @Override
@@ -610,5 +636,25 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         } catch (Exception e) {
             System.err.println("[AkiAsync] Failed to set return value: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public void debugLog(String message) {
+        org.virgil.akiasync.util.DebugLogger.debug(message);
+    }
+    
+    @Override
+    public void debugLog(String format, Object... args) {
+        org.virgil.akiasync.util.DebugLogger.debug(format, args);
+    }
+    
+    @Override
+    public void errorLog(String message) {
+        org.virgil.akiasync.util.DebugLogger.error(message);
+    }
+    
+    @Override
+    public void errorLog(String format, Object... args) {
+        org.virgil.akiasync.util.DebugLogger.error(format, args);
     }
 }

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.structure;
+import java.util.concurrent.CompletableFuture;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -69,6 +70,8 @@ public class VillagerTradesMixin {
             cached_enabled = false;
         }
         initialized = true;
-        System.out.println("[AkiAsync] VillagerTradesMixin initialized: enabled=" + cached_enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] VillagerTradesMixin initialized: enabled=" + cached_enabled + ", radius=" + 0 + ", skipKnown=" + false);
+        }
     }
 }

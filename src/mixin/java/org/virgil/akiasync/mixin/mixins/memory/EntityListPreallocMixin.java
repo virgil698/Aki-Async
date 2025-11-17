@@ -48,6 +48,8 @@ public abstract class EntityListPreallocMixin {
             defaultCapacity = 32;
         }
         initialized = true;
-        System.out.println("[AkiAsync] EntityListPreallocMixin initialized: enabled=" + enabled + ", capacity=" + defaultCapacity);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] EntityListPreallocMixin initialized: enabled=" + enabled + ", capacity=" + defaultCapacity);
+        }
     }
 }

@@ -69,7 +69,6 @@ public class ConfigManager {
     private int tntMaxBlocks;
     private long tntTimeoutMicros;
     private int tntBatchSize;
-    private boolean tntDebugEnabled;
     private boolean tntVanillaCompatibilityEnabled;
     private boolean tntUseVanillaPower;
     private boolean tntUseVanillaFireLogic;
@@ -102,7 +101,12 @@ public class ConfigManager {
     private boolean chestExplorationMapsEnabled;
     private java.util.Set<String> chestExplorationLootTables;
     private boolean chestMapPreserveProbability;
-    private boolean structureLocationDebugEnabled;
+
+    private boolean nitoriOptimizationsEnabled;
+    private boolean virtualThreadEnabled;
+    private boolean workStealingEnabled;
+    private boolean blockPosCacheEnabled;
+    private boolean optimizedCollectionsEnabled;
     
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -186,7 +190,6 @@ public class ConfigManager {
         tntMaxBlocks = config.getInt("tnt-explosion-optimization.max-blocks", 4096);
         tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
         tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
-        tntDebugEnabled = config.getBoolean("tnt-explosion-optimization.debug", false);
         tntVanillaCompatibilityEnabled = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.enabled", true);
         tntUseVanillaPower = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-power", true);
         tntUseVanillaFireLogic = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-fire-logic", true);
@@ -222,37 +225,215 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
-        structureLocationDebugEnabled = config.getBoolean("structure-location-async.debug", false);
+        nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
+        virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
+        workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
+        blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
+        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
         
         validateConfigVersion();
         validateConfig();
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 2;
+        final int CURRENT_CONFIG_VERSION = 3;
         
-        if (configVersion < CURRENT_CONFIG_VERSION) {
+        if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
-            plugin.getLogger().warning("  CONFIG VERSION WARNING");
+            plugin.getLogger().warning("  CONFIG VERSION MISMATCH DETECTED");
             plugin.getLogger().warning("==========================================");
-            plugin.getLogger().warning("Your config.yml is outdated!");
-            plugin.getLogger().warning("Current version: " + CURRENT_CONFIG_VERSION);
-            plugin.getLogger().warning("Your version: " + configVersion);
-            plugin.getLogger().warning("");
-            plugin.getLogger().warning("Please update your config.yml to avoid issues.");
-            plugin.getLogger().warning("The plugin will continue with default values for new options.");
-            plugin.getLogger().warning("==========================================");
-        } else if (configVersion > CURRENT_CONFIG_VERSION) {
-            plugin.getLogger().warning("==========================================");
-            plugin.getLogger().warning("  CONFIG VERSION WARNING");
-            plugin.getLogger().warning("==========================================");
-            plugin.getLogger().warning("Your config.yml is from a newer version!");
             plugin.getLogger().warning("Current supported version: " + CURRENT_CONFIG_VERSION);
-            plugin.getLogger().warning("Your version: " + configVersion);
+            plugin.getLogger().warning("Your config version: " + configVersion);
             plugin.getLogger().warning("");
-            plugin.getLogger().warning("Please update the plugin or downgrade your config.");
-            plugin.getLogger().warning("==========================================");
+            
+            if (configVersion < CURRENT_CONFIG_VERSION) {
+                plugin.getLogger().warning("Your config.yml is outdated!");
+                plugin.getLogger().warning("Automatically backing up and regenerating config...");
+            } else {
+                plugin.getLogger().warning("Your config.yml is from a newer version!");
+                plugin.getLogger().warning("Automatically backing up and regenerating config...");
+            }
+            
+            if (backupAndRegenerateConfig()) {
+                plugin.getLogger().info("Config backup and regeneration completed successfully!");
+                plugin.getLogger().info("Old config saved as: config.yml.bak");
+                plugin.getLogger().info("New config generated with version " + CURRENT_CONFIG_VERSION);
+                plugin.getLogger().warning("Please review the new config.yml and adjust settings as needed.");
+                plugin.getLogger().warning("==========================================");
+                
+                reloadConfigWithoutValidation();
+            } else {
+                plugin.getLogger().severe("Failed to backup and regenerate config!");
+                plugin.getLogger().severe("Please manually update your config.yml");
+                plugin.getLogger().warning("==========================================");
+            }
         }
+    }
+    
+    private boolean backupAndRegenerateConfig() {
+        try {
+            java.io.File configFile = new java.io.File(plugin.getDataFolder(), "config.yml");
+            java.io.File backupFile = new java.io.File(plugin.getDataFolder(), "config.yml.bak");
+            
+            if (!configFile.exists()) {
+                plugin.getLogger().warning("Config file does not exist, creating new one...");
+                plugin.saveDefaultConfig();
+                return true;
+            }
+            
+            if (backupFile.exists()) {
+                if (!backupFile.delete()) {
+                    plugin.getLogger().warning("Failed to delete existing backup file");
+                }
+            }
+            
+            if (!configFile.renameTo(backupFile)) {
+                plugin.getLogger().severe("Failed to backup config file to config.yml.bak");
+                return false;
+            }
+            
+            plugin.getLogger().info("Config file backed up to: config.yml.bak");
+            
+            plugin.saveDefaultConfig();
+            plugin.getLogger().info("New config.yml generated with latest version");
+            
+            return true;
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error during config backup and regeneration: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    private void reloadConfigWithoutValidation() {
+        plugin.reloadConfig();
+        config = plugin.getConfig();
+        
+        entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
+        threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
+        updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
+        maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
+        mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
+        spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
+        maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
+        aiCooldownTicks = config.getInt("density.ai-cooldown-ticks", 10);
+        brainThrottle = config.getBoolean("brain.throttle", true);
+        brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
+        asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
+        villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
+        villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
+        piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
+        piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
+        piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
+        piglinBarterDistance = config.getInt("async-ai.piglin-optimization.barter-distance", 16);
+        pillagerFamilyOptimizationEnabled = config.getBoolean("async-ai.pillager-family-optimization.enabled", false);
+        pillagerFamilyUsePOISnapshot = config.getBoolean("async-ai.pillager-family-optimization.use-poi-snapshot", false);
+        evokerOptimizationEnabled = config.getBoolean("async-ai.evoker-optimization.enabled", false);
+        blazeOptimizationEnabled = config.getBoolean("async-ai.blaze-optimization.enabled", false);
+        guardianOptimizationEnabled = config.getBoolean("async-ai.guardian-optimization.enabled", false);
+        witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
+        universalAiOptimizationEnabled = config.getBoolean("async-ai.universal-ai-optimization.enabled", false);
+        universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
+        zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
+        zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
+        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
+        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
+        simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
+        simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
+        entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
+        entityTickThreads = config.getInt("entity-tick-parallel.threads", 4);
+        minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
+        entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 50);
+        
+        nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
+        virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
+        workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
+        blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
+        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
+        
+        asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
+        lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
+        lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
+        useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
+        maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
+        skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
+        skylightCacheDurationMs = config.getInt("lighting-optimizations.skylight-cache.cache-duration-ms", 100);
+        lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
+        dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
+        advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
+        
+        playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
+        maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
+        entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
+        entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
+        
+        alternateCurrentEnabled = config.getBoolean("redstone-optimizations.alternate-current.enabled", true);
+        redstoneWireTurboEnabled = config.getBoolean("redstone-optimizations.wire-turbo.enabled", true);
+        redstoneUpdateBatchingEnabled = config.getBoolean("redstone-optimizations.update-batching.enabled", true);
+        redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
+        redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
+        redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
+        
+        tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
+        tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
+        if (tntExplosionEntities.isEmpty()) {
+            tntExplosionEntities.add("minecraft:tnt");
+            tntExplosionEntities.add("minecraft:tnt_minecart");
+            tntExplosionEntities.add("minecraft:wither_skull");
+        }
+        tntThreads = config.getInt("tnt-explosion-optimization.threads", 6);
+        tntMaxBlocks = config.getInt("tnt-explosion-optimization.max-blocks", 4096);
+        tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
+        tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
+        tntVanillaCompatibilityEnabled = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.enabled", true);
+        tntUseVanillaPower = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-power", true);
+        tntUseVanillaFireLogic = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-fire-logic", true);
+        tntUseVanillaDamageCalculation = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-damage-calculation", true);
+        tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
+        tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
+        tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
+        
+        asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
+        villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
+        villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
+        villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
+        
+        chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
+        chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
+        chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
+        
+        structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
+        structureLocationThreads = config.getInt("structure-location-async.threads", 3);
+        locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
+        locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
+        locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
+        villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
+        villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
+        if (villagerTradeMapTypes.isEmpty()) {
+            villagerTradeMapTypes.add("minecraft:ocean_monument_map");
+            villagerTradeMapTypes.add("minecraft:woodland_mansion_map");
+            villagerTradeMapTypes.add("minecraft:buried_treasure_map");
+        }
+        villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
+        dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
+        dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
+        dolphinTreasureHuntInterval = config.getInt("structure-location-async.dolphin-treasure-hunt.hunt-interval", 100);
+        chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
+        chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
+        if (chestExplorationLootTables.isEmpty()) {
+            chestExplorationLootTables.add("minecraft:chests/shipwreck_map");
+            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
+            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
+        }
+        chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
+        
+        enableDebugLogging = config.getBoolean("performance.debug-logging", false);
+        enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
+        configVersion = config.getInt("version", 3);
+        
+        validateConfig();
     }
     
     private void validateConfig() {
@@ -333,6 +514,8 @@ public class ConfigManager {
             plugin.getLogger().warning("Structure location threads cannot be more than 8, setting to 8");
             structureLocationThreads = 8;
         }
+        
+        validateNitoriConfig();
         if (locateCommandSearchRadius < 10) locateCommandSearchRadius = 10;
         if (locateCommandSearchRadius > 1000) locateCommandSearchRadius = 1000;
         if (villagerMapGenerationTimeoutSeconds < 5) villagerMapGenerationTimeoutSeconds = 5;
@@ -341,6 +524,47 @@ public class ConfigManager {
         if (dolphinTreasureSearchRadius > 200) dolphinTreasureSearchRadius = 200;
         if (dolphinTreasureHuntInterval < 20) dolphinTreasureHuntInterval = 20;
         if (dolphinTreasureHuntInterval > 1200) dolphinTreasureHuntInterval = 1200;
+    }
+    
+    private void validateNitoriConfig() {
+        if (virtualThreadEnabled) {
+            int javaVersion = getJavaMajorVersion();
+            if (javaVersion < 19) {
+                plugin.getLogger().warning("==========================================");
+                plugin.getLogger().warning("  NITORI VIRTUAL THREAD WARNING");
+                plugin.getLogger().warning("==========================================");
+                plugin.getLogger().warning("Virtual Thread is enabled but your Java version (" + javaVersion + ") doesn't support it.");
+                plugin.getLogger().warning("Virtual Thread requires Java 19+ (preview) or Java 21+ (stable).");
+                plugin.getLogger().warning("The plugin will automatically fall back to regular threads.");
+                plugin.getLogger().warning("Consider upgrading to Java 21+ for better performance.");
+                plugin.getLogger().warning("==========================================");
+            } else if (javaVersion >= 19 && javaVersion < 21) {
+                plugin.getLogger().info("Virtual Thread enabled with Java " + javaVersion + " (preview feature)");
+            } else {
+                plugin.getLogger().info("Virtual Thread enabled with Java " + javaVersion + " (stable feature)");
+            }
+        }
+        
+        if (!nitoriOptimizationsEnabled) {
+            plugin.getLogger().info("Nitori-style optimizations are disabled. You may miss some performance improvements.");
+        } else {
+            int enabledOptimizations = 0;
+            if (virtualThreadEnabled) enabledOptimizations++;
+            if (workStealingEnabled) enabledOptimizations++;
+            if (blockPosCacheEnabled) enabledOptimizations++;
+            if (optimizedCollectionsEnabled) enabledOptimizations++;
+            
+            plugin.getLogger().info("Nitori-style optimizations enabled: " + enabledOptimizations + "/4 features active");
+        }
+    }
+    
+    private int getJavaMajorVersion() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            return version.charAt(2) - '0';
+        }
+        int dotIndex = version.indexOf(".");
+        return Integer.parseInt(dotIndex == -1 ? version : version.substring(0, dotIndex));
     }
     
     public void reload() {
@@ -452,7 +676,7 @@ public class ConfigManager {
     public int getTNTMaxBlocks() { return tntMaxBlocks; }
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
-    public boolean isTNTDebugEnabled() { return tntDebugEnabled; }
+    public boolean isTNTDebugEnabled() { return enableDebugLogging; }
     public boolean isTNTVanillaCompatibilityEnabled() { return tntVanillaCompatibilityEnabled; }
     public boolean isTNTUseVanillaPower() { return tntUseVanillaPower; }
     public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
@@ -482,5 +706,15 @@ public class ConfigManager {
     public boolean isChestExplorationMapsEnabled() { return chestExplorationMapsEnabled; }
     public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
     public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
-    public boolean isStructureLocationDebugEnabled() { return structureLocationDebugEnabled; }
+    public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
+    
+    public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
+    public boolean isVirtualThreadEnabled() { return virtualThreadEnabled; }
+    public boolean isWorkStealingEnabled() { return workStealingEnabled; }
+    public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
+    public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
+    
+    public boolean getBoolean(String path, boolean defaultValue) {
+        return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
+    }
 }

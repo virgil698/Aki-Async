@@ -38,7 +38,7 @@ public class StructureLocatorBridge {
             initialized = true;
             
             if (bridge.isStructureLocationDebugEnabled()) {
-                System.out.println("[AkiAsync] StructureLocatorBridge initialized with " + threads + " threads");
+                bridge.debugLog("[AkiAsync] StructureLocatorBridge initialized with " + threads + " threads");
             }
         }
     }

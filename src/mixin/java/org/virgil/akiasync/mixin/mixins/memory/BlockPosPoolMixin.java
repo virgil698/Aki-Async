@@ -36,6 +36,8 @@ public abstract class BlockPosPoolMixin {
             enabled = true;
         }
         initialized = true;
-        System.out.println("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);
+        }
     }
 }
