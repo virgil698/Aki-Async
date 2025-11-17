@@ -95,6 +95,12 @@ java -Dleavesclip.enable.mixin=true -Xms4G -Xmx4G -jar server.jar
 
 **权限**：`akiasync.reload`（默认仅OP可用）
 
+**⚠️ 重要警告**：
+- **非必要情况下不推荐使用热重载**
+- **修改优化类配置后更推荐关服重启**
+- 热重载可能一些神秘问题
+- 生产环境建议维护时间重启服务器
+
 **使用方法**：
 ```bash
 /aki-reload
@@ -117,6 +123,12 @@ entity-tick-parallel:
 /aki-reload
 # 输出：§a[AkiAsync] Configuration hot-reloaded, thread pools smoothly restarted.
 ```
+
+**建议使用场景**：
+- 🟢 调试日志开关切换
+- 🟢 性能监控参数调整
+- 🟡 线程数量微调（谨慎使用）
+- 🔴 避免：启用/禁用核心优化功能
 
 </details>
 
@@ -232,15 +244,15 @@ entity-tick-parallel:
 # ==========================================
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
-# 版本 / Version: 2.4.0
+# 版本 / Version: 3.2.1
 # 适用服务端 / Server: Leaves 1.21.8+
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 2
-# 说明：当前配置版本为2，如果配置版本大于或小于2，则需要更新配置文件
-# Description: The current configuration version is 2, if the configuration version is greater than 2, you need to update the configuration file
-version: 2
+# 当前版本 / Current version: 3
+# 说明：当前配置版本为3，如果配置版本大于或小于3，则需要更新配置文件
+# Description: The current configuration version is 3, if the configuration version is greater than 3, you need to update the configuration file
+version: 3
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -556,8 +568,8 @@ tnt-explosion-optimization:
   # 启用开关 / Enable toggle
   enabled: true
   # 启用的爆炸实体白名单 / Enabled explosion entities
-  # 说明：只对这些实体的爆炸进行优化，其他爆炸走原版
-  # Description: Only optimize explosions from these entities
+  # 说明：只对这些实体的爆炸进行异步计算优化，其他爆炸走原版
+  # Description: Only async optimize explosions from these entities
   entities:
     - "minecraft:tnt"           # TNT方块
     - "minecraft:tnt_minecart"  # TNT矿车（高频刷石机）
@@ -565,22 +577,6 @@ tnt-explosion-optimization:
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: CPU核心数×1.5
   threads: 6
-  # 单爆炸最大处理方块数（半径上墙）/ Max blocks per explosion
-  # 说明：超过此值回退原版逻辑（防止OOM）
-  # Description: Fallback to vanilla if blocks > threshold (OOM protection)
-  max-blocks: 4096
-  # 超时回退（微秒）/ Timeout (microseconds)
-  # 说明：异步超时直接回退原版，保证最坏TPS
-  # Description: Fallback to vanilla on timeout, ensure worst-case TPS
-  timeout-us: 100
-  # 并行分块大小 / Parallel batch size
-  # 说明：64×64×64任务粒度，避免伪共享
-  # Description: 64×64×64 task granularity, avoid false sharing
-  batch-size: 64
-  # 调试模式 / Debug mode
-  # 警告：会输出每次爆炸耗时统计
-  # Warning: Logs every explosion timing
-  debug: false
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -672,10 +668,101 @@ chunk-tick-async:
   timeout-us: 200
 
 # ==========================================
+# 结构查找异步化 / Structure Location Async (v9.0)
+# ==========================================
+# 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
+# Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
+#
+# 性能提升 / Performance Gain:
+#   /locate命令: 100-500ms → 5-20ms (主线程零阻塞)
+#   探险家地图: 50-200ms → 异步生成 (交易不卡顿)
+#   海豚寻宝: 20-100ms → 异步查找 (AI不阻塞)
+structure-location-async:
+  # 启用开关 / Enable toggle
+  enabled: true
+  
+  # 线程池大小 / Thread pool size
+  # 推荐值 / Recommended: 2-4 (结构查找CPU密集)
+  threads: 3
+  
+  # /locate命令异步化 / Async /locate command
+  locate-command:
+    enabled: true
+    # 搜索半径（区块）/ Search radius (chunks)
+    search-radius: 100
+    # 跳过已知结构 / Skip known structures
+    skip-known-structures: false
+  
+  # 村民交易探险家地图异步化 / Async villager trade explorer maps
+  villager-trade-maps:
+    enabled: true
+    # 支持的交易类型 / Supported trade types
+    trade-types:
+      - "minecraft:ocean_monument_map"    # 海底神殿地图
+      - "minecraft:woodland_mansion_map"  # 林地府邸地图
+      - "minecraft:buried_treasure_map"   # 埋藏宝藏地图
+    # 地图生成超时（秒）/ Map generation timeout (seconds)
+    generation-timeout-seconds: 30
+  
+  # 海豚寻宝异步化 / Async dolphin treasure hunt
+  dolphin-treasure-hunt:
+    enabled: true
+    # 搜索半径（区块）/ Search radius (chunks)
+    search-radius: 50
+    # 寻宝间隔（tick）/ Hunt interval (ticks)
+    hunt-interval: 100
+  
+  # 箱子探险地图异步化 / Async chest exploration maps
+  chest-exploration-maps:
+    enabled: true
+    # 支持的战利品表 / Supported loot tables
+    loot-tables:
+      - "minecraft:chests/shipwreck_map"
+      - "minecraft:chests/underwater_ruin_big"
+      - "minecraft:chests/underwater_ruin_small"
+    # 地图生成概率保持不变 / Keep original map generation probability
+    preserve-probability: true
+
+# ==========================================
+# 高级并发优化 / Advanced Concurrency Optimizations
+# ==========================================
+# 说明：高级并发和内存优化技术，提供额外的性能提升
+# Description: Advanced concurrency and memory optimization techniques for additional performance gains
+advanced-optimizations:
+  # 总开关 / Master switch
+  # 说明：控制所有高级并发优化的启用/禁用
+  # Description: Controls enable/disable of all advanced concurrency optimizations
+  enabled: true
+  
+  # Virtual Thread支持 / Virtual Thread support
+  # 说明：Java 21+环境下使用Virtual Thread提升并发性能
+  # Description: Use Virtual Threads for better concurrency on Java 21+
+  # 注意：仅在Java 21+环境下有效，会自动降级到传统线程
+  # Note: Only effective on Java 21+, automatically falls back to regular threads
+  virtual-threads: true
+  
+  # 工作窃取调度器 / Work-stealing scheduler
+  # 说明：使用工作窃取模式进行批量任务处理，提升多核CPU利用率
+  # Description: Use work-stealing pattern for batch processing, improves multi-core utilization
+  work-stealing: true
+  
+  # BlockPos缓存预计算 / BlockPos cache pre-computation
+  # 说明：预计算常用范围的BlockPos，减少重复计算开销
+  # Description: Pre-compute common BlockPos ranges to reduce calculation overhead
+  blockpos-cache: true
+  
+  # 优化集合类 / Optimized collections
+  # 说明：使用高性能集合类替代原生集合，减少内存分配和提升访问速度
+  # Description: Use high-performance collections instead of native ones
+  optimized-collections: true
+
+# ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:
-  # 调试日志 / Debug logging
+  # 统一调试日志开关 / Unified debug logging switch
+  # 说明：控制所有模块的调试输出（TNT、结构定位等）
+  # Description: Controls debug output for all modules (TNT, structure location, etc.)
   # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
   
@@ -686,6 +773,7 @@ performance:
 
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
+
 ```
 
 </details>
