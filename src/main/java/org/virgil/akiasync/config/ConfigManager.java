@@ -102,7 +102,6 @@ public class ConfigManager {
     private java.util.Set<String> chestExplorationLootTables;
     private boolean chestMapPreserveProbability;
     
-    // Algorithm Optimization Configuration
     private boolean structureAlgorithmOptimizationEnabled;
     private String structureSearchPattern;
     private boolean structureCachingEnabled;
@@ -111,7 +110,6 @@ public class ConfigManager {
     private int structureCacheMaxSize;
     private long structureCacheExpirationMinutes;
     
-    // DataPack Optimization Configuration
     private boolean dataPackOptimizationEnabled;
     private int dataPackFileLoadThreads;
     private int dataPackZipProcessThreads;
@@ -243,7 +241,6 @@ public class ConfigManager {
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
         
-        // Algorithm Optimization Configuration Loading
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
@@ -252,7 +249,6 @@ public class ConfigManager {
         structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
         
-        // DataPack Optimization Configuration Loading
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
         dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
@@ -464,7 +460,6 @@ public class ConfigManager {
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
         
-        // Algorithm Optimization Configuration Loading (reload method)
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
@@ -473,7 +468,6 @@ public class ConfigManager {
         structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
         
-        // DataPack Optimization Configuration Loading (reload method)
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
         dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
@@ -760,7 +754,6 @@ public class ConfigManager {
     public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
     public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
     
-    // Algorithm Optimization Getters
     public boolean isStructureAlgorithmOptimizationEnabled() { return structureAlgorithmOptimizationEnabled; }
     public String getStructureSearchPattern() { return structureSearchPattern; }
     public boolean isStructureCachingEnabled() { return structureCachingEnabled; }
@@ -769,7 +762,6 @@ public class ConfigManager {
     public int getStructureCacheMaxSize() { return structureCacheMaxSize; }
     public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
     
-    // DataPack Optimization Getters
     public boolean isDataPackOptimizationEnabled() { return dataPackOptimizationEnabled; }
     public int getDataPackFileLoadThreads() { return dataPackFileLoadThreads; }
     public int getDataPackZipProcessThreads() { return dataPackZipProcessThreads; }

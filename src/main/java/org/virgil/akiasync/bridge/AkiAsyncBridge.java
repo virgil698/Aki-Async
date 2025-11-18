@@ -300,7 +300,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public long getChunkTickTimeoutMicros() {return config.getChunkTickTimeoutMicros();}
     
-    // Structure Location Async Configuration
     @Override
     public boolean isStructureLocationAsyncEnabled() {return config.isStructureLocationAsyncEnabled();}
     
@@ -346,7 +345,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public boolean isStructureLocationDebugEnabled() {return config.isStructureLocationDebugEnabled();}
     
-    // Algorithm Optimization Configuration Implementation
     @Override
     public boolean isStructureAlgorithmOptimizationEnabled() {return config.isStructureAlgorithmOptimizationEnabled();}
     
@@ -368,7 +366,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public long getStructureCacheExpirationMinutes() {return config.getStructureCacheExpirationMinutes();}
     
-    // DataPack Optimization Configuration Implementation
     @Override
     public boolean isDataPackOptimizationEnabled() {return config.isDataPackOptimizationEnabled();}
     
@@ -400,7 +397,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
                 
                 com.mojang.datafixers.util.Pair<net.minecraft.core.BlockPos, net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> result;
                 
-                // 使用优化算法或原版算法
                 if (config.isStructureAlgorithmOptimizationEnabled()) {
                     if (config.isStructureLocationDebugEnabled()) {
                         System.out.println("[AkiAsync] Using optimized structure search algorithm");
@@ -411,7 +407,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
                         config.isLocateCommandSkipKnownStructures()
                     );
                 } else {
-                    // 使用MC原版算法
                     result = level.getChunkSource().getGenerator().findNearestMapStructure(
                         level, holderSet, startPos, 
                         config.getLocateCommandSearchRadius(), 

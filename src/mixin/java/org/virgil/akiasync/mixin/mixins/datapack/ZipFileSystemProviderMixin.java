@@ -12,14 +12,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.Map;
 
-/**
- * Zip文件系统提供者Mixin - 优化zip文件系统创建
- * 
- * 基于QuickPack的优化思路：
- * 1. 缓存文件系统实例，避免重复创建
- * 2. 优化zip文件的读取参数
- * 3. 提供更高效的文件访问模式
- */
 @SuppressWarnings("unused")
 @Mixin(targets = "jdk.nio.zipfs.ZipFileSystemProvider", remap = false)
 public class ZipFileSystemProviderMixin {
@@ -36,11 +28,9 @@ public class ZipFileSystemProviderMixin {
         if (!cached_enabled) return;
         
         try {
-            // 检查是否为数据包相关的zip文件
             String path = uri.getPath();
             if (path != null && (path.contains("datapacks") || path.contains("resourcepacks") || path.endsWith(".zip"))) {
                 
-                // 使用反射避免编译时依赖
                 try {
                     Class<?> optimizerClass = Class.forName("org.virgil.akiasync.async.datapack.DataPackLoadOptimizer");
                     Object optimizer = optimizerClass.getMethod("getInstance").invoke(null);
@@ -53,15 +43,11 @@ public class ZipFileSystemProviderMixin {
                                 java.nio.file.Paths.get(uri).getFileName());
                         }
                         
-                        // 这里可以添加自定义的文件系统创建逻辑
-                        // 例如：设置优化的读取缓冲区大小、启用并发访问等
                     }
                 } catch (Exception e) {
-                    // 忽略反射错误
                 }
             }
         } catch (Exception e) {
-            // 如果优化失败，让原方法继续执行
             org.virgil.akiasync.mixin.bridge.Bridge bridge = 
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isDataPackDebugEnabled()) {
@@ -88,10 +74,8 @@ public class ZipFileSystemProviderMixin {
                     bridge.debugLog("[AkiAsync-DataPack] Optimizing file system creation for path: " + path.getFileName());
                 }
                 
-                // 可以在这里添加路径特定的优化
             }
         } catch (Exception e) {
-            // 忽略优化错误
         }
     }
     

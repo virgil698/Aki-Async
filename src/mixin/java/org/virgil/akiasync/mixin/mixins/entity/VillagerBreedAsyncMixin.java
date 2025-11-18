@@ -26,22 +26,18 @@ public class VillagerBreedAsyncMixin {
         
         Villager villager = (Villager) (Object) this;
         
-        // 永远不跳过有升级计时器的村民
         if (this.updateMerchantTimer > 0) {
             return;
         }
         
-        // 永远不跳过正在交易的村民
         if (villager.isTrading()) {
             return;
         }
         
-        // 永远不跳过需要升级的村民
         if (this.increaseProfessionLevelOnUpdate) {
             return;
         }
         
-        // 检查是否有重要状态需要处理
         if (aki$hasImportantState(villager)) {
             return;
         }
@@ -49,7 +45,6 @@ public class VillagerBreedAsyncMixin {
         BlockPos pos = villager.blockPosition();
         long currentTick = level.getGameTime();
         
-        // 年龄节流检查
         if (cached_ageThrottle) {
             if (org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor
                     .isIdle(villager.getUUID(), pos, currentTick)) {
@@ -58,7 +53,6 @@ public class VillagerBreedAsyncMixin {
             }
         }
         
-        // 只有在确认村民真正空闲时才进行间隔优化
         if (currentTick % cached_interval != 0) {
             ci.cancel();
         }
@@ -122,29 +116,23 @@ public class VillagerBreedAsyncMixin {
     
     @Unique
     private boolean aki$hasImportantState(Villager villager) {
-        // 无职业村民需要寻找工作
         if (villager.getVillagerData().profession().is(net.minecraft.world.entity.npc.VillagerProfession.NONE)) {
             return true;
         }
         
-        // 不开心的村民需要处理
         if (villager.getUnhappyCounter() > 0) {
             return true;
         }
         
-        // 幼体村民需要成长处理
         if (villager.isBaby()) {
             return true;
         }
         
-        // 需要补货的村民
         if (villager.shouldRestock()) {
             return true;
         }
         
-        // 农民特殊检查：需要处理农作物
         if (villager.getVillagerData().profession().is(net.minecraft.world.entity.npc.VillagerProfession.FARMER)) {
-            // 农民需要更频繁的AI处理来管理农作物
             return true;
         }
         

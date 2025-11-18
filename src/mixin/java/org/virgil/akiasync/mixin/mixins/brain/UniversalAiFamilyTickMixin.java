@@ -69,9 +69,8 @@ public abstract class UniversalAiFamilyTickMixin {
         if (!mob.isInWater() && mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
-                // 检查是否应该保护这个生物的AI处理
                 if (aki$shouldProtectAI(mob)) {
-                    return false; // 不跳过AI处理
+                    return false;
                 }
                 return true;
             }

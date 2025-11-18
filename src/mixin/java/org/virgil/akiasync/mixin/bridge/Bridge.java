@@ -200,7 +200,6 @@ public interface Bridge {
     
     boolean isStructureLocationDebugEnabled();
     
-    // Algorithm Optimization Configuration
     boolean isStructureAlgorithmOptimizationEnabled();
     
     String getStructureSearchPattern();
@@ -231,7 +230,6 @@ public interface Bridge {
     
     boolean isDolphinTreasureSkipKnownStructures();
     
-    // DataPack Optimization Configuration
     boolean isDataPackOptimizationEnabled();
     
     int getDataPackFileLoadThreads();

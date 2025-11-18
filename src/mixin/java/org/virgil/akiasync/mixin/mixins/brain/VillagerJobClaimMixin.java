@@ -23,7 +23,6 @@ public abstract class VillagerJobClaimMixin {
         
         Villager villager = (Villager) (Object) this;
         
-        // 只处理无职业的村民
         if (!villager.getVillagerData().profession().is(
                 net.minecraft.world.entity.npc.VillagerProfession.NONE)) {
             return;
@@ -37,7 +36,6 @@ public abstract class VillagerJobClaimMixin {
         BlockPos pos = globalPos.pos();
         ServerLevel level = (ServerLevel) villager.level();
         
-        // 原子性地尝试占领工作站点
         Optional<BlockPos> result = level.getPoiManager().take(
             holder -> true,
             (holder, blockPos) -> blockPos.equals(pos),
@@ -45,7 +43,6 @@ public abstract class VillagerJobClaimMixin {
             1
         );
         
-        // 如果占领成功，保持记忆；如果失败，清除记忆
         if (result.isPresent() && result.get().equals(pos)) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = 
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -55,7 +52,6 @@ public abstract class VillagerJobClaimMixin {
             return;
         }
         
-        // 工作站点被其他村民占领，清除记忆
         brain.eraseMemory(MemoryModuleType.JOB_SITE);
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();

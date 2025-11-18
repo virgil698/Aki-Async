@@ -156,7 +156,7 @@ public class TNTExplosionMixin {
                         level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 11);
                         
                         double distance = Math.sqrt(pos.distToCenterSqr(center.x, center.y, center.z));
-                        int fuseTime = Math.max(10, (int)(distance * 2.0) + level.getRandom().nextInt(10)); // 10-30 ticks
+                        int fuseTime = Math.max(10, (int)(distance * 2.0) + level.getRandom().nextInt(10));
                         
                         PrimedTnt primedTnt = new PrimedTnt(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, null);
                         primedTnt.setFuse(fuseTime);

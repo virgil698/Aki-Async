@@ -14,39 +14,21 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
-/**
- * 数据包加载优化器
- * 
- * 基于QuickPack的优化思路：
- * 1. 优化zip文件系统的文件读取
- * 2. 并行处理大量文件
- * 3. 智能缓存机制
- * 4. 批量I/O操作
- * 
- * 性能提升：
- * - 大型数据包：18秒 → 4秒 (78%提升)
- * - 文件数量：30,000+ 文件的优化处理
- * - 内存优化：减少重复文件系统访问
- */
 public class DataPackLoadOptimizer {
     
     private static DataPackLoadOptimizer instance;
     private final AkiAsyncPlugin plugin;
     
-    // 线程池配置
     private final ExecutorService fileLoadExecutor;
     private final ExecutorService zipProcessExecutor;
     
-    // 缓存系统
     private final Map<String, CachedFileSystem> fileSystemCache;
     private final Map<String, CachedFileEntry> fileCache;
     
-    // 性能统计
     private final AtomicLong totalFilesProcessed = new AtomicLong(0);
     private final AtomicLong totalLoadTime = new AtomicLong(0);
     private final AtomicLong cacheHits = new AtomicLong(0);
     
-    // 配置参数
     private volatile boolean optimizationEnabled;
     private volatile int fileLoadThreads;
     private volatile int zipProcessThreads;
@@ -89,9 +71,6 @@ public class DataPackLoadOptimizer {
         return instance;
     }
     
-    /**
-     * 更新配置
-     */
     public void updateConfiguration() {
         if (plugin.getBridge() != null) {
             this.optimizationEnabled = plugin.getBridge().isDataPackOptimizationEnabled();
@@ -101,19 +80,15 @@ public class DataPackLoadOptimizer {
             this.cacheExpirationMs = plugin.getBridge().getDataPackCacheExpirationMinutes() * 60 * 1000;
             this.debugLogging = plugin.getBridge().isDataPackDebugEnabled();
         } else {
-            // 默认配置
             this.optimizationEnabled = true;
             this.fileLoadThreads = 4;
             this.zipProcessThreads = 2;
             this.batchSize = 100;
-            this.cacheExpirationMs = 30 * 60 * 1000; // 30分钟
+            this.cacheExpirationMs = 30 * 60 * 1000;
             this.debugLogging = false;
         }
     }
     
-    /**
-     * 优化zip文件系统的文件加载
-     */
     public CompletableFuture<List<FileLoadResult>> optimizeZipFileLoading(
             Path zipPath, 
             List<String> filePaths) {
@@ -133,15 +108,12 @@ public class DataPackLoadOptimizer {
                     ));
                 }
                 
-                // 1. 获取或创建缓存的文件系统
                 CachedFileSystem cachedFs = getOrCreateFileSystem(zipPath);
                 
-                // 2. 批量并行处理文件
                 List<FileLoadResult> results = processBatchedFiles(cachedFs.fileSystem, filePaths);
                 
-                // 3. 更新统计信息
                 long endTime = System.nanoTime();
-                long loadTime = (endTime - startTime) / 1_000_000; // 转换为毫秒
+                long loadTime = (endTime - startTime) / 1_000_000;
                 
                 totalFilesProcessed.addAndGet(filePaths.size());
                 totalLoadTime.addAndGet(loadTime);
@@ -157,19 +129,14 @@ public class DataPackLoadOptimizer {
                 
             } catch (Exception e) {
                 plugin.getLogger().warning("[AkiAsync-DataPack] Error in optimized file loading: " + e.getMessage());
-                // 回退到传统方法
                 return loadFilesTraditional(zipPath, filePaths).join();
             }
         }, zipProcessExecutor);
     }
     
-    /**
-     * 批量并行处理文件
-     */
     private List<FileLoadResult> processBatchedFiles(FileSystem fileSystem, List<String> filePaths) {
         List<CompletableFuture<FileLoadResult>> futures = new ArrayList<>();
         
-        // 将文件分批处理
         for (int i = 0; i < filePaths.size(); i += batchSize) {
             int endIndex = Math.min(i + batchSize, filePaths.size());
             List<String> batch = filePaths.subList(i, endIndex);
@@ -181,7 +148,6 @@ public class DataPackLoadOptimizer {
             futures.add(batchFuture);
         }
         
-        // 等待所有批次完成并合并结果
         List<FileLoadResult> allResults = new ArrayList<>();
         for (CompletableFuture<FileLoadResult> future : futures) {
             try {
@@ -195,15 +161,11 @@ public class DataPackLoadOptimizer {
         return allResults;
     }
     
-    /**
-     * 处理单个批次的文件
-     */
     private FileLoadResult processBatch(FileSystem fileSystem, List<String> filePaths) {
         FileLoadResult result = new FileLoadResult();
         
         for (String filePath : filePaths) {
             try {
-                // 检查缓存
                 String cacheKey = generateCacheKey(fileSystem.toString(), filePath);
                 CachedFileEntry cachedEntry = fileCache.get(cacheKey);
                 
@@ -213,12 +175,10 @@ public class DataPackLoadOptimizer {
                     continue;
                 }
                 
-                // 读取文件
                 Path path = fileSystem.getPath(filePath);
                 if (java.nio.file.Files.exists(path)) {
                     byte[] content = java.nio.file.Files.readAllBytes(path);
                     
-                    // 缓存文件内容
                     fileCache.put(cacheKey, new CachedFileEntry(content, System.currentTimeMillis()));
                     
                     result.addLoadedFile(filePath, content);
@@ -234,9 +194,6 @@ public class DataPackLoadOptimizer {
         return result;
     }
     
-    /**
-     * 获取或创建缓存的文件系统
-     */
     private CachedFileSystem getOrCreateFileSystem(Path zipPath) throws IOException {
         String cacheKey = zipPath.toString();
         CachedFileSystem cached = fileSystemCache.get(cacheKey);
@@ -245,7 +202,6 @@ public class DataPackLoadOptimizer {
             return cached;
         }
         
-        // 创建新的文件系统
         FileSystem fileSystem = java.nio.file.FileSystems.newFileSystem(zipPath, (ClassLoader) null);
         CachedFileSystem cachedFs = new CachedFileSystem(fileSystem, System.currentTimeMillis());
         
@@ -307,15 +263,11 @@ public class DataPackLoadOptimizer {
         }).scheduleAtFixedRate(this::performCleanup, 10, 10, java.util.concurrent.TimeUnit.MINUTES);
     }
     
-    /**
-     * 执行清理任务
-     */
     private void performCleanup() {
         long currentTime = System.currentTimeMillis();
         int removedFiles = 0;
         int removedFileSystems = 0;
         
-        // 清理过期的文件缓存
         fileCache.entrySet().removeIf(entry -> {
             if (entry.getValue().isExpired(cacheExpirationMs)) {
                 return true;
@@ -323,13 +275,11 @@ public class DataPackLoadOptimizer {
             return false;
         });
         
-        // 清理过期的文件系统缓存
         fileSystemCache.entrySet().removeIf(entry -> {
             if (entry.getValue().isExpired(cacheExpirationMs)) {
                 try {
                     entry.getValue().fileSystem.close();
                 } catch (IOException e) {
-                    // 忽略关闭异常
                 }
                 return true;
             }
@@ -357,18 +307,13 @@ public class DataPackLoadOptimizer {
         );
     }
     
-    /**
-     * 清理所有缓存
-     */
     public void clearCache() {
         fileCache.clear();
         
-        // 关闭所有文件系统
         for (CachedFileSystem cached : fileSystemCache.values()) {
             try {
                 cached.fileSystem.close();
             } catch (IOException e) {
-                // 忽略关闭异常
             }
         }
         fileSystemCache.clear();
