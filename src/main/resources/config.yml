@@ -6,10 +6,10 @@
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 3
-# 说明：当前配置版本为3，如果配置版本大于或小于3，则需要更新配置文件
-# Description: The current configuration version is 3, if the configuration version is greater than 3, you need to update the configuration file
-version: 3
+# 当前版本 / Current version: 4
+# 说明：当前配置版本为4，如果配置版本大于或小于4，则需要更新配置文件
+# Description: The current configuration version is 4, if the configuration version is greater than 4, you need to update the configuration file
+version: 4
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -405,7 +405,7 @@ lighting-optimizations:
     log-advanced-stats: false
 
 # ==========================================
-# 区块Tick异步化 / Chunk Tick Async (Lithium + Akarin)
+# 区块Tick异步化 / Chunk Tick Async
 # ==========================================
 # 说明：将区块Tick移至ForkJoinPool异步执行，失败回退主线程同步
 # Description: Offload chunk tick to ForkJoinPool async, fallback to main thread on timeout
@@ -425,7 +425,7 @@ chunk-tick-async:
   timeout-us: 200
 
 # ==========================================
-# 结构查找异步化 / Structure Location Async (v9.0)
+# 结构查找异步化 / Structure Location Async
 # ==========================================
 # 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
 # Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
@@ -479,6 +479,68 @@ structure-location-async:
       - "minecraft:chests/underwater_ruin_small"
     # 地图生成概率保持不变 / Keep original map generation probability
     preserve-probability: true
+  
+  # 算法优化配置 / Algorithm Optimization Configuration
+  algorithm-optimization:
+    # 启用算法优化 / Enable algorithm optimization
+    enabled: true
+    
+    # 搜索模式 / Search pattern
+    # 可选值 / Options: "spiral"(螺旋), "layered"(分层), "hybrid"(混合)
+    search-pattern: "hybrid"
+    
+    # 启用结构缓存 / Enable structure caching
+    caching:
+      enabled: true
+      # 缓存最大条目数 / Max cache entries
+      max-size: 1000
+      # 缓存过期时间（分钟）/ Cache expiration (minutes)
+      expiration-minutes: 30
+    
+    # 启用预计算 / Enable precomputation
+    precomputation:
+      enabled: true
+    
+    # 生物群系感知搜索 / Biome-aware search
+    biome-aware-search:
+      enabled: true
+
+# ==========================================
+# 数据包加载优化 / DataPack Loading Optimization
+# ==========================================
+# 说明：基于QuickPack优化思路，加速数据包和资源包的zip文件加载
+# Description: Based on QuickPack optimization, accelerate datapack and resourcepack zip file loading
+#
+# 性能提升 / Performance Gain:
+#   大型数据包: 18秒 → 4秒 (78%提升)
+#   文件数量: 30,000+ 文件的优化处理
+#   内存优化: 减少重复文件系统访问
+datapack-optimization:
+  # 启用开关 / Enable toggle
+  enabled: true
+  
+  # 文件加载线程数 / File loading threads
+  # 推荐值 / Recommended: 4-8 (根据CPU核心数调整)
+  file-load-threads: 4
+  
+  # Zip处理线程数 / Zip processing threads
+  # 推荐值 / Recommended: 2-4 (I/O密集型)
+  zip-process-threads: 2
+  
+  # 批处理大小 / Batch size
+  # 说明：每批处理的文件数量，影响内存使用和性能
+  # Description: Number of files per batch, affects memory usage and performance
+  batch-size: 100
+  
+  # 缓存过期时间（分钟）/ Cache expiration (minutes)
+  # 说明：文件系统和文件内容的缓存时间
+  # Description: Cache time for file systems and file contents
+  cache-expiration-minutes: 30
+  
+  # 调试模式 / Debug mode
+  # 说明：启用详细的数据包加载日志
+  # Description: Enable detailed datapack loading logs
+  debug-enabled: false
 
 # ==========================================
 # 高级并发优化 / Advanced Concurrency Optimizations

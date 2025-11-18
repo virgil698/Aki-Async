@@ -200,6 +200,21 @@ public interface Bridge {
     
     boolean isStructureLocationDebugEnabled();
     
+    // Algorithm Optimization Configuration
+    boolean isStructureAlgorithmOptimizationEnabled();
+    
+    String getStructureSearchPattern();
+    
+    boolean isStructureCachingEnabled();
+    
+    boolean isStructurePrecomputationEnabled();
+    
+    boolean isBiomeAwareSearchEnabled();
+    
+    int getStructureCacheMaxSize();
+    
+    long getStructureCacheExpirationMinutes();
+    
     void handleLocateCommandResult(net.minecraft.commands.CommandSourceStack sourceStack, net.minecraft.core.BlockPos structurePos, Throwable throwable);
     
     void handleLocateCommandAsyncStart(net.minecraft.commands.CommandSourceStack sourceStack, net.minecraft.commands.arguments.ResourceOrTagKeyArgument.Result<net.minecraft.world.level.levelgen.structure.Structure> structureResult, net.minecraft.core.HolderSet<net.minecraft.world.level.levelgen.structure.Structure> holderSet);
@@ -215,6 +230,19 @@ public interface Bridge {
     boolean isVillagerTradeMapsSkipKnownStructures();
     
     boolean isDolphinTreasureSkipKnownStructures();
+    
+    // DataPack Optimization Configuration
+    boolean isDataPackOptimizationEnabled();
+    
+    int getDataPackFileLoadThreads();
+    
+    int getDataPackZipProcessThreads();
+    
+    int getDataPackBatchSize();
+    
+    long getDataPackCacheExpirationMinutes();
+    
+    boolean isDataPackDebugEnabled();
     
     void debugLog(String message);
     void debugLog(String format, Object... args);

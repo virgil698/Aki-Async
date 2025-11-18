@@ -47,7 +47,18 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         if (configManager.isStructureLocationAsyncEnabled()) {
             org.virgil.akiasync.mixin.async.StructureLocatorBridge.initialize();
+            org.virgil.akiasync.async.structure.OptimizedStructureLocator.initialize(this);
             getLogger().info("[AkiAsync] Async structure location enabled with " + configManager.getStructureLocationThreads() + " threads");
+            if (configManager.isStructureAlgorithmOptimizationEnabled()) {
+                getLogger().info("[AkiAsync] Structure search algorithm optimization enabled (" + configManager.getStructureSearchPattern() + " pattern)");
+            }
+        }
+        
+        if (configManager.isDataPackOptimizationEnabled()) {
+            org.virgil.akiasync.async.datapack.DataPackLoadOptimizer.getInstance(this);
+            getLogger().info("[AkiAsync] DataPack loading optimization enabled with " + 
+                configManager.getDataPackFileLoadThreads() + " file threads, " + 
+                configManager.getDataPackZipProcessThreads() + " zip threads");
         }
         
         BridgeManager.validateAndDisplayConfigurations();
@@ -101,6 +112,14 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
 
         org.virgil.akiasync.mixin.async.StructureLocatorBridge.shutdown();
+        
+        org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
+        
+        org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer = 
+            org.virgil.akiasync.async.datapack.DataPackLoadOptimizer.getInstance();
+        if (optimizer != null) {
+            optimizer.shutdown();
+        }
         
         if (executorManager != null) {
             executorManager.shutdown();

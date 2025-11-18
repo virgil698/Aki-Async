@@ -30,7 +30,9 @@
     "lighting.SkylightCacheMixin",
     "chunk.ServerLevelTickBlockMixin",
     "chunk.ChunkSaveAsyncMixin",
-    "pathfinding.PathNavigationAsyncMixin"
+    "pathfinding.PathNavigationAsyncMixin",
+    "datapack.PackRepositoryMixin",
+    "datapack.ZipFileSystemProviderMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {

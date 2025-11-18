@@ -101,6 +101,23 @@ public class ConfigManager {
     private boolean chestExplorationMapsEnabled;
     private java.util.Set<String> chestExplorationLootTables;
     private boolean chestMapPreserveProbability;
+    
+    // Algorithm Optimization Configuration
+    private boolean structureAlgorithmOptimizationEnabled;
+    private String structureSearchPattern;
+    private boolean structureCachingEnabled;
+    private boolean structurePrecomputationEnabled;
+    private boolean biomeAwareSearchEnabled;
+    private int structureCacheMaxSize;
+    private long structureCacheExpirationMinutes;
+    
+    // DataPack Optimization Configuration
+    private boolean dataPackOptimizationEnabled;
+    private int dataPackFileLoadThreads;
+    private int dataPackZipProcessThreads;
+    private int dataPackBatchSize;
+    private long dataPackCacheExpirationMinutes;
+    private boolean dataPackDebugEnabled;
 
     private boolean nitoriOptimizationsEnabled;
     private boolean virtualThreadEnabled;
@@ -199,7 +216,7 @@ public class ConfigManager {
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 1);
+        configVersion = config.getInt("version", 4);
         
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
@@ -225,6 +242,24 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
+        
+        // Algorithm Optimization Configuration Loading
+        structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
+        structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
+        structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
+        structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
+        structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
+        structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
+        biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
+        
+        // DataPack Optimization Configuration Loading
+        dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
+        dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
+        dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
+        dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
+        dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
+        dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
+        
         nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
         virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
         workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
@@ -236,7 +271,7 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 3;
+        final int CURRENT_CONFIG_VERSION = 4;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -429,9 +464,26 @@ public class ConfigManager {
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
         
+        // Algorithm Optimization Configuration Loading (reload method)
+        structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
+        structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
+        structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
+        structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
+        structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
+        structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
+        biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
+        
+        // DataPack Optimization Configuration Loading (reload method)
+        dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
+        dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
+        dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
+        dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
+        dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
+        dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
+        
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 3);
+        configVersion = config.getInt("version", 4);
         
         validateConfig();
     }
@@ -707,6 +759,23 @@ public class ConfigManager {
     public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
     public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
     public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
+    
+    // Algorithm Optimization Getters
+    public boolean isStructureAlgorithmOptimizationEnabled() { return structureAlgorithmOptimizationEnabled; }
+    public String getStructureSearchPattern() { return structureSearchPattern; }
+    public boolean isStructureCachingEnabled() { return structureCachingEnabled; }
+    public boolean isStructurePrecomputationEnabled() { return structurePrecomputationEnabled; }
+    public boolean isBiomeAwareSearchEnabled() { return biomeAwareSearchEnabled; }
+    public int getStructureCacheMaxSize() { return structureCacheMaxSize; }
+    public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
+    
+    // DataPack Optimization Getters
+    public boolean isDataPackOptimizationEnabled() { return dataPackOptimizationEnabled; }
+    public int getDataPackFileLoadThreads() { return dataPackFileLoadThreads; }
+    public int getDataPackZipProcessThreads() { return dataPackZipProcessThreads; }
+    public int getDataPackBatchSize() { return dataPackBatchSize; }
+    public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
+    public boolean isDataPackDebugEnabled() { return dataPackDebugEnabled; }
     
     public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
     public boolean isVirtualThreadEnabled() { return virtualThreadEnabled; }
