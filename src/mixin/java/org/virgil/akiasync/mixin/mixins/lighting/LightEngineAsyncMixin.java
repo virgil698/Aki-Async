@@ -47,61 +47,69 @@ public abstract class LightEngineAsyncMixin {
     @Inject(method = "checkBlock", at = @At("HEAD"), cancellable = true)
     private void batchLightUpdate(BlockPos pos, CallbackInfo ci) {
         if (!initialized) { akiasync$initLightEngine(); }
-        if (!enabled) return;
-        BlockPos immutablePos = pos.immutable();
-        if (deduplicationEnabled) {
-            if (!PENDING_UPDATES.add(immutablePos)) {
-                ci.cancel();
-                return;
-            }
-        }
-        if (useLayeredQueue) {
-            int lightLevel = getLightLevel(pos);
-            LAYERED_QUEUES[lightLevel].offer(immutablePos);
-            layerSizes[lightLevel].incrementAndGet();
-            UPDATE_METADATA.put(immutablePos, ((long)lightLevel << 32) | System.currentTimeMillis());
-        } else {
-            LIGHT_UPDATE_QUEUE.offer(immutablePos);
-            queueSize.incrementAndGet();
-        }
-        int totalSize = getTotalQueueSize();
-        if (dynamicAdjustmentEnabled) {
-            adjustBatchSize();
-        }
-        if (totalSize >= batchThreshold && !processing) {
-            processing = true;
-            ci.cancel();
-            batchCount++;
-            if (batchCount <= 3) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-LightEngine] Processing batch of " + totalSize + " light updates (threshold: " + batchThreshold + ")");
+        if (!enabled || processing) return;
+        
+        try {
+            BlockPos immutablePos = pos.immutable();
+            if (deduplicationEnabled) {
+                if (!PENDING_UPDATES.add(immutablePos)) {
+                    ci.cancel();
+                    return;
                 }
             }
-            if (lightingExecutor != null) {
-                CompletableFuture.runAsync(() -> {
+            
+            if (useLayeredQueue) {
+                int lightLevel = getLightLevel(pos);
+                LAYERED_QUEUES[lightLevel].offer(immutablePos);
+                layerSizes[lightLevel].incrementAndGet();
+                UPDATE_METADATA.put(immutablePos, ((long)lightLevel << 32) | System.currentTimeMillis());
+            } else {
+                LIGHT_UPDATE_QUEUE.offer(immutablePos);
+                queueSize.incrementAndGet();
+            }
+            
+            int totalSize = getTotalQueueSize();
+            if (dynamicAdjustmentEnabled) {
+                adjustBatchSize();
+            }
+            
+            if (totalSize >= batchThreshold && !processing) {
+                processing = true;
+                ci.cancel();
+                batchCount++;
+                if (batchCount <= 3) {
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.debugLog("[AkiAsync-LightEngine] Processing batch of " + totalSize + " light updates (threshold: " + batchThreshold + ")");
+                    }
+                }
+                if (lightingExecutor != null) {
+                    CompletableFuture.runAsync(() -> {
+                        if (useLayeredQueue) {
+                            processLayeredBatch();
+                        } else {
+                            processBatch();
+                        }
+                    }, lightingExecutor).orTimeout(1000, TimeUnit.MILLISECONDS).whenComplete((result, ex) -> {
+                        processing = false;
+                        if (ex != null && batchCount <= 3) {
+                            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (errorBridge != null) {
+                                errorBridge.debugLog("[AkiAsync-LightEngine] Batch processing timeout/error, fallback to sync");
+                            }
+                        }
+                    });
+                } else {
                     if (useLayeredQueue) {
                         processLayeredBatch();
                     } else {
                         processBatch();
                     }
-                }, lightingExecutor).orTimeout(1000, TimeUnit.MILLISECONDS).whenComplete((result, ex) -> {
                     processing = false;
-                    if (ex != null && batchCount <= 3) {
-                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                        if (errorBridge != null) {
-                            errorBridge.debugLog("[AkiAsync-LightEngine] Batch processing timeout/error, fallback to sync");
-                        }
-                    }
-                });
-            } else {
-                if (useLayeredQueue) {
-                    processLayeredBatch();
-                } else {
-                    processBatch();
                 }
-                processing = false;
             }
+        } catch (Exception e) {
+            processing = false;
         }
     }
     private void processLayeredBatch() {
@@ -177,9 +185,7 @@ public abstract class LightEngineAsyncMixin {
                 }
             }
         } catch (Exception e) {
-            LIGHT_UPDATE_QUEUE.clear();
-            queueSize.set(0);
-            PENDING_UPDATES.clear();
+            clearAllQueues();
         }
     }
     private void adjustBatchSize() {
@@ -216,17 +222,29 @@ public abstract class LightEngineAsyncMixin {
         }
         return queueSize.get();
     }
-    private void clearAllQueues() {
-        for (Queue<BlockPos> queue : LAYERED_QUEUES) {
-            queue.clear();
+    private synchronized void clearAllQueues() {
+        try {
+            processing = true;
+            
+            for (int i = 0; i < LAYERED_QUEUES.length; i++) {
+                Queue<BlockPos> queue = LAYERED_QUEUES[i];
+                if (queue != null) {
+                    queue.clear();
+                }
+                if (layerSizes[i] != null) {
+                    layerSizes[i].set(0);
+                }
+            }
+            
+            LIGHT_UPDATE_QUEUE.clear();
+            queueSize.set(0);
+            PENDING_UPDATES.clear();
+            UPDATE_METADATA.clear();
+            
+        } catch (Exception e) {
+        } finally {
+            processing = false;
         }
-        for (AtomicInteger size : layerSizes) {
-            size.set(0);
-        }
-        LIGHT_UPDATE_QUEUE.clear();
-        queueSize.set(0);
-        PENDING_UPDATES.clear();
-        UPDATE_METADATA.clear();
     }
     private int getLightLevel(BlockPos pos) {
         try {

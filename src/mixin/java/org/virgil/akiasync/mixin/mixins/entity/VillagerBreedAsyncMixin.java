@@ -42,6 +42,14 @@ public class VillagerBreedAsyncMixin {
             return;
         }
         
+        if (aki$isInBreedingMode(villager)) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Breed] Villager in breeding mode, skipping optimization");
+            }
+            return;
+        }
+        
         BlockPos pos = villager.blockPosition();
         long currentTick = level.getGameTime();
         
@@ -136,6 +144,14 @@ public class VillagerBreedAsyncMixin {
             return true;
         }
         
+        if (aki$hasItemsToShare(villager)) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Food] Villager has items to share, preserving AI");
+            }
+            return true;
+        }
+        
         net.minecraft.world.entity.npc.VillagerData villagerData = villager.getVillagerData();
         int currentLevel = villagerData.level();
         int villagerXp = villager.getVillagerXp();
@@ -174,7 +190,24 @@ public class VillagerBreedAsyncMixin {
         
         java.util.Optional<?> breedTarget = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
         if (breedTarget.isPresent()) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Breed] Villager has breed target, preserving AI");
+            }
             return true;
+        }
+        
+        java.util.Optional<?> meetingPoint = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.MEETING_POINT);
+        if (meetingPoint.isPresent()) {
+            return true;
+        }
+        
+        java.util.Optional<?> home = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
+        if (home.isPresent()) {
+            java.util.Optional<Long> lastSlept = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.LAST_SLEPT);
+            if (lastSlept.isEmpty() || (currentTime - lastSlept.get()) > 24000L) { // 超过一天没睡
+                return true;
+            }
         }
         
         java.util.Optional<?> walkTarget = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
@@ -185,8 +218,103 @@ public class VillagerBreedAsyncMixin {
         java.util.Set<net.minecraft.world.entity.schedule.Activity> activeActivities = brain.getActiveActivities();
         if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.WORK) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.MEET) ||
-            activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
+            activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC) ||
+            activeActivities.contains(net.minecraft.world.entity.schedule.Activity.REST) ||
+            activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
+            
+            if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog("[AkiAsync-Panic] Villager in panic state, preserving AI for safety");
+                }
+            }
             return true;
+        }
+        
+        java.util.Optional<?> avoidTarget = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.AVOID_TARGET);
+        if (avoidTarget.isPresent()) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Avoid] Villager has avoid target, preserving AI for safety");
+            }
+            return true;
+        }
+        
+        if (villager.canBreed()) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Breed] Villager can breed, preserving AI");
+            }
+            return true;
+        }
+        
+        return false;
+    }
+    
+    @Unique
+    private boolean aki$isInBreedingMode(Villager villager) {
+        net.minecraft.world.entity.ai.Brain<?> brain = villager.getBrain();
+        
+        java.util.Optional<?> breedTarget = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
+        if (breedTarget.isPresent()) {
+            return true;
+        }
+        
+        java.util.Set<net.minecraft.world.entity.schedule.Activity> activeActivities = brain.getActiveActivities();
+        if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.MEET)) {
+            return true;
+        }
+        
+        if (villager.canBreed()) {
+            java.util.List<Villager> nearbyVillagers = villager.level().getEntitiesOfClass(
+                Villager.class, 
+                villager.getBoundingBox().inflate(8.0), 
+                v -> v != villager && v.canBreed() && !v.isBaby()
+            );
+            if (!nearbyVillagers.isEmpty()) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog("[AkiAsync-Breed] Villager can breed and has nearby partners (" + nearbyVillagers.size() + ")");
+                }
+                return true;
+            }
+        }
+        
+        java.util.Optional<?> home = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
+        if (home.isPresent() && villager.canBreed()) {
+            return true;
+        }
+        
+        java.util.Optional<?> walkTarget = brain.getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
+        if (walkTarget.isPresent() && villager.canBreed()) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    @Unique
+    private boolean aki$hasItemsToShare(Villager villager) {
+        
+        net.minecraft.world.SimpleContainer inventory = villager.getInventory();
+        boolean isFarmer = villager.getVillagerData().profession().is(net.minecraft.world.entity.npc.VillagerProfession.FARMER);
+        
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            net.minecraft.world.item.ItemStack stack = inventory.getItem(i);
+            if (stack.isEmpty()) continue;
+            
+            net.minecraft.world.item.Item item = stack.getItem();
+            int count = stack.getCount();
+            
+            if (item == net.minecraft.world.item.Items.BREAD && count >= 6) {
+                return true;
+            } else if ((item == net.minecraft.world.item.Items.CARROT || 
+                       item == net.minecraft.world.item.Items.POTATO || 
+                       item == net.minecraft.world.item.Items.BEETROOT) && count >= 24) {
+                return true;
+            } else if (isFarmer && item == net.minecraft.world.item.Items.WHEAT && count >= 18) {
+                return true;
+            }
         }
         
         return false;
