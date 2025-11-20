@@ -41,9 +41,15 @@ public abstract class UniversalAiFamilyTickMixin {
         }
         Mob mob = (Mob) (Object) this;
         ServerLevel level = (ServerLevel) mob.level();
-        if (level == null || level.getGameTime() < aki$next) return;
+        if (level == null) return;
+        
+        boolean isNewEntity = aki$next == 0;
+        boolean inDanger = mob.isInLava() || mob.isOnFire() || mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0;
+        
+        if (!isNewEntity && !inDanger && level.getGameTime() < aki$next) return;
+        
         aki$next = level.getGameTime() + 3;
-        if (respectBrainThrottle && aki$shouldSkipDueToStill(mob)) {
+        if (respectBrainThrottle && !inDanger && aki$shouldSkipDueToStill(mob)) {
             return;
         }
         try {
@@ -56,6 +62,12 @@ public abstract class UniversalAiFamilyTickMixin {
     }
     @Unique
     private boolean aki$shouldSkipDueToStill(Mob mob) {
+        if (mob.isInLava() || mob.isOnFire()) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
         Vec3 cur = mob.position();
         if (aki$lastPos == null) {
             aki$lastPos = cur;
@@ -66,7 +78,7 @@ public abstract class UniversalAiFamilyTickMixin {
         double dy = cur.y - aki$lastPos.y;
         double dz = cur.z - aki$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
-        if (!mob.isInWater() && mob.onGround() && dist2 < 1.0E-4) {
+        if (!mob.isInWater() && !mob.isInLava() && mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
                 if (aki$shouldProtectAI(mob)) {
@@ -96,6 +108,14 @@ public abstract class UniversalAiFamilyTickMixin {
         }
         
         if (mob.getTarget() != null) {
+            return true;
+        }
+        
+        if (mob.isInLava() || mob.isOnFire()) {
+            return true;
+        }
+        
+        if (mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0) {
             return true;
         }
         

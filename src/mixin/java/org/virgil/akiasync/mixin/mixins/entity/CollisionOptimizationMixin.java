@@ -15,6 +15,12 @@ public abstract class CollisionOptimizationMixin {
         if (!initialized) { akiasync$initCollisionOptimization(); }
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
+        
+        // 岩浆或火焰中的实体必须每tick检测，确保持续伤害
+        if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+            return; // 不跳过检测
+        }
+        
         if (self.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
