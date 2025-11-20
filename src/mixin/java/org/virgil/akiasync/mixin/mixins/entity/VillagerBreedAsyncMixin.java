@@ -270,7 +270,7 @@ public class VillagerBreedAsyncMixin {
         java.util.Optional<?> home = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
         if (home != null && home.isPresent()) {
             java.util.Optional<?> lastSlept = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.LAST_SLEPT);
-            if (lastSlept == null || lastSlept.isEmpty() || (lastSlept.get() instanceof Long && (currentTime - (Long)lastSlept.get()) > 24000L)) { // 超过一天没睡
+            if (lastSlept == null || lastSlept.isEmpty() || (lastSlept.get() instanceof Long && (currentTime - (Long)lastSlept.get()) > 24000L)) {
                 return true;
             }
         }
