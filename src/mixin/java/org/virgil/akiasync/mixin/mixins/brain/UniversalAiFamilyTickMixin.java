@@ -25,6 +25,8 @@ public abstract class UniversalAiFamilyTickMixin {
     @Unique private static volatile boolean respectBrainThrottle;
     @Unique private static volatile boolean init = false;
     @Unique private static volatile boolean debugEnabled = false;
+    @Unique private static volatile boolean isFolia = false;
+    @Unique private static volatile int tickInterval = 3;
     @Unique private static long protectionCount = 0;
     @Unique private static long totalChecks = 0;
     @Unique private UniversalAiSnapshot aki$snap;
@@ -48,7 +50,7 @@ public abstract class UniversalAiFamilyTickMixin {
         
         if (!isNewEntity && !inDanger && level.getGameTime() < aki$next) return;
         
-        aki$next = level.getGameTime() + 3;
+        aki$next = level.getGameTime() + tickInterval;
         if (respectBrainThrottle && !inDanger && aki$shouldSkipDueToStill(mob)) {
             return;
         }
@@ -175,15 +177,36 @@ public abstract class UniversalAiFamilyTickMixin {
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;
+        
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {
+            isFolia = false;
+        }
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         enabled = bridge != null && bridge.isUniversalAiOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         enabledEntities = bridge != null ? bridge.getUniversalAiEntities() : java.util.Collections.emptySet();
         respectBrainThrottle = bridge != null && bridge.isBrainThrottleEnabled();
         debugEnabled = bridge != null && bridge.isDebugLoggingEnabled();
-        init = true;
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized: enabled=" + enabled);
+        
+        if (isFolia) {
+            tickInterval = Math.max(1, 3 / 2);
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized in Folia mode:");
+                bridge.debugLog("  - Enabled: " + enabled);
+                bridge.debugLog("  - Tick interval: " + tickInterval + " (reduced from 3 for region parallelism)");
+                bridge.debugLog("  - Respect brain throttle: " + respectBrainThrottle);
+            }
+        } else {
+            tickInterval = 3;
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized: enabled=" + enabled + ", tickInterval=" + tickInterval);
+            }
         }
+        
+        init = true;
     }
 }

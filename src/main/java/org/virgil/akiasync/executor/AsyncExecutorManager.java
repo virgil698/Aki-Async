@@ -12,10 +12,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.compat.FoliaExecutorAdapter;
 public class AsyncExecutorManager {
     private final AkiAsyncPlugin plugin;
     private final ThreadPoolExecutor executorService;
     private final ThreadPoolExecutor lightingExecutor;
+    private final ExecutorService tntExecutor;
+    private final ExecutorService chunkTickExecutor;
+    private final ExecutorService villagerBreedExecutor;
+    private final ExecutorService brainExecutor;
     private final ScheduledExecutorService metricsExecutor;
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -61,6 +66,14 @@ public class AsyncExecutorManager {
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
         int lightingPrestarted = lightingExecutor.prestartAllCoreThreads();
+        
+        int tntThreads = plugin.getConfigManager().getTNTThreads();
+        this.tntExecutor = new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT");
+        
+        this.chunkTickExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-ChunkTick");
+        this.villagerBreedExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-VillagerBreed");
+        this.brainExecutor = new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain");
+        
         this.metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "AkiAsync-Metrics");
             thread.setDaemon(true);
@@ -68,6 +81,10 @@ public class AsyncExecutorManager {
         });
         plugin.getLogger().info("General executor initialized: " + threadPoolSize + " threads (prestarted: " + prestarted + ")");
         plugin.getLogger().info("Lighting executor initialized: " + lightingThreads + " threads (prestarted: " + lightingPrestarted + ")");
+        plugin.getLogger().info("TNT executor initialized: " + tntThreads + " threads (Folia-compatible)");
+        plugin.getLogger().info("ChunkTick executor initialized: 4 threads (Folia-compatible)");
+        plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
+        plugin.getLogger().info("Brain executor initialized: " + (threadPoolSize / 2) + " threads (Folia-compatible)");
     }
     public Future<?> submit(Runnable task) {
         return executorService.submit(task);
@@ -82,6 +99,10 @@ public class AsyncExecutorManager {
         plugin.getLogger().info("Shutting down async executors...");
         executorService.shutdown();
         lightingExecutor.shutdown();
+        tntExecutor.shutdown();
+        chunkTickExecutor.shutdown();
+        villagerBreedExecutor.shutdown();
+        brainExecutor.shutdown();
         metricsExecutor.shutdown();
         try {
             if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
@@ -92,10 +113,30 @@ public class AsyncExecutorManager {
                 plugin.getLogger().warning("Lighting executor did not terminate in time, forcing shutdown...");
                 lightingExecutor.shutdownNow();
             }
+            if (!tntExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("TNT executor did not terminate in time, forcing shutdown...");
+                tntExecutor.shutdownNow();
+            }
+            if (!chunkTickExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("ChunkTick executor did not terminate in time, forcing shutdown...");
+                chunkTickExecutor.shutdownNow();
+            }
+            if (!villagerBreedExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("VillagerBreed executor did not terminate in time, forcing shutdown...");
+                villagerBreedExecutor.shutdownNow();
+            }
+            if (!brainExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("Brain executor did not terminate in time, forcing shutdown...");
+                brainExecutor.shutdownNow();
+            }
             metricsExecutor.shutdownNow();
         } catch (InterruptedException e) {
             executorService.shutdownNow();
             lightingExecutor.shutdownNow();
+            tntExecutor.shutdownNow();
+            chunkTickExecutor.shutdownNow();
+            villagerBreedExecutor.shutdownNow();
+            brainExecutor.shutdownNow();
             metricsExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -106,6 +147,18 @@ public class AsyncExecutorManager {
     }
     public ExecutorService getLightingExecutor() {
         return lightingExecutor;
+    }
+    public ExecutorService getTNTExecutor() {
+        return tntExecutor;
+    }
+    public ExecutorService getChunkTickExecutor() {
+        return chunkTickExecutor;
+    }
+    public ExecutorService getVillagerBreedExecutor() {
+        return villagerBreedExecutor;
+    }
+    public ExecutorService getBrainExecutor() {
+        return brainExecutor;
     }
     public String getStatistics() {
         return String.format(

@@ -20,6 +20,7 @@ public abstract class EntityTickChunkParallelMixin {
     private static volatile int batchSize;
     private static volatile boolean initialized = false;
     private static volatile java.util.concurrent.ExecutorService dedicatedPool;
+    private static volatile boolean isFolia = false;
     private static int executionCount = 0;
     private static long lastMspt = 20;
     private static final java.lang.reflect.Field ACTIVE_FIELD_CACHE;
@@ -69,6 +70,9 @@ public abstract class EntityTickChunkParallelMixin {
                 .map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
                     batch.forEach(entity -> {
                         try {
+                            if (akiasync$isVirtualEntity(entity)) {
+                                return;
+                            }
                             action.accept(entity);
                         } catch (Throwable t) {
                         }
@@ -119,11 +123,54 @@ public abstract class EntityTickChunkParallelMixin {
         }
         return null;
     }
+
+    private boolean akiasync$isVirtualEntity(EntityAccess entity) {
+        if (entity == null) return false;
+        
+        try {
+            if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
+                net.minecraft.world.level.Level level = realEntity.level();
+                if (level != null) {
+                    java.util.UUID uuid = realEntity.getUUID();
+                    if (uuid == null) return true;
+                    
+                    net.minecraft.world.entity.Entity foundEntity = level.getEntity(realEntity.getId());
+                    if (foundEntity == null || foundEntity != realEntity) {
+                        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                            bridge.debugLog("[AkiAsync-Parallel] Detected potential virtual entity: " +
+                                "type=" + realEntity.getType().getDescriptionId() + ", id=" + realEntity.getId() + 
+                                ", uuid=" + uuid + ", found=" + (foundEntity != null));
+                        }
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            return true;
+        }
+        
+        return false;
+    }
+    
     private static synchronized void akiasync$initEntityTickParallel() {
         if (initialized) return;
+        
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {
+            isFolia = false;
+        }
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            enabled = bridge.isEntityTickParallel();
+            if (isFolia) {
+                enabled = false;
+                bridge.debugLog("[AkiAsync] EntityTickParallelMixin disabled in Folia mode (Region threading already handles parallelism)");
+            } else {
+                enabled = bridge.isEntityTickParallel();
+            }
             threads = bridge.getEntityTickThreads();
             minEntities = bridge.getMinEntitiesForParallel();
             batchSize = bridge.getEntityTickBatchSize();
@@ -138,7 +185,7 @@ public abstract class EntityTickChunkParallelMixin {
         initialized = true;
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] EntityTickParallelMixin initialized (entity-batched): enabled=" + enabled + 
-                ", batchSize=" + batchSize + ", minEntities=" + minEntities + 
+                ", isFolia=" + isFolia + ", batchSize=" + batchSize + ", minEntities=" + minEntities + 
                 ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
         }
     }

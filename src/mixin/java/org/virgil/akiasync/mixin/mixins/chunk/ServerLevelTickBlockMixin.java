@@ -33,37 +33,71 @@ public abstract class ServerLevelTickBlockMixin {
             return;
         }
 
-        ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
-            try {
-                blockState.tick(level, pos, level.random);
-            } catch (Throwable t) {
-                StackTraceElement[] stack = t.getStackTrace();
-                boolean isAsyncCatcherError = stack.length > 0 && 
-                    stack[0].getClassName().equals("org.spigotmc.AsyncCatcher");
-                
-                if (isAsyncCatcherError) {
-                    level.getServer().execute(() -> {
-                        try {
-                            BlockState state = level.getBlockState(pos);
-                            if (state.is(block)) state.tick(level, pos, level.random);
-                        } catch (Throwable ignored) {
-                        }
-                    });
-                } else {
-                    org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (errorBridge != null) {
-                        errorBridge.errorLog("[AkiAsync-BlockTick] Error in async block tick: " + t.getMessage() + " for " + block + ": " + t.getClass().getSimpleName());
-                    }
-                    level.getServer().execute(() -> {
-                        try {
-                            BlockState state = level.getBlockState(pos);
-                            if (state.is(block)) state.tick(level, pos, level.random);
-                        } catch (Throwable ignored) {
-                        }
-                    });
-                }
+        if (aki$isRedstoneRelatedBlock(block)) {
+            return;
+        }
+        
+        if (aki$isFoliaEnvironment()) {
+            if (aki$requiresMainThreadInFolia(block)) {
+                return;
             }
-        });
+        }
+
+        if (ASYNC_BLOCK_TICK_EXECUTOR == null || ASYNC_BLOCK_TICK_EXECUTOR.isShutdown()) {
+            return;
+        }
+        
+        try {
+            ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
+                try {
+                    BlockState currentState = level.getBlockState(pos);
+                    if (!currentState.is(block)) {
+                        return;
+                    }
+                    
+                    currentState.tick(level, pos, level.random);
+                } catch (Throwable t) {
+                    StackTraceElement[] stack = t.getStackTrace();
+                    boolean isAsyncCatcherError = stack.length > 0 && 
+                        stack[0].getClassName().equals("org.spigotmc.AsyncCatcher");
+                    
+                    if (isAsyncCatcherError) {
+                        level.getServer().execute(() -> {
+                            try {
+                                BlockState state = level.getBlockState(pos);
+                                if (state.is(block)) {
+                                    state.tick(level, pos, level.random);
+                                }
+                            } catch (Throwable ignored) {
+                            }
+                        });
+                    } else {
+                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (errorBridge != null) {
+                            errorBridge.errorLog("[AkiAsync-BlockTick] Async block tick failed: " + t.getMessage() + 
+                                " for " + block.getDescriptionId() + " at " + pos + ": " + t.getClass().getSimpleName());
+                        }
+                        
+                        level.getServer().execute(() -> {
+                            try {
+                                BlockState state = level.getBlockState(pos);
+                                if (state.is(block)) {
+                                    state.tick(level, pos, level.random);
+                                }
+                            } catch (Throwable ignored) {
+                            }
+                        });
+                    }
+                }
+            });
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (errorBridge != null) {
+                errorBridge.errorLog("[AkiAsync-BlockTick] Failed to submit async task: " + e.getMessage() + 
+                    ", falling back to sync execution");
+            }
+            return;
+        }
 
         ci.cancel();
     }
@@ -85,6 +119,58 @@ public abstract class ServerLevelTickBlockMixin {
             bridge.debugLog("[AkiAsync]   Hooked: ServerLevel#tickBlock()");
             bridge.debugLog("[AkiAsync]   Strategy: Offload blockState.tick() to Bridge executor");
             bridge.debugLog("[AkiAsync]   Risk: Thread safety depends on block implementation");
+            bridge.debugLog("[AkiAsync]   Protection: Redstone blocks execute on main thread");
         }
+    }
+    
+    @Unique
+    private static boolean aki$isRedstoneRelatedBlock(Block block) {
+        String blockId = aki$getBlockId(block);
+        
+        return blockId.contains("redstone") ||
+               blockId.contains("repeater") ||
+               blockId.contains("comparator") ||
+               blockId.contains("piston") ||
+               blockId.contains("observer") ||
+               blockId.contains("dispenser") ||
+               blockId.contains("dropper") ||
+               blockId.contains("hopper") ||
+               blockId.contains("rail") ||
+               blockId.contains("door") ||
+               blockId.contains("trapdoor") ||
+               blockId.contains("fence_gate") ||
+               blockId.contains("daylight_detector") ||
+               blockId.contains("tripwire") ||
+               blockId.contains("pressure_plate") ||
+               blockId.contains("button") ||
+               blockId.contains("lever") ||
+               blockId.contains("torch") ||
+               blockId.contains("lamp");
+    }
+    
+    @Unique
+    private static boolean aki$isFoliaEnvironment() {
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        return bridge != null && bridge.isFoliaEnvironment();
+    }
+    
+    @Unique
+    private static boolean aki$requiresMainThreadInFolia(Block block) {
+        String blockId = aki$getBlockId(block);
+        
+        return blockId.contains("command") ||
+               blockId.contains("structure") ||
+               blockId.contains("jigsaw") ||
+               blockId.contains("barrier") ||
+               blockId.contains("bedrock");
+    }
+
+    @Unique
+    private static String aki$getBlockId(Block block) {
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            return bridge.getBlockId(block);
+        }
+        return block.getClass().getSimpleName().toLowerCase();
     }
 }

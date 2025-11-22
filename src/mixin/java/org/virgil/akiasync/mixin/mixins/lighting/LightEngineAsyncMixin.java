@@ -27,6 +27,7 @@ public abstract class LightEngineAsyncMixin {
     private static volatile boolean dynamicAdjustmentEnabled = true;
     private static volatile boolean advancedStatsEnabled = false;
     private static volatile boolean initialized = false;
+    private static volatile boolean isFolia = false;
     @SuppressWarnings("unchecked")
     private static final Queue<BlockPos>[] LAYERED_QUEUES = new Queue[16];
     private static final AtomicInteger[] layerSizes = new AtomicInteger[16];
@@ -256,6 +257,14 @@ public abstract class LightEngineAsyncMixin {
     }
     private static synchronized void akiasync$initLightEngine() {
         if (initialized) return;
+        
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {
+            isFolia = false;
+        }
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isAsyncLightingEnabled();
@@ -266,6 +275,23 @@ public abstract class LightEngineAsyncMixin {
             deduplicationEnabled = bridge.isLightDeduplicationEnabled();
             dynamicAdjustmentEnabled = bridge.isDynamicBatchAdjustmentEnabled();
             advancedStatsEnabled = bridge.isAdvancedLightingStatsEnabled();
+            baseBatchThreshold = batchThreshold;
+            
+            if (isFolia) {
+                bridge.debugLog("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized in Folia mode:");
+                bridge.debugLog("  - Enabled: " + enabled + " (with region safety checks)");
+                bridge.debugLog("  - Batch threshold: " + batchThreshold + " (dynamic: " + dynamicAdjustmentEnabled + ")");
+                bridge.debugLog("  - Layered queue (16 levels): " + useLayeredQueue);
+                bridge.debugLog("  - Region-aware async processing enabled");
+            } else {
+                bridge.debugLog("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized:");
+                bridge.debugLog("  - Enabled: " + enabled);
+                bridge.debugLog("  - Batch threshold: " + batchThreshold + " (dynamic: " + dynamicAdjustmentEnabled + ")");
+                bridge.debugLog("  - Layered queue (16 levels): " + useLayeredQueue);
+                bridge.debugLog("  - Max propagation distance: " + maxPropagationDistance);
+                bridge.debugLog("  - Deduplication: " + deduplicationEnabled);
+                bridge.debugLog("  - Advanced stats: " + advancedStatsEnabled);
+            }
         } else {
             enabled = false;
             lightingExecutor = null;
@@ -276,17 +302,6 @@ public abstract class LightEngineAsyncMixin {
             dynamicAdjustmentEnabled = true;
             advancedStatsEnabled = false;
         }
-        baseBatchThreshold = batchThreshold;
         initialized = true;
-        org.virgil.akiasync.mixin.bridge.Bridge initBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (initBridge != null) {
-            initBridge.debugLog("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized:");
-            initBridge.debugLog("  - Enabled: " + enabled);
-            initBridge.debugLog("  - Batch threshold: " + batchThreshold + " (dynamic: " + dynamicAdjustmentEnabled + ")");
-            initBridge.debugLog("  - Layered queue (16 levels): " + useLayeredQueue);
-            initBridge.debugLog("  - Max propagation distance: " + maxPropagationDistance);
-            initBridge.debugLog("  - Deduplication: " + deduplicationEnabled);
-            initBridge.debugLog("  - Advanced stats: " + advancedStatsEnabled);
-        }
     }
 }

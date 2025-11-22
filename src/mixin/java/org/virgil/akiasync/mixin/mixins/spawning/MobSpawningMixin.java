@@ -14,12 +14,14 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.phys.AABB;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 @SuppressWarnings("unused")
 @Mixin(NaturalSpawner.class)
 public abstract class MobSpawningMixin {
     private static volatile boolean cached_enabled;
     private static volatile int cached_maxPerChunk;
     private static volatile boolean initialized = false;
+    private static volatile boolean isFolia = false;
     @WrapOperation(
         method = "spawnCategoryForPosition",
         at = @At(
@@ -53,12 +55,24 @@ public abstract class MobSpawningMixin {
         return ok;
     }
     private static boolean isChunkOverDensity(ServerLevel level, MobCategory category, BlockPos pos) {
+        if (isFolia) {
+            try {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeManager.getBridge();
+                if (bridge == null || !bridge.canAccessBlockPosDirectly(level, pos)) {
+                    return false;
+                }
+            } catch (Throwable t) {
+                return false;
+            }
+        }
+        
         try {
             int cx = (pos.getX() >> 4) << 4;
             int cz = (pos.getZ() >> 4) << 4;
             int minY = level.dimensionType().minY();
             int maxY = minY + level.dimensionType().height();
             AABB box = new AABB(cx, minY, cz, cx + 16, maxY, cz + 16);
+            
             int mobCount = level.getEntitiesOfClass(Mob.class, box, m -> m.getType().getCategory() == category).size();
             return cached_maxPerChunk > 0 && mobCount >= cached_maxPerChunk;
         } catch (Throwable ignored) {
@@ -67,17 +81,29 @@ public abstract class MobSpawningMixin {
     }
     private static synchronized void akiasync$initMobSpawning() {
         if (initialized) return;
+        
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {
+            isFolia = false;
+        }
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isMobSpawningEnabled();
             cached_maxPerChunk = bridge.getMaxEntitiesPerChunk();
+            
+            if (isFolia) {
+                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized in Folia mode: enabled=" + cached_enabled + 
+                    ", maxPerChunk=" + cached_maxPerChunk + " (with region safety checks)");
+            } else {
+                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
+            }
         } else {
             cached_enabled = false;
             cached_maxPerChunk = 80;
         }
         initialized = true;
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
-        }
     }
 }
