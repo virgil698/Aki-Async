@@ -73,7 +73,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
         
-        registerCommand("aki-reload", new ReloadCommand());
+        registerCommand("aki-reload", new ReloadCommand(this));
         registerCommand("aki-debug", new DebugCommand(this));
         registerCommand("aki-version", new VersionCommand(this));
         

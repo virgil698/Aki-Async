@@ -575,5 +575,20 @@ performance:
   # Description: Show async task execution times and queue sizes
   enable-metrics: true
 
+# ==========================================
+# 指令配置 / Command Configuration
+# ==========================================
+commands:
+  # /aki-reload 指令配置 / /aki-reload command configuration
+  reload:
+    # 启用二次确认 / Enable confirmation
+    # 说明：启用后，首次执行指令会发出警告，需要再次执行才能重载
+    # Description: When enabled, first execution shows warning, requires second execution to reload
+    require-confirmation: true
+    # 确认超时时间（秒）/ Confirmation timeout (seconds)
+    # 说明：超过此时间后需要重新确认
+    # Description: After this time, confirmation is reset and warning will show again
+    confirmation-timeout: 30
+
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
