@@ -32,7 +32,15 @@ public class ExplosionCalculator {
             bridge.isTNTVanillaCompatibilityEnabled() && 
             bridge.isTNTUseFullRaycast();
         
-        this.scheduler = OptimizationManager.getInstance().getTaskScheduler();
+        WorkStealingTaskScheduler tempScheduler = null;
+        if (!isFoliaEnvironment()) {
+            try {
+                tempScheduler = OptimizationManager.getInstance().getTaskScheduler();
+            } catch (Exception e) {
+                tempScheduler = null;
+            }
+        }
+        this.scheduler = tempScheduler;
     }
 
     public ExplosionResult calculate() {
@@ -211,7 +219,7 @@ public class ExplosionCalculator {
             BlockPos blockPos = new BlockPos((int)Math.floor(pos.x), (int)Math.floor(pos.y), (int)Math.floor(pos.z));
             BlockState state = snapshot.getBlockState(blockPos);
             
-            if (!state.isAir() && !state.getFluidState().isEmpty() == false) {
+            if (!state.isAir() && state.getFluidState().isEmpty()) {
                 float resistance = state.getBlock().getExplosionResistance();
                 if (resistance > 0.5f) {
                     return true;
@@ -219,5 +227,19 @@ public class ExplosionCalculator {
             }
         }
         return false;
+    }
+    
+    private static volatile Boolean isFolia = null;
+    
+    private static boolean isFoliaEnvironment() {
+        if (isFolia == null) {
+            try {
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+                isFolia = true;
+            } catch (ClassNotFoundException e) {
+                isFolia = false;
+            }
+        }
+        return isFolia;
     }
 }

@@ -13,12 +13,20 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     private ConfigManager config;
     private final ExecutorService generalExecutor;
     private final ExecutorService lightingExecutor;
+    private final ExecutorService tntExecutor;
+    private final ExecutorService chunkTickExecutor;
+    private final ExecutorService villagerBreedExecutor;
+    private final ExecutorService brainExecutor;
     
-    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor) {
+    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor) {
         this.plugin = plugin;
         this.config = plugin.getConfigManager();
         this.generalExecutor = generalExecutor;
         this.lightingExecutor = lightingExecutor;
+        this.tntExecutor = tntExecutor;
+        this.chunkTickExecutor = chunkTickExecutor;
+        this.villagerBreedExecutor = villagerBreedExecutor;
+        this.brainExecutor = brainExecutor;
     }
     
     @Override
@@ -170,6 +178,18 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public ExecutorService getGeneralExecutor() { return generalExecutor; }
     
     @Override
+    public ExecutorService getTNTExecutor() { return tntExecutor != null ? tntExecutor : generalExecutor; }
+    
+    @Override
+    public ExecutorService getChunkTickExecutor() { return chunkTickExecutor != null ? chunkTickExecutor : generalExecutor; }
+    
+    @Override
+    public ExecutorService getVillagerBreedExecutor() { return villagerBreedExecutor != null ? villagerBreedExecutor : generalExecutor; }
+    
+    @Override
+    public ExecutorService getBrainExecutor() { return brainExecutor != null ? brainExecutor : generalExecutor; }
+    
+    @Override
     public boolean isAsyncLightingEnabled() {return config.isAsyncLightingEnabled();}
     
     @Override
@@ -263,6 +283,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isTNTUseVanillaDamageCalculation() {return config.isTNTUseVanillaDamageCalculation();}
     
     @Override
+    public boolean isBeeFixEnabled() {return config.isBeeFixEnabled();}
+    
+    @Override
     public boolean isTNTUseFullRaycast() {return config.isTNTUseFullRaycast();}
     
     @Override
@@ -273,6 +296,53 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
     @Override
     public boolean isDebugLoggingEnabled() {return config.isDebugLoggingEnabled();}
+    
+    @Override
+    public boolean isFoliaEnvironment() {return org.virgil.akiasync.util.FoliaUtils.isFoliaEnvironment();}
+    
+    @Override
+    public boolean isOwnedByCurrentRegion(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+        net.minecraft.world.phys.Vec3 vec = net.minecraft.world.phys.Vec3.atCenterOf(pos);
+        return org.virgil.akiasync.util.FoliaUtils.isOwnedByCurrentRegion(level, vec);
+    }
+    
+    @Override
+    public void scheduleRegionTask(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, Runnable task) {
+        net.minecraft.world.phys.Vec3 vec = net.minecraft.world.phys.Vec3.atCenterOf(pos);
+        org.virgil.akiasync.util.FoliaUtils.scheduleRegionTask(level, vec, task);
+    }
+    
+    @Override
+    public boolean canAccessEntityDirectly(net.minecraft.world.entity.Entity entity) {
+        return org.virgil.akiasync.compat.FoliaRegionContext.canAccessEntityDirectly(entity);
+    }
+    
+    @Override
+    public boolean canAccessBlockPosDirectly(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        return org.virgil.akiasync.compat.FoliaRegionContext.canAccessBlockPosDirectly(level, pos);
+    }
+    
+    @Override
+    public void safeExecute(Runnable task, String context) {
+        org.virgil.akiasync.util.ExceptionHandler.safeExecute(task, context);
+    }
+    
+    @Override
+    public String checkExecutorHealth(java.util.concurrent.ExecutorService executor, String name) {
+        org.virgil.akiasync.util.ExecutorHealthChecker.HealthStatus status = 
+            org.virgil.akiasync.util.ExecutorHealthChecker.checkHealth(executor, name);
+        return status.toString();
+    }
+    
+    @Override
+    public String getBlockId(net.minecraft.world.level.block.Block block) {
+        try {
+            net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
+            return key != null ? key.toString() : "unknown";
+        } catch (Exception e) {
+            return block.getClass().getSimpleName().toLowerCase();
+        }
+    }
     
     public void updateConfiguration(ConfigManager newConfig) {
         this.config = newConfig;

@@ -31,7 +31,15 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         cacheManager = new CacheManager(this);
         executorManager = new AsyncExecutorManager(this);
         
-        bridge = new AkiAsyncBridge(this, executorManager.getExecutorService(), executorManager.getLightingExecutor());
+        bridge = new AkiAsyncBridge(
+            this, 
+            executorManager.getExecutorService(), 
+            executorManager.getLightingExecutor(), 
+            executorManager.getTNTExecutor(),
+            executorManager.getChunkTickExecutor(),
+            executorManager.getVillagerBreedExecutor(),
+            executorManager.getBrainExecutor()
+        );
         BridgeManager.setBridge(bridge);
         
         getLogger().info("[AkiAsync] Bridge registered successfully");
@@ -65,7 +73,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
         
-        registerCommand("aki-reload", new ReloadCommand());
+        registerCommand("aki-reload", new ReloadCommand(this));
         registerCommand("aki-debug", new DebugCommand(this));
         registerCommand("aki-version", new VersionCommand(this));
         

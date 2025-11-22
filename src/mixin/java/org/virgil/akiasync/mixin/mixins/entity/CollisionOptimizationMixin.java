@@ -16,7 +16,38 @@ public abstract class CollisionOptimizationMixin {
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
         
+        if (akiasync$isVirtualEntity(self)) {
+            return;
+        }
+        
         if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+            return;
+        }
+        
+        if (self instanceof net.minecraft.world.entity.player.Player player) {
+            if (player.isInPowderSnow || player.getTicksFrozen() > 0) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for powder snow: " +
+                        "inPowderSnow=" + player.isInPowderSnow + ", ticksFrozen=" + player.getTicksFrozen());
+                }
+                return;
+            }
+        }
+        
+        if (self instanceof net.minecraft.world.entity.LivingEntity living) {
+            if (living.getTicksFrozen() > 0) {
+                return;
+            }
+        }
+        
+        if (self instanceof net.minecraft.world.entity.item.ItemEntity item) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for ItemEntity: " +
+                    "inLava=" + item.isInLava() + ", onFire=" + item.isOnFire() + 
+                    ", fireTicks=" + item.getRemainingFireTicks());
+            }
             return;
         }
         
@@ -28,11 +59,43 @@ public abstract class CollisionOptimizationMixin {
     private void optimizeEntityPush(Entity other, CallbackInfo ci) {
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
+        
+        if (akiasync$isVirtualEntity(self) || akiasync$isVirtualEntity(other)) {
+            return;
+        }
         if (self.getDeltaMovement().lengthSqr() < minMovement && 
             other.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
     }
+
+    private boolean akiasync$isVirtualEntity(Entity entity) {
+        if (entity == null) return false;
+        
+        try {
+            net.minecraft.world.level.Level level = entity.level();
+            if (level != null) {
+                java.util.UUID uuid = entity.getUUID();
+                if (uuid == null) return true;
+                
+                Entity foundEntity = level.getEntity(entity.getId());
+                if (foundEntity == null || foundEntity != entity) {
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.debugLog("[AkiAsync-Collision] Detected potential virtual entity: " +
+                            "type=" + entity.getType().getDescriptionId() + ", id=" + entity.getId() + 
+                            ", uuid=" + uuid + ", found=" + (foundEntity != null));
+                    }
+                    return true;
+                }
+            }
+        } catch (Throwable t) {
+            return true;
+        }
+        
+        return false;
+    }
+    
     private static synchronized void akiasync$initCollisionOptimization() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();

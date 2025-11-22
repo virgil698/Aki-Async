@@ -86,6 +86,14 @@ public interface Bridge {
     
     ExecutorService getGeneralExecutor();
     
+    ExecutorService getTNTExecutor();
+    
+    ExecutorService getChunkTickExecutor();
+    
+    ExecutorService getVillagerBreedExecutor();
+    
+    ExecutorService getBrainExecutor();
+    
     boolean isAsyncLightingEnabled();
     
     ExecutorService getLightingExecutor();
@@ -148,13 +156,27 @@ public interface Bridge {
     
     boolean isTNTUseVanillaDamageCalculation();
     
+    boolean isBeeFixEnabled();
+
     boolean isTNTUseFullRaycast();
     
     boolean isTNTUseVanillaBlockDestruction();
     
     boolean isTNTUseVanillaDrops();
     
-    boolean isDebugLoggingEnabled();
+    boolean isFoliaEnvironment();
+    
+    boolean isOwnedByCurrentRegion(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+    void scheduleRegionTask(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, Runnable task);
+    
+    boolean canAccessEntityDirectly(net.minecraft.world.entity.Entity entity);
+    boolean canAccessBlockPosDirectly(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos);
+
+    void safeExecute(Runnable task, String context);
+    
+    String checkExecutorHealth(java.util.concurrent.ExecutorService executor, String name);
+    
+    String getBlockId(net.minecraft.world.level.block.Block block);
     
     boolean isAsyncVillagerBreedEnabled();
     
@@ -241,6 +263,8 @@ public interface Bridge {
     long getDataPackCacheExpirationMinutes();
     
     boolean isDataPackDebugEnabled();
+    
+    boolean isDebugLoggingEnabled();
     
     void debugLog(String message);
     void debugLog(String format, Object... args);

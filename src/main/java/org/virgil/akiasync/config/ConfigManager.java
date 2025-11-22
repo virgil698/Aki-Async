@@ -73,6 +73,7 @@ public class ConfigManager {
     private boolean tntUseVanillaPower;
     private boolean tntUseVanillaFireLogic;
     private boolean tntUseVanillaDamageCalculation;
+    private boolean beeFixEnabled;
     private boolean tntUseFullRaycast;
     private boolean tntUseVanillaBlockDestruction;
     private boolean tntUseVanillaDrops;
@@ -212,9 +213,10 @@ public class ConfigManager {
         tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
         tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
+        beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 4);
+        configVersion = config.getInt("version", 5);
         
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
@@ -267,7 +269,7 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 4;
+        final int CURRENT_CONFIG_VERSION = 5;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -426,6 +428,8 @@ public class ConfigManager {
         tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
         
+        beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
+        
         asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
         villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
         villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
@@ -477,7 +481,7 @@ public class ConfigManager {
         
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 4);
+        configVersion = config.getInt("version", 5);
         
         validateConfig();
     }
@@ -728,6 +732,7 @@ public class ConfigManager {
     public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
     public boolean isTNTUseVanillaDamageCalculation() { return tntUseVanillaDamageCalculation; }
     public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
+    public boolean isBeeFixEnabled() { return beeFixEnabled; }
     public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
     public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
