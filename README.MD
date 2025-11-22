@@ -10,6 +10,8 @@
 [![Luminol](https://img.shields.io/badge/Luminol-1.21.8+-purple.svg)](https://github.com/LuminolMC/Luminol)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/)
 
+![Logo](aki-xixi.png)
+
 **🎉 Community Edition（社区版）**
 
 [快速开始](#-快速开始) • [命令列表](#-命令列表) • [配置说明](#️-配置说明) • [常见问题](#-常见问题)
@@ -41,7 +43,6 @@
 - 💥 **性能系统优化**（4个）- 推挤优化、实体查找缓存、碰撞检测、寻路预算
 - 🗄️ **内存管理优化**（4个）- BlockPos对象池、谓词缓存、列表预分配、集合优化
 - 🔧 **其他优化**（2个）- 寻路预算、区块保存异步化
-> **安全保证**：所有优化都经过严格测试，确保不破坏任何原版游戏机制
 
 ---
 

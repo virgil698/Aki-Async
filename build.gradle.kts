@@ -111,6 +111,8 @@ dependencies {
             compileOnly(libs.mixinCondition)
             compileOnly(libs.fastutil)
             accessWiden(compileOnly(files(getMappedServerJar()))!!)
+
+            compileOnly("org.slf4j:slf4j-api:1.7.36")
         }
     }
 }
