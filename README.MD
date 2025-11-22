@@ -244,15 +244,12 @@ entity-tick-parallel:
 # ==========================================
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
-# 版本 / Version: 3.2.1
-# 适用服务端 / Server: Leaves 1.21.8+
-# ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 3
-# 说明：当前配置版本为3，如果配置版本大于或小于3，则需要更新配置文件
-# Description: The current configuration version is 3, if the configuration version is greater than 3, you need to update the configuration file
-version: 3
+# 当前版本 / Current version: 5
+# 说明：当前配置版本为5，如果配置版本大于或小于5，则需要更新配置文件
+# Description: The current configuration version is 5, if the configuration version is greater than 5, you need to update the configuration file
+version: 5
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -298,11 +295,6 @@ brain:
 # ==========================================
 # 零延迟异步AI / Zero-Latency Async AI
 # ==========================================
-# 核心思路 / Core Strategy:
-#   1. 主线程拍快照 / Main thread takes snapshot
-#   2. 异步线程计算 / Async thread computes
-#   3. 主线程写回结果 / Main thread writes back
-# ==========================================
 async-ai:
   # 全局超时时间（微秒）/ Global timeout (microseconds)
   # 100μs = 0.1ms
@@ -342,7 +334,6 @@ async-ai:
     use-poi-snapshot: false
   
   # ---------- 高级AI实体优化 / High-AI Entity Optimization ----------
-  # v1.1新增 / v1.1 New
   
   # Evoker优化 / Evoker Optimization
   # 支持实体 / Supported: Evoker
@@ -447,8 +438,6 @@ async-ai:
 # ==========================================
 # 并行实体Tick / Parallel Entity Tick
 # ==========================================
-# 说明：将实体tick分批并行处理（76%热点优化）
-# Description: Batch entities for parallel tick processing
 entity-tick-parallel:
   # 启用开关 / Enable toggle
   enabled: true
@@ -467,31 +456,33 @@ entity-tick-parallel:
 # ==========================================
 # 性能优化套件 / Performance Optimizations
 # ==========================================
-# ServerCore启发 / ServerCore-inspired
 servercore-optimizations:
   # 推挤优化 / Push optimization
-  # 热点占比 / Hotspot: 26.72%
   push-optimization:
     enabled: true
     interval: 2
   
   # 实体查找缓存 / Entity lookup cache
-  # 热点占比 / Hotspot: 23.12%
   entity-lookup-cache:
     enabled: true
     # 缓存有效期（毫秒）/ Cache duration (milliseconds)
     duration-ms: 50
   
   # 碰撞检测优化 / Collision optimization
-  # 热点占比 / Hotspot: 9%
+  # 说明：优化实体碰撞检测，但保留重要状态检测
+  # Description: Optimize entity collision detection while preserving important status detection
+  # 保护的状态 / Protected status:
+  #   - 细雪冰冻效果 / Powder snow freezing effect
+  #   - 岩浆火焰伤害 / Lava and fire damage  
+  #   - 掉落物销毁检测 / Item entity destruction detection
   collision-optimization:
     enabled: true
+    # 最小移动阈值，低于此值时跳过碰撞检测 / Minimum movement threshold for skipping collision detection
     min-movement: 0.001
 
 # ==========================================
 # 内存优化套件 / Memory Optimizations
 # ==========================================
-# FerriteCore启发 / FerriteCore-inspired
 memory-optimizations:
   # 谓词缓存 / Predicate cache
   # 说明：缓存常用谓词，降低GC压力
@@ -535,10 +526,6 @@ item-entity-optimizations:
 # ==========================================
 # 说明：异步繁殖检查，降低村门+村民+床遍历开销
 # Description: Async breed check to reduce village scan overhead
-#
-# 性能提升 / Performance Gain:
-#   200 村民繁殖: 3-5ms → 1-2ms (↓60%)
-#   年龄刷新降频: 2ms → 1ms (50% 静止跳过)
 villager-breed-optimization:
   # 启用异步繁殖检查 / Enable async breed check
   async-villager-breed: true
@@ -550,15 +537,28 @@ villager-breed-optimization:
   check-interval: 5
 
 # ==========================================
+# 蜜蜂修复 / Bee Fix
+# ==========================================
+# 说明：修复多个蜜蜂相关的Minecraft bug
+# Description: Fix multiple Minecraft bugs related to bees
+# 基于BeeFix项目 / Based on BeeFix project
+bee-fix:
+  # 启用开关 / Enable toggle
+  enabled: true
+  # 修复的bug列表 / Fixed bugs list:
+  #   - MC-168329: 蜜蜂拒绝在末地/下界离开蜂巢
+  #   - MC-190042: 蜜蜂在不寻路时会掉落
+  #   - MC-206401: 蜜蜂有西北方向的漫游偏向
+  #   - MC-229321: 蜜蜂可能消失
+  #   - MC-234364: 蜜蜂死亡动画只翻转90度
+  #   - MC-248332: 蜜蜂可以破坏海龟蛋
+  #   - MC-255743: 蜜蜂寻路系统可能导致性能问题
+
+# ==========================================
 # TNT爆炸优化 / TNT Explosion Optimization (v7.0)
 # ==========================================
 # 说明：异步计算爆炸抗性和射线可见性，优化"大量TNT同时爆炸"场景
 # Description: Async blast resistance & raycast for massive TNT explosions
-# 
-# 性能提升 / Performance Gain:
-#   500 TNT同时爆: 380ms → 28ms (↓92%)
-#   1000 TNT链爆: 650ms → 45ms (↓93%)
-#   单TNT: 0.4ms → 0.4ms (无负优化)
 # 
 # 支持实体 / Supported Entities:
 #   - minecraft:tnt (TNT方块)
@@ -609,7 +609,6 @@ block-entity-optimizations:
 # ==========================================
 # 光照优化套件 / Lighting Optimizations
 # ==========================================
-# Starlight/ScalableLux启发 / Starlight-inspired
 lighting-optimizations:
   # 异步光照 / Async lighting
   async-lighting:
@@ -648,14 +647,10 @@ lighting-optimizations:
     log-advanced-stats: false
 
 # ==========================================
-# 区块Tick异步化 / Chunk Tick Async (Lithium + Akarin)
+# 区块Tick异步化 / Chunk Tick Async
 # ==========================================
 # 说明：将区块Tick移至ForkJoinPool异步执行，失败回退主线程同步
 # Description: Offload chunk tick to ForkJoinPool async, fallback to main thread on timeout
-#
-# 性能提升 / Performance Gain:
-#   ChunkTick MSPT: 8ms → 3-4ms (↓50%)
-#   TPS: 20 (locked)
 chunk-tick-async:
   # 启用开关 / Enable toggle
   enabled: false
@@ -668,15 +663,10 @@ chunk-tick-async:
   timeout-us: 200
 
 # ==========================================
-# 结构查找异步化 / Structure Location Async (v9.0)
+# 结构查找异步化 / Structure Location Async
 # ==========================================
 # 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
 # Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
-#
-# 性能提升 / Performance Gain:
-#   /locate命令: 100-500ms → 5-20ms (主线程零阻塞)
-#   探险家地图: 50-200ms → 异步生成 (交易不卡顿)
-#   海豚寻宝: 20-100ms → 异步查找 (AI不阻塞)
 structure-location-async:
   # 启用开关 / Enable toggle
   enabled: true
@@ -722,6 +712,63 @@ structure-location-async:
       - "minecraft:chests/underwater_ruin_small"
     # 地图生成概率保持不变 / Keep original map generation probability
     preserve-probability: true
+  
+  # 算法优化配置 / Algorithm Optimization Configuration
+  algorithm-optimization:
+    # 启用算法优化 / Enable algorithm optimization
+    enabled: true
+    
+    # 搜索模式 / Search pattern
+    # 可选值 / Options: "spiral"(螺旋), "layered"(分层), "hybrid"(混合)
+    search-pattern: "hybrid"
+    
+    # 启用结构缓存 / Enable structure caching
+    caching:
+      enabled: true
+      # 缓存最大条目数 / Max cache entries
+      max-size: 1000
+      # 缓存过期时间（分钟）/ Cache expiration (minutes)
+      expiration-minutes: 30
+    
+    # 启用预计算 / Enable precomputation
+    precomputation:
+      enabled: true
+    
+    # 生物群系感知搜索 / Biome-aware search
+    biome-aware-search:
+      enabled: true
+
+# ==========================================
+# 数据包加载优化 / DataPack Loading Optimization
+# ==========================================
+# 说明：基于QuickPack优化思路，加速数据包和资源包的zip文件加载
+# Description: Based on QuickPack optimization, accelerate datapack and resourcepack zip file loading
+datapack-optimization:
+  # 启用开关 / Enable toggle
+  enabled: true
+  
+  # 文件加载线程数 / File loading threads
+  # 推荐值 / Recommended: 4-8 (根据CPU核心数调整)
+  file-load-threads: 4
+  
+  # Zip处理线程数 / Zip processing threads
+  # 推荐值 / Recommended: 2-4 (I/O密集型)
+  zip-process-threads: 2
+  
+  # 批处理大小 / Batch size
+  # 说明：每批处理的文件数量，影响内存使用和性能
+  # Description: Number of files per batch, affects memory usage and performance
+  batch-size: 100
+  
+  # 缓存过期时间（分钟）/ Cache expiration (minutes)
+  # 说明：文件系统和文件内容的缓存时间
+  # Description: Cache time for file systems and file contents
+  cache-expiration-minutes: 30
+  
+  # 调试模式 / Debug mode
+  # 说明：启用详细的数据包加载日志
+  # Description: Enable detailed datapack loading logs
+  debug-enabled: false
 
 # ==========================================
 # 高级并发优化 / Advanced Concurrency Optimizations
