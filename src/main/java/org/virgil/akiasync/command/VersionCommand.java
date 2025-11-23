@@ -29,9 +29,14 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Entity Tracker: " + (plugin.getConfigManager().isEntityTrackerEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Mob Spawning: " + (plugin.getConfigManager().isMobSpawningEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Entity Tick Parallel: " + (plugin.getConfigManager().isEntityTickParallel() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Block Entity Parallel: " + (plugin.getConfigManager().isBlockEntityParallelTickEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Async Lighting: " + (plugin.getConfigManager().isAsyncLightingEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Chunk Tick Async: " + (plugin.getConfigManager().isChunkTickAsyncEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Brain Throttle: " + (plugin.getConfigManager().isBrainThrottleEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  TNT Optimization: " + (plugin.getConfigManager().isTNTOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Universal AI: " + (plugin.getConfigManager().isUniversalAiOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  BeeFix: " + (plugin.getConfigManager().isBeeFixEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Structure Location Async: " + (plugin.getConfigManager().isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "========================================");
     }
     @Override

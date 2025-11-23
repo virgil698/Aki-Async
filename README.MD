@@ -207,7 +207,7 @@ entity-tick-parallel:
 # 输出示例：
 # [AkiAsync] ========================================
 # [AkiAsync] Plugin: AkiAsync
-# [AkiAsync] Version: 3.0.0-SNAPSHOT
+# [AkiAsync] Version: 9.0.0-SNAPSHOT
 # [AkiAsync] Authors: Virgil
 # [AkiAsync] 
 # [AkiAsync] Server: Leaves 1.21.4
@@ -219,9 +219,14 @@ entity-tick-parallel:
 # [AkiAsync]   Entity Tracker: ON
 # [AkiAsync]   Mob Spawning: ON
 # [AkiAsync]   Entity Tick Parallel: ON
+# [AkiAsync]   Block Entity Parallel: ON
 # [AkiAsync]   Async Lighting: ON
-# [AkiAsync]   Chunk Tick Async: ON
+# [AkiAsync]   Chunk Tick Async: OFF
 # [AkiAsync]   Brain Throttle: ON
+# [AkiAsync]   TNT Optimization: ON
+# [AkiAsync]   Universal AI: ON
+# [AkiAsync]   BeeFix: ON
+# [AkiAsync]   Structure Location Async: ON
 # [AkiAsync] ========================================
 ```
 
@@ -246,10 +251,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 5
-# 说明：当前配置版本为5，如果配置版本大于或小于5，则需要更新配置文件
-# Description: The current configuration version is 5, if the configuration version is greater than 5, you need to update the configuration file
-version: 5
+# 当前版本 / Current version: 6
+# 说明：当前配置版本为6，如果配置版本不等于6，则需要更新配置文件
+# Description: The current configuration version is 6, if the configuration version is not equal to 6, you need to update the configuration file
+version: 6
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -605,6 +610,38 @@ block-entity-optimizations:
   # Description: Skip tick when idle (included in v3.0)
   furnace-optimization:
     enabled: false  # 关闭（被v3.0替代）
+  
+  # 方块实体并行化tick / Block Entity Parallel Tick (v9.0)
+  # 说明：将方块实体tick分批并行处理，参考C3H6N6O6设计
+  # Description: Parallel block entity tick processing, inspired by C3H6N6O6
+  # 技术特性 / Features:
+  #   - 批量并行处理 / Batch parallel processing
+  #   - 容器保护机制 / Container protection
+  #   - Lithium睡眠方块实体兼容 / Lithium sleeping block entity compatibility
+  #   - Folia区域化自动禁用 / Auto-disable in Folia regionized mode
+  parallel-tick:
+    # 启用开关 / Enable toggle
+    # 注意：Folia/Luminol环境下会自动禁用（区域并行已优化）
+    # Note: Auto-disabled in Folia/Luminol (regionized parallel already optimized)
+    enabled: true
+    # 最小方块实体数阈值 / Minimum block entities threshold
+    # 说明：低于此值不启用并行（避免overhead）
+    # Description: Skip parallel if block entities < threshold
+    min-block-entities: 50
+    # 批量大小 / Batch size
+    # 说明：每批处理的方块实体数量
+    # Description: Number of block entities per batch
+    batch-size: 16
+    # 容器保护 / Container protection
+    # 说明：容器类方块实体（箱子、漏斗等）在主线程执行
+    # Description: Container block entities (chest, hopper, etc.) tick on main thread
+    # 原因：避免并发访问导致物品丢失或复制
+    # Reason: Prevent item loss or duplication from concurrent access
+    protect-containers: true
+    # 超时时间（毫秒）/ Timeout (milliseconds)
+    # 说明：并行执行超时后降级到同步执行
+    # Description: Fallback to sync execution on timeout
+    timeout-ms: 50
 
 # ==========================================
 # 光照优化套件 / Lighting Optimizations
@@ -835,6 +872,7 @@ commands:
 
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
+
 
 ```
 
