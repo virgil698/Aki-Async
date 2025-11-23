@@ -42,7 +42,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         );
         BridgeManager.setBridge(bridge);
         
-        // 初始化虚拟实体检测器
         org.virgil.akiasync.util.VirtualEntityDetector.setLogger(getLogger(), configManager.isDebugLoggingEnabled());
         
         getLogger().info("[AkiAsync] Bridge registered successfully");
