@@ -34,6 +34,11 @@ public class ConfigManager {
     private java.util.Set<String> universalAiEntities;
     private boolean zeroDelayFactoryOptimizationEnabled;
     private java.util.Set<String> zeroDelayFactoryEntities;
+    private boolean blockEntityParallelTickEnabled;
+    private int blockEntityParallelMinBlockEntities;
+    private int blockEntityParallelBatchSize;
+    private boolean blockEntityParallelProtectContainers;
+    private int blockEntityParallelTimeoutMs;
     private boolean itemEntityOptimizationEnabled;
     private int itemEntityAgeInterval;
     private int itemEntityMinNearbyItems;
@@ -159,6 +164,11 @@ public class ConfigManager {
         universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
         zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
         zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
+        blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
+        blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
+        blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
+        blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
         itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
         itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
         itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
@@ -216,7 +226,7 @@ public class ConfigManager {
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 5);
+        configVersion = config.getInt("version", 6);
         
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
@@ -269,7 +279,7 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 5;
+        final int CURRENT_CONFIG_VERSION = 6;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -370,6 +380,11 @@ public class ConfigManager {
         universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
         zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
         zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
+        blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
+        blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
+        blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
+        blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
         itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
         itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
         itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
@@ -481,7 +496,7 @@ public class ConfigManager {
         
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 5);
+        configVersion = config.getInt("version", 6);
         
         validateConfig();
     }
@@ -687,6 +702,11 @@ public class ConfigManager {
     public java.util.Set<String> getUniversalAiEntities() { return universalAiEntities; }
     public boolean isZeroDelayFactoryOptimizationEnabled() { return zeroDelayFactoryOptimizationEnabled; }
     public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
+    public boolean isBlockEntityParallelTickEnabled() { return blockEntityParallelTickEnabled; }
+    public int getBlockEntityParallelMinBlockEntities() { return blockEntityParallelMinBlockEntities; }
+    public int getBlockEntityParallelBatchSize() { return blockEntityParallelBatchSize; }
+    public boolean isBlockEntityParallelProtectContainers() { return blockEntityParallelProtectContainers; }
+    public int getBlockEntityParallelTimeoutMs() { return blockEntityParallelTimeoutMs; }
     public boolean isItemEntityOptimizationEnabled() { return itemEntityOptimizationEnabled; }
     public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
     public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }

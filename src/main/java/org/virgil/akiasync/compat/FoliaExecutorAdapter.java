@@ -90,12 +90,11 @@ public class FoliaExecutorAdapter implements ExecutorService {
                 }
             } catch (Exception e) {
                 plugin.getLogger().warning("[FoliaExecutorAdapter] Failed to schedule global task: " + e.getMessage());
-                // 尝试在主线程执行作为fallback
                 try {
                     plugin.getServer().getScheduler().runTask(plugin, command);
                 } catch (Exception fallbackException) {
                     plugin.getLogger().severe("[FoliaExecutorAdapter] Fallback execution also failed: " + fallbackException.getMessage());
-                    command.run(); // 最后的fallback
+                    command.run();
                 }
             }
         } else {
@@ -104,7 +103,7 @@ public class FoliaExecutorAdapter implements ExecutorService {
                     fallbackExecutor.execute(command);
                 } catch (Exception e) {
                     plugin.getLogger().warning("[FoliaExecutorAdapter] ThreadPool execution failed: " + e.getMessage());
-                    command.run(); // fallback到直接执行
+                    command.run();
                 }
             } else {
                 command.run();
@@ -223,7 +222,6 @@ public class FoliaExecutorAdapter implements ExecutorService {
     @Override
     public <T> T invokeAny(java.util.Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         if (isFolia) {
-            // Folia环境下使用第一个任务的结果作为fallback
             if (tasks.isEmpty()) {
                 throw new IllegalArgumentException("Task collection cannot be empty");
             }
@@ -257,7 +255,6 @@ public class FoliaExecutorAdapter implements ExecutorService {
     @Override
     public <T> T invokeAny(java.util.Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (isFolia) {
-            // Folia环境下使用带超时的第一个任务执行
             if (tasks.isEmpty()) {
                 throw new IllegalArgumentException("Task collection cannot be empty");
             }

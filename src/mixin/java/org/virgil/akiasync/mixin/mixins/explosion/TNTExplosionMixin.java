@@ -28,24 +28,28 @@ public class TNTExplosionMixin {
             return;
         }
         
+        ci.cancel();
+        
+        Vec3 center = tnt.position();
+        
         if (aki$isFoliaEnvironment()) {
-            Vec3 center = tnt.position();
             net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
             
             if (!bridge.isOwnedByCurrentRegion(sl, centerPos)) {
                 aki$scheduleFoliaExplosion(tnt, sl, center, bridge);
-                ci.cancel();
+                tnt.discard();
                 return;
             }
+            
+            aki$executeExplosionInRegion(tnt, sl, center, bridge);
+            tnt.discard();
+            return;
         }
         
-        ci.cancel();
-        
-        Vec3 center = tnt.position();
         boolean inWater = tnt.isInWater() || !sl.getFluidState(BlockPos.containing(center)).isEmpty();
         
         if (inWater) {
-            sl.getServer().execute(() -> {
+            Runnable waterExplosionTask = () -> {
                 try {
                     sl.explode(
                         tnt,
@@ -65,12 +69,18 @@ public class TNTExplosionMixin {
                 } catch (Exception ex) {
                     System.err.println("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
                 }
-            });
+            };
+            
+            if (aki$isFoliaEnvironment()) {
+                net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
+                bridge.scheduleRegionTask(sl, centerPos, waterExplosionTask);
+            } else {
+                sl.getServer().execute(waterExplosionTask);
+            }
             tnt.discard();
             return;
         }
         
-        // 统一使用安全的爆炸执行策略
         aki$executeSafeExplosion(tnt, sl, center, false, bridge);
         
         tnt.discard();
@@ -321,7 +331,7 @@ public class TNTExplosionMixin {
                         new org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator(snapshot);
                     org.virgil.akiasync.mixin.async.explosion.ExplosionResult result = calculator.calculate();
                     
-                    sl.getServer().execute(() -> {
+                    Runnable applyResultsTask = () -> {
                         try {
                             net.minecraft.world.level.ServerExplosion explosion = new net.minecraft.world.level.ServerExplosion(
                                 sl, tnt, null, null, center, 4.0F, false, 
@@ -337,10 +347,23 @@ public class TNTExplosionMixin {
                             bridge.errorLog("[AkiAsync-TNT] Error applying safe explosion results: " + ex.getMessage());
                             aki$fallbackSyncExplosion(tnt, sl, center);
                         }
-                    });
+                    };
+                    
+                    if (aki$isFoliaEnvironment()) {
+                        net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
+                        bridge.scheduleRegionTask(sl, centerPos, applyResultsTask);
+                    } else {
+                        sl.getServer().execute(applyResultsTask);
+                    }
                 } catch (Exception ex) {
                     bridge.errorLog("[AkiAsync-TNT] Error in safe async explosion calculation: " + ex.getMessage());
-                    sl.getServer().execute(() -> aki$fallbackSyncExplosion(tnt, sl, center));
+                    Runnable fallbackTask = () -> aki$fallbackSyncExplosion(tnt, sl, center);
+                    if (aki$isFoliaEnvironment()) {
+                        net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
+                        bridge.scheduleRegionTask(sl, centerPos, fallbackTask);
+                    } else {
+                        sl.getServer().execute(fallbackTask);
+                    }
                 }
             });
             

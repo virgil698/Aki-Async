@@ -214,9 +214,6 @@ public class DataPackLoadOptimizer {
         return cachedFs;
     }
     
-    /**
-     * 传统文件加载方法（回退方案）
-     */
     private CompletableFuture<List<FileLoadResult>> loadFilesTraditional(Path zipPath, List<String> filePaths) {
         return CompletableFuture.supplyAsync(() -> {
             List<FileLoadResult> results = new ArrayList<>();
@@ -245,16 +242,10 @@ public class DataPackLoadOptimizer {
         }, fileLoadExecutor);
     }
     
-    /**
-     * 生成缓存键
-     */
     private String generateCacheKey(String fileSystemId, String filePath) {
         return fileSystemId + ":" + filePath;
     }
     
-    /**
-     * 启动清理任务
-     */
     private void startCleanupTask() {
         Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "AkiAsync-DataPack-Cleanup");
@@ -294,9 +285,6 @@ public class DataPackLoadOptimizer {
         }
     }
     
-    /**
-     * 获取性能统计信息
-     */
     public DataPackStatistics getStatistics() {
         return new DataPackStatistics(
             totalFilesProcessed.get(),
@@ -323,9 +311,6 @@ public class DataPackLoadOptimizer {
         }
     }
     
-    /**
-     * 关闭优化器
-     */
     public void shutdown() {
         fileLoadExecutor.shutdown();
         zipProcessExecutor.shutdown();
@@ -347,9 +332,6 @@ public class DataPackLoadOptimizer {
         instance = null;
     }
     
-    /**
-     * 缓存的文件系统
-     */
     private static class CachedFileSystem {
         final FileSystem fileSystem;
         final long timestamp;
@@ -364,9 +346,6 @@ public class DataPackLoadOptimizer {
         }
     }
     
-    /**
-     * 缓存的文件条目
-     */
     private static class CachedFileEntry {
         final byte[] content;
         final long timestamp;
@@ -381,9 +360,6 @@ public class DataPackLoadOptimizer {
         }
     }
     
-    /**
-     * 文件加载结果
-     */
     public static class FileLoadResult {
         private final Map<String, byte[]> loadedFiles = new ConcurrentHashMap<>();
         private final Map<String, byte[]> cachedFiles = new ConcurrentHashMap<>();
@@ -418,9 +394,6 @@ public class DataPackLoadOptimizer {
         }
     }
     
-    /**
-     * 性能统计信息
-     */
     public static class DataPackStatistics {
         public final long totalFilesProcessed;
         public final long totalLoadTimeMs;

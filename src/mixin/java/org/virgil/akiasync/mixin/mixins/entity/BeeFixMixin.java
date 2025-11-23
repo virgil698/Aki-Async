@@ -25,7 +25,7 @@ public abstract class BeeFixMixin {
     @Unique private static volatile boolean initialized = false;
     @Unique private static volatile boolean enabled = true;
     
-    @Inject(method = "wantsToEnterHive", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "wantsToEnterHive", at = @At("HEAD"), cancellable = true, require = 0)
     private void aki$fixHiveLeavingInOtherDimensions(CallbackInfoReturnable<Boolean> cir) {
         if (!aki$isEnabled()) return;
         
@@ -46,7 +46,7 @@ public abstract class BeeFixMixin {
         }
     }
     
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "tick", at = @At("HEAD"), require = 0)
     private void aki$preventBeesFalling(CallbackInfo ci) {
         if (!aki$isEnabled()) return;
         
@@ -62,7 +62,7 @@ public abstract class BeeFixMixin {
     
     @ModifyArg(method = "getRandomPos", at = @At(value = "INVOKE", 
         target = "Lnet/minecraft/world/entity/ai/util/RandomPos;getPos(Lnet/minecraft/world/entity/PathfinderMob;IILnet/minecraft/world/phys/Vec3;)Lnet/minecraft/core/BlockPos;"),
-        index = 3)
+        index = 3, require = 0)
     private Vec3 aki$fixWanderingBias(Vec3 direction) {
         if (!aki$isEnabled()) return direction;
         
@@ -76,7 +76,7 @@ public abstract class BeeFixMixin {
         return new Vec3(x, direction.y, z);
     }
     
-    @Inject(method = "checkDespawn", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "checkDespawn", at = @At("HEAD"), cancellable = true, require = 0)
     private void aki$preventDespawnWithHive(CallbackInfo ci) {
         if (!aki$isEnabled()) return;
         
@@ -92,7 +92,7 @@ public abstract class BeeFixMixin {
         }
     }
     
-    @Inject(method = "die", at = @At("TAIL"))
+    @Inject(method = "die", at = @At("TAIL"), require = 0)
     private void aki$fixDeathAnimation(net.minecraft.world.damagesource.DamageSource damageSource, CallbackInfo ci) {
         if (!aki$isEnabled()) return;
         
@@ -103,7 +103,7 @@ public abstract class BeeFixMixin {
         }
     }
     
-    @Inject(method = "playStepSound", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "playStepSound", at = @At("HEAD"), cancellable = true, require = 0)
     private void aki$preventTurtleEggTrampling(BlockPos pos, net.minecraft.world.level.block.state.BlockState blockState, CallbackInfo ci) {
         if (!aki$isEnabled()) return;
         
@@ -112,7 +112,7 @@ public abstract class BeeFixMixin {
         }
     }
     
-    @Inject(method = "customServerAiStep", at = @At("HEAD"))
+    @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$optimizePathfinding(CallbackInfo ci) {
         if (!aki$isEnabled()) return;
         

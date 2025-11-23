@@ -52,6 +52,11 @@ public interface Bridge {
     java.util.Set<String> getUniversalAiEntities();
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
+    boolean isBlockEntityParallelTickEnabled();
+    int getBlockEntityParallelMinBlockEntities();
+    int getBlockEntityParallelBatchSize();
+    boolean isBlockEntityParallelProtectContainers();
+    int getBlockEntityParallelTimeoutMs();
     boolean isItemEntityOptimizationEnabled();
     int getItemEntityAgeInterval();
     int getItemEntityMinNearbyItems();

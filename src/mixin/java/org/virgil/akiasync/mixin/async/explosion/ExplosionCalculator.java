@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.virgil.akiasync.mixin.optimization.OptimizationManager;
 import org.virgil.akiasync.mixin.optimization.scheduler.WorkStealingTaskScheduler;
@@ -18,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 public class ExplosionCalculator {
     private static final int RAYCAST_SAMPLES = 16;
     private final ExplosionSnapshot snapshot;
-    private final ConcurrentLinkedQueue<BlockPos> toDestroy = new ConcurrentLinkedQueue<>();
+    private final LinkedBlockingQueue<BlockPos> toDestroy = new LinkedBlockingQueue<>(10000);
     private final ConcurrentHashMap<BlockPos, Boolean> destroyedBlocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
     private final boolean useFullRaycast;

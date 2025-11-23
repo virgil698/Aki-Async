@@ -10,7 +10,7 @@ public class WorkStealingTaskScheduler {
     private final ExecutorService executor;
     private final AtomicInteger taskIndex = new AtomicInteger();
     private final AtomicInteger finishedTasks = new AtomicInteger();
-    private final ConcurrentLinkedQueue<Runnable> mainThreadTasks = new ConcurrentLinkedQueue<>();
+    private final BlockingQueue<Runnable> mainThreadTasks = new LinkedBlockingQueue<>(2000);
     
     private static final WorkStealingTaskScheduler INSTANCE = new WorkStealingTaskScheduler();
     
@@ -86,7 +86,13 @@ public class WorkStealingTaskScheduler {
     }
     
     public void scheduleMainThreadTask(Runnable task) {
-        mainThreadTasks.offer(task);
+        if (!mainThreadTasks.offer(task)) {
+            try {
+                task.run();
+            } catch (Exception e) {
+                System.err.println("[AkiAsync-WorkStealing] Task execution error (queue full): " + e.getMessage());
+            }
+        }
     }
     
     private void runMainThreadTasks() {

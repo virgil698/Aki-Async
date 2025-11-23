@@ -19,8 +19,8 @@ public abstract class EntityTrackerMixin {
     private static volatile boolean initialized = false;
     private static volatile boolean isFolia = false;
     private static int asyncTaskCount = 0;
-    private static final java.util.concurrent.ConcurrentLinkedQueue<Runnable> BATCH_QUEUE = 
-        new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private static final java.util.concurrent.BlockingQueue<Runnable> BATCH_QUEUE = 
+        new java.util.concurrent.LinkedBlockingQueue<>(2000);
     private static final int BATCH_SIZE = 50;
     private static final java.util.concurrent.atomic.AtomicBoolean batchSubmitted = 
         new java.util.concurrent.atomic.AtomicBoolean(false);

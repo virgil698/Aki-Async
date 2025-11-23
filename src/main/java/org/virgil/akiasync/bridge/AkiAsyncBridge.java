@@ -124,6 +124,21 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public java.util.Set<String> getZeroDelayFactoryEntities() { return config.getZeroDelayFactoryEntities(); }
     
     @Override
+    public boolean isBlockEntityParallelTickEnabled() { return config.isBlockEntityParallelTickEnabled(); }
+    
+    @Override
+    public int getBlockEntityParallelMinBlockEntities() { return config.getBlockEntityParallelMinBlockEntities(); }
+    
+    @Override
+    public int getBlockEntityParallelBatchSize() { return config.getBlockEntityParallelBatchSize(); }
+    
+    @Override
+    public boolean isBlockEntityParallelProtectContainers() { return config.isBlockEntityParallelProtectContainers(); }
+    
+    @Override
+    public int getBlockEntityParallelTimeoutMs() { return config.getBlockEntityParallelTimeoutMs(); }
+    
+    @Override
     public boolean isItemEntityOptimizationEnabled() { return config.isItemEntityOptimizationEnabled(); }
     
     @Override

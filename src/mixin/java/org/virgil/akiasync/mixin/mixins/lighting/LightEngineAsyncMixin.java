@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +34,7 @@ public abstract class LightEngineAsyncMixin {
     private static final AtomicInteger[] layerSizes = new AtomicInteger[16];
     private static final Map<BlockPos, Long> UPDATE_METADATA = new ConcurrentHashMap<>();
     private static final Set<BlockPos> PENDING_UPDATES = ConcurrentHashMap.newKeySet();
-    private static final Queue<BlockPos> LIGHT_UPDATE_QUEUE = new ConcurrentLinkedQueue<>();
+    private static final Queue<BlockPos> LIGHT_UPDATE_QUEUE = new LinkedBlockingQueue<>(5000);
     private static final AtomicInteger queueSize = new AtomicInteger(0);
     private static volatile boolean processing = false;
     private static int batchCount = 0;
@@ -41,7 +42,7 @@ public abstract class LightEngineAsyncMixin {
     private static final long ADJUSTMENT_INTERVAL = 5000;
     static {
         for (int i = 0; i < 16; i++) {
-            LAYERED_QUEUES[i] = new ConcurrentLinkedQueue<>();
+            LAYERED_QUEUES[i] = new LinkedBlockingQueue<>(5000);
             layerSizes[i] = new AtomicInteger(0);
         }
     }

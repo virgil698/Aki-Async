@@ -23,6 +23,8 @@
     "entity.PushEntitiesOptimizationMixin",
     "entity.EntityLookupCacheMixin",
     "entity.CollisionOptimizationMixin",
+    "entity.BeeFixMixin",
+    "blockentity.BlockEntityTickParallelMixin",
     "memory.PredicateCacheMixin",
     "memory.BlockPosPoolMixin",
     "memory.EntityListPreallocMixin",
