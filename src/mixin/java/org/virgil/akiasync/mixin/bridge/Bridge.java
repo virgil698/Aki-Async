@@ -275,4 +275,6 @@ public interface Bridge {
     void debugLog(String format, Object... args);
     void errorLog(String message);
     void errorLog(String format, Object... args);
+    
+    boolean isVirtualEntity(net.minecraft.world.entity.Entity entity);
 }

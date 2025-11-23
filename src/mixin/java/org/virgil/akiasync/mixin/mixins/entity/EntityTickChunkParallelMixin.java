@@ -129,21 +129,9 @@ public abstract class EntityTickChunkParallelMixin {
         
         try {
             if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
-                net.minecraft.world.level.Level level = realEntity.level();
-                if (level != null) {
-                    java.util.UUID uuid = realEntity.getUUID();
-                    if (uuid == null) return true;
-                    
-                    net.minecraft.world.entity.Entity foundEntity = level.getEntity(realEntity.getId());
-                    if (foundEntity == null || foundEntity != realEntity) {
-                        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                        if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                            bridge.debugLog("[AkiAsync-Parallel] Detected potential virtual entity: " +
-                                "type=" + realEntity.getType().getDescriptionId() + ", id=" + realEntity.getId() + 
-                                ", uuid=" + uuid + ", found=" + (foundEntity != null));
-                        }
-                        return true;
-                    }
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    return bridge.isVirtualEntity(realEntity);
                 }
             }
         } catch (Throwable t) {

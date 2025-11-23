@@ -70,29 +70,10 @@ public abstract class CollisionOptimizationMixin {
     }
 
     private boolean akiasync$isVirtualEntity(Entity entity) {
-        if (entity == null) return false;
-        
-        try {
-            net.minecraft.world.level.Level level = entity.level();
-            if (level != null) {
-                java.util.UUID uuid = entity.getUUID();
-                if (uuid == null) return true;
-                
-                Entity foundEntity = level.getEntity(entity.getId());
-                if (foundEntity == null || foundEntity != entity) {
-                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                        bridge.debugLog("[AkiAsync-Collision] Detected potential virtual entity: " +
-                            "type=" + entity.getType().getDescriptionId() + ", id=" + entity.getId() + 
-                            ", uuid=" + uuid + ", found=" + (foundEntity != null));
-                    }
-                    return true;
-                }
-            }
-        } catch (Throwable t) {
-            return true;
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        if (bridge != null) {
+            return bridge.isVirtualEntity(entity);
         }
-        
         return false;
     }
     

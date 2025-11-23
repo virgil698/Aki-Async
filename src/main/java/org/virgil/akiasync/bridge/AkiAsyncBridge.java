@@ -792,4 +792,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public void errorLog(String format, Object... args) {
         org.virgil.akiasync.util.DebugLogger.error(format, args);
     }
+    
+    @Override
+    public boolean isVirtualEntity(net.minecraft.world.entity.Entity entity) {
+        return org.virgil.akiasync.util.VirtualEntityDetector.isVirtualEntity(entity);
+    }
 }
