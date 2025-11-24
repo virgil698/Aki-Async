@@ -3,10 +3,14 @@
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 6
-# 说明：当前配置版本为6，如果配置版本不等于6，则需要更新配置文件
-# Description: The current configuration version is 6, if the configuration version is not equal to 6, you need to update the configuration file
-version: 6
+# 当前版本 / Current version: 7
+# 说明：当前配置版本为7，如果配置版本不等于7，则需要更新配置文件
+# Description: The current configuration version is 7, if the configuration version is not equal to 7, you need to update the configuration file
+version: 7
+
+# ==========================================
+# 实体系统优化 / Entity System Optimization
+# ==========================================
 
 # 异步实体追踪器 / Async Entity Tracker
 # 说明：将实体位置更新移至异步线程处理
@@ -19,7 +23,11 @@ entity-tracker:
   # 更新间隔（tick）/ Update interval (ticks)
   update-interval-ticks: 1
   # 最大队列大小 / Maximum queue size
-  max-queue-size: 1000
+  # 说明：追踪任务的缓冲队列大小，队列满时会降级为同步执行
+  # 推荐值：1000-20000，高负载服务器建议设置更大
+  # Description: Buffer queue size for tracking tasks, falls back to sync execution when full
+  # Recommended: 1000-20000, higher values for high-load servers
+  max-queue-size: 10000
   # 批量处理大小 / Batch processing size
   batch-size: 50
 
@@ -264,8 +272,6 @@ memory-optimizations:
 # ==========================================
 # 掉落物优化 / Item Entity Optimizations (v5.0)
 # ==========================================
-# 说明：掉落物是红石频控、刷石机的"第二性能瓶弹"
-# Description: ItemEntity is the 2nd performance bottleneck for redstone farms
 item-entity-optimizations:
   enabled: true  # v5.0启用
   # Tick节流间隔 / Tick throttle interval
@@ -281,8 +287,6 @@ item-entity-optimizations:
 # ==========================================
 # 村民繁殖优化 / Villager Breed Optimization (v8.0)
 # ==========================================
-# 说明：异步繁殖检查，降低村门+村民+床遍历开销
-# Description: Async breed check to reduce village scan overhead
 villager-breed-optimization:
   # 启用异步繁殖检查 / Enable async breed check
   async-villager-breed: true
@@ -296,9 +300,6 @@ villager-breed-optimization:
 # ==========================================
 # 蜜蜂修复 / Bee Fix
 # ==========================================
-# 说明：修复多个蜜蜂相关的Minecraft bug
-# Description: Fix multiple Minecraft bugs related to bees
-# 基于BeeFix项目 / Based on BeeFix project
 bee-fix:
   # 启用开关 / Enable toggle
   enabled: true
@@ -314,13 +315,6 @@ bee-fix:
 # ==========================================
 # TNT爆炸优化 / TNT Explosion Optimization (v7.0)
 # ==========================================
-# 说明：异步计算爆炸抗性和射线可见性，优化"大量TNT同时爆炸"场景
-# Description: Async blast resistance & raycast for massive TNT explosions
-# 
-# 支持实体 / Supported Entities:
-#   - minecraft:tnt (TNT方块)
-#   - minecraft:tnt_minecart (TNT矿车)
-#   - minecraft:wither_skull (凋灵头颅)
 tnt-explosion-optimization:
   # 启用开关 / Enable toggle
   enabled: true
@@ -438,8 +432,6 @@ lighting-optimizations:
 # ==========================================
 # 区块Tick异步化 / Chunk Tick Async
 # ==========================================
-# 说明：将区块Tick移至ForkJoinPool异步执行，失败回退主线程同步
-# Description: Offload chunk tick to ForkJoinPool async, fallback to main thread on timeout
 chunk-tick-async:
   # 启用开关 / Enable toggle
   enabled: false
@@ -454,8 +446,6 @@ chunk-tick-async:
 # ==========================================
 # 结构查找异步化 / Structure Location Async
 # ==========================================
-# 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
-# Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
 structure-location-async:
   # 启用开关 / Enable toggle
   enabled: true
@@ -530,8 +520,6 @@ structure-location-async:
 # ==========================================
 # 数据包加载优化 / DataPack Loading Optimization
 # ==========================================
-# 说明：基于QuickPack优化思路，加速数据包和资源包的zip文件加载
-# Description: Based on QuickPack optimization, accelerate datapack and resourcepack zip file loading
 datapack-optimization:
   # 启用开关 / Enable toggle
   enabled: true
@@ -562,8 +550,6 @@ datapack-optimization:
 # ==========================================
 # 高级并发优化 / Advanced Concurrency Optimizations
 # ==========================================
-# 说明：高级并发和内存优化技术，提供额外的性能提升
-# Description: Advanced concurrency and memory optimization techniques for additional performance gains
 advanced-optimizations:
   # 总开关 / Master switch
   # 说明：控制所有高级并发优化的启用/禁用
@@ -593,12 +579,43 @@ advanced-optimizations:
   optimized-collections: true
 
 # ==========================================
+# 安全种子保护 / Secure Seed Protection
+# ==========================================
+# 说明：使用1024位加密种子保护世界生成，防止种子破解
+# Description: Use 1024-bit encrypted seed to protect world generation from seed cracking
+secure-seed:
+  # 启用安全种子 / Enable secure seed
+  enabled: false
+  
+  # 保护结构生成 / Protect structure generation
+  # 说明：保护村庄、要塞、遗迹等结构的生成种子
+  # Description: Protect generation seeds for villages, strongholds, monuments, etc.
+  protect-structures: true
+  
+  # 保护矿石生成 / Protect ore generation
+  # 说明：保护钻石、金矿等矿石的生成种子
+  # Description: Protect generation seeds for diamonds, gold, etc.
+  protect-ores: true
+  
+  # 保护史莱姆区块 / Protect slime chunks
+  # 说明：保护史莱姆区块的生成种子
+  # Description: Protect slime chunk generation seeds
+  protect-slimes: true
+  
+  # 种子位数 / Seed bits
+  # 说明：加密种子的位数，支持1024/2048/4096
+  # 推荐：1024（平衡安全性和性能）
+  # Description: Encrypted seed bit length, supports 1024/2048/4096
+  # Recommended: 1024 (balance security and performance)
+  seed-bits: 1024
+
+# ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:
   # 统一调试日志开关 / Unified debug logging switch
-  # 说明：控制所有模块的调试输出（TNT、结构定位等）
-  # Description: Controls debug output for all modules (TNT, structure location, etc.)
+  # 说明：控制所有模块的调试输出（TNT、结构定位、SecureSeed等）
+  # Description: Controls debug output for all modules (TNT, structure location, SecureSeed, etc.)
   # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
   

@@ -166,6 +166,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public boolean isEntityTrackerEnabled() {return config.isEntityTrackerEnabled();}
     
     @Override
+    public int getEntityTrackerQueueSize() {return config.getMaxQueueSize();}
+    
+    @Override
     public boolean isPredicateCacheEnabled() {return true;}
     
     @Override
@@ -796,5 +799,35 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public boolean isVirtualEntity(net.minecraft.world.entity.Entity entity) {
         return org.virgil.akiasync.util.VirtualEntityDetector.isVirtualEntity(entity);
+    }
+    
+    @Override
+    public boolean isSecureSeedEnabled() {
+        return config != null && config.isSecureSeedEnabled();
+    }
+    
+    @Override
+    public boolean isSecureSeedProtectStructures() {
+        return config != null && config.isSecureSeedProtectStructures();
+    }
+    
+    @Override
+    public boolean isSecureSeedProtectOres() {
+        return config != null && config.isSecureSeedProtectOres();
+    }
+    
+    @Override
+    public boolean isSecureSeedProtectSlimes() {
+        return config != null && config.isSecureSeedProtectSlimes();
+    }
+    
+    @Override
+    public int getSecureSeedBits() {
+        return config != null ? config.getSecureSeedBits() : 1024;
+    }
+    
+    @Override
+    public boolean isSecureSeedDebugLogging() {
+        return config != null && config.isSecureSeedDebugLogging();
     }
 }

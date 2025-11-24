@@ -129,6 +129,12 @@ public class ConfigManager {
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
     
+    private boolean secureSeedEnabled;
+    private boolean secureSeedProtectStructures;
+    private boolean secureSeedProtectOres;
+    private boolean secureSeedProtectSlimes;
+    private int secureSeedBits;
+    
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
@@ -274,12 +280,18 @@ public class ConfigManager {
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
         
+        secureSeedEnabled = config.getBoolean("secure-seed.enabled", true);
+        secureSeedProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
+        secureSeedProtectOres = config.getBoolean("secure-seed.protect-ores", true);
+        secureSeedProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
+        secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
+        
         validateConfigVersion();
         validateConfig();
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 6;
+        final int CURRENT_CONFIG_VERSION = 7;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -799,6 +811,13 @@ public class ConfigManager {
     public boolean isWorkStealingEnabled() { return workStealingEnabled; }
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
+    
+    public boolean isSecureSeedEnabled() { return secureSeedEnabled; }
+    public boolean isSecureSeedProtectStructures() { return secureSeedProtectStructures; }
+    public boolean isSecureSeedProtectOres() { return secureSeedProtectOres; }
+    public boolean isSecureSeedProtectSlimes() { return secureSeedProtectSlimes; }
+    public int getSecureSeedBits() { return secureSeedBits; }
+    public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;

@@ -73,6 +73,8 @@ public interface Bridge {
     
     boolean isEntityTrackerEnabled();
     
+    int getEntityTrackerQueueSize();
+    
     boolean isPredicateCacheEnabled();
     
     boolean isBlockPosPoolEnabled();
@@ -277,4 +279,11 @@ public interface Bridge {
     void errorLog(String format, Object... args);
     
     boolean isVirtualEntity(net.minecraft.world.entity.Entity entity);
+    
+    boolean isSecureSeedEnabled();
+    boolean isSecureSeedProtectStructures();
+    boolean isSecureSeedProtectOres();
+    boolean isSecureSeedProtectSlimes();
+    int getSecureSeedBits();
+    boolean isSecureSeedDebugLogging();
 }

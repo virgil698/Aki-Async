@@ -19,8 +19,8 @@ public abstract class EntityTrackerMixin {
     private static volatile boolean initialized = false;
     private static volatile boolean isFolia = false;
     private static int asyncTaskCount = 0;
-    private static final java.util.concurrent.BlockingQueue<Runnable> BATCH_QUEUE = 
-        new java.util.concurrent.LinkedBlockingQueue<>(2000);
+    private static volatile int cached_queueSize = 10000;
+    private static volatile java.util.concurrent.BlockingQueue<Runnable> BATCH_QUEUE = null;
     private static final int BATCH_SIZE = 50;
     private static final java.util.concurrent.atomic.AtomicBoolean batchSubmitted = 
         new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -81,20 +81,37 @@ public abstract class EntityTrackerMixin {
                 } catch (Throwable t) {
                 }
             };
+            
             if (!BATCH_QUEUE.offer(trackingTask)) {
+                if (asyncTaskCount <= 5) {
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.errorLog("[AkiAsync-Warning] EntityTracker queue full (" + BATCH_QUEUE.size() + "/" + cached_queueSize + "), executing synchronously");
+                    }
+                }
+                try {
+                    trackingTask.run();
+                } catch (Throwable t) {
+                }
                 return;
             }
-            if (BATCH_QUEUE.size() >= BATCH_SIZE && batchSubmitted.compareAndSet(false, true)) {
+            int queueSize = BATCH_QUEUE.size();
+            boolean shouldSubmitBatch = (queueSize >= BATCH_SIZE || queueSize > 100) && 
+                                       batchSubmitted.compareAndSet(false, true);
+            
+            if (shouldSubmitBatch) {
                 asyncTaskCount++;
                 if (asyncTaskCount <= 3) {
                     org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                     if (bridge != null) {
-                        bridge.debugLog("[AkiAsync-Batch] Submitting batch of " + BATCH_QUEUE.size() + " tracking tasks");
+                        bridge.debugLog("[AkiAsync-Batch] Submitting batch, queue size: " + queueSize + "/" + cached_queueSize);
                     }
                 }
-                java.util.List<Runnable> batch = new java.util.ArrayList<>(BATCH_SIZE);
+                
+                int dynamicBatchSize = Math.min(Math.max(BATCH_SIZE, queueSize / 2), 200);
+                java.util.List<Runnable> batch = new java.util.ArrayList<>(dynamicBatchSize);
                 Runnable task;
-                while ((task = BATCH_QUEUE.poll()) != null && batch.size() < BATCH_SIZE) {
+                while ((task = BATCH_QUEUE.poll()) != null && batch.size() < dynamicBatchSize) {
                     batch.add(task);
                 }
                 final int batchSize = batch.size();
@@ -158,19 +175,40 @@ public abstract class EntityTrackerMixin {
         if (bridge != null) {
             cached_enabled = bridge.isEntityTrackerEnabled();
             cached_executor = bridge.getGeneralExecutor();
+            cached_queueSize = bridge.getEntityTrackerQueueSize();
+            
+            BATCH_QUEUE = new java.util.concurrent.LinkedBlockingQueue<>(cached_queueSize);
             
             if (isFolia) {
                 bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized in Folia mode:");
                 bridge.debugLog("  - Enabled: " + cached_enabled + " (with region-aware processing)");
                 bridge.debugLog("  - Executor: " + (cached_executor != null ? "available" : "null"));
+                bridge.debugLog("  - Queue Size: " + cached_queueSize);
                 bridge.debugLog("  - Region safety: Cross-region access prevented");
             } else {
-                bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null));
+                bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null) + ", queueSize=" + cached_queueSize);
             }
         } else {
             cached_enabled = false;
             cached_executor = null;
+            cached_queueSize = 10000;
+            BATCH_QUEUE = new java.util.concurrent.LinkedBlockingQueue<>(cached_queueSize);
         }
         initialized = true;
+    }
+    
+    private static synchronized void aki$resetInitialization() {
+        initialized = false;
+        cached_enabled = false;
+        cached_executor = null;
+        cached_queueSize = 10000;
+        asyncTaskCount = 0;
+        
+        if (BATCH_QUEUE != null) {
+            BATCH_QUEUE.clear();
+        }
+        BATCH_QUEUE = null;
+        
+        batchSubmitted.set(false);
     }
 }
