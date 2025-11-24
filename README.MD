@@ -1002,6 +1002,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 | [ServerCore](https://github.com/Wesley1808/ServerCore) | 热点优化方案 |
 | [FerriteCore](https://github.com/malte0811/FerriteCore) | 内存优化策略 |
 | [Async](https://github.com/AxalotLDev/Async) | 异步化边界设计 |
+| [SecureSeed](https://github.com/Earthcomputer/SecureSeed) | 安全种子设计 |
 | [Leaves](https://github.com/LeavesMC/Leaves) | Mixin支持 |
 
 ---
