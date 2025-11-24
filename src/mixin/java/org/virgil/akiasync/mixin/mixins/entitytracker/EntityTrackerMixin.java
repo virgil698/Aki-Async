@@ -81,7 +81,9 @@ public abstract class EntityTrackerMixin {
                 } catch (Throwable t) {
                 }
             };
-            BATCH_QUEUE.add(trackingTask);
+            if (!BATCH_QUEUE.offer(trackingTask)) {
+                return;
+            }
             if (BATCH_QUEUE.size() >= BATCH_SIZE && batchSubmitted.compareAndSet(false, true)) {
                 asyncTaskCount++;
                 if (asyncTaskCount <= 3) {

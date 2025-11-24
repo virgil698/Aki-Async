@@ -51,6 +51,10 @@ public abstract class CollisionOptimizationMixin {
             return;
         }
         
+        if (self instanceof net.minecraft.world.entity.projectile.Projectile) {
+            return;
+        }
+        
         if (self.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
