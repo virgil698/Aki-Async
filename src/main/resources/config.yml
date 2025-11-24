@@ -65,7 +65,7 @@ async-ai:
   # 技术特性 / Features: POI快照 + 职业原子占坑
   villager-optimization:
     # 启用开关 / Enable toggle
-    enabled: false
+    enabled: true
     # 使用POI快照 / Use POI snapshot
     # 说明：村民需要POI系统（床、工作站）
     # Description: Villagers need POI system (beds, job sites)
@@ -75,7 +75,7 @@ async-ai:
   # 支持实体 / Supported: Piglin, PiglinBrute
   # 技术特性 / Features: UUID虚拟引用 + 物品比价 + 恐惧向量
   piglin-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: false
     # 注视距离（格）/ Look distance (blocks)
     look-distance: 16
@@ -87,7 +87,7 @@ async-ai:
   # 技术特性 / Features: 安全反射写字段 + Raid检测
   # 注意 / Note: Evoker单独优化（见下方）
   pillager-family-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: false
   
   # ---------- 高级AI实体优化 / High-AI Entity Optimization ----------
@@ -96,13 +96,13 @@ async-ai:
   # 支持实体 / Supported: Evoker
   # 计算内容 / Computations: 法术CD + 召唤Vex + 空地块检测
   evoker-optimization:
-    enabled: false
+    enabled: true
   
   # Blaze优化 / Blaze Optimization  
   # 支持实体 / Supported: Blaze
   # 计算内容 / Computations: 火焰弹CD + 火柱空位检测
   blaze-optimization:
-    enabled: false
+    enabled: true
   
   # Guardian优化 / Guardian Optimization
   # 支持实体 / Supported: Guardian, ElderGuardian
@@ -110,14 +110,14 @@ async-ai:
   # 说明：远古守卫者自动包含（Java继承）
   # Description: Elder guardian auto-included (Java inheritance)
   guardian-optimization:
-    enabled: false
+    enabled: true
   
   # Witch优化 / Witch Optimization (v2.1: safe reflection)
   # 支持实体 / Supported: Witch
   # 计算内容 / Computations: 最近玩家目标筛选
   # 技术特性 / Features: printStackTrace + no rethrow（安全异常处理）
   witch-optimization:
-    enabled: false
+    enabled: true
   
   # ========== 统一AI优化 / Universal AI Optimization ==========
   # 支持实体 / Supported: 所有剩余生物（见下方列表）
@@ -323,7 +323,7 @@ bee-fix:
 #   - minecraft:wither_skull (凋灵头颅)
 tnt-explosion-optimization:
   # 启用开关 / Enable toggle
-  enabled: true
+  enabled: false #目前该功能有未知Bug 生电玩家请勿开启!!!
   # 启用的爆炸实体白名单 / Enabled explosion entities
   # 说明：只对这些实体的爆炸进行异步计算优化，其他爆炸走原版
   # Description: Only async optimize explosions from these entities
@@ -334,6 +334,8 @@ tnt-explosion-optimization:
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: CPU核心数×1.5
   threads: 6
+  # 调试模式 / Debug mode
+  debug: false
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -436,15 +438,15 @@ lighting-optimizations:
     log-advanced-stats: false
 
 # ==========================================
-# 区块Tick异步化 / Chunk Tick Async
+# 区块Tick异步化 / Chunk Tick Async (Lithium + Akarin)
 # ==========================================
 # 说明：将区块Tick移至ForkJoinPool异步执行，失败回退主线程同步
 # Description: Offload chunk tick to ForkJoinPool async, fallback to main thread on timeout
 chunk-tick-async:
   # 启用开关 / Enable toggle
-  enabled: false
+  enabled: false #如果你是在Minebbs上下载的版本 可以打开此配置
   # 线程数 / Thread count
-  # 推荐值 / Recommended: 4
+  # 推荐值 / Recommended: 2-4
   threads: 4
   # 超时时间（微秒）/ Timeout (microseconds)
   # 说明：超时立即回退主线程同步，保证最坏TPS
@@ -452,13 +454,13 @@ chunk-tick-async:
   timeout-us: 200
 
 # ==========================================
-# 结构查找异步化 / Structure Location Async
+# 结构查找异步化 / Structure Location Async (v9.0)
 # ==========================================
 # 说明：异步化/locate命令、探险家地图、海豚寻宝、箱子探险地图的结构查找
 # Description: Async structure finding for /locate command, explorer maps, dolphin treasure hunt, chest maps
 structure-location-async:
   # 启用开关 / Enable toggle
-  enabled: true
+  enabled: true #该异步暂未对大型数据包进行优化 仅支持查找原版结构/群系
   
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: 2-4 (结构查找CPU密集)
@@ -555,50 +557,13 @@ datapack-optimization:
   cache-expiration-minutes: 30
   
   # 调试模式 / Debug mode
-  # 说明：启用详细的数据包加载日志
-  # Description: Enable detailed datapack loading logs
-  debug-enabled: false
-
-# ==========================================
-# 高级并发优化 / Advanced Concurrency Optimizations
-# ==========================================
-# 说明：高级并发和内存优化技术，提供额外的性能提升
-# Description: Advanced concurrency and memory optimization techniques for additional performance gains
-advanced-optimizations:
-  # 总开关 / Master switch
-  # 说明：控制所有高级并发优化的启用/禁用
-  # Description: Controls enable/disable of all advanced concurrency optimizations
-  enabled: true
-  
-  # Virtual Thread支持 / Virtual Thread support
-  # 说明：Java 21+环境下使用Virtual Thread提升并发性能
-  # Description: Use Virtual Threads for better concurrency on Java 21+
-  # 注意：仅在Java 21+环境下有效，会自动降级到传统线程
-  # Note: Only effective on Java 21+, automatically falls back to regular threads
-  virtual-threads: true
-  
-  # 工作窃取调度器 / Work-stealing scheduler
-  # 说明：使用工作窃取模式进行批量任务处理，提升多核CPU利用率
-  # Description: Use work-stealing pattern for batch processing, improves multi-core utilization
-  work-stealing: true
-  
-  # BlockPos缓存预计算 / BlockPos cache pre-computation
-  # 说明：预计算常用范围的BlockPos，减少重复计算开销
-  # Description: Pre-compute common BlockPos ranges to reduce calculation overhead
-  blockpos-cache: true
-  
-  # 优化集合类 / Optimized collections
-  # 说明：使用高性能集合类替代原生集合，减少内存分配和提升访问速度
-  # Description: Use high-performance collections instead of native ones
-  optimized-collections: true
+  debug: false
 
 # ==========================================
 # 性能监控 / Performance Monitoring
 # ==========================================
 performance:
-  # 统一调试日志开关 / Unified debug logging switch
-  # 说明：控制所有模块的调试输出（TNT、结构定位等）
-  # Description: Controls debug output for all modules (TNT, structure location, etc.)
+  # 调试日志 / Debug logging
   # 警告：会刷屏 / Warning: Console spam!
   debug-logging: false
   
