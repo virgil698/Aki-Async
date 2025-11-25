@@ -244,7 +244,7 @@ entity-tick-parallel:
 配置文件位于 `plugins/AkiAsync/config.yml`
 
 <details>
-<summary><b>📖 完整配置项（点击展开）</b></summary>
+<summary><b>📖 config.yml 完整配置项（点击展开）</b></summary>
 
 ```yaml
 # ==========================================
@@ -252,10 +252,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 7
-# 说明：当前配置版本为7，如果配置版本不等于7，则需要更新配置文件
-# Description: The current configuration version is 7, if the configuration version is not equal to 7, you need to update the configuration file
-version: 7
+# 当前版本 / Current version: 8
+# 说明：当前配置版本为8，如果配置版本不等于8，则需要更新配置文件
+# Description: The current configuration version is 8, if the configuration version is not equal to 8, you need to update the configuration file
+version: 8
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -277,8 +277,6 @@ entity-tracker:
   # Description: Buffer queue size for tracking tasks, falls back to sync execution when full
   # Recommended: 1000-20000, higher values for high-load servers
   max-queue-size: 10000
-  # 批量处理大小 / Batch processing size
-  batch-size: 50
 
 # 异步生物生成 / Async Mob Spawning
 # 说明：异步处理生物自然生成逻辑
@@ -292,6 +290,8 @@ mob-spawning:
 # 说明：限制单区块实体数量
 # Description: Limit entities per chunk
 density:
+  # 启用密度控制 / Enable density control
+  enabled: true
   # 单区块最大实体数 / Max entities per chunk
   max-per-chunk: 80
 
@@ -313,9 +313,6 @@ async-ai:
   # 全局超时时间（微秒）/ Global timeout (microseconds)
   # 100μs = 0.1ms
   timeout-microseconds: 100
-  
-  # 执行模式 / Execution mode
-  mode: simple
   
   # ---------- 村民优化 / Villager Optimization ----------
   # 支持实体 / Supported: Villager, Wandering Trader
@@ -376,70 +373,32 @@ async-ai:
   witch-optimization:
     enabled: false
   
+  # ---------- 异步寻路 / Async Pathfinding ----------
+  # 技术来源：Pufferfish异步寻路技术
+  # 说明：将A*寻路算法从主线程移到异步线程池
+  # Description: Move A* pathfinding algorithm from main thread to async thread pool
+  async-pathfinding:
+    # 启用异步寻路 / Enable async pathfinding
+    enabled: true
+    # 寻路线程池大小 / Pathfinding thread pool size
+    # 推荐：CPU核心数×1.5 / Recommended: CPU cores × 1.5
+    max-threads: 8
+    # 线程存活时间（秒）/ Thread keep-alive time (seconds)
+    keep-alive-seconds: 60
+    # 最大队列大小 / Maximum queue size
+    max-queue-size: 500
+    # 寻路超时时间（毫秒）/ Pathfinding timeout (milliseconds)
+    timeout-ms: 50
+
   # ========== 统一AI优化 / Universal AI Optimization ==========
-  # 支持实体 / Supported: 所有剩余生物（见下方列表）
-  # 技术特性 / Features: 统一模板 + 配置化实体列表 + 区域数量异步
+  # 支持实体 / Supported: 所有剩余生物（见entities.yml）
+  # 技术特性 / Features: 统一模板 + 配置化实体列表 + 区域数量异步 + 动态激活大脑(DAB)
   universal-ai-optimization:
     enabled: true
-    # 启用的实体列表 / Enabled entity types
-    # 格式 / Format: "minecraft:entity_name"
-    entities:
-      # 攻击型 / Attack type (hostile)
-      - "minecraft:skeleton"
-      - "minecraft:zombie"
-      - "minecraft:creeper"
-      - "minecraft:spider"
-      - "minecraft:enderman"
-      - "minecraft:phantom"
-      - "minecraft:drowned"
-      - "minecraft:hoglin"
-      - "minecraft:zoglin"
-      - "minecraft:stray"
-      - "minecraft:husk"
-      - "minecraft:zombie_villager"
-      - "minecraft:shulker"
-      - "minecraft:silverfish"
-      - "minecraft:endermite"
-      - "minecraft:cave_spider"
-      # 防御型 / Defense type (golems)
-      - "minecraft:iron_golem"
-      - "minecraft:snow_golem"
-      # 被动型 / Passive type (animals)
-      - "minecraft:pig"
-      - "minecraft:cow"
-      - "minecraft:sheep"
-      - "minecraft:chicken"
-      - "minecraft:rabbit"
-      - "minecraft:bat"
-      - "minecraft:fox"
-      - "minecraft:strider"
-      - "minecraft:frog"
-      - "minecraft:camel"
-      - "minecraft:goat"
-      - "minecraft:mushroom_cow"
-      # 水生型 / Aquatic type
-      - "minecraft:dolphin"
-      - "minecraft:squid"
-      - "minecraft:glow_squid"
-      - "minecraft:turtle"
-      - "minecraft:pufferfish"
-      - "minecraft:tropical_fish"
-      - "minecraft:cod"
-      - "minecraft:salmon"
-      - "minecraft:axolotl"
-      # 驯服/中立型 / Tamed/Neutral type
-      - "minecraft:wolf"
-      - "minecraft:cat"
-      - "minecraft:horse"
-      - "minecraft:donkey"
-      - "minecraft:mule"
-      - "minecraft:llama"
-      - "minecraft:parrot"
-      - "minecraft:polar_bear"
-      - "minecraft:panda"
-      - "minecraft:bee"
-      - "minecraft:ocelot"
-      - "minecraft:trader_llama"
+    # 实体列表配置文件 / Entity list configuration file
+    # 默认：plugins/AkiAsync/entities.yml
+    # Default: plugins/AkiAsync/entities.yml
+    entities-config-file: "entities.yml"
     # 节流间隔（tick）/ Tick interval
     tick-interval: 3
     # 超时时间（微秒）/ Timeout (microseconds)
@@ -448,6 +407,25 @@ async-ai:
     control-goal: true
     # 批量大小 / Batch size
     batch-size: 8
+    # 动态激活大脑 / Dynamic Activation of Brain (DAB)
+    # 说明：基于距离的渐进式实体tick节流，距离越远tick频率越低
+    # Description: Distance-based progressive entity tick throttling
+    # 技术来源：Pufferfish优化技术
+    dynamic-activation:
+      # 启用DAB / Enable DAB
+      enabled: true
+      # 开始减速距离（格）/ Start distance for slowdown (blocks)
+      # 说明：玩家此距离内的实体全速tick
+      # Description: Entities within this distance tick at full speed
+      start-distance: 12
+      # 激活距离修正系数 / Activation distance modifier
+      # 说明：控制减速梯度，值越大减速越慢
+      # Description: Controls slowdown gradient, higher = slower deceleration
+      activation-dist-mod: 8
+      # 最大tick间隔 / Maximum tick interval
+      # 说明：最远距离实体的最大tick间隔
+      # Description: Maximum tick interval for farthest entities
+      max-tick-interval: 20
 
 # ==========================================
 # 并行实体Tick / Parallel Entity Tick
@@ -466,6 +444,33 @@ entity-tick-parallel:
   # 说明：8个实体一批，任务均衡
   # Description: 8 entities per batch, balanced task size
   batch-size: 8
+
+# ==========================================
+# 实体节流 / Entity Throttling
+# ==========================================
+# 技术来源：Kaiiju实体节流技术
+# Based on: Kaiiju entity throttling
+# 说明：按实体类型限制数量，超过限制后节流或移除
+# Description: Limit entity count by type, throttle or remove when exceeded
+entity-throttling:
+  # 启用开关 / Enable toggle
+  enabled: true
+  # 配置文件路径 / Configuration file path
+  # 默认：plugins/AkiAsync/throttling.yml
+  # Default: plugins/AkiAsync/throttling.yml
+  config-file: "throttling.yml"
+  # 检查间隔（tick）/ Check interval (ticks)
+  # 说明：每N tick检查一次实体数量
+  # Description: Check entity count every N ticks
+  check-interval: 100
+  # 节流tick间隔 / Throttle tick interval
+  # 说明：超过limit后，实体每N tick更新一次
+  # Description: Update entities every N ticks when limit exceeded
+  throttle-interval: 3
+  # 移除批量大小 / Removal batch size
+  # 说明：每次检查最多移除N个实体
+  # Description: Remove at most N entities per check
+  removal-batch-size: 10
 
 # ==========================================
 # 性能优化套件 / Performance Optimizations
@@ -577,24 +582,41 @@ tnt-explosion-optimization:
   # 线程池大小 / Thread pool size
   # 推荐值 / Recommended: CPU核心数×1.5
   threads: 6
+  
+  # 领地保护集成 / Land Protection Integration (v3.2.7+)
+  # 说明：集成领地保护插件，防止TNT在受保护区域破坏方块
+  # Description: Integrate with land protection plugins to prevent TNT from destroying blocks in protected areas
+  land-protection:
+    # 启用领地保护检测 / Enable land protection check
+    # 注意：需要安装Residence、Dominion、WorldGuard或Lands插件才能生效
+    # Note: Requires Residence, Dominion, WorldGuard or Lands plugin to be installed
+    enabled: true
+    # 支持的插件 / Supported plugins:
+    # - Residence: 检查领地的 "tnt" 标志 / Checks "tnt" flag
+    # - Dominion: 检查领地的 "TNT_EXPLODE" 标志 / Checks "TNT_EXPLODE" flag
+    # - WorldGuard: 检查区域的 "tnt" 标志 / Checks region "tnt" flag (StateFlag)
+    # - Lands: 检查领地的 "block_ignite" 角色标志 / Checks land "block_ignite" role flag
+    # 缓存时间（毫秒）/ Cache duration (milliseconds)
+    # 说明：缓存领地检测结果以提升性能
+    # Description: Cache land protection check results for performance
+    cache-duration-ms: 5000
+    # 最大缓存数量 / Maximum cache size
+    max-cache-size: 1000
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
 # ==========================================
 block-entity-optimizations:
-  # 支持实体 / Supported: Furnace, Hopper, Chest, Barrel
+  # 支持实体 / Supported: Furnace, Hopper, Chest, Barrel（见entities.yml）
   # 技术特性 / Features: 配方缓存+物品传输+库存扫描异步化
   zero-delay-factory-optimization:
     enabled: true  # v3.0启用
-    # 启用的实体列表 / Enabled entity types
-    entities:
-      - "minecraft:furnace"
-      - "minecraft:blast_furnace"
-      - "minecraft:smoker"
-      - "minecraft:hopper"
-      - "minecraft:chest"
-      - "minecraft:barrel"
-      - "minecraft:trapped_chest"
+    # 实体列表配置文件 / Entity list configuration file
+    # 默认：plugins/AkiAsync/entities.yml
+    # Default: plugins/AkiAsync/entities.yml
+    # 注意：使用与universal-ai-optimization相同的配置文件
+    # Note: Uses the same configuration file as universal-ai-optimization
+    entities-config-file: "entities.yml"
     tick-interval: 1      # 每tick提交（生电需要0 tick延迟）
     timeout-us: 100
     control-goal: true
@@ -890,6 +912,483 @@ commands:
 
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
+
+```
+
+</details>
+
+<details>
+<summary><b>📖 entities.yml 完整配置项（点击展开）</b></summary>
+
+```yml
+# ==========================================
+# AkiAsync 实体列表配置 / Entity List Configuration
+# ==========================================
+# 说明：此文件配置哪些实体类型启用统一AI优化
+# Description: Configure which entity types enable universal AI optimization
+
+# 实体ID格式：minecraft:entity_name
+# Entity ID format: minecraft:entity_name
+
+# ==========================================
+# 统一AI优化实体列表 / Universal AI Optimization Entity List
+# ==========================================
+universal-ai-entities:
+  # 攻击型生物 / Hostile Mobs
+  - "minecraft:skeleton"
+  - "minecraft:zombie"
+  - "minecraft:creeper"
+  - "minecraft:spider"
+  - "minecraft:enderman"
+  - "minecraft:phantom"
+  - "minecraft:drowned"
+  - "minecraft:hoglin"
+  - "minecraft:zoglin"
+  - "minecraft:stray"
+  - "minecraft:husk"
+  - "minecraft:zombie_villager"
+  - "minecraft:shulker"
+  - "minecraft:silverfish"
+  - "minecraft:endermite"
+  - "minecraft:cave_spider"
+  - "minecraft:wither_skeleton"
+  - "minecraft:witch"
+  - "minecraft:slime"
+  - "minecraft:magma_cube"
+  
+  # 防御型生物 / Defense Mobs (Golems)
+  - "minecraft:iron_golem"
+  - "minecraft:snow_golem"
+  
+  # 被动型生物 / Passive Mobs (Animals)
+  - "minecraft:pig"
+  - "minecraft:cow"
+  - "minecraft:sheep"
+  - "minecraft:chicken"
+  - "minecraft:rabbit"
+  - "minecraft:bat"
+  - "minecraft:fox"
+  - "minecraft:strider"
+  - "minecraft:frog"
+  - "minecraft:camel"
+  - "minecraft:goat"
+  - "minecraft:mushroom_cow"
+  - "minecraft:sniffer"
+  
+  # 水生生物 / Aquatic Mobs
+  - "minecraft:dolphin"
+  - "minecraft:squid"
+  - "minecraft:glow_squid"
+  - "minecraft:turtle"
+  - "minecraft:pufferfish"
+  - "minecraft:tropical_fish"
+  - "minecraft:cod"
+  - "minecraft:salmon"
+  - "minecraft:axolotl"
+  
+  # 驯服/中立型生物 / Tamed/Neutral Mobs
+  - "minecraft:wolf"
+  - "minecraft:cat"
+  - "minecraft:horse"
+  - "minecraft:donkey"
+  - "minecraft:mule"
+  - "minecraft:llama"
+  - "minecraft:parrot"
+  - "minecraft:polar_bear"
+  - "minecraft:panda"
+  - "minecraft:bee"
+  - "minecraft:ocelot"
+  - "minecraft:trader_llama"
+  
+  # 村民相关 / Villager Related
+  # 注意：村民和流浪商人有专门的优化模块，通常不需要在这里启用
+  # Note: Villagers and wandering traders have dedicated optimization modules
+  # - "minecraft:villager"
+  # - "minecraft:wandering_trader"
+
+# ==========================================
+# 零延迟工厂实体列表 / Zero-Delay Factory Entity List
+# ==========================================
+# 说明：这些方块实体使用零延迟工厂模式优化
+# Description: These block entities use zero-delay factory pattern optimization
+zero-delay-factory-entities:
+  - "minecraft:hopper"
+  - "minecraft:furnace"
+  - "minecraft:blast_furnace"
+  - "minecraft:smoker"
+  - "minecraft:brewing_stand"
+  - "minecraft:beacon"
+  - "minecraft:chest"
+  - "minecraft:trapped_chest"
+  - "minecraft:barrel"
+  - "minecraft:shulker_box"
+  - "minecraft:ender_chest"
+  - "minecraft:dropper"
+  - "minecraft:dispenser"
+
+```
+
+</details>
+
+<details>
+<summary><b>📖 entities.yml 完整配置项（点击展开）</b></summary>
+
+```yml
+# ==========================================
+# AkiAsync 实体节流配置 / Entity Throttling Configuration
+# ==========================================
+
+# 配置说明 / Configuration Guide:
+# limit: 实体数量限制，超过该数量后实体每3 tick才会被更新一次
+#        Entity count limit, entities will be updated every 3 ticks when exceeded
+# removal: 实体移除限制，超过该数量后最先生成的实体会被逐步移除
+#          Entity removal limit, oldest entities will be gradually removed when exceeded
+
+# 注意事项 / Notes:
+# 1. limit应该小于removal（limit < removal）
+# 2. 设置为-1表示不限制该项
+# 3. 实体ID格式：minecraft:entity_name
+# 4. 移除优先级：最早生成的实体优先被移除
+
+# ==========================================
+# 攻击型生物 / Hostile Mobs
+# ==========================================
+minecraft:zombie:
+  limit: 500      # 超过500只僵尸后开始节流
+  removal: 1000   # 超过1000只僵尸后开始移除
+
+minecraft:skeleton:
+  limit: 400
+  removal: 800
+
+minecraft:creeper:
+  limit: 300
+  removal: 600
+
+minecraft:spider:
+  limit: 300
+  removal: 600
+
+minecraft:enderman:
+  limit: 200
+  removal: 400
+
+minecraft:phantom:
+  limit: 100
+  removal: 200
+
+minecraft:drowned:
+  limit: 200
+  removal: 400
+
+minecraft:husk:
+  limit: 200
+  removal: 400
+
+minecraft:stray:
+  limit: 200
+  removal: 400
+
+minecraft:zombie_villager:
+  limit: 100
+  removal: 200
+
+minecraft:witch:
+  limit: 50
+  removal: 100
+
+minecraft:blaze:
+  limit: 100
+  removal: 200
+
+minecraft:ghast:
+  limit: 50
+  removal: 100
+
+minecraft:magma_cube:
+  limit: 200
+  removal: 400
+
+minecraft:slime:
+  limit: 200
+  removal: 400
+
+minecraft:silverfish:
+  limit: 100
+  removal: 200
+
+minecraft:endermite:
+  limit: 50
+  removal: 100
+
+minecraft:shulker:
+  limit: 100
+  removal: 200
+
+minecraft:hoglin:
+  limit: 150
+  removal: 300
+
+minecraft:zoglin:
+  limit: 100
+  removal: 200
+
+minecraft:piglin:
+  limit: 200
+  removal: 400
+
+minecraft:piglin_brute:
+  limit: 50
+  removal: 100
+
+minecraft:wither_skeleton:
+  limit: 100
+  removal: 200
+
+# ==========================================
+# 被动型生物 / Passive Mobs
+# ==========================================
+minecraft:pig:
+  limit: 300
+  removal: 600
+
+minecraft:cow:
+  limit: 300
+  removal: 600
+
+minecraft:sheep:
+  limit: 300
+  removal: 600
+
+minecraft:chicken:
+  limit: 400
+  removal: 800
+
+minecraft:rabbit:
+  limit: 200
+  removal: 400
+
+minecraft:horse:
+  limit: 100
+  removal: 200
+
+minecraft:donkey:
+  limit: 50
+  removal: 100
+
+minecraft:mule:
+  limit: 50
+  removal: 100
+
+minecraft:llama:
+  limit: 100
+  removal: 200
+
+minecraft:fox:
+  limit: 100
+  removal: 200
+
+minecraft:wolf:
+  limit: 100
+  removal: 200
+
+minecraft:cat:
+  limit: 100
+  removal: 200
+
+minecraft:ocelot:
+  limit: 50
+  removal: 100
+
+minecraft:panda:
+  limit: 50
+  removal: 100
+
+minecraft:polar_bear:
+  limit: 50
+  removal: 100
+
+minecraft:bee:
+  limit: 200
+  removal: 400
+
+minecraft:bat:
+  limit: 100
+  removal: 200
+
+minecraft:parrot:
+  limit: 100
+  removal: 200
+
+minecraft:turtle:
+  limit: 100
+  removal: 200
+
+minecraft:strider:
+  limit: 100
+  removal: 200
+
+minecraft:goat:
+  limit: 100
+  removal: 200
+
+minecraft:axolotl:
+  limit: 100
+  removal: 200
+
+minecraft:frog:
+  limit: 100
+  removal: 200
+
+minecraft:camel:
+  limit: 50
+  removal: 100
+
+# ==========================================
+# 村民相关 / Villager Related
+# ==========================================
+minecraft:villager:
+  limit: 500      # 村民较重要，限制较宽松
+  removal: 1000
+
+minecraft:wandering_trader:
+  limit: 10
+  removal: 20
+
+minecraft:trader_llama:
+  limit: 20
+  removal: 40
+
+# ==========================================
+# 水生生物 / Aquatic Mobs
+# ==========================================
+minecraft:squid:
+  limit: 200
+  removal: 400
+
+minecraft:glow_squid:
+  limit: 100
+  removal: 200
+
+minecraft:dolphin:
+  limit: 50
+  removal: 100
+
+minecraft:cod:
+  limit: 300
+  removal: 600
+
+minecraft:salmon:
+  limit: 300
+  removal: 600
+
+minecraft:tropical_fish:
+  limit: 300
+  removal: 600
+
+minecraft:pufferfish:
+  limit: 100
+  removal: 200
+
+minecraft:guardian:
+  limit: 100
+  removal: 200
+
+minecraft:elder_guardian:
+  limit: 10
+  removal: 20
+
+# ==========================================
+# 特殊实体 / Special Entities
+# ==========================================
+minecraft:iron_golem:
+  limit: 50
+  removal: 100
+
+minecraft:snow_golem:
+  limit: 50
+  removal: 100
+
+minecraft:wither:
+  limit: 5       # Boss实体严格限制
+  removal: 10
+
+minecraft:ender_dragon:
+  limit: 1
+  removal: 2
+
+# ==========================================
+# 掉落物和经验球 / Items and Experience
+# ==========================================
+minecraft:item:
+  limit: 2000     # 掉落物限制较宽松
+  removal: 5000
+
+minecraft:experience_orb:
+  limit: 1000
+  removal: 3000
+
+# ==========================================
+# 投射物 / Projectiles
+# ==========================================
+minecraft:arrow:
+  limit: 500
+  removal: 1000
+
+minecraft:spectral_arrow:
+  limit: 200
+  removal: 400
+
+minecraft:trident:
+  limit: 100
+  removal: 200
+
+minecraft:fireball:
+  limit: 100
+  removal: 200
+
+minecraft:small_fireball:
+  limit: 200
+  removal: 400
+
+minecraft:dragon_fireball:
+  limit: 50
+  removal: 100
+
+minecraft:wither_skull:
+  limit: 100
+  removal: 200
+
+# ==========================================
+# 载具 / Vehicles
+# ==========================================
+minecraft:minecart:
+  limit: 200
+  removal: 400
+
+minecraft:chest_minecart:
+  limit: 100
+  removal: 200
+
+minecraft:furnace_minecart:
+  limit: 50
+  removal: 100
+
+minecraft:hopper_minecart:
+  limit: 100
+  removal: 200
+
+minecraft:tnt_minecart:
+  limit: 50
+  removal: 100
+
+minecraft:boat:
+  limit: 200
+  removal: 400
+
+minecraft:chest_boat:
+  limit: 100
+  removal: 200
 
 ```
 

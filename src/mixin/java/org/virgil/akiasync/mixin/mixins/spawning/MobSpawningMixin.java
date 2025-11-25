@@ -19,6 +19,7 @@ import org.virgil.akiasync.mixin.bridge.BridgeManager;
 @Mixin(NaturalSpawner.class)
 public abstract class MobSpawningMixin {
     private static volatile boolean cached_enabled;
+    private static volatile boolean cached_densityControlEnabled;
     private static volatile int cached_maxPerChunk;
     private static volatile boolean initialized = false;
     private static volatile boolean isFolia = false;
@@ -33,7 +34,7 @@ public abstract class MobSpawningMixin {
     private static boolean wrapSpawn1(ServerLevel level, MobCategory category, StructureManager sm, ChunkGenerator cg, MobSpawnSettings.SpawnerData sd, MutableBlockPos pos, double dist, Operation<Boolean> original) {
         if (!initialized) { akiasync$initMobSpawning(); }
         boolean ok = original.call(level, category, sm, cg, sd, pos, dist);
-        if (ok && cached_enabled && isChunkOverDensity(level, category, pos)) {
+        if (ok && cached_enabled && cached_densityControlEnabled && isChunkOverDensity(level, category, pos)) {
             ok = false;
         }
         return ok;
@@ -49,7 +50,7 @@ public abstract class MobSpawningMixin {
     private static boolean wrapSpawn2(ServerLevel level, MobCategory category, StructureManager sm, ChunkGenerator cg, MobSpawnSettings.SpawnerData sd, MutableBlockPos pos, double dist, Operation<Boolean> original) {
         if (!initialized) { akiasync$initMobSpawning(); }
         boolean ok = original.call(level, category, sm, cg, sd, pos, dist);
-        if (ok && cached_enabled && isChunkOverDensity(level, category, pos)) {
+        if (ok && cached_enabled && cached_densityControlEnabled && isChunkOverDensity(level, category, pos)) {
             ok = false;
         }
         return ok;
@@ -92,16 +93,18 @@ public abstract class MobSpawningMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isMobSpawningEnabled();
+            cached_densityControlEnabled = bridge.isDensityControlEnabled();
             cached_maxPerChunk = bridge.getMaxEntitiesPerChunk();
             
             if (isFolia) {
                 bridge.debugLog("[AkiAsync] MobSpawningMixin initialized in Folia mode: enabled=" + cached_enabled + 
-                    ", maxPerChunk=" + cached_maxPerChunk + " (with region safety checks)");
+                    ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk + " (with region safety checks)");
             } else {
-                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", maxPerChunk=" + cached_maxPerChunk);
+                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk);
             }
         } else {
             cached_enabled = false;
+            cached_densityControlEnabled = true;
             cached_maxPerChunk = 80;
         }
         initialized = true;

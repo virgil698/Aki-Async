@@ -24,6 +24,9 @@ public abstract class EntityTickChunkParallelMixin {
     private static int executionCount = 0;
     private static long lastMspt = 20;
     private static final java.lang.reflect.Field ACTIVE_FIELD_CACHE;
+    
+    private static final java.util.Set<Integer> processingExperienceOrbs = 
+        java.util.concurrent.ConcurrentHashMap.newKeySet();
     static {
         java.lang.reflect.Field tempField = null;
         try {
@@ -73,6 +76,22 @@ public abstract class EntityTickChunkParallelMixin {
                             if (akiasync$isVirtualEntity(entity)) {
                                 return;
                             }
+                            
+                            if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
+                                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb) {
+                                    int entityId = realEntity.getId();
+                                    if (!processingExperienceOrbs.add(entityId)) {
+                                        return;
+                                    }
+                                    try {
+                                        action.accept(entity);
+                                    } finally {
+                                        processingExperienceOrbs.remove(entityId);
+                                    }
+                                    return;
+                                }
+                            }
+                            
                             action.accept(entity);
                         } catch (Throwable t) {
                         }

@@ -97,6 +97,16 @@ public class ExplosionCalculator {
                                     }
                                     continue;
                                 }
+                                
+                                org.virgil.akiasync.mixin.bridge.Bridge landBridge = 
+                                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                if (landBridge != null && !landBridge.canTNTExplodeAt(snapshot.getLevel(), pos)) {
+                                    if (landBridge.isTNTDebugEnabled()) {
+                                        landBridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected by land protection plugin, skipping");
+                                    }
+                                    continue;
+                                }
+                                
                                 if (destroyedBlocks.putIfAbsent(pos, true) == null) {
                                     toDestroy.add(pos);
                                     

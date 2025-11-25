@@ -50,6 +50,16 @@ public interface Bridge {
     boolean isWitchOptimizationEnabled();
     boolean isUniversalAiOptimizationEnabled();
     java.util.Set<String> getUniversalAiEntities();
+    boolean isDabEnabled();
+    int getDabStartDistance();
+    int getDabActivationDistMod();
+    int getDabMaxTickInterval();
+    boolean isAsyncPathfindingEnabled();
+    int getAsyncPathfindingMaxThreads();
+    int getAsyncPathfindingKeepAliveSeconds();
+    int getAsyncPathfindingMaxQueueSize();
+    int getAsyncPathfindingTimeoutMs();
+    boolean shouldThrottleEntity(Object entity);
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
     boolean isBlockEntityParallelTickEnabled();
@@ -66,6 +76,8 @@ public interface Bridge {
     boolean isSimpleEntitiesUsePOISnapshot();
     
     boolean isMobSpawningEnabled();
+    
+    boolean isDensityControlEnabled();
     
     int getMaxEntitiesPerChunk();
     
@@ -286,4 +298,7 @@ public interface Bridge {
     boolean isSecureSeedProtectSlimes();
     int getSecureSeedBits();
     boolean isSecureSeedDebugLogging();
+    
+    boolean isTNTLandProtectionEnabled();
+    boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
 }

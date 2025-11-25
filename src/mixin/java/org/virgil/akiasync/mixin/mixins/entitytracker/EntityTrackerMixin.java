@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
@@ -32,13 +33,8 @@ public abstract class EntityTrackerMixin {
     @Inject(method = "updatePlayer", at = @At("HEAD"), cancellable = true)
     private void preUpdatePlayer(ServerPlayer player, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTracker(); }
-        if (!cached_enabled || cached_executor == null || entity instanceof ServerPlayer) return;
         
-        if (isFolia) {
-            if (!akiasync$canAccessEntitySafely(entity)) {
-                return;
-            }
-        }
+        if (!cached_enabled || cached_executor == null || entity instanceof ServerPlayer) return;
         
         if (akiasync$isVirtualEntity(entity)) {
             return;
@@ -55,18 +51,30 @@ public abstract class EntityTrackerMixin {
             final double entityY = entity.getY();
             final double entityZ = entity.getZ();
             final int trackingRange = this.range;
+            final Entity trackedEntity = this.entity;
+            final ServerLevel level = (ServerLevel) entity.level();
+            
             Runnable trackingTask = () -> {
                 try {
-                    java.util.List<?> players = entity.level().players();
+                    if (isFolia) {
+                        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (bridge == null) return;
+                        
+                        if (!bridge.canAccessEntityDirectly(trackedEntity)) {
+                            return;
+                        }
+                    }
+                    
+                    java.util.List<?> players = level.players();
                     for (Object playerObj : players) {
                         if (!(playerObj instanceof ServerPlayer)) continue;
                         ServerPlayer p = (ServerPlayer) playerObj;
                         
                         if (isFolia) {
-                            double dx = p.getX() - entityX;
-                            double dz = p.getZ() - entityZ;
-                            double distSq2D = dx * dx + dz * dz;
-                            if (distSq2D > 256 * 256) {
+                            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (bridge != null && !bridge.canAccessEntityDirectly(p)) {
                                 continue;
                             }
                         }
@@ -77,6 +85,10 @@ public abstract class EntityTrackerMixin {
                         double distSq = dx * dx + dy * dy + dz * dz;
                         double rangeSq = trackingRange * trackingRange;
                         boolean shouldTrack = distSq <= rangeSq;
+                    }
+                } catch (IllegalStateException e) {
+                    if (isFolia && e.getMessage() != null && 
+                        e.getMessage().contains("region")) {
                     }
                 } catch (Throwable t) {
                 }
@@ -142,17 +154,6 @@ public abstract class EntityTrackerMixin {
             }
         }
     }
-    private boolean akiasync$canAccessEntitySafely(Entity entity) {
-        if (!isFolia) return true;
-        
-        try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeManager.getBridge();
-            return bridge != null && bridge.canAccessEntityDirectly(entity);
-        } catch (Throwable t) {
-            return false;
-        }
-    }
-    
     private boolean akiasync$isVirtualEntity(Entity entity) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
@@ -181,10 +182,11 @@ public abstract class EntityTrackerMixin {
             
             if (isFolia) {
                 bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized in Folia mode:");
-                bridge.debugLog("  - Enabled: " + cached_enabled + " (with region-aware processing)");
+                bridge.debugLog("  - Enabled: " + cached_enabled + " (async with region safety checks)");
                 bridge.debugLog("  - Executor: " + (cached_executor != null ? "available" : "null"));
                 bridge.debugLog("  - Queue Size: " + cached_queueSize);
-                bridge.debugLog("  - Region safety: Cross-region access prevented");
+                bridge.debugLog("  - Safety: canAccessEntityDirectly() checks before all entity access");
+                bridge.debugLog("  - Exception handling: IllegalStateException for cross-region access");
             } else {
                 bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null) + ", queueSize=" + cached_queueSize);
             }

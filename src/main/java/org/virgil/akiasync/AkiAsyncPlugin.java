@@ -19,6 +19,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private AsyncExecutorManager executorManager;
     private AkiAsyncBridge bridge;
     private CacheManager cacheManager;
+    private org.virgil.akiasync.throttling.EntityThrottlingManager throttlingManager;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
     
     @Override
@@ -45,6 +46,16 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.util.VirtualEntityDetector.setLogger(getLogger(), configManager.isDebugLoggingEnabled());
         
         getLogger().info("[AkiAsync] Bridge registered successfully");
+        
+        if (configManager.isAsyncPathfindingEnabled()) {
+            org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.initialize();
+            getLogger().info("[AkiAsync] Async pathfinding enabled with " + configManager.getAsyncPathfindingMaxThreads() + " threads");
+        }
+        
+        if (configManager.isEntityThrottlingEnabled()) {
+            throttlingManager = new org.virgil.akiasync.throttling.EntityThrottlingManager(this);
+            throttlingManager.initialize();
+        }
         
         if (configManager.isTNTOptimizationEnabled()) {
             org.virgil.akiasync.mixin.async.TNTThreadPool.init(configManager.getTNTThreads());
@@ -115,6 +126,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
+        }
+        
+        org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
+        
+        if (throttlingManager != null) {
+            throttlingManager.shutdown();
         }
         
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
@@ -204,6 +221,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     
     public AkiAsyncBridge getBridge() {
         return bridge;
+    }
+    
+    public org.virgil.akiasync.throttling.EntityThrottlingManager getThrottlingManager() {
+        return throttlingManager;
     }
     
     public void restartMetricsScheduler() {

@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.7-SNAPSHOT"
+version = "3.2.8-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -69,6 +69,29 @@ repositories {
     maven("https://repo.leavesmc.org/snapshots/") {
         name = "leavesmc-snapshots"
     }
+    exclusiveContent {
+        forRepository {
+            maven("https://jitpack.io") {
+                name = "jitpack"
+            }
+        }
+        filter {
+            includeGroup("com.github.angeschossen") // LandsAPI
+            includeGroup("com.github.Zrips")        // Residence
+        }
+    }
+    
+    exclusiveContent {
+        forRepository {
+            maven("https://maven.enginehub.org/repo/") {
+                name = "enginehub"
+            }
+        }
+        filter {
+            includeGroup("com.sk89q.worldguard")    // WorldGuard
+            includeGroup("com.sk89q.worldedit")
+        }
+    }
     mavenLocal()
 }
 
@@ -88,7 +111,18 @@ val mixinSourceSet: SourceSet = sourceSets["mixin"]
 
 dependencies {
     apply `plugin dependencies`@{
-        // TODO: your plugin deps here
+        compileOnly("com.github.Zrips:Residence:6.0.0.1") {
+            isTransitive = false
+        }
+        compileOnly("cn.lunadeer:DominionAPI:4.7.3") {
+            isTransitive = false
+        }
+        compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9") {
+            isTransitive = false
+        }
+        compileOnly("com.github.angeschossen:LandsAPI:6.28.11") {
+            isTransitive = false
+        }
     }
 
     apply `api and server source`@{

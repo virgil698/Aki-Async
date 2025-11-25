@@ -27,6 +27,10 @@ public abstract class UniversalAiFamilyTickMixin {
     @Unique private static volatile boolean debugEnabled = false;
     @Unique private static volatile boolean isFolia = false;
     @Unique private static volatile int tickInterval = 3;
+    @Unique private static volatile boolean dabEnabled = false;
+    @Unique private static volatile int dabStartDistance = 12;
+    @Unique private static volatile int dabActivationDistMod = 8;
+    @Unique private static volatile int dabMaxTickInterval = 20;
     @Unique private static long protectionCount = 0;
     @Unique private static long totalChecks = 0;
     @Unique private UniversalAiSnapshot aki$snap;
@@ -50,7 +54,11 @@ public abstract class UniversalAiFamilyTickMixin {
         
         if (!isNewEntity && !inDanger && level.getGameTime() < aki$next) return;
         
-        aki$next = level.getGameTime() + tickInterval;
+        int currentTickInterval = tickInterval;
+        if (dabEnabled) {
+            currentTickInterval = aki$calculateDynamicTickInterval(mob, level);
+        }
+        aki$next = level.getGameTime() + currentTickInterval;
         if (respectBrainThrottle && !inDanger && aki$shouldSkipDueToStill(mob)) {
             return;
         }
@@ -62,6 +70,25 @@ public abstract class UniversalAiFamilyTickMixin {
             if (diff != null && diff.hasChanges()) diff.applyTo(mob, level);
         } catch (Exception ignored) {}
     }
+
+    @Unique
+    private int aki$calculateDynamicTickInterval(Mob mob, ServerLevel level) {
+        net.minecraft.world.entity.player.Player nearestPlayer = level.getNearestPlayer(mob, -1.0);
+        if (nearestPlayer == null) {
+            return dabMaxTickInterval;
+        }
+        
+        double distance = mob.distanceTo(nearestPlayer);
+        
+        if (distance < dabStartDistance) {
+            return 1;
+        }
+        
+        int interval = (int) (1 + (distance - dabStartDistance) / dabActivationDistMod);
+        
+        return Math.min(interval, dabMaxTickInterval);
+    }
+    
     @Unique
     private boolean aki$shouldSkipDueToStill(Mob mob) {
         if (mob.isInLava() || mob.isOnFire()) {
@@ -192,6 +219,13 @@ public abstract class UniversalAiFamilyTickMixin {
         respectBrainThrottle = bridge != null && bridge.isBrainThrottleEnabled();
         debugEnabled = bridge != null && bridge.isDebugLoggingEnabled();
         
+        if (bridge != null) {
+            dabEnabled = bridge.isDabEnabled();
+            dabStartDistance = bridge.getDabStartDistance();
+            dabActivationDistMod = bridge.getDabActivationDistMod();
+            dabMaxTickInterval = bridge.getDabMaxTickInterval();
+        }
+        
         if (isFolia) {
             tickInterval = Math.max(1, 3 / 2);
             if (bridge != null) {
@@ -203,7 +237,15 @@ public abstract class UniversalAiFamilyTickMixin {
         } else {
             tickInterval = 3;
             if (bridge != null) {
-                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized: enabled=" + enabled + ", tickInterval=" + tickInterval);
+                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized:");
+                bridge.debugLog("  - Enabled: " + enabled);
+                bridge.debugLog("  - Base tick interval: " + tickInterval);
+                bridge.debugLog("  - DAB enabled: " + dabEnabled);
+                if (dabEnabled) {
+                    bridge.debugLog("  - DAB start distance: " + dabStartDistance);
+                    bridge.debugLog("  - DAB activation dist mod: " + dabActivationDistMod);
+                    bridge.debugLog("  - DAB max tick interval: " + dabMaxTickInterval);
+                }
             }
         }
         

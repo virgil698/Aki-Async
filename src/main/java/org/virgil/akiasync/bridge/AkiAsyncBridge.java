@@ -118,6 +118,59 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public java.util.Set<String> getUniversalAiEntities() { return config.getUniversalAiEntities(); }
     
     @Override
+    public boolean isDabEnabled() { return config.isDabEnabled(); }
+    
+    @Override
+    public int getDabStartDistance() { return config.getDabStartDistance(); }
+    
+    @Override
+    public int getDabActivationDistMod() { return config.getDabActivationDistMod(); }
+    
+    @Override
+    public int getDabMaxTickInterval() { return config.getDabMaxTickInterval(); }
+    
+    @Override
+    public boolean isAsyncPathfindingEnabled() { return config.isAsyncPathfindingEnabled(); }
+    
+    @Override
+    public int getAsyncPathfindingMaxThreads() { return config.getAsyncPathfindingMaxThreads(); }
+    
+    @Override
+    public int getAsyncPathfindingKeepAliveSeconds() { return config.getAsyncPathfindingKeepAliveSeconds(); }
+    
+    @Override
+    public int getAsyncPathfindingMaxQueueSize() { return config.getAsyncPathfindingMaxQueueSize(); }
+    
+    @Override
+    public int getAsyncPathfindingTimeoutMs() { return config.getAsyncPathfindingTimeoutMs(); }
+    
+    @Override
+    public boolean shouldThrottleEntity(Object entity) {
+        if (plugin.getThrottlingManager() == null) {
+            return false;
+        }
+        
+        org.bukkit.entity.Entity bukkitEntity = null;
+        
+        if (entity instanceof org.bukkit.entity.Entity) {
+            bukkitEntity = (org.bukkit.entity.Entity) entity;
+        } else if (entity instanceof net.minecraft.world.entity.Entity) {
+            try {
+                net.minecraft.world.entity.Entity mcEntity = (net.minecraft.world.entity.Entity) entity;
+                bukkitEntity = mcEntity.getBukkitEntity();
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        
+        if (bukkitEntity == null) {
+            return false;
+        }
+        
+        return plugin.getThrottlingManager().shouldThrottle(bukkitEntity);
+    }
+    
+    @Override
     public boolean isZeroDelayFactoryOptimizationEnabled() { return config.isZeroDelayFactoryOptimizationEnabled(); }
     
     @Override
@@ -155,6 +208,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     
     @Override
     public boolean isMobSpawningEnabled() {return config.isMobSpawningEnabled();}
+    
+    @Override
+    public boolean isDensityControlEnabled() {return config.isDensityControlEnabled();}
     
     @Override
     public int getMaxEntitiesPerChunk() {return config.getMaxEntitiesPerChunk();}
@@ -829,5 +885,18 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public boolean isSecureSeedDebugLogging() {
         return config != null && config.isSecureSeedDebugLogging();
+    }
+    
+    @Override
+    public boolean isTNTLandProtectionEnabled() {
+        return config != null && config.isTNTLandProtectionEnabled();
+    }
+    
+    @Override
+    public boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+        if (!isTNTLandProtectionEnabled()) {
+            return true;
+        }
+        return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(level, pos);
     }
 }

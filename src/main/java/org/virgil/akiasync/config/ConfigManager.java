@@ -13,8 +13,8 @@ public class ConfigManager {
     private int maxQueueSize;
     private boolean mobSpawningEnabled;
     private boolean spawnerOptimizationEnabled;
+    private boolean densityControlEnabled;
     private int maxEntitiesPerChunk;
-    private int aiCooldownTicks;
     private boolean brainThrottle;
     private int brainThrottleInterval;
     private long asyncAITimeoutMicros;
@@ -31,8 +31,24 @@ public class ConfigManager {
     private boolean guardianOptimizationEnabled;
     private boolean witchOptimizationEnabled;
     private boolean universalAiOptimizationEnabled;
+    private String universalAiEntitiesConfigFile;
     private java.util.Set<String> universalAiEntities;
+    private boolean dabEnabled;
+    private int dabStartDistance;
+    private int dabActivationDistMod;
+    private int dabMaxTickInterval;
+    private boolean asyncPathfindingEnabled;
+    private int asyncPathfindingMaxThreads;
+    private int asyncPathfindingKeepAliveSeconds;
+    private int asyncPathfindingMaxQueueSize;
+    private int asyncPathfindingTimeoutMs;
+    private boolean entityThrottlingEnabled;
+    private String entityThrottlingConfigFile;
+    private int entityThrottlingCheckInterval;
+    private int entityThrottlingThrottleInterval;
+    private int entityThrottlingRemovalBatchSize;
     private boolean zeroDelayFactoryOptimizationEnabled;
+    private String zeroDelayFactoryEntitiesConfigFile;
     private java.util.Set<String> zeroDelayFactoryEntities;
     private boolean blockEntityParallelTickEnabled;
     private int blockEntityParallelMinBlockEntities;
@@ -82,6 +98,7 @@ public class ConfigManager {
     private boolean tntUseFullRaycast;
     private boolean tntUseVanillaBlockDestruction;
     private boolean tntUseVanillaDrops;
+    private boolean tntLandProtectionEnabled;
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
@@ -139,6 +156,32 @@ public class ConfigManager {
         this.plugin = plugin;
     }
     
+    private java.util.Set<String> loadEntitiesFromFile(String fileName, String key) {
+        try {
+            java.io.File entitiesFile = new java.io.File(plugin.getDataFolder(), fileName);
+            
+            if (!entitiesFile.exists()) {
+                plugin.saveResource(fileName, false);
+            }
+            
+            org.bukkit.configuration.file.FileConfiguration entitiesConfig = 
+                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(entitiesFile);
+            
+            java.util.List<String> entityList = entitiesConfig.getStringList(key);
+            if (entityList.isEmpty()) {
+                plugin.getLogger().warning("[Config] No entities found in " + fileName + " under key: " + key);
+                return new java.util.HashSet<>();
+            }
+            
+            plugin.getLogger().info("[Config] Loaded " + entityList.size() + " entities from " + fileName + " (" + key + ")");
+            return new java.util.HashSet<>(entityList);
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("[Config] Failed to load entities from " + fileName + ": " + e.getMessage());
+            return new java.util.HashSet<>();
+        }
+    }
+    
     public void loadConfig() {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
@@ -149,8 +192,8 @@ public class ConfigManager {
         maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
+        densityControlEnabled = config.getBoolean("density.enabled", true);
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        aiCooldownTicks = config.getInt("density.ai-cooldown-ticks", 10);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
@@ -167,9 +210,25 @@ public class ConfigManager {
         guardianOptimizationEnabled = config.getBoolean("async-ai.guardian-optimization.enabled", false);
         witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
         universalAiOptimizationEnabled = config.getBoolean("async-ai.universal-ai-optimization.enabled", false);
-        universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
+        universalAiEntitiesConfigFile = config.getString("async-ai.universal-ai-optimization.entities-config-file", "entities.yml");
+        universalAiEntities = loadEntitiesFromFile(universalAiEntitiesConfigFile, "universal-ai-entities");
+        dabEnabled = config.getBoolean("async-ai.universal-ai-optimization.dynamic-activation.enabled", true);
+        dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
+        dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
+        dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
+        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 8);
+        asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
+        asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
+        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 50);
+        entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
+        entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
+        entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
+        entityThrottlingThrottleInterval = config.getInt("entity-throttling.throttle-interval", 3);
+        entityThrottlingRemovalBatchSize = config.getInt("entity-throttling.removal-batch-size", 10);
         zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
-        zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        zeroDelayFactoryEntitiesConfigFile = config.getString("block-entity-optimizations.zero-delay-factory-optimization.entities-config-file", "entities.yml");
+        zeroDelayFactoryEntities = loadEntitiesFromFile(zeroDelayFactoryEntitiesConfigFile, "zero-delay-factory-entities");
         blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
         blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
@@ -229,6 +288,7 @@ public class ConfigManager {
         tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
         tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
+        tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", true);
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
@@ -291,7 +351,7 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 7;
+        final int CURRENT_CONFIG_VERSION = 8;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -371,8 +431,8 @@ public class ConfigManager {
         maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
+        densityControlEnabled = config.getBoolean("density.enabled", true);
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        aiCooldownTicks = config.getInt("density.ai-cooldown-ticks", 10);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
@@ -389,9 +449,25 @@ public class ConfigManager {
         guardianOptimizationEnabled = config.getBoolean("async-ai.guardian-optimization.enabled", false);
         witchOptimizationEnabled = config.getBoolean("async-ai.witch-optimization.enabled", false);
         universalAiOptimizationEnabled = config.getBoolean("async-ai.universal-ai-optimization.enabled", false);
-        universalAiEntities = new java.util.HashSet<>(config.getStringList("async-ai.universal-ai-optimization.entities"));
+        universalAiEntitiesConfigFile = config.getString("async-ai.universal-ai-optimization.entities-config-file", "entities.yml");
+        universalAiEntities = loadEntitiesFromFile(universalAiEntitiesConfigFile, "universal-ai-entities");
+        dabEnabled = config.getBoolean("async-ai.universal-ai-optimization.dynamic-activation.enabled", true);
+        dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
+        dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
+        dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
+        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 8);
+        asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
+        asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
+        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 50);
+        entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
+        entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
+        entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
+        entityThrottlingThrottleInterval = config.getInt("entity-throttling.throttle-interval", 3);
+        entityThrottlingRemovalBatchSize = config.getInt("entity-throttling.removal-batch-size", 10);
         zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
-        zeroDelayFactoryEntities = new java.util.HashSet<>(config.getStringList("block-entity-optimizations.zero-delay-factory-optimization.entities"));
+        zeroDelayFactoryEntitiesConfigFile = config.getString("block-entity-optimizations.zero-delay-factory-optimization.entities-config-file", "entities.yml");
+        zeroDelayFactoryEntities = loadEntitiesFromFile(zeroDelayFactoryEntitiesConfigFile, "zero-delay-factory-entities");
         blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
         blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
@@ -535,9 +611,6 @@ public class ConfigManager {
 
         if (maxEntitiesPerChunk < 20) {
             maxEntitiesPerChunk = 20;
-        }
-        if (aiCooldownTicks < 0) {
-            aiCooldownTicks = 0;
         }
         if (brainThrottleInterval < 0) {
             brainThrottleInterval = 0;
@@ -687,12 +760,12 @@ public class ConfigManager {
         return spawnerOptimizationEnabled;
     }
     
-    public int getMaxEntitiesPerChunk() {
-        return maxEntitiesPerChunk;
+    public boolean isDensityControlEnabled() {
+        return densityControlEnabled;
     }
     
-    public int getAiCooldownTicks() {
-        return aiCooldownTicks;
+    public int getMaxEntitiesPerChunk() {
+        return maxEntitiesPerChunk;
     }
     
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
@@ -712,6 +785,20 @@ public class ConfigManager {
     public boolean isWitchOptimizationEnabled() { return witchOptimizationEnabled; }
     public boolean isUniversalAiOptimizationEnabled() { return universalAiOptimizationEnabled; }
     public java.util.Set<String> getUniversalAiEntities() { return universalAiEntities; }
+    public boolean isDabEnabled() { return dabEnabled; }
+    public int getDabStartDistance() { return dabStartDistance; }
+    public int getDabActivationDistMod() { return dabActivationDistMod; }
+    public int getDabMaxTickInterval() { return dabMaxTickInterval; }
+    public boolean isAsyncPathfindingEnabled() { return asyncPathfindingEnabled; }
+    public int getAsyncPathfindingMaxThreads() { return asyncPathfindingMaxThreads; }
+    public int getAsyncPathfindingKeepAliveSeconds() { return asyncPathfindingKeepAliveSeconds; }
+    public int getAsyncPathfindingMaxQueueSize() { return asyncPathfindingMaxQueueSize; }
+    public int getAsyncPathfindingTimeoutMs() { return asyncPathfindingTimeoutMs; }
+    public boolean isEntityThrottlingEnabled() { return entityThrottlingEnabled; }
+    public String getEntityThrottlingConfigFile() { return entityThrottlingConfigFile; }
+    public int getEntityThrottlingCheckInterval() { return entityThrottlingCheckInterval; }
+    public int getEntityThrottlingThrottleInterval() { return entityThrottlingThrottleInterval; }
+    public int getEntityThrottlingRemovalBatchSize() { return entityThrottlingRemovalBatchSize; }
     public boolean isZeroDelayFactoryOptimizationEnabled() { return zeroDelayFactoryOptimizationEnabled; }
     public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
     public boolean isBlockEntityParallelTickEnabled() { return blockEntityParallelTickEnabled; }
@@ -767,6 +854,7 @@ public class ConfigManager {
     public boolean isBeeFixEnabled() { return beeFixEnabled; }
     public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
     public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
+    public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
     public int getChunkTickThreads() { return chunkTickThreads; }
     public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
