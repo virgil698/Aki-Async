@@ -35,7 +35,9 @@
     "chunk.ChunkSaveAsyncMixin",
     "pathfinding.PathNavigationAsyncMixin",
     "datapack.PackRepositoryMixin",
-    "datapack.ZipFileSystemProviderMixin"
+    "datapack.ZipFileSystemProviderMixin",
+    "recipe.FurnaceRecipeCacheMixin",
+    "recipe.CraftingMenuMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {

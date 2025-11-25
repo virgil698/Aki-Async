@@ -152,6 +152,17 @@ public class ConfigManager {
     private boolean secureSeedProtectSlimes;
     private int secureSeedBits;
     
+    private boolean furnaceRecipeCacheEnabled;
+    private int furnaceRecipeCacheSize;
+    private boolean furnaceCacheApplyToBlastFurnace;
+    private boolean furnaceCacheApplyToSmoker;
+    private boolean furnaceFixBurnTimeBug;
+    
+    private boolean craftingRecipeCacheEnabled;
+    private int craftingRecipeCacheSize;
+    private boolean craftingOptimizeBatchCrafting;
+    private boolean craftingReduceNetworkTraffic;
+    
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
@@ -346,12 +357,23 @@ public class ConfigManager {
         secureSeedProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
         secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
         
+        furnaceRecipeCacheEnabled = config.getBoolean("recipe-optimization.furnace-recipe-cache.enabled", true);
+        furnaceRecipeCacheSize = config.getInt("recipe-optimization.furnace-recipe-cache.cache-size", 100);
+        furnaceCacheApplyToBlastFurnace = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-blast-furnace", true);
+        furnaceCacheApplyToSmoker = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-smoker", true);
+        furnaceFixBurnTimeBug = config.getBoolean("recipe-optimization.furnace-recipe-cache.fix-burn-time-bug", true);
+        
+        craftingRecipeCacheEnabled = config.getBoolean("recipe-optimization.crafting-recipe-cache.enabled", false);
+        craftingRecipeCacheSize = config.getInt("recipe-optimization.crafting-recipe-cache.cache-size", 200);
+        craftingOptimizeBatchCrafting = config.getBoolean("recipe-optimization.crafting-recipe-cache.optimize-batch-crafting", true);
+        craftingReduceNetworkTraffic = config.getBoolean("recipe-optimization.crafting-recipe-cache.reduce-network-traffic", true);
+        
         validateConfigVersion();
         validateConfig();
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 8;
+        final int CURRENT_CONFIG_VERSION = 9;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -906,6 +928,17 @@ public class ConfigManager {
     public boolean isSecureSeedProtectSlimes() { return secureSeedProtectSlimes; }
     public int getSecureSeedBits() { return secureSeedBits; }
     public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
+    
+    public boolean isFurnaceRecipeCacheEnabled() { return furnaceRecipeCacheEnabled; }
+    public int getFurnaceRecipeCacheSize() { return furnaceRecipeCacheSize; }
+    public boolean isFurnaceCacheApplyToBlastFurnace() { return furnaceCacheApplyToBlastFurnace; }
+    public boolean isFurnaceCacheApplyToSmoker() { return furnaceCacheApplyToSmoker; }
+    public boolean isFurnaceFixBurnTimeBug() { return furnaceFixBurnTimeBug; }
+    
+    public boolean isCraftingRecipeCacheEnabled() { return craftingRecipeCacheEnabled; }
+    public int getCraftingRecipeCacheSize() { return craftingRecipeCacheSize; }
+    public boolean isCraftingOptimizeBatchCrafting() { return craftingOptimizeBatchCrafting; }
+    public boolean isCraftingReduceNetworkTraffic() { return craftingReduceNetworkTraffic; }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;

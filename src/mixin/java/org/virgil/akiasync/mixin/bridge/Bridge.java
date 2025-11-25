@@ -301,4 +301,15 @@ public interface Bridge {
     
     boolean isTNTLandProtectionEnabled();
     boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+    
+    boolean isFurnaceRecipeCacheEnabled();
+    int getFurnaceRecipeCacheSize();
+    boolean isFurnaceCacheApplyToBlastFurnace();
+    boolean isFurnaceCacheApplyToSmoker();
+    boolean isFurnaceFixBurnTimeBug();
+    
+    boolean isCraftingRecipeCacheEnabled();
+    int getCraftingRecipeCacheSize();
+    boolean isCraftingOptimizeBatchCrafting();
+    boolean isCraftingReduceNetworkTraffic();
 }

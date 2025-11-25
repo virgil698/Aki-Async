@@ -899,4 +899,49 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         }
         return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(level, pos);
     }
+    
+    @Override
+    public boolean isFurnaceRecipeCacheEnabled() {
+        return config != null && config.isFurnaceRecipeCacheEnabled();
+    }
+    
+    @Override
+    public int getFurnaceRecipeCacheSize() {
+        return config != null ? config.getFurnaceRecipeCacheSize() : 100;
+    }
+    
+    @Override
+    public boolean isFurnaceCacheApplyToBlastFurnace() {
+        return config != null && config.isFurnaceCacheApplyToBlastFurnace();
+    }
+    
+    @Override
+    public boolean isFurnaceCacheApplyToSmoker() {
+        return config != null && config.isFurnaceCacheApplyToSmoker();
+    }
+    
+    @Override
+    public boolean isFurnaceFixBurnTimeBug() {
+        return config != null && config.isFurnaceFixBurnTimeBug();
+    }
+    
+    @Override
+    public boolean isCraftingRecipeCacheEnabled() {
+        return config != null && config.isCraftingRecipeCacheEnabled();
+    }
+    
+    @Override
+    public int getCraftingRecipeCacheSize() {
+        return config != null ? config.getCraftingRecipeCacheSize() : 200;
+    }
+    
+    @Override
+    public boolean isCraftingOptimizeBatchCrafting() {
+        return config != null && config.isCraftingOptimizeBatchCrafting();
+    }
+    
+    @Override
+    public boolean isCraftingReduceNetworkTraffic() {
+        return config != null && config.isCraftingReduceNetworkTraffic();
+    }
 }
