@@ -22,3 +22,6 @@ accessible field net/minecraft/world/level/BaseSpawner spawnDelay I
 # Level entity collisions
 accessible method net/minecraft/world/level/Level getEntities (Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;
 
+# Level isClientSide field access (required for Leaves 1.21.10+)
+accessible field net/minecraft/world/level/Level isClientSide Z
+

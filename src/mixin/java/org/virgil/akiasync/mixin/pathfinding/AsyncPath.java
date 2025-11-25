@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class AsyncPath extends Path {
+/**
+ * AsyncPath wrapper for Path to support async pathfinding.
+ * Changed from inheritance to delegation to support Leaves 1.21.10+ where Path is final.
+ */
+public class AsyncPath {
 
     private volatile PathProcessState processState = PathProcessState.WAITING;
 
@@ -20,20 +24,19 @@ public class AsyncPath extends Path {
 
     private final Supplier<Path> pathSupplier;
 
-    private final List<Node> nodes;
+    // Delegated path object
+    private volatile Path delegatedPath;
     
-    private BlockPos target;
-    
-    private float distToTarget = 0;
-    
-    private boolean canReach = true;
+    // Temporary storage before processing
+    private final List<Node> emptyNodeList;
 
     public AsyncPath(List<Node> emptyNodeList, Set<BlockPos> positions, Supplier<Path> pathSupplier) {
-        super(emptyNodeList, null, false);
-
-        this.nodes = emptyNodeList;
+        this.emptyNodeList = emptyNodeList;
         this.positions = positions;
         this.pathSupplier = pathSupplier;
+        
+        // Create a dummy path initially
+        this.delegatedPath = new Path(emptyNodeList, null, false);
 
         AsyncPathProcessor.queue(this);
     }
@@ -69,10 +72,8 @@ public class AsyncPath extends Path {
             final Path bestPath = this.pathSupplier.get();
 
             if (bestPath != null) {
-                this.nodes.addAll(bestPath.nodes);
-                this.target = bestPath.getTarget();
-                this.distToTarget = bestPath.getDistToTarget();
-                this.canReach = bestPath.canReach();
+                // Replace the delegated path with the computed one
+                this.delegatedPath = bestPath;
             }
 
             processState = PathProcessState.COMPLETED;
@@ -95,93 +96,85 @@ public class AsyncPath extends Path {
         }
     }
 
-    @Override
+    // Delegation methods - forward all calls to delegatedPath after processing
+    
+    public Path getPath() {
+        checkProcessed();
+        return delegatedPath;
+    }
+    
     public BlockPos getTarget() {
         checkProcessed();
-        return target != null ? target : BlockPos.ZERO;
+        return delegatedPath.getTarget();
     }
 
-    @Override
     public float getDistToTarget() {
         checkProcessed();
-        return distToTarget;
+        return delegatedPath.getDistToTarget();
     }
 
-    @Override
     public boolean canReach() {
         checkProcessed();
-        return canReach;
+        return delegatedPath.canReach();
     }
 
-    @Override
     public Node getEndNode() {
         checkProcessed();
-        return super.getEndNode();
+        return delegatedPath.getEndNode();
     }
 
-    @Override
     public Node getNode(int index) {
         checkProcessed();
-        return super.getNode(index);
+        return delegatedPath.getNode(index);
     }
 
-    @Override
     public int getNodeCount() {
         checkProcessed();
-        return super.getNodeCount();
+        return delegatedPath.getNodeCount();
     }
 
-    @Override
     public int getNextNodeIndex() {
         checkProcessed();
-        return super.getNextNodeIndex();
+        return delegatedPath.getNextNodeIndex();
     }
 
-    @Override
     public Vec3 getEntityPosAtNode(net.minecraft.world.entity.Entity entity, int index) {
         checkProcessed();
-        return super.getEntityPosAtNode(entity, index);
+        return delegatedPath.getEntityPosAtNode(entity, index);
     }
 
-    @Override
     public boolean isDone() {
         checkProcessed();
-        return super.isDone();
+        return delegatedPath.isDone();
     }
 
-    @Override
     public void truncateNodes(int length) {
         checkProcessed();
-        super.truncateNodes(length);
+        delegatedPath.truncateNodes(length);
     }
 
-    @Override
     public void replaceNode(int index, Node node) {
         checkProcessed();
-        super.replaceNode(index, node);
+        delegatedPath.replaceNode(index, node);
     }
 
-    @Override
     public void setNextNodeIndex(int index) {
         checkProcessed();
-        super.setNextNodeIndex(index);
+        delegatedPath.setNextNodeIndex(index);
     }
 
-    @Override
     public void advance() {
         checkProcessed();
-        super.advance();
+        delegatedPath.advance();
     }
 
-    @Override
     public boolean notStarted() {
         checkProcessed();
-        return super.notStarted();
+        return delegatedPath.notStarted();
     }
 
-    @Override
     public boolean sameAs(Path other) {
         checkProcessed();
-        return super.sameAs(other);
+        return delegatedPath.sameAs(other);
     }
 }

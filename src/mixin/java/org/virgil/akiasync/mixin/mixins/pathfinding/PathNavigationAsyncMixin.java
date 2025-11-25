@@ -54,9 +54,11 @@ public class PathNavigationAsyncMixin {
         try {
             ArrayList<Node> emptyNodes = new ArrayList<>();
             
-            return new AsyncPath(emptyNodes, targets, () -> {
+            AsyncPath asyncPath = new AsyncPath(emptyNodes, targets, () -> {
                 return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
             });
+            
+            return asyncPath.getPath();
             
         } catch (Exception e) {
             return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
