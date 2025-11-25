@@ -221,6 +221,7 @@ entity-tick-parallel:
 # [AkiAsync]   Entity Tick Parallel: ON
 # [AkiAsync]   Block Entity Parallel: ON
 # [AkiAsync]   Async Lighting: ON
+# [AkiAsync]   Async Pathfinding: ON
 # [AkiAsync]   Chunk Tick Async: OFF
 # [AkiAsync]   Brain Throttle: ON
 # [AkiAsync]   TNT Optimization: ON
@@ -924,8 +925,6 @@ commands:
 # ==========================================
 # AkiAsync 实体列表配置 / Entity List Configuration
 # ==========================================
-# 说明：此文件配置哪些实体类型启用统一AI优化
-# Description: Configure which entity types enable universal AI optimization
 
 # 实体ID格式：minecraft:entity_name
 # Entity ID format: minecraft:entity_name

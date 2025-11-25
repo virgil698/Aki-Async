@@ -31,6 +31,7 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Entity Tick Parallel: " + (plugin.getConfigManager().isEntityTickParallel() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Block Entity Parallel: " + (plugin.getConfigManager().isBlockEntityParallelTickEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Async Lighting: " + (plugin.getConfigManager().isAsyncLightingEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Async Pathfinding: " + (plugin.getConfigManager().isAsyncPathfindingEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Chunk Tick Async: " + (plugin.getConfigManager().isChunkTickAsyncEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Brain Throttle: " + (plugin.getConfigManager().isBrainThrottleEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  TNT Optimization: " + (plugin.getConfigManager().isTNTOptimizationEnabled() ? "ON" : "OFF"));

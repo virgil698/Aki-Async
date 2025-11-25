@@ -1,8 +1,6 @@
 # ==========================================
 # AkiAsync 实体列表配置 / Entity List Configuration
 # ==========================================
-# 说明：此文件配置哪些实体类型启用统一AI优化
-# Description: Configure which entity types enable universal AI optimization
 
 # 实体ID格式：minecraft:entity_name
 # Entity ID format: minecraft:entity_name
