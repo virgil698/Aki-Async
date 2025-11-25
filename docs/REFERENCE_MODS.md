@@ -326,6 +326,95 @@ Phase 3 (v3.3) - 性能调优 [预计 1 周]
 - **融合思路**: 区块优先级思路结合分层队列设计
 - **状态**: ⏳ 待v3.0+ - 需适配Leaves API（方法签名不匹配）
 
+### 7. Pufferfish ⏳
+- **链接**: https://github.com/pufferfish-gg/Pufferfish
+- **关注点**: DAB（动态AI激活）、异步实体追踪、异步寻路、窒息优化、地图渲染优化
+- **融合思路**: 
+
+#### **核心优化对比表**
+
+| 优化点 | Pufferfish 实现方案 | AkiAsync 当前状态 | 融合优先级 |
+|--------|-------------------|------------------|-----------|
+| **1. DAB (Dynamic Activation of Brain)** | `freq = (distance^2) / (2^activation-dist-mod)` | ⚠️ **简化版**：`interval = 1 + (distance - startDistance) / distMod` | 🔥 **P0** |
+| **2. 异步实体追踪** | Pufferfish+ 专属，完全异步线程 | ✅ **已实现**：EntityTrackerMixin 批量异步 | ✅ |
+| **3. 异步寻路** | Pufferfish+ 专属，寻路计算异步化 | ⚠️ **部分实现**：PathNavigationAsyncMixin 有超时等待 | 🟡 **P1** |
+| **4. 窒息优化** | 限速窒息检测（仅受伤时检测） | ❌ **未实现** | 🟡 **P1** |
+| **5. 地图渲染加速** | 8x 渲染速度提升 | ❌ **未实现** | 🟢 **P2** |
+| **6. 漏斗优化** | 30% 提升（来自 Airplane） | ✅ **已实现**：HopperMixin 异步化 | ✅ |
+| **7. 快速射线追踪** | 优化村民视线检测 | ⚠️ **部分实现**：TNT 爆炸有射线优化 | 🟡 **P1** |
+| **8. inactive-goal-selector-disable** | 非活跃实体禁用目标选择器 | ✅ **已实现**：BrainThrottleMixin | ✅ |
+| **9. 异步生物生成** | enable-async-mob-spawning | ✅ **已实现**：MobSpawningMixin | ✅ |
+| **10. Sentry 集成** | 错误追踪和监控 | ❌ **未实现** | 🟢 **P3** |
+
+---
+
+#### **DAB 机制深度对比**
+
+**Pufferfish DAB 公式**：
+```java
+// 原版公式（更激进的降频）
+tickFrequency = (distanceToPlayer^2) / (2^activation-dist-mod)
+// 默认配置：start-distance=12, activation-dist-mod=8, max-tick-freq=20
+
+// 示例计算：
+// 距离 12 格：freq = 0^2 / 256 = 0 → 每 tick 执行（不受影响）
+// 距离 20 格：freq = 8^2 / 256 = 0.25 → 每 4 tick 执行
+// 距离 30 格：freq = 18^2 / 256 = 1.27 → 每 1.27 tick 执行
+// 距离 50 格：freq = 38^2 / 256 = 5.64 → 每 5.64 tick 执行
+// 最大限制：max-tick-freq=20（至少每 20 tick 执行一次）
+```
+
+**AkiAsync 当前实现**（简化版）：
+```java
+// UniversalAiFamilyTickMixin.java L75-90
+tickInterval = 1 + (distance - dabStartDistance) / dabActivationDistMod
+// 默认配置：start-distance=12, activation-dist-mod=8, max-tick-interval=20
+
+// 示例计算：
+// 距离 12 格：interval = 1 + 0/8 = 1 → 每 tick 执行
+// 距离 20 格：interval = 1 + 8/8 = 2 → 每 2 tick 执行
+// 距离 30 格：interval = 1 + 18/8 = 3.25 → 每 3 tick 执行
+// 距离 50 格：interval = 1 + 38/8 = 5.75 → 每 5 tick 执行
+```
+
+**关键差异**：
+1. **降频强度**：Pufferfish 使用平方公式，远距离降频更激进
+2. **性能影响**：Pufferfish 在大型服务器（200+ 玩家）上效果更明显
+3. **玩家体验**：AkiAsync 更保守，减少 AI 卡顿感
+
+**改进建议**：
+- 🔥 **P0**：实现 Pufferfish 的平方公式，添加配置开关选择公式类型
+- 🟡 **P1**：添加 `dab.blacklisted-entities` 配置，允许排除特定实体
+- 🟡 **P1**：优化 DAB 对 Brain tick 的影响（目前只影响 AI tick）
+
+---
+
+#### **其他可借鉴优化**
+
+**1. 窒息优化**（enable-suffocation-optimization）：
+- **原理**：限速窒息检测，仅在实体能受伤时检测
+- **融合点**：CollisionOptimizationMixin.checkInsideBlocks()
+- **预期收益**：减少 5-10% 实体 tick 开销
+
+**2. 地图渲染加速**：
+- **原理**：优化地图数据序列化和渲染流程
+- **融合点**：新增 MapRenderingMixin
+- **预期收益**：ImageOnMap/ImageMaps 插件性能提升 8x
+
+**3. 快速射线追踪**：
+- **原理**：优化射线检测算法，减少方块查询
+- **融合点**：TNTExplosionMixin 已有类似优化，可扩展到村民视线
+- **预期收益**：村民 AI 性能提升 15-20%
+
+**4. 方法分析器禁用**（disable-method-profiler）：
+- **原理**：禁用生产环境不需要的性能分析
+- **融合点**：新增 MethodProfilerMixin
+- **预期收益**：减少 1-2% 全局开销
+
+---
+
+- **状态**: ⏳ 待v3.0+ - DAB 公式需优化，窒息/地图渲染/射线追踪待实现
+
 ---
 
 ## 🔗 直接参考实现（核心代码对照）
@@ -345,8 +434,8 @@ Phase 3 (v3.3) - 性能调优 [预计 1 周]
 **核心参考项目**: 6/6 (100%) ✅  
 **直接参考项目**: 2/2 (100%) ✅  
 **v2.0 创新优化**: 4/4 (100%) ✅ (ItemEntity/TNT/Hopper/Villager)  
-**进阶项目**: 0/6 (0%) ⏳ 留到v3.0+  
+**进阶项目**: 0/7 (0%) ⏳ 留到v3.0+  
 
-**总体完成度**: 12/15 (80%) - v2.0 核心功能全部完成，Akarin架构待v3.0实施
+**总体完成度**: 12/16 (75%) - v2.0 核心功能全部完成，Akarin架构待v3.0实施
 
 
