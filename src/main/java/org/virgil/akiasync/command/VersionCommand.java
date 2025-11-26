@@ -19,6 +19,7 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "Plugin: " + plugin.getDescription().getName());
         source.getSender().sendMessage(prefix + "Version: " + plugin.getDescription().getVersion());
         source.getSender().sendMessage(prefix + "Authors: " + String.join(", ", plugin.getDescription().getAuthors()));
+        source.getSender().sendMessage(prefix + "Config Version: " + plugin.getConfigManager().getCurrentConfigVersion());
         source.getSender().sendMessage(prefix + "");
         source.getSender().sendMessage(prefix + "Server: " + Bukkit.getName() + " " + Bukkit.getVersion());
         source.getSender().sendMessage(prefix + "Minecraft: " + Bukkit.getMinecraftVersion());
@@ -39,6 +40,11 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  BeeFix: " + (plugin.getConfigManager().isBeeFixEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Structure Location Async: " + (plugin.getConfigManager().isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  SecureSeed: " + (plugin.getConfigManager().isSecureSeedEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Falling Block Parallel: " + (plugin.getConfigManager().isFallingBlockParallelEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Item Entity Parallel: " + (plugin.getConfigManager().isItemEntityParallelEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Item Entity Smart Merge: " + (plugin.getConfigManager().isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Item Entity Age Optimization: " + (plugin.getConfigManager().isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "========================================");
     }
     @Override
