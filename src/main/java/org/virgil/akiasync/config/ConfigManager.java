@@ -5,6 +5,8 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 
 public class ConfigManager {
     
+    private static final int CURRENT_CONFIG_VERSION = 10;
+    
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
     private boolean entityTrackerEnabled;
@@ -401,8 +403,6 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 10;
-        
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
             plugin.getLogger().warning("  CONFIG VERSION MISMATCH DETECTED");
@@ -963,6 +963,8 @@ public class ConfigManager {
     public boolean isCraftingReduceNetworkTraffic() { return craftingReduceNetworkTraffic; }
     
     public boolean isMinecartCauldronDestructionEnabled() { return minecartCauldronDestructionEnabled; }
+    
+    public int getCurrentConfigVersion() { return CURRENT_CONFIG_VERSION; }
     
     public boolean isFallingBlockParallelEnabled() { return fallingBlockParallelEnabled; }
     public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
