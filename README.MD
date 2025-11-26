@@ -211,7 +211,7 @@ entity-tick-parallel:
 # [AkiAsync] Plugin: AkiAsync
 # [AkiAsync] Version: 3.2.10-SNAPSHOT
 # [AkiAsync] Authors: Virgil
-# [AkiAsync] Config Version: 10
+# [AkiAsync] Config Version: 11
 # [AkiAsync] 
 # [AkiAsync] Server: Leaves 1.21.4
 # [AkiAsync] Minecraft: 1.21.4
@@ -237,6 +237,8 @@ entity-tick-parallel:
 # [AkiAsync]   Item Entity Smart Merge: ON
 # [AkiAsync]   Item Entity Age Optimization: ON
 # [AkiAsync]   Minecart Cauldron Destruction: ON
+# [AkiAsync]   Network Optimization: ON
+# [AkiAsync]   Fast Movement Chunk Load: ON
 # [AkiAsync] ========================================
 ```
 
@@ -261,10 +263,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 10
-# 说明：当前配置版本为10，如果配置版本不等于10，则需要更新配置文件
-# Description: The current configuration version is 10, if the configuration version is not equal to 10, you need to update the configuration file
-version: 10
+# 当前版本 / Current version: 11
+# 说明：当前配置版本为11，如果配置版本不等于11，则需要更新配置文件
+# Description: The current configuration version is 11, if the configuration version is not equal to 11, you need to update the configuration file
+version: 11
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -1033,6 +1035,241 @@ secure-seed:
   # Description: Encrypted seed bit length, supports 1024/2048/4096
   # Recommended: 1024 (balance security and performance)
   seed-bits: 1024
+
+# ==========================================
+# 网络优化 / Network Optimization
+# ==========================================
+# 说明：智能数据包优先级和区块发送速率控制
+# Description: Intelligent packet priority and chunk send rate control
+# 
+# 支持场景 / Supported Scenarios:
+#   - PVP 战斗 / PVP Combat
+#   - PVE 刷怪 / PVE Grinding
+#   - 多生物农场 / Multi-mob Farm
+#   - 刷沙机/重力方块 / Sand Duper/Falling Blocks
+#   - 高密度区块 / High-density Chunk
+#   - 鞘翅高速飞行 / Elytra Fast Flight
+network-optimization:
+  # 总开关 / Master switch
+  enabled: true
+  
+  # 数据包优先级系统 / Packet Priority System
+  # 说明：根据数据包类型自动分配优先级，改善弱网环境玩家体验
+  # Description: Automatically assigns priority based on packet type, improves experience for poor network players
+  # 
+  # 优先级说明 / Priority Levels:
+  #   CRITICAL (0): 玩家移动、战斗操作 / Player movement, combat actions
+  #   HIGH (1):     实体更新、方块变化 / Entity updates, block changes
+  #   NORMAL (2):   区块数据、容器更新 / Chunk data, container updates
+  #   LOW (3):      粒子效果、音效 / Particle effects, sounds
+  # 
+  # 兼容性 / Compatibility:
+  #   - 不修改数据包内容，完全兼容反作弊插件 / Doesn't modify packet content, fully compatible with anti-cheat
+  #   - 只调整发送顺序，不影响数据包监听器 / Only adjusts send order, doesn't affect packet listeners
+  packet-priority:
+    enabled: true
+    
+    # 数据包发送速率控制 / Packet Send Rate Control
+    # 说明：控制每个玩家每 tick 的数据包发送数量
+    # Description: Controls packet send count per player per tick
+    send-rate:
+      # 基础发送速率（packets/tick）/ Base send rate (packets/tick)
+      # 说明：正常场景下的发送速率
+      # Description: Send rate in normal scenarios
+      # 推荐值 / Recommended: 50 (默认), 40 (低配服务器), 60 (高配服务器)
+      base: 50
+      
+      # 中度加速速率（packets/tick）/ Medium acceleration rate
+      # 说明：队列积压 >100 时的发送速率（PVP、鞘翅飞行）
+      # Description: Send rate when queue >100 (PVP, elytra flight)
+      # 推荐值 / Recommended: 80 (默认), 60 (低配服务器), 100 (高配服务器)
+      medium: 80
+      
+      # 重度加速速率（packets/tick）/ Heavy acceleration rate
+      # 说明：队列积压 >300 时的发送速率（多生物农场、大规模 PVE）
+      # Description: Send rate when queue >300 (multi-mob farms, large PVE)
+      # 推荐值 / Recommended: 110 (默认), 80 (低配服务器), 130 (高配服务器)
+      heavy: 110
+      
+      # 极限加速速率（packets/tick）/ Extreme acceleration rate
+      # 说明：队列积压 >500 时的发送速率（刷沙机、单区块高密度）
+      # Description: Send rate when queue >500 (sand dupers, high-density chunks)
+      # 推荐值 / Recommended: 130 (默认), 100 (低配服务器), 150 (高配服务器)
+      extreme: 130
+    
+    # 队列容量限制 / Queue Capacity Limits
+    # 说明：控制每个玩家的数据包队列大小
+    # Description: Controls packet queue size per player
+    queue-limits:
+      # 总队列容量 / Total queue capacity
+      # 说明：单个玩家的最大队列大小
+      # Description: Maximum queue size per player
+      # 推荐值 / Recommended: 2500 (默认), 1500 (低配服务器), 3000 (高配服务器)
+      max-total: 2500
+      
+      # CRITICAL 优先级配额 / CRITICAL priority quota
+      # 说明：CRITICAL 优先级数据包的最大数量（玩家移动、战斗）
+      # Description: Maximum CRITICAL priority packets (player movement, combat)
+      # 推荐值 / Recommended: 1200 (默认), 800 (低配服务器), 1500 (高配服务器)
+      max-critical: 1200
+      
+      # HIGH 优先级配额 / HIGH priority quota
+      # 说明：HIGH 优先级数据包的最大数量（实体更新、方块变化）
+      # Description: Maximum HIGH priority packets (entity updates, block changes)
+      # 推荐值 / Recommended: 800 (默认), 500 (低配服务器), 1000 (高配服务器)
+      max-high: 800
+      
+      # NORMAL 优先级配额 / NORMAL priority quota
+      # 说明：NORMAL 优先级数据包的最大数量（区块数据、容器更新）
+      # Description: Maximum NORMAL priority packets (chunk data, container updates)
+      # 推荐值 / Recommended: 600 (默认), 400 (低配服务器), 800 (高配服务器)
+      max-normal: 600
+    
+    # 动态加速阈值 / Dynamic Acceleration Thresholds
+    # 说明：控制何时触发不同级别的加速
+    # Description: Controls when to trigger different acceleration levels
+    acceleration-thresholds:
+      # 中度加速阈值 / Medium acceleration threshold
+      # 说明：队列大小超过此值时触发中度加速
+      # Description: Trigger medium acceleration when queue exceeds this value
+      # 推荐值 / Recommended: 100 (默认), 150 (宽松), 50 (激进)
+      medium: 100
+      
+      # 重度加速阈值 / Heavy acceleration threshold
+      # 说明：队列大小超过此值时触发重度加速
+      # Description: Trigger heavy acceleration when queue exceeds this value
+      # 推荐值 / Recommended: 300 (默认), 400 (宽松), 200 (激进)
+      heavy: 300
+      
+      # 极限加速阈值 / Extreme acceleration threshold
+      # 说明：队列大小超过此值时触发极限加速
+      # Description: Trigger extreme acceleration when queue exceeds this value
+      # 推荐值 / Recommended: 500 (默认), 600 (宽松), 400 (激进)
+      extreme: 500
+    
+    # 智能清理策略 / Smart Cleanup Strategy
+    # 说明：控制队列满时的清理行为
+    # Description: Controls cleanup behavior when queue is full
+    cleanup:
+      # 启用智能清理 / Enable smart cleanup
+      # 说明：队列满时自动清理低优先级数据包
+      # Description: Automatically clean low priority packets when queue is full
+      enabled: true
+      
+      # 老旧数据包阈值（秒）/ Stale packet threshold (seconds)
+      # 说明：超过此时间的 NORMAL 优先级数据包会被清理
+      # Description: NORMAL priority packets older than this will be cleaned
+      # 推荐值 / Recommended: 5 (默认), 10 (宽松), 3 (激进)
+      stale-threshold: 5
+      
+      # CRITICAL/HIGH 清理数量 / CRITICAL/HIGH cleanup count
+      # 说明：CRITICAL/HIGH 数据包入队时清理的低优先级数量
+      # Description: Number of low priority packets to clean when CRITICAL/HIGH enqueues
+      # 推荐值 / Recommended: 100 (默认), 50 (保守), 150 (激进)
+      critical-cleanup: 100
+      
+      # NORMAL 清理数量 / NORMAL cleanup count
+      # 说明：NORMAL 数据包入队时清理的低优先级数量
+      # Description: Number of low priority packets to clean when NORMAL enqueues
+      # 推荐值 / Recommended: 50 (默认), 30 (保守), 80 (激进)
+      normal-cleanup: 50
+  
+  # 区块发送速率控制 / Chunk Send Rate Control
+  # 说明：根据玩家网络状态和视线方向动态调整区块发送速率
+  # Description: Dynamically adjusts chunk send rate based on player network status and view direction
+  chunk-rate-control:
+    enabled: true
+    # 基础区块发送速率（chunks/tick）/ Base chunk send rate (chunks/tick)
+    # 说明：正常网络状态下的发送速率
+    # Description: Send rate under normal network conditions
+    # 推荐值 / Recommended: 10 (默认), 8 (低配/多人), 12 (高配/少人)
+    base-rate: 10
+    # 最大区块发送速率 / Maximum chunk send rate
+    # 说明：网络状况良好时的最大速率
+    # Description: Maximum rate when network is good
+    # 推荐值 / Recommended: 20 (默认), 15 (低配/多人), 25 (高配/少人)
+    max-rate: 20
+    # 最小区块发送速率 / Minimum chunk send rate
+    # 说明：网络拥塞时的最小速率
+    # Description: Minimum rate during network congestion
+    # 推荐值 / Recommended: 3 (默认), 2 (激进), 5 (保守)
+    min-rate: 3
+  
+  # 网络拥塞检测 / Network Congestion Detection
+  # 说明：监控玩家ping和带宽使用，自动检测网络拥塞
+  # Description: Monitors player ping and bandwidth usage, auto-detects network congestion
+  congestion-detection:
+    enabled: true
+    # 高延迟阈值（毫秒）/ High ping threshold (milliseconds)
+    # 说明：超过此值认为网络延迟较高
+    # Description: Considered high latency when exceeding this value
+    # 推荐值 / Recommended: 200 (默认), 150 (严格), 300 (宽松)
+    high-ping-threshold: 200
+    # 严重延迟阈值（毫秒）/ Critical ping threshold (milliseconds)
+    # 说明：超过此值认为网络严重拥塞
+    # Description: Considered severe congestion when exceeding this value
+    # 推荐值 / Recommended: 500 (默认), 400 (严格), 600 (宽松)
+    critical-ping-threshold: 500
+    # 高带宽阈值（bytes/s）/ High bandwidth threshold (bytes/s)
+    # 说明：超过此值认为带宽使用较高（默认1MB/s）
+    # Description: Considered high bandwidth usage when exceeding this value (default 1MB/s)
+    # 推荐值 / Recommended: 1048576 (1MB/s, 默认), 524288 (512KB/s, 严格), 2097152 (2MB/s, 宽松)
+    high-bandwidth-threshold: 1048576
+
+# ==========================================
+# 高速移动区块预加载 / Fast Movement Chunk Loading
+# ==========================================
+# 说明：检测玩家高速移动（鞘翅飞行、疾跑等），提前加载前方区块
+# Description: Detects fast-moving players (elytra, sprinting) and preloads chunks ahead
+# 适用场景 / Use Cases:
+# - 鞘翅飞行 / Elytra flying
+# - 创造模式飞行 / Creative mode flying  
+# - 载具高速移动 / Fast vehicle movement
+# - 大型服务器优化玩家体验 / Optimize player experience on large servers
+fast-movement-chunk-load:
+  # 启用 / Enable
+  # 说明：启用后会监控玩家移动速度并预加载区块，支持鞘翅、疾跑、创造飞行等
+  # Description: When enabled, monitors player movement speed and preloads chunks
+  # 特性：自动检测烟花鞘翅超高速移动，动态调整所有参数
+  # Features: Auto-detects firework elytra ultra-fast movement, dynamically adjusts all parameters
+  enabled: true
+  
+  # 速度阈值（方块/tick）/ Speed threshold (blocks/tick)
+  # 说明：超过此速度时触发预加载（0.5 ≈ 10方块/秒）
+  # Description: Triggers preloading when exceeding this speed (0.5 ≈ 10 blocks/sec)
+  # 推荐值 / Recommended: 0.5 (默认), 0.3 (更敏感), 0.8 (仅极快速度)
+  # 注意：烟花鞘翅速度可达2-3方块/tick，系统会自动适配
+  speed-threshold: 0.5
+  
+  # 预加载距离（区块）/ Preload distance (chunks)
+  # 说明：基础预加载距离，实际距离会根据速度动态调整
+  # Description: Base preload distance, actual distance adjusts dynamically based on speed
+  # 推荐值 / Recommended: 8 (默认), 6 (保守), 10 (激进)
+  # 动态调整 / Dynamic adjustment:
+  #   - 普通移动 (<1.0 b/t): 8区块 + 周围4区块圆形
+  #   - 高速移动 (1.0-1.5 b/t): 10区块 (x1.2) + 周围4区块
+  #   - 超高速移动 (>1.5 b/t): 12区块 (x1.5) + 周围4区块 [烟花鞘翅]
+  preload-distance: 8
+  
+  # 最大并发加载数 / Max concurrent loads
+  # 说明：基础并发数，实际并发数会根据速度动态调整
+  # Description: Base concurrent loads, actual count adjusts dynamically based on speed
+  # 推荐值 / Recommended: 4 (默认), 2 (低配), 6 (高配)
+  # 动态调整 / Dynamic adjustment:
+  #   - 普通移动: 4个并发
+  #   - 高速移动: 8个并发 (x2)
+  #   - 超高速移动: 12个并发 (x3) [烟花鞘翅]
+  max-concurrent-loads: 4
+  
+  # 预测时间（ticks）/ Prediction time (ticks)
+  # 说明：基础预测时间，实际时间会根据速度动态调整
+  # Description: Base prediction time, actual time adjusts dynamically based on speed
+  # 推荐值 / Recommended: 40 (默认), 30 (保守), 50 (激进)
+  # 动态调整 / Dynamic adjustment:
+  #   - 普通移动: 40 ticks (2秒)
+  #   - 高速移动: 48 ticks (2.4秒, x1.2)
+  #   - 超高速移动: 60 ticks (3秒, x1.5) [烟花鞘翅]
+  prediction-ticks: 40
 
 # ==========================================
 # 性能监控 / Performance Monitoring

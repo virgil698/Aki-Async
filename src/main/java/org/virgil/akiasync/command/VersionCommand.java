@@ -45,6 +45,8 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Item Entity Smart Merge: " + (plugin.getConfigManager().isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Age Optimization: " + (plugin.getConfigManager().isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Network Optimization: " + (plugin.getConfigManager().isNetworkOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Fast Movement Chunk Load: " + (plugin.getConfigManager().isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "========================================");
     }
     @Override
