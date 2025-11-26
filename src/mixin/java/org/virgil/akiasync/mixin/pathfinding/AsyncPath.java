@@ -10,10 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-/**
- * AsyncPath wrapper for Path to support async pathfinding.
- * Changed from inheritance to delegation to support Leaves 1.21.10+ where Path is final.
- */
 public class AsyncPath {
 
     private volatile PathProcessState processState = PathProcessState.WAITING;
@@ -24,18 +20,15 @@ public class AsyncPath {
 
     private final Supplier<Path> pathSupplier;
 
-    // Delegated path object
     private volatile Path delegatedPath;
-    
-    // Temporary storage before processing
+
     private final List<Node> emptyNodeList;
 
     public AsyncPath(List<Node> emptyNodeList, Set<BlockPos> positions, Supplier<Path> pathSupplier) {
         this.emptyNodeList = emptyNodeList;
         this.positions = positions;
         this.pathSupplier = pathSupplier;
-        
-        // Create a dummy path initially
+
         this.delegatedPath = new Path(emptyNodeList, null, false);
 
         AsyncPathProcessor.queue(this);
@@ -72,7 +65,7 @@ public class AsyncPath {
             final Path bestPath = this.pathSupplier.get();
 
             if (bestPath != null) {
-                // Replace the delegated path with the computed one
+
                 this.delegatedPath = bestPath;
             }
 
@@ -96,13 +89,11 @@ public class AsyncPath {
         }
     }
 
-    // Delegation methods - forward all calls to delegatedPath after processing
-    
     public Path getPath() {
         checkProcessed();
         return delegatedPath;
     }
-    
+
     public BlockPos getTarget() {
         checkProcessed();
         return delegatedPath.getTarget();

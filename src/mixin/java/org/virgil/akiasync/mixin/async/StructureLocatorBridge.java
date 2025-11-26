@@ -20,13 +20,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StructureLocatorBridge {
-    
+
     private static ExecutorService executorService;
     private static final AtomicInteger ACTIVE_TASKS = new AtomicInteger(0);
     private static boolean initialized = false;
-    
+
     public static void initialize() {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null && bridge.isStructureLocationAsyncEnabled()) {
             int threads = bridge.getStructureLocationThreads();
@@ -36,13 +36,13 @@ public class StructureLocatorBridge {
                 return t;
             });
             initialized = true;
-            
+
             if (bridge.isStructureLocationDebugEnabled()) {
                 bridge.debugLog("[AkiAsync] StructureLocatorBridge initialized with " + threads + " threads");
             }
         }
     }
-    
+
     public static void shutdown() {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
@@ -50,29 +50,29 @@ public class StructureLocatorBridge {
         }
         initialized = false;
     }
-    
+
     public static void locateStructureAsync(
-        CommandSourceStack sourceStack, 
+        CommandSourceStack sourceStack,
         ResourceOrTagKeyArgument.Result<Structure> structureResult,
         HolderSet<Structure> holderSet
     ) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleLocateCommandAsyncStart(sourceStack, structureResult, holderSet);
         }
     }
-    
+
     public static void findDolphinTreasureAsync(Dolphin dolphin) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleDolphinTreasureResult(dolphin, null, null);
         }
     }
-    
+
     public static void createChestExplorationMapAsync(
-        ItemStack stack, 
+        ItemStack stack,
         LootContext context,
         TagKey<Structure> destination,
         Holder<MapDecorationType> mapDecoration,
@@ -81,13 +81,13 @@ public class StructureLocatorBridge {
         boolean skipKnownStructures,
         CallbackInfoReturnable<ItemStack> cir
     ) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleChestExplorationMapResult(stack, context, null, mapDecoration, zoom, null, cir);
         }
     }
-    
+
     public static void createExplorerMapAsync(
         MerchantOffer offer,
         Entity trader,
@@ -99,13 +99,13 @@ public class StructureLocatorBridge {
         int villagerXp,
         CallbackInfoReturnable<MerchantOffer> cir
     ) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleVillagerTradeMapResult(offer, trader, null, destinationType, displayName, maxUses, villagerXp, null, cir);
         }
     }
-    
+
     public static int getActiveTasks() {
         return ACTIVE_TASKS.get();
     }

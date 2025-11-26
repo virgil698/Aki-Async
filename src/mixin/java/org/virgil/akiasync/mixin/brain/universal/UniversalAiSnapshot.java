@@ -12,7 +12,7 @@ public final class UniversalAiSnapshot {
     private final List<PlayerInfo> nearbyPlayers;
     private final List<MobInfo> nearbyMobs;
     private final List<BlockPos> nearbyPOIs;
-    private UniversalAiSnapshot(double health, double level, List<PlayerInfo> players, 
+    private UniversalAiSnapshot(double health, double level, List<PlayerInfo> players,
                                 List<MobInfo> mobs, List<BlockPos> pois) {
         this.health = health;
         this.level = level;

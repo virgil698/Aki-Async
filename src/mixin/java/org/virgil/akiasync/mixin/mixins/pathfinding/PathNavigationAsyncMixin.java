@@ -18,10 +18,10 @@ import net.minecraft.world.level.pathfinder.PathFinder;
 
 @Mixin(PathNavigation.class)
 public class PathNavigationAsyncMixin {
-    
+
     private static java.lang.reflect.Method cachedFindPathMethod;
     private static boolean reflectionInitialized = false;
-    
+
     @Redirect(
         method = "tick",
         at = @At(
@@ -42,36 +42,36 @@ public class PathNavigationAsyncMixin {
             float maxRange,
             int accuracy,
             float depth) {
-        
+
         if (mob.level().isClientSide) {
             return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
         }
-        
+
         if (!AsyncPathProcessor.isEnabled()) {
             return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
         }
-        
+
         try {
             ArrayList<Node> emptyNodes = new ArrayList<>();
-            
+
             AsyncPath asyncPath = new AsyncPath(emptyNodes, targets, () -> {
                 return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
             });
-            
+
             return asyncPath.getPath();
-            
+
         } catch (Exception e) {
             return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
         }
     }
-    
-    private Path invokeFindPathSafely(PathFinder finder, Object region, Mob mob, 
+
+    private Path invokeFindPathSafely(PathFinder finder, Object region, Mob mob,
                                      Set<BlockPos> targets, float maxRange, int accuracy, float depth) {
         try {
             if (!reflectionInitialized) {
                 initializeReflection();
             }
-            
+
             if (cachedFindPathMethod != null) {
                 return (Path) cachedFindPathMethod.invoke(finder, region, mob, targets, maxRange, accuracy, depth);
             }
@@ -82,10 +82,10 @@ public class PathNavigationAsyncMixin {
         }
         return null;
     }
-    
+
     private static synchronized void initializeReflection() {
         if (reflectionInitialized) return;
-        
+
         try {
             cachedFindPathMethod = PathFinder.class.getMethod("findPath",
                 Class.forName("net.minecraft.world.level.pathfinder.PathNavigationRegion"),
@@ -95,7 +95,7 @@ public class PathNavigationAsyncMixin {
             System.err.println("[AkiAsync-PathNav] Failed to initialize reflection: " + e.getMessage());
             cachedFindPathMethod = null;
         }
-        
+
         reflectionInitialized = true;
     }
 }

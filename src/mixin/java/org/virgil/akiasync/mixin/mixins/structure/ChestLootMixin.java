@@ -18,16 +18,16 @@ import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
 @SuppressWarnings("unused")
 @Mixin(ExplorationMapFunction.class)
 public class ChestLootMixin {
-    
+
     @Shadow private TagKey<Structure> destination;
     @Shadow private Holder<MapDecorationType> mapDecoration;
     @Shadow private byte zoom;
     @Shadow private int searchRadius;
     @Shadow private boolean skipKnownStructures;
-    
+
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile boolean initialized = false;
-    
+
     @Inject(
         method = "run",
         at = @At(
@@ -43,17 +43,17 @@ public class ChestLootMixin {
     ) {
         if (!initialized) { aki$initChestExplorationMap(); }
         if (!cached_enabled) return;
-        
+
         org.virgil.akiasync.mixin.async.StructureLocatorBridge.createChestExplorationMapAsync(
-            stack, context, this.destination, this.mapDecoration, 
+            stack, context, this.destination, this.mapDecoration,
             this.zoom, this.searchRadius, this.skipKnownStructures, cir);
         cir.setReturnValue(stack);
     }
-    
+
     @Unique
     private static synchronized void aki$initChestExplorationMap() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isChestExplorationMapsEnabled();

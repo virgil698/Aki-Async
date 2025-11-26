@@ -12,7 +12,7 @@ public final class PillagerSnapshot {
     private final List<PlayerHealthInfo> nearbyPlayers;
     private final BlockPos raidCenter;
     private final List<BlockPos> nearbyPOIs;
-    private PillagerSnapshot(double health, boolean charging, List<PlayerHealthInfo> players, 
+    private PillagerSnapshot(double health, boolean charging, List<PlayerHealthInfo> players,
                             BlockPos raid, List<BlockPos> pois) {
         this.health = health;
         this.isChargingCrossbow = charging;

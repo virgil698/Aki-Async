@@ -21,31 +21,31 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReloadCommand implements BasicCommand {
     private final AkiAsyncPlugin plugin;
     private final Map<UUID, Long> confirmationMap = new ConcurrentHashMap<>();
-    
+
     public ReloadCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
-    
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         CommandSender sender = source.getSender();
         FileConfiguration config = plugin.getConfig();
-        
+
         boolean requireConfirmation = config.getBoolean("commands.reload.require-confirmation", true);
-        
+
         if (!requireConfirmation) {
             performReload(sender);
             return;
         }
-        
+
         int timeoutSeconds = config.getInt("commands.reload.confirmation-timeout", 30);
         long timeoutMillis = timeoutSeconds * 1000L;
-        
+
         UUID senderId = getSenderId(sender);
-        
+
         Long lastConfirmTime = confirmationMap.get(senderId);
         long currentTime = System.currentTimeMillis();
-        
+
         if (lastConfirmTime != null && (currentTime - lastConfirmTime) < timeoutMillis) {
             confirmationMap.remove(senderId);
             performReload(sender);
@@ -54,13 +54,13 @@ public class ReloadCommand implements BasicCommand {
             sendWarningMessage(sender, timeoutSeconds);
         }
     }
-    
+
     private void performReload(CommandSender sender) {
         Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
         sender.sendMessage(Component.text("[AkiAsync] ", NamedTextColor.GOLD)
             .append(Component.text("Configuration hot-reloaded, thread pools smoothly restarted.", NamedTextColor.GREEN)));
     }
-    
+
     private void sendWarningMessage(CommandSender sender, int timeoutSeconds) {
         sender.sendMessage(Component.empty());
         sender.sendMessage(Component.text("⚠ ", NamedTextColor.YELLOW, TextDecoration.BOLD)
@@ -84,14 +84,14 @@ public class ReloadCommand implements BasicCommand {
             .append(Component.text(" to confirm.", NamedTextColor.GOLD)));
         sender.sendMessage(Component.empty());
     }
-    
+
     private UUID getSenderId(CommandSender sender) {
         if (sender instanceof org.bukkit.entity.Player player) {
             return player.getUniqueId();
         }
         return UUID.fromString("00000000-0000-0000-0000-000000000000");
     }
-    
+
     @Override
     public @Nullable String permission() {
         return "akiasync.reload";

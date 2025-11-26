@@ -29,7 +29,7 @@ public class TNTBatchCollector {
         return batches.remove(key);
     }
     public static synchronized void clearOldBatches(ServerLevel level, long currentTick) {
-        batches.entrySet().removeIf(entry -> 
+        batches.entrySet().removeIf(entry ->
             entry.getKey().level == level && entry.getKey().tick < currentTick
         );
     }

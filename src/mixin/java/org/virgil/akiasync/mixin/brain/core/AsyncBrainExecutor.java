@@ -117,17 +117,17 @@ public class AsyncBrainExecutor {
         if (bridge != null) {
             bridge.debugLog("[AkiAsync-Debug] Starting AsyncBrainExecutor smooth restart...");
         }
-        
+
         if (executorService != null) {
             ExecutorService oldExecutor = executorService;
-            
+
             executorService = Executors.newSingleThreadExecutor(r -> {
                 Thread t = new Thread(r, "AkiAsync-Brain-Smooth");
                 t.setDaemon(true);
                 t.setPriority(Thread.NORM_PRIORITY - 1);
                 return t;
             });
-            
+
             oldExecutor.shutdown();
             try {
                 if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
@@ -146,7 +146,7 @@ public class AsyncBrainExecutor {
                 oldExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
-            
+
             resetStatistics();
             org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge2 != null) {

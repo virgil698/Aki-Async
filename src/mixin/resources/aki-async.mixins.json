@@ -38,11 +38,15 @@
     "lighting.SkylightCacheMixin",
     "chunk.ServerLevelTickBlockMixin",
     "chunk.ChunkSaveAsyncMixin",
+    "chunk.ServerPlayerFastMovementMixin",
     "pathfinding.PathNavigationAsyncMixin",
     "datapack.PackRepositoryMixin",
     "datapack.ZipFileSystemProviderMixin",
     "recipe.FurnaceRecipeCacheMixin",
-    "recipe.CraftingMenuMixin"
+    "recipe.CraftingMenuMixin",
+    "network.PacketSendMixin",
+    "network.ChunkSendRateMixin",
+    "network.RegionizedPlayerChunkLoaderMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {

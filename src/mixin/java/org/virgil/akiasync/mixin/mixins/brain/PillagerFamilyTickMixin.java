@@ -52,7 +52,7 @@ public abstract class PillagerFamilyTickMixin {
     @Unique
     private static synchronized void aki$init() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isPillagerFamilyOptimizationEnabled();

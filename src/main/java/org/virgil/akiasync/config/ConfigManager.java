@@ -4,9 +4,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
 public class ConfigManager {
-    
-    private static final int CURRENT_CONFIG_VERSION = 10;
-    
+
+    private static final int CURRENT_CONFIG_VERSION = 11;
+
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
     private boolean entityTrackerEnabled;
@@ -108,7 +108,7 @@ public class ConfigManager {
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
     private int configVersion;
-    
+
     private boolean structureLocationAsyncEnabled;
     private int structureLocationThreads;
     private boolean locateCommandEnabled;
@@ -123,7 +123,7 @@ public class ConfigManager {
     private boolean chestExplorationMapsEnabled;
     private java.util.Set<String> chestExplorationLootTables;
     private boolean chestMapPreserveProbability;
-    
+
     private boolean structureAlgorithmOptimizationEnabled;
     private String structureSearchPattern;
     private boolean structureCachingEnabled;
@@ -131,7 +131,7 @@ public class ConfigManager {
     private boolean biomeAwareSearchEnabled;
     private int structureCacheMaxSize;
     private long structureCacheExpirationMinutes;
-    
+
     private boolean dataPackOptimizationEnabled;
     private int dataPackFileLoadThreads;
     private int dataPackZipProcessThreads;
@@ -144,30 +144,60 @@ public class ConfigManager {
     private boolean workStealingEnabled;
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
-    
+
     private boolean secureSeedEnabled;
     private boolean secureSeedProtectStructures;
     private boolean secureSeedProtectOres;
     private boolean secureSeedProtectSlimes;
     private int secureSeedBits;
-    
+
     private boolean furnaceRecipeCacheEnabled;
     private int furnaceRecipeCacheSize;
     private boolean furnaceCacheApplyToBlastFurnace;
     private boolean furnaceCacheApplyToSmoker;
     private boolean furnaceFixBurnTimeBug;
-    
+
     private boolean craftingRecipeCacheEnabled;
     private int craftingRecipeCacheSize;
     private boolean craftingOptimizeBatchCrafting;
     private boolean craftingReduceNetworkTraffic;
-    
+
     private boolean minecartCauldronDestructionEnabled;
-    
+
     private boolean fallingBlockParallelEnabled;
     private int minFallingBlocksForParallel;
     private int fallingBlockBatchSize;
-    
+
+    private boolean networkOptimizationEnabled;
+    private boolean packetPriorityEnabled;
+    private boolean chunkRateControlEnabled;
+    private boolean congestionDetectionEnabled;
+    private int highPingThreshold;
+    private int criticalPingThreshold;
+    private long highBandwidthThreshold;
+    private int baseChunkSendRate;
+    private int maxChunkSendRate;
+    private int minChunkSendRate;
+
+    private int packetSendRateBase;
+    private int packetSendRateMedium;
+    private int packetSendRateHeavy;
+    private int packetSendRateExtreme;
+
+    private int queueLimitMaxTotal;
+    private int queueLimitMaxCritical;
+    private int queueLimitMaxHigh;
+    private int queueLimitMaxNormal;
+
+    private int accelerationThresholdMedium;
+    private int accelerationThresholdHeavy;
+    private int accelerationThresholdExtreme;
+
+    private boolean cleanupEnabled;
+    private int cleanupStaleThreshold;
+    private int cleanupCriticalCleanup;
+    private int cleanupNormalCleanup;
+
     private boolean itemEntityParallelEnabled;
     private int minItemEntitiesForParallel;
     private int itemEntityBatchSize;
@@ -178,37 +208,43 @@ public class ConfigManager {
     private boolean itemEntityAgeOptimizationEnabled;
     private int itemEntityAgeInterval;
     private double itemEntityPlayerDetectionRange;
-    
+
+    private boolean fastMovementChunkLoadEnabled;
+    private double fastMovementSpeedThreshold;
+    private int fastMovementPreloadDistance;
+    private int fastMovementMaxConcurrentLoads;
+    private int fastMovementPredictionTicks;
+
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
-    
+
     private java.util.Set<String> loadEntitiesFromFile(String fileName, String key) {
         try {
             java.io.File entitiesFile = new java.io.File(plugin.getDataFolder(), fileName);
-            
+
             if (!entitiesFile.exists()) {
                 plugin.saveResource(fileName, false);
             }
-            
-            org.bukkit.configuration.file.FileConfiguration entitiesConfig = 
+
+            org.bukkit.configuration.file.FileConfiguration entitiesConfig =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(entitiesFile);
-            
+
             java.util.List<String> entityList = entitiesConfig.getStringList(key);
             if (entityList.isEmpty()) {
                 plugin.getLogger().warning("[Config] No entities found in " + fileName + " under key: " + key);
                 return new java.util.HashSet<>();
             }
-            
+
             plugin.getLogger().info("[Config] Loaded " + entityList.size() + " entities from " + fileName + " (" + key + ")");
             return new java.util.HashSet<>(entityList);
-            
+
         } catch (Exception e) {
             plugin.getLogger().severe("[Config] Failed to load entities from " + fileName + ": " + e.getMessage());
             return new java.util.HashSet<>();
         }
     }
-    
+
     public void loadConfig() {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
@@ -317,7 +353,7 @@ public class ConfigManager {
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
-        
+
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
         locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
@@ -342,7 +378,7 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
-        
+
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
@@ -350,43 +386,43 @@ public class ConfigManager {
         structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
         structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
-        
+
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
         dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
         dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
         dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
         dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
-        
+
         nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
         virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
         workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
-        
+
         secureSeedEnabled = config.getBoolean("secure-seed.enabled", true);
         secureSeedProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
         secureSeedProtectOres = config.getBoolean("secure-seed.protect-ores", true);
         secureSeedProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
         secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
-        
+
         furnaceRecipeCacheEnabled = config.getBoolean("recipe-optimization.furnace-recipe-cache.enabled", true);
         furnaceRecipeCacheSize = config.getInt("recipe-optimization.furnace-recipe-cache.cache-size", 100);
         furnaceCacheApplyToBlastFurnace = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-blast-furnace", true);
         furnaceCacheApplyToSmoker = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-smoker", true);
         furnaceFixBurnTimeBug = config.getBoolean("recipe-optimization.furnace-recipe-cache.fix-burn-time-bug", true);
-        
+
         craftingRecipeCacheEnabled = config.getBoolean("recipe-optimization.crafting-recipe-cache.enabled", false);
         craftingRecipeCacheSize = config.getInt("recipe-optimization.crafting-recipe-cache.cache-size", 200);
         craftingOptimizeBatchCrafting = config.getBoolean("recipe-optimization.crafting-recipe-cache.optimize-batch-crafting", true);
         craftingReduceNetworkTraffic = config.getBoolean("recipe-optimization.crafting-recipe-cache.reduce-network-traffic", true);
-        
+
         minecartCauldronDestructionEnabled = config.getBoolean("servercore-optimizations.minecart-cauldron-destruction.enabled", true);
-        
+
         fallingBlockParallelEnabled = config.getBoolean("falling-block-optimization.enabled", true);
         minFallingBlocksForParallel = config.getInt("falling-block-optimization.min-falling-blocks", 20);
         fallingBlockBatchSize = config.getInt("falling-block-optimization.batch-size", 10);
-        
+
         itemEntityParallelEnabled = config.getBoolean("item-entity-optimizations.parallel-processing.enabled", true);
         minItemEntitiesForParallel = config.getInt("item-entity-optimizations.parallel-processing.min-item-entities", 50);
         itemEntityBatchSize = config.getInt("item-entity-optimizations.parallel-processing.batch-size", 20);
@@ -397,11 +433,47 @@ public class ConfigManager {
         itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-optimizations.age-optimization.enabled", true);
         itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-optimization.age-interval", 10);
         itemEntityPlayerDetectionRange = config.getDouble("item-entity-optimizations.age-optimization.player-detection-range", 8.0);
-        
+
+        networkOptimizationEnabled = config.getBoolean("network-optimization.enabled", true);
+        packetPriorityEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
+        chunkRateControlEnabled = config.getBoolean("network-optimization.chunk-rate-control.enabled", true);
+        congestionDetectionEnabled = config.getBoolean("network-optimization.congestion-detection.enabled", true);
+        highPingThreshold = config.getInt("network-optimization.congestion-detection.high-ping-threshold", 200);
+        criticalPingThreshold = config.getInt("network-optimization.congestion-detection.critical-ping-threshold", 500);
+        highBandwidthThreshold = config.getLong("network-optimization.congestion-detection.high-bandwidth-threshold", 1048576L);
+        baseChunkSendRate = config.getInt("network-optimization.chunk-rate-control.base-rate", 10);
+        maxChunkSendRate = config.getInt("network-optimization.chunk-rate-control.max-rate", 20);
+        minChunkSendRate = config.getInt("network-optimization.chunk-rate-control.min-rate", 3);
+
+        packetSendRateBase = config.getInt("network-optimization.packet-priority.send-rate.base", 50);
+        packetSendRateMedium = config.getInt("network-optimization.packet-priority.send-rate.medium", 80);
+        packetSendRateHeavy = config.getInt("network-optimization.packet-priority.send-rate.heavy", 110);
+        packetSendRateExtreme = config.getInt("network-optimization.packet-priority.send-rate.extreme", 130);
+
+        queueLimitMaxTotal = config.getInt("network-optimization.packet-priority.queue-limits.max-total", 2500);
+        queueLimitMaxCritical = config.getInt("network-optimization.packet-priority.queue-limits.max-critical", 1200);
+        queueLimitMaxHigh = config.getInt("network-optimization.packet-priority.queue-limits.max-high", 800);
+        queueLimitMaxNormal = config.getInt("network-optimization.packet-priority.queue-limits.max-normal", 600);
+
+        accelerationThresholdMedium = config.getInt("network-optimization.packet-priority.acceleration-thresholds.medium", 100);
+        accelerationThresholdHeavy = config.getInt("network-optimization.packet-priority.acceleration-thresholds.heavy", 300);
+        accelerationThresholdExtreme = config.getInt("network-optimization.packet-priority.acceleration-thresholds.extreme", 500);
+
+        cleanupEnabled = config.getBoolean("network-optimization.packet-priority.cleanup.enabled", true);
+        cleanupStaleThreshold = config.getInt("network-optimization.packet-priority.cleanup.stale-threshold", 5);
+        cleanupCriticalCleanup = config.getInt("network-optimization.packet-priority.cleanup.critical-cleanup", 100);
+        cleanupNormalCleanup = config.getInt("network-optimization.packet-priority.cleanup.normal-cleanup", 50);
+
+        fastMovementChunkLoadEnabled = config.getBoolean("fast-movement-chunk-load.enabled", false);
+        fastMovementSpeedThreshold = config.getDouble("fast-movement-chunk-load.speed-threshold", 0.5);
+        fastMovementPreloadDistance = config.getInt("fast-movement-chunk-load.preload-distance", 8);
+        fastMovementMaxConcurrentLoads = config.getInt("fast-movement-chunk-load.max-concurrent-loads", 4);
+        fastMovementPredictionTicks = config.getInt("fast-movement-chunk-load.prediction-ticks", 40);
+
         validateConfigVersion();
         validateConfig();
     }
-    
+
     private void validateConfigVersion() {
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -410,7 +482,7 @@ public class ConfigManager {
             plugin.getLogger().warning("Current supported version: " + CURRENT_CONFIG_VERSION);
             plugin.getLogger().warning("Your config version: " + configVersion);
             plugin.getLogger().warning("");
-            
+
             if (configVersion < CURRENT_CONFIG_VERSION) {
                 plugin.getLogger().warning("Your config.yml is outdated!");
                 plugin.getLogger().warning("Automatically backing up and regenerating config...");
@@ -418,14 +490,14 @@ public class ConfigManager {
                 plugin.getLogger().warning("Your config.yml is from a newer version!");
                 plugin.getLogger().warning("Automatically backing up and regenerating config...");
             }
-            
+
             if (backupAndRegenerateConfig()) {
                 plugin.getLogger().info("Config backup and regeneration completed successfully!");
                 plugin.getLogger().info("Old config saved as: config.yml.bak");
                 plugin.getLogger().info("New config generated with version " + CURRENT_CONFIG_VERSION);
                 plugin.getLogger().warning("Please review the new config.yml and adjust settings as needed.");
                 plugin.getLogger().warning("==========================================");
-                
+
                 reloadConfigWithoutValidation();
             } else {
                 plugin.getLogger().severe("Failed to backup and regenerate config!");
@@ -434,47 +506,47 @@ public class ConfigManager {
             }
         }
     }
-    
+
     private boolean backupAndRegenerateConfig() {
         try {
             java.io.File configFile = new java.io.File(plugin.getDataFolder(), "config.yml");
             java.io.File backupFile = new java.io.File(plugin.getDataFolder(), "config.yml.bak");
-            
+
             if (!configFile.exists()) {
                 plugin.getLogger().warning("Config file does not exist, creating new one...");
                 plugin.saveDefaultConfig();
                 return true;
             }
-            
+
             if (backupFile.exists()) {
                 if (!backupFile.delete()) {
                     plugin.getLogger().warning("Failed to delete existing backup file");
                 }
             }
-            
+
             if (!configFile.renameTo(backupFile)) {
                 plugin.getLogger().severe("Failed to backup config file to config.yml.bak");
                 return false;
             }
-            
+
             plugin.getLogger().info("Config file backed up to: config.yml.bak");
-            
+
             plugin.saveDefaultConfig();
             plugin.getLogger().info("New config.yml generated with latest version");
-            
+
             return true;
-            
+
         } catch (Exception e) {
             plugin.getLogger().severe("Error during config backup and regeneration: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
-    
+
     private void reloadConfigWithoutValidation() {
         plugin.reloadConfig();
         config = plugin.getConfig();
-        
+
         entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
@@ -529,13 +601,13 @@ public class ConfigManager {
         entityTickThreads = config.getInt("entity-tick-parallel.threads", 4);
         minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
         entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 50);
-        
+
         nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
         virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
         workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
-        
+
         asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
@@ -546,19 +618,19 @@ public class ConfigManager {
         lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
         dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
         advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
-        
+
         playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
         maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
         entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
         entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
-        
+
         alternateCurrentEnabled = config.getBoolean("redstone-optimizations.alternate-current.enabled", true);
         redstoneWireTurboEnabled = config.getBoolean("redstone-optimizations.wire-turbo.enabled", true);
         redstoneUpdateBatchingEnabled = config.getBoolean("redstone-optimizations.update-batching.enabled", true);
         redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
-        
+
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
@@ -577,18 +649,18 @@ public class ConfigManager {
         tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
         tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
-        
+
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
-        
+
         asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
         villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
         villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
         villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
-        
+
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
-        
+
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
         locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
@@ -613,7 +685,7 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
         chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
-        
+
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
@@ -621,21 +693,21 @@ public class ConfigManager {
         structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
         structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
-        
+
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
         dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
         dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
         dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
         dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
-        
+
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
-        
+
         validateConfig();
     }
-    
+
     private void validateConfig() {
         if (threadPoolSize < 1) {
             plugin.getLogger().warning("Thread pool size cannot be less than 1, setting to 1");
@@ -645,12 +717,12 @@ public class ConfigManager {
             plugin.getLogger().warning("Thread pool size cannot be more than 32, setting to 32");
             threadPoolSize = 32;
         }
-        
+
         if (updateIntervalTicks < 1) {
             plugin.getLogger().warning("Update interval cannot be less than 1 tick, setting to 1");
             updateIntervalTicks = 1;
         }
-        
+
         if (maxQueueSize < 100) {
             plugin.getLogger().warning("Max queue size cannot be less than 100, setting to 100");
             maxQueueSize = 100;
@@ -702,7 +774,7 @@ public class ConfigManager {
         if (tntTimeoutMicros > 10000) tntTimeoutMicros = 10000;
         if (tntBatchSize < 8) tntBatchSize = 8;
         if (tntBatchSize > 256) tntBatchSize = 256;
-        
+
         if (structureLocationThreads < 1) {
             plugin.getLogger().warning("Structure location threads cannot be less than 1, setting to 1");
             structureLocationThreads = 1;
@@ -711,7 +783,7 @@ public class ConfigManager {
             plugin.getLogger().warning("Structure location threads cannot be more than 8, setting to 8");
             structureLocationThreads = 8;
         }
-        
+
         validateNitoriConfig();
         if (locateCommandSearchRadius < 10) locateCommandSearchRadius = 10;
         if (locateCommandSearchRadius > 1000) locateCommandSearchRadius = 1000;
@@ -722,7 +794,7 @@ public class ConfigManager {
         if (dolphinTreasureHuntInterval < 20) dolphinTreasureHuntInterval = 20;
         if (dolphinTreasureHuntInterval > 1200) dolphinTreasureHuntInterval = 1200;
     }
-    
+
     private void validateNitoriConfig() {
         if (virtualThreadEnabled) {
             int javaVersion = getJavaMajorVersion();
@@ -741,7 +813,7 @@ public class ConfigManager {
                 plugin.getLogger().info("Virtual Thread enabled with Java " + javaVersion + " (stable feature)");
             }
         }
-        
+
         if (!nitoriOptimizationsEnabled) {
             plugin.getLogger().info("Nitori-style optimizations are disabled. You may miss some performance improvements.");
         } else {
@@ -750,11 +822,11 @@ public class ConfigManager {
             if (workStealingEnabled) enabledOptimizations++;
             if (blockPosCacheEnabled) enabledOptimizations++;
             if (optimizedCollectionsEnabled) enabledOptimizations++;
-            
+
             plugin.getLogger().info("Nitori-style optimizations enabled: " + enabledOptimizations + "/4 features active");
         }
     }
-    
+
     private int getJavaMajorVersion() {
         String version = System.getProperty("java.version");
         if (version.startsWith("1.")) {
@@ -763,58 +835,58 @@ public class ConfigManager {
         int dotIndex = version.indexOf(".");
         return Integer.parseInt(dotIndex == -1 ? version : version.substring(0, dotIndex));
     }
-    
+
     public void reload() {
         loadConfig();
         plugin.getLogger().info("Configuration reloaded successfully!");
     }
-    
+
     public boolean isEntityTrackerEnabled() {
         return entityTrackerEnabled;
     }
-    
+
     public int getThreadPoolSize() {
         return threadPoolSize;
     }
-    
+
     public int getUpdateIntervalTicks() {
         return updateIntervalTicks;
     }
-    
+
     public int getMaxQueueSize() {
         return maxQueueSize;
     }
-    
+
     public boolean isDebugLoggingEnabled() {
         return enableDebugLogging;
     }
-    
+
     public void setDebugLoggingEnabled(boolean enabled) {
         this.enableDebugLogging = enabled;
         config.set("performance.debug-logging", enabled);
         plugin.saveConfig();
     }
-    
+
     public boolean isPerformanceMetricsEnabled() {
         return enablePerformanceMetrics;
     }
-    
+
     public boolean isMobSpawningEnabled() {
         return mobSpawningEnabled;
     }
-    
+
     public boolean isSpawnerOptimizationEnabled() {
         return spawnerOptimizationEnabled;
     }
-    
+
     public boolean isDensityControlEnabled() {
         return densityControlEnabled;
     }
-    
+
     public int getMaxEntitiesPerChunk() {
         return maxEntitiesPerChunk;
     }
-    
+
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
     public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
@@ -902,11 +974,11 @@ public class ConfigManager {
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
     public int getChunkTickThreads() { return chunkTickThreads; }
     public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
-    
+
     public int getConfigVersion() {
         return configVersion;
     }
-    
+
     public boolean isStructureLocationAsyncEnabled() { return structureLocationAsyncEnabled; }
     public int getStructureLocationThreads() { return structureLocationThreads; }
     public boolean isLocateCommandEnabled() { return locateCommandEnabled; }
@@ -922,7 +994,7 @@ public class ConfigManager {
     public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
     public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
     public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
-    
+
     public boolean isStructureAlgorithmOptimizationEnabled() { return structureAlgorithmOptimizationEnabled; }
     public String getStructureSearchPattern() { return structureSearchPattern; }
     public boolean isStructureCachingEnabled() { return structureCachingEnabled; }
@@ -930,46 +1002,46 @@ public class ConfigManager {
     public boolean isBiomeAwareSearchEnabled() { return biomeAwareSearchEnabled; }
     public int getStructureCacheMaxSize() { return structureCacheMaxSize; }
     public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
-    
+
     public boolean isDataPackOptimizationEnabled() { return dataPackOptimizationEnabled; }
     public int getDataPackFileLoadThreads() { return dataPackFileLoadThreads; }
     public int getDataPackZipProcessThreads() { return dataPackZipProcessThreads; }
     public int getDataPackBatchSize() { return dataPackBatchSize; }
     public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
     public boolean isDataPackDebugEnabled() { return dataPackDebugEnabled; }
-    
+
     public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
     public boolean isVirtualThreadEnabled() { return virtualThreadEnabled; }
     public boolean isWorkStealingEnabled() { return workStealingEnabled; }
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
-    
+
     public boolean isSecureSeedEnabled() { return secureSeedEnabled; }
     public boolean isSecureSeedProtectStructures() { return secureSeedProtectStructures; }
     public boolean isSecureSeedProtectOres() { return secureSeedProtectOres; }
     public boolean isSecureSeedProtectSlimes() { return secureSeedProtectSlimes; }
     public int getSecureSeedBits() { return secureSeedBits; }
     public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
-    
+
     public boolean isFurnaceRecipeCacheEnabled() { return furnaceRecipeCacheEnabled; }
     public int getFurnaceRecipeCacheSize() { return furnaceRecipeCacheSize; }
     public boolean isFurnaceCacheApplyToBlastFurnace() { return furnaceCacheApplyToBlastFurnace; }
     public boolean isFurnaceCacheApplyToSmoker() { return furnaceCacheApplyToSmoker; }
     public boolean isFurnaceFixBurnTimeBug() { return furnaceFixBurnTimeBug; }
-    
+
     public boolean isCraftingRecipeCacheEnabled() { return craftingRecipeCacheEnabled; }
     public int getCraftingRecipeCacheSize() { return craftingRecipeCacheSize; }
     public boolean isCraftingOptimizeBatchCrafting() { return craftingOptimizeBatchCrafting; }
     public boolean isCraftingReduceNetworkTraffic() { return craftingReduceNetworkTraffic; }
-    
+
     public boolean isMinecartCauldronDestructionEnabled() { return minecartCauldronDestructionEnabled; }
-    
+
     public int getCurrentConfigVersion() { return CURRENT_CONFIG_VERSION; }
-    
+
     public boolean isFallingBlockParallelEnabled() { return fallingBlockParallelEnabled; }
     public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
     public int getFallingBlockBatchSize() { return fallingBlockBatchSize; }
-    
+
     public boolean isItemEntityParallelEnabled() { return itemEntityParallelEnabled; }
     public int getMinItemEntitiesForParallel() { return minItemEntitiesForParallel; }
     public int getItemEntityBatchSize() { return itemEntityBatchSize; }
@@ -980,7 +1052,44 @@ public class ConfigManager {
     public boolean isItemEntityAgeOptimizationEnabled() { return itemEntityAgeOptimizationEnabled; }
     public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
     public double getItemEntityPlayerDetectionRange() { return itemEntityPlayerDetectionRange; }
-    
+
+    public boolean isNetworkOptimizationEnabled() { return networkOptimizationEnabled; }
+    public boolean isPacketPriorityEnabled() { return packetPriorityEnabled; }
+    public boolean isChunkRateControlEnabled() { return chunkRateControlEnabled; }
+    public boolean isChunkSendOptimizationEnabled() { return chunkRateControlEnabled; }
+    public boolean isCongestionDetectionEnabled() { return congestionDetectionEnabled; }
+    public int getHighPingThreshold() { return highPingThreshold; }
+    public int getCriticalPingThreshold() { return criticalPingThreshold; }
+    public long getHighBandwidthThreshold() { return highBandwidthThreshold; }
+    public int getBaseChunkSendRate() { return baseChunkSendRate; }
+    public int getMaxChunkSendRate() { return maxChunkSendRate; }
+    public int getMinChunkSendRate() { return minChunkSendRate; }
+
+    public int getPacketSendRateBase() { return packetSendRateBase; }
+    public int getPacketSendRateMedium() { return packetSendRateMedium; }
+    public int getPacketSendRateHeavy() { return packetSendRateHeavy; }
+    public int getPacketSendRateExtreme() { return packetSendRateExtreme; }
+
+    public int getQueueLimitMaxTotal() { return queueLimitMaxTotal; }
+    public int getQueueLimitMaxCritical() { return queueLimitMaxCritical; }
+    public int getQueueLimitMaxHigh() { return queueLimitMaxHigh; }
+    public int getQueueLimitMaxNormal() { return queueLimitMaxNormal; }
+
+    public int getAccelerationThresholdMedium() { return accelerationThresholdMedium; }
+    public int getAccelerationThresholdHeavy() { return accelerationThresholdHeavy; }
+    public int getAccelerationThresholdExtreme() { return accelerationThresholdExtreme; }
+
+    public boolean isCleanupEnabled() { return cleanupEnabled; }
+    public int getCleanupStaleThreshold() { return cleanupStaleThreshold; }
+    public int getCleanupCriticalCleanup() { return cleanupCriticalCleanup; }
+    public int getCleanupNormalCleanup() { return cleanupNormalCleanup; }
+
+    public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
+    public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
+    public int getFastMovementPreloadDistance() { return fastMovementPreloadDistance; }
+    public int getFastMovementMaxConcurrentLoads() { return fastMovementMaxConcurrentLoads; }
+    public int getFastMovementPredictionTicks() { return fastMovementPredictionTicks; }
+
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
     }

@@ -12,7 +12,7 @@ import org.virgil.akiasync.mixin.secureseed.crypto.random.WorldgenCryptoRandom;
 
 @Mixin(Slime.class)
 public abstract class SlimeMixin {
-    
+
     private static volatile Boolean cached_enabled = null;
 
     @Redirect(
@@ -26,18 +26,18 @@ public abstract class SlimeMixin {
         if (!isEnabled()) {
             return level.getRandom();
         }
-        
+
         int chunkX = ((int) Math.floor(level.getSharedSpawnPos().getX())) >> 4;
         int chunkZ = ((int) Math.floor(level.getSharedSpawnPos().getZ())) >> 4;
-        
+
         return WorldgenCryptoRandom.seedSlimeChunk(chunkX, chunkZ);
     }
 
     private static boolean isEnabled() {
         if (cached_enabled == null) {
             var bridge = BridgeManager.getBridge();
-            cached_enabled = bridge != null && 
-                           bridge.isSecureSeedEnabled() && 
+            cached_enabled = bridge != null &&
+                           bridge.isSecureSeedEnabled() &&
                            bridge.isSecureSeedProtectSlimes();
         }
         return cached_enabled;

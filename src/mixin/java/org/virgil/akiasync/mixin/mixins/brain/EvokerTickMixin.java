@@ -32,7 +32,7 @@ public abstract class EvokerTickMixin {
         aki$next = level.getGameTime() + 3;
         try {
             aki$snap = EvokerSnapshot.capture(evoker, level);
-            CompletableFuture<EvokerDiff> future = AsyncBrainExecutor.runSync(() -> 
+            CompletableFuture<EvokerDiff> future = AsyncBrainExecutor.runSync(() ->
                 EvokerCpuCalculator.runCpuOnly(evoker, aki$snap), timeout, TimeUnit.MICROSECONDS);
             EvokerDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new EvokerDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(evoker, level);

@@ -12,7 +12,7 @@ import org.virgil.akiasync.mixin.secureseed.crypto.random.WorldgenCryptoRandom;
 
 @Mixin(RandomSpreadStructurePlacement.class)
 public abstract class RandomSpreadStructurePlacementMixin {
-    
+
     private static volatile Boolean cached_enabled = null;
 
     @Inject(
@@ -25,7 +25,7 @@ public abstract class RandomSpreadStructurePlacementMixin {
             int x,
             int z,
             CallbackInfoReturnable<ChunkPos> cir) {
-        
+
         if (!isEnabled()) {
             return;
         }
@@ -45,8 +45,8 @@ public abstract class RandomSpreadStructurePlacementMixin {
     private static boolean isEnabled() {
         if (cached_enabled == null) {
             var bridge = BridgeManager.getBridge();
-            cached_enabled = bridge != null && 
-                           bridge.isSecureSeedEnabled() && 
+            cached_enabled = bridge != null &&
+                           bridge.isSecureSeedEnabled() &&
                            bridge.isSecureSeedProtectStructures();
         }
         return cached_enabled;

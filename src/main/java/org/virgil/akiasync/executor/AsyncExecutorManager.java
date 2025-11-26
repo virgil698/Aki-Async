@@ -66,14 +66,14 @@ public class AsyncExecutorManager {
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
         int lightingPrestarted = lightingExecutor.prestartAllCoreThreads();
-        
+
         int tntThreads = plugin.getConfigManager().getTNTThreads();
         this.tntExecutor = new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT");
-        
+
         this.chunkTickExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-ChunkTick");
         this.villagerBreedExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-VillagerBreed");
         this.brainExecutor = new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain");
-        
+
         this.metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "AkiAsync-Metrics");
             thread.setDaemon(true);

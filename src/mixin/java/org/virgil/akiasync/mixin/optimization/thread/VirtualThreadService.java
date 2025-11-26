@@ -3,17 +3,17 @@ package org.virgil.akiasync.mixin.optimization.thread;
 import java.util.concurrent.ThreadFactory;
 
 public abstract class VirtualThreadService {
-    
+
     public abstract ThreadFactory createFactory();
-    
+
     public abstract Thread start(Runnable task);
-    
+
     protected void runTest() throws Throwable {
         try {
             this.start(() -> {}).join();
         } catch (InterruptedException ignored) {
         }
-        
+
         try {
             var thread = this.createFactory().newThread(() -> {});
             thread.start();
@@ -21,14 +21,14 @@ public abstract class VirtualThreadService {
         } catch (InterruptedException ignored) {
         }
     }
-    
+
     private static boolean initialized = false;
     private static VirtualThreadService implementation;
-    
+
     public static boolean isSupported() {
         return get() != null;
     }
-    
+
     public static VirtualThreadService get() {
         if (!initialized) {
             initialized = true;
@@ -43,7 +43,7 @@ public abstract class VirtualThreadService {
         }
         return implementation;
     }
-    
+
     public static int getJavaMajorVersion() {
         var version = System.getProperty("java.version");
         if (version.startsWith("1.")) {
@@ -52,52 +52,52 @@ public abstract class VirtualThreadService {
         int dotIndex = version.indexOf(".");
         return Integer.parseInt(dotIndex == -1 ? version : version.substring(0, dotIndex));
     }
-    
+
     public static class DirectVirtualThreadService extends VirtualThreadService {
-        
+
         public static DirectVirtualThreadService create() throws Throwable {
             var factory = Thread.ofVirtual().factory();
             var thread = factory.newThread(() -> {});
             thread.start();
             thread.join();
-            
+
             return new DirectVirtualThreadService();
         }
-        
+
         @Override
         public ThreadFactory createFactory() {
             return Thread.ofVirtual().factory();
         }
-        
+
         @Override
         public Thread start(Runnable task) {
             return Thread.ofVirtual().start(task);
         }
     }
-    
+
     public static class ReflectionVirtualThreadService extends VirtualThreadService {
-        
+
         private final java.lang.reflect.Method ofVirtualMethod;
         private final java.lang.reflect.Method factoryMethod;
         private final java.lang.reflect.Method startMethod;
-        
+
         private ReflectionVirtualThreadService() throws Throwable {
             Class<?> threadClass = Thread.class;
             this.ofVirtualMethod = threadClass.getMethod("ofVirtual");
-            
+
             Object builder = ofVirtualMethod.invoke(null);
             Class<?> builderClass = builder.getClass();
-            
+
             this.factoryMethod = builderClass.getMethod("factory");
             this.startMethod = builderClass.getMethod("start", Runnable.class);
-            
+
             runTest();
         }
-        
+
         public static ReflectionVirtualThreadService create() throws Throwable {
             return new ReflectionVirtualThreadService();
         }
-        
+
         @Override
         public ThreadFactory createFactory() {
             try {
@@ -107,7 +107,7 @@ public abstract class VirtualThreadService {
                 throw new RuntimeException("Failed to create virtual thread factory", e);
             }
         }
-        
+
         @Override
         public Thread start(Runnable task) {
             try {
@@ -118,20 +118,20 @@ public abstract class VirtualThreadService {
             }
         }
     }
-    
+
     public static class VirtualThreadExecutor implements java.util.concurrent.Executor {
-        
+
         private final VirtualThreadService service;
-        
+
         public VirtualThreadExecutor(VirtualThreadService service) {
             this.service = service;
         }
-        
+
         @Override
         public void execute(Runnable command) {
             service.start(command);
         }
-        
+
         public static VirtualThreadExecutor create() {
             VirtualThreadService service = VirtualThreadService.get();
             if (service != null) {

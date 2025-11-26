@@ -53,7 +53,7 @@ public final class PiglinDiff {
             }
             double lookDistSqr = lookDist * lookDist;
             if (player.distanceToSqr(lookPlayerPos.getX(), lookPlayerPos.getY(), lookPlayerPos.getZ()) < lookDistSqr) {
-                net.minecraft.world.entity.ai.behavior.EntityTracker tracker = 
+                net.minecraft.world.entity.ai.behavior.EntityTracker tracker =
                     new net.minecraft.world.entity.ai.behavior.EntityTracker(player, true);
                 brain.setMemory(MemoryModuleType.LOOK_TARGET, tracker);
             } else {

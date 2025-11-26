@@ -12,7 +12,7 @@ public final class PillagerCpuCalculator {
         }
         java.util.UUID attackTarget = snap.players().stream()
             .filter(p -> p.health() < 0.75f)
-            .min(Comparator.comparingDouble(p -> 
+            .min(Comparator.comparingDouble(p ->
                 p.pos().distSqr(illager.blockPosition())
             ))
             .map(PillagerSnapshot.PlayerHealthInfo::id)

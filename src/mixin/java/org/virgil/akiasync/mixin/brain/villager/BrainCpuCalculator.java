@@ -73,8 +73,8 @@ public final class BrainCpuCalculator {
     }
     private static double score(BlockPos poi, Map<MemoryModuleType<?>, Object> memory) {
         double dist = Math.sqrt(
-            poi.getX() * poi.getX() + 
-            poi.getY() * poi.getY() + 
+            poi.getX() * poi.getX() +
+            poi.getY() * poi.getY() +
             poi.getZ() * poi.getZ()
         );
         double match = 0.0;

@@ -50,7 +50,7 @@ public abstract class LightEngineAsyncMixin {
     private void batchLightUpdate(BlockPos pos, CallbackInfo ci) {
         if (!initialized) { akiasync$initLightEngine(); }
         if (!enabled || processing) return;
-        
+
         try {
             BlockPos immutablePos = pos.immutable();
             if (deduplicationEnabled) {
@@ -59,7 +59,7 @@ public abstract class LightEngineAsyncMixin {
                     return;
                 }
             }
-            
+
             if (useLayeredQueue) {
                 int lightLevel = getLightLevel(pos);
                 LAYERED_QUEUES[lightLevel].offer(immutablePos);
@@ -69,12 +69,12 @@ public abstract class LightEngineAsyncMixin {
                 LIGHT_UPDATE_QUEUE.offer(immutablePos);
                 queueSize.incrementAndGet();
             }
-            
+
             int totalSize = getTotalQueueSize();
             if (dynamicAdjustmentEnabled) {
                 adjustBatchSize();
             }
-            
+
             if (totalSize >= batchThreshold && !processing) {
                 processing = true;
                 ci.cancel();
@@ -227,7 +227,7 @@ public abstract class LightEngineAsyncMixin {
     private synchronized void clearAllQueues() {
         try {
             processing = true;
-            
+
             for (int i = 0; i < LAYERED_QUEUES.length; i++) {
                 Queue<BlockPos> queue = LAYERED_QUEUES[i];
                 if (queue != null) {
@@ -237,12 +237,12 @@ public abstract class LightEngineAsyncMixin {
                     layerSizes[i].set(0);
                 }
             }
-            
+
             LIGHT_UPDATE_QUEUE.clear();
             queueSize.set(0);
             PENDING_UPDATES.clear();
             UPDATE_METADATA.clear();
-            
+
         } catch (Exception e) {
         } finally {
             processing = false;
@@ -258,14 +258,14 @@ public abstract class LightEngineAsyncMixin {
     }
     private static synchronized void akiasync$initLightEngine() {
         if (initialized) return;
-        
+
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isAsyncLightingEnabled();
@@ -277,7 +277,7 @@ public abstract class LightEngineAsyncMixin {
             dynamicAdjustmentEnabled = bridge.isDynamicBatchAdjustmentEnabled();
             advancedStatsEnabled = bridge.isAdvancedLightingStatsEnabled();
             baseBatchThreshold = batchThreshold;
-            
+
             if (isFolia) {
                 bridge.debugLog("[AkiAsync] LightEngineAsyncMixin (Enhanced) initialized in Folia mode:");
                 bridge.debugLog("  - Enabled: " + enabled + " (with region safety checks)");

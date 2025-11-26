@@ -36,7 +36,7 @@ public abstract class ServerLevelTickBlockMixin {
         if (aki$isRedstoneRelatedBlock(block)) {
             return;
         }
-        
+
         if (aki$isFoliaEnvironment()) {
             if (aki$requiresMainThreadInFolia(block)) {
                 return;
@@ -46,7 +46,7 @@ public abstract class ServerLevelTickBlockMixin {
         if (ASYNC_BLOCK_TICK_EXECUTOR == null || ASYNC_BLOCK_TICK_EXECUTOR.isShutdown()) {
             return;
         }
-        
+
         try {
             ASYNC_BLOCK_TICK_EXECUTOR.execute(() -> {
                 try {
@@ -54,13 +54,13 @@ public abstract class ServerLevelTickBlockMixin {
                     if (!currentState.is(block)) {
                         return;
                     }
-                    
+
                     currentState.tick(level, pos, level.random);
                 } catch (Throwable t) {
                     StackTraceElement[] stack = t.getStackTrace();
-                    boolean isAsyncCatcherError = stack.length > 0 && 
+                    boolean isAsyncCatcherError = stack.length > 0 &&
                         stack[0].getClassName().equals("org.spigotmc.AsyncCatcher");
-                    
+
                     if (isAsyncCatcherError) {
                         level.getServer().execute(() -> {
                             try {
@@ -74,10 +74,10 @@ public abstract class ServerLevelTickBlockMixin {
                     } else {
                         org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                         if (errorBridge != null) {
-                            errorBridge.errorLog("[AkiAsync-BlockTick] Async block tick failed: " + t.getMessage() + 
+                            errorBridge.errorLog("[AkiAsync-BlockTick] Async block tick failed: " + t.getMessage() +
                                 " for " + block.getDescriptionId() + " at " + pos + ": " + t.getClass().getSimpleName());
                         }
-                        
+
                         level.getServer().execute(() -> {
                             try {
                                 BlockState state = level.getBlockState(pos);
@@ -93,7 +93,7 @@ public abstract class ServerLevelTickBlockMixin {
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-BlockTick] Failed to submit async task: " + e.getMessage() + 
+                errorBridge.errorLog("[AkiAsync-BlockTick] Failed to submit async task: " + e.getMessage() +
                     ", falling back to sync execution");
             }
             return;
@@ -122,11 +122,11 @@ public abstract class ServerLevelTickBlockMixin {
             bridge.debugLog("[AkiAsync]   Protection: Redstone blocks execute on main thread");
         }
     }
-    
+
     @Unique
     private static boolean aki$isRedstoneRelatedBlock(Block block) {
         String blockId = aki$getBlockId(block);
-        
+
         return blockId.contains("redstone") ||
                blockId.contains("repeater") ||
                blockId.contains("comparator") ||
@@ -147,17 +147,17 @@ public abstract class ServerLevelTickBlockMixin {
                blockId.contains("torch") ||
                blockId.contains("lamp");
     }
-    
+
     @Unique
     private static boolean aki$isFoliaEnvironment() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         return bridge != null && bridge.isFoliaEnvironment();
     }
-    
+
     @Unique
     private static boolean aki$requiresMainThreadInFolia(Block block) {
         String blockId = aki$getBlockId(block);
-        
+
         return blockId.contains("command") ||
                blockId.contains("structure") ||
                blockId.contains("jigsaw") ||

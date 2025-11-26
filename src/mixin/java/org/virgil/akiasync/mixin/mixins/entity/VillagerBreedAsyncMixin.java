@@ -13,39 +13,39 @@ import net.minecraft.world.entity.npc.Villager;
 public class VillagerBreedAsyncMixin {
     @Shadow private int updateMerchantTimer;
     @Shadow private boolean increaseProfessionLevelOnUpdate;
-    
+
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile boolean cached_ageThrottle;
     @Unique private static volatile int cached_interval;
     @Unique private static volatile boolean initialized = false;
-    
+
     @Inject(method = "customServerAiStep", at = @At("HEAD"), cancellable = true)
     private void aki$optimizedVillagerStep(ServerLevel level, CallbackInfo ci) {
         try {
             if (!initialized) { aki$initVillagerOptimization(); }
             if (!cached_enabled) return;
-            
+
             Villager villager = (Villager) (Object) this;
             if (villager == null || level == null) {
                 return;
             }
-        
+
         if (this.updateMerchantTimer > 0) {
             return;
         }
-        
+
         if (villager.isTrading()) {
             return;
         }
-        
+
         if (this.increaseProfessionLevelOnUpdate) {
             return;
         }
-        
+
         if (aki$hasImportantState(villager)) {
             return;
         }
-        
+
         if (aki$isInBreedingMode(villager)) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -53,10 +53,10 @@ public class VillagerBreedAsyncMixin {
             }
             return;
         }
-        
+
         BlockPos pos = villager.blockPosition();
         long currentTick = level.getGameTime();
-        
+
         if (cached_ageThrottle) {
             if (org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor
                     .isIdle(villager.getUUID(), pos, currentTick)) {
@@ -64,33 +64,33 @@ public class VillagerBreedAsyncMixin {
                 return;
             }
         }
-        
+
         if (currentTick % cached_interval != 0) {
             ci.cancel();
             return;
         }
-        
+
         net.minecraft.world.entity.npc.VillagerData vData = villager.getVillagerData();
         if (vData == null) {
             return;
         }
-        
+
         if (this.updateMerchantTimer <= 0 && !this.increaseProfessionLevelOnUpdate &&
             net.minecraft.world.entity.npc.VillagerData.canLevelUp(vData.level()) &&
             villager.getVillagerXp() >= net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(vData.level())) {
-            
+
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Debug] Force triggering upgrade for villager with XP=" + 
+                bridge.debugLog("[AkiAsync-Debug] Force triggering upgrade for villager with XP=" +
                                villager.getVillagerXp() + " Level=" + vData.level());
             }
             try {
                 java.lang.reflect.Method increaseMethod = villager.getClass().getDeclaredMethod("increaseMerchantCareer");
                 increaseMethod.setAccessible(true);
                 increaseMethod.invoke(villager);
-                
+
                 aki$forceRefreshTrades(villager);
-                
+
             } catch (NoSuchMethodException e) {
                 org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (errorBridge != null) {
@@ -115,16 +115,16 @@ public class VillagerBreedAsyncMixin {
             }
         }
     }
-    
+
     @Inject(method = "customServerAiStep", at = @At("RETURN"))
     private void aki$afterVillagerStep(ServerLevel level, CallbackInfo ci) {
         try {
             if (!initialized) return;
             if (!cached_enabled) return;
-            
+
             Villager villager = (Villager) (Object) this;
             if (villager == null) return;
-        
+
         if (this.updateMerchantTimer == 0 && this.increaseProfessionLevelOnUpdate) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -139,21 +139,21 @@ public class VillagerBreedAsyncMixin {
             }
         }
     }
-    
+
     @Inject(method = "increaseMerchantCareer", at = @At("RETURN"))
     private void aki$afterUpgrade(CallbackInfo ci) {
         try {
             if (!initialized) return;
             if (!cached_enabled) return;
-            
+
             Villager villager = (Villager) (Object) this;
             if (villager == null) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync-Debug] Village upgraded! Level=" + villager.getVillagerData().level() + 
+            bridge.debugLog("[AkiAsync-Debug] Village upgraded! Level=" + villager.getVillagerData().level() +
                           " XP=" + villager.getVillagerXp());
         }
-        
+
         aki$forceRefreshTrades(villager);
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -162,7 +162,7 @@ public class VillagerBreedAsyncMixin {
             }
         }
     }
-    
+
     @Unique
     private java.util.Optional<?> aki$safeGetMemory(net.minecraft.world.entity.ai.Brain<?> brain, net.minecraft.world.entity.ai.memory.MemoryModuleType<?> memoryType) {
         try {
@@ -171,37 +171,37 @@ public class VillagerBreedAsyncMixin {
             return null;
         }
     }
-    
+
     @Unique
     private boolean aki$hasImportantState(Villager villager) {
         try {
             if (villager == null) return true;
-            
+
             net.minecraft.world.entity.npc.VillagerData villagerData = villager.getVillagerData();
             if (villagerData == null || villagerData.profession() == null) {
                 return true;
             }
-            
+
             if (villagerData.profession().is(net.minecraft.world.entity.npc.VillagerProfession.NONE)) {
                 return true;
             }
-        
+
         if (villager.getUnhappyCounter() > 0) {
             return true;
         }
-        
+
         if (villager.isBaby()) {
             return true;
         }
-        
+
         if (villager.shouldRestock()) {
             return true;
         }
-        
+
         if (villager.getVillagerData().profession().is(net.minecraft.world.entity.npc.VillagerProfession.FARMER)) {
             return true;
         }
-        
+
         if (aki$hasItemsToShare(villager)) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -209,32 +209,32 @@ public class VillagerBreedAsyncMixin {
             }
             return true;
         }
-        
+
         int currentLevel = villagerData.level();
         int villagerXp = villager.getVillagerXp();
-        if (net.minecraft.world.entity.npc.VillagerData.canLevelUp(currentLevel) && 
+        if (net.minecraft.world.entity.npc.VillagerData.canLevelUp(currentLevel) &&
             villagerXp >= net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(currentLevel)) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Debug] Villager should upgrade: Level=" + currentLevel + 
-                             " XP=" + villagerXp + " Required=" + 
+                bridge.debugLog("[AkiAsync-Debug] Villager should upgrade: Level=" + currentLevel +
+                             " XP=" + villagerXp + " Required=" +
                              net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(currentLevel) +
                              " Timer=" + this.updateMerchantTimer + " Flag=" + this.increaseProfessionLevelOnUpdate);
             }
             return true;
         }
-        
+
         net.minecraft.world.entity.ai.Brain<?> brain = villager.getBrain();
         if (brain == null) {
             return true;
         }
-        
+
         net.minecraft.world.level.Level level = villager.level();
         if (level == null) {
             return true;
         }
         long currentTime = level.getGameTime();
-        
+
         java.util.Optional<?> jobSite = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.JOB_SITE);
         if (jobSite != null && jobSite.isPresent()) {
             java.util.Optional<?> lastWorked = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.LAST_WORKED_AT_POI);
@@ -242,17 +242,17 @@ public class VillagerBreedAsyncMixin {
                 return true;
             }
         }
-        
+
         java.util.Optional<?> potentialJobSite = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.POTENTIAL_JOB_SITE);
         if (potentialJobSite != null && potentialJobSite.isPresent()) {
             return true;
         }
-        
+
         java.util.Optional<?> interactionTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.INTERACTION_TARGET);
         if (interactionTarget != null && interactionTarget.isPresent()) {
             return true;
         }
-        
+
         java.util.Optional<?> breedTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
         if (breedTarget != null && breedTarget.isPresent()) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -261,12 +261,12 @@ public class VillagerBreedAsyncMixin {
             }
             return true;
         }
-        
+
         java.util.Optional<?> meetingPoint = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.MEETING_POINT);
         if (meetingPoint != null && meetingPoint.isPresent()) {
             return true;
         }
-        
+
         java.util.Optional<?> home = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
         if (home != null && home.isPresent()) {
             java.util.Optional<?> lastSlept = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.LAST_SLEPT);
@@ -274,19 +274,19 @@ public class VillagerBreedAsyncMixin {
                 return true;
             }
         }
-        
+
         java.util.Optional<?> walkTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
         if (walkTarget != null && walkTarget.isPresent()) {
             return true;
         }
-        
+
         java.util.Set<net.minecraft.world.entity.schedule.Activity> activeActivities = brain.getActiveActivities();
         if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.WORK) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.MEET) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.REST) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
-            
+
             if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
@@ -295,7 +295,7 @@ public class VillagerBreedAsyncMixin {
             }
             return true;
         }
-        
+
         try {
             java.util.Optional<?> avoidTarget = brain.getMemoryInternal(net.minecraft.world.entity.ai.memory.MemoryModuleType.AVOID_TARGET);
             if (avoidTarget != null && avoidTarget.isPresent()) {
@@ -307,7 +307,7 @@ public class VillagerBreedAsyncMixin {
             }
         } catch (Exception e) {
         }
-        
+
         if (villager.canBreed()) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -315,7 +315,7 @@ public class VillagerBreedAsyncMixin {
             }
             return true;
         }
-        
+
         return false;
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -325,31 +325,31 @@ public class VillagerBreedAsyncMixin {
             return true;
         }
     }
-    
+
     @Unique
     private boolean aki$isInBreedingMode(Villager villager) {
         try {
             if (villager == null) return false;
-            
+
             net.minecraft.world.entity.ai.Brain<?> brain = villager.getBrain();
             if (brain == null) {
                 return false;
             }
-        
+
         java.util.Optional<?> breedTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
         if (breedTarget != null && breedTarget.isPresent()) {
             return true;
         }
-        
+
         java.util.Set<net.minecraft.world.entity.schedule.Activity> activeActivities = brain.getActiveActivities();
         if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.MEET)) {
             return true;
         }
-        
+
         if (villager.canBreed()) {
             java.util.List<Villager> nearbyVillagers = villager.level().getEntitiesOfClass(
-                Villager.class, 
-                villager.getBoundingBox().inflate(8.0), 
+                Villager.class,
+                villager.getBoundingBox().inflate(8.0),
                 v -> v != villager && v.canBreed() && !v.isBaby()
             );
             if (!nearbyVillagers.isEmpty()) {
@@ -360,17 +360,17 @@ public class VillagerBreedAsyncMixin {
                 return true;
             }
         }
-        
+
         java.util.Optional<?> home = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
         if (home != null && home.isPresent() && villager.canBreed()) {
             return true;
         }
-        
+
         java.util.Optional<?> walkTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
         if (walkTarget != null && walkTarget.isPresent() && villager.canBreed()) {
             return true;
         }
-        
+
         return false;
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -380,36 +380,36 @@ public class VillagerBreedAsyncMixin {
             return false;
         }
     }
-    
+
     @Unique
     private boolean aki$hasItemsToShare(Villager villager) {
         try {
             if (villager == null) return false;
-            
+
             net.minecraft.world.SimpleContainer inventory = villager.getInventory();
             if (inventory == null) {
                 return false;
             }
         boolean isFarmer = villager.getVillagerData().profession().is(net.minecraft.world.entity.npc.VillagerProfession.FARMER);
-        
+
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             net.minecraft.world.item.ItemStack stack = inventory.getItem(i);
             if (stack.isEmpty()) continue;
-            
+
             net.minecraft.world.item.Item item = stack.getItem();
             int count = stack.getCount();
-            
+
             if (item == net.minecraft.world.item.Items.BREAD && count >= 6) {
                 return true;
-            } else if ((item == net.minecraft.world.item.Items.CARROT || 
-                       item == net.minecraft.world.item.Items.POTATO || 
+            } else if ((item == net.minecraft.world.item.Items.CARROT ||
+                       item == net.minecraft.world.item.Items.POTATO ||
                        item == net.minecraft.world.item.Items.BEETROOT) && count >= 24) {
                 return true;
             } else if (isFarmer && item == net.minecraft.world.item.Items.WHEAT && count >= 18) {
                 return true;
             }
         }
-        
+
         return false;
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -419,31 +419,31 @@ public class VillagerBreedAsyncMixin {
             return false;
         }
     }
-    
+
     @Unique
     private void aki$forceRefreshTrades(Villager villager) {
         try {
             java.lang.reflect.Method updateTradesMethod = villager.getClass().getDeclaredMethod("updateTrades");
             updateTradesMethod.setAccessible(true);
             updateTradesMethod.invoke(villager);
-            
+
             net.minecraft.world.entity.player.Player tradingPlayer = villager.getTradingPlayer();
             if (tradingPlayer != null) {
                 java.lang.reflect.Method resendMethod = villager.getClass().getDeclaredMethod("resendOffersToTradingPlayer");
                 resendMethod.setAccessible(true);
                 resendMethod.invoke(villager);
-                
+
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
                     bridge.debugLog("[AkiAsync-Debug] Immediately refreshed trades for trading player");
                 }
             }
-            
+
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
                 bridge.debugLog("[AkiAsync-Debug] Trades refreshed immediately after upgrade");
             }
-            
+
         } catch (Exception e) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -465,15 +465,15 @@ public class VillagerBreedAsyncMixin {
             }
         }
     }
-    
+
     @Unique
     private static long lastInitTime = 0;
-    
+
     @Unique
     private static synchronized void aki$initVillagerOptimization() {
         if (initialized) return;
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isAsyncVillagerBreedEnabled();
@@ -486,7 +486,7 @@ public class VillagerBreedAsyncMixin {
         }
         initialized = true;
         lastInitTime = System.currentTimeMillis();
-        
+
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] VillagerBreedAsyncMixin initialized (upgrade-safe): enabled=" + cached_enabled + " | ageThrottle=" + cached_ageThrottle + " | interval=" + cached_interval);
         }

@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 public class TNTThreadPool {
     private static ExecutorService executor;
     private static int threadCount = Math.max(6, Runtime.getRuntime().availableProcessors() * 3 / 2);
-    
+
     public static void init(int threads) {
         threadCount = threads;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -20,7 +20,7 @@ public class TNTThreadPool {
             });
         }
     }
-    
+
     public static ExecutorService getExecutor() {
         if (executor == null) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -30,10 +30,10 @@ public class TNTThreadPool {
                 init(threadCount);
             }
         }
-        
+
         if (isFoliaEnvironment() && executor != null) {
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
                     String healthStatus = bridge.checkExecutorHealth(executor, "TNT");
@@ -44,13 +44,13 @@ public class TNTThreadPool {
             } catch (Exception e) {
             }
         }
-        
+
         return executor;
     }
-    
+
     public static void shutdown() {
     }
-    
+
     public static void restartSmooth() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
@@ -58,9 +58,9 @@ public class TNTThreadPool {
             executor = bridge.getTNTExecutor();
         }
     }
-    
+
     private static volatile Boolean isFolia = null;
-    
+
     private static boolean isFoliaEnvironment() {
         if (isFolia == null) {
             try {

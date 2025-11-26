@@ -47,7 +47,7 @@ public class VillagerBreedExecutor {
     }
 
     public static void clearOldCache(long currentTick) {
-        movementCache.entrySet().removeIf(entry -> 
+        movementCache.entrySet().removeIf(entry ->
             (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100
         );
         lastPositionCache.clear();
@@ -68,14 +68,14 @@ public class VillagerBreedExecutor {
         if (bridge != null) {
             bridge.debugLog("[AkiAsync-Debug] Starting VillagerBreedExecutor smooth restart...");
         }
-        
+
         movementCache.clear();
         lastPositionCache.clear();
         org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge2 != null) {
             bridge2.debugLog("[AkiAsync-VillagerBreed] Cleared villager caches");
         }
-        
+
         ExecutorService oldExecutor = executor;
         executor = Executors.newFixedThreadPool(
             THREAD_POOL_SIZE,
@@ -86,7 +86,7 @@ public class VillagerBreedExecutor {
                 return t;
             }
         );
-        
+
         oldExecutor.shutdown();
         try {
             if (!oldExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.MILLISECONDS)) {
@@ -105,7 +105,7 @@ public class VillagerBreedExecutor {
             oldExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge bridge3 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge3 != null) {
             bridge3.debugLog("[AkiAsync-Debug] VillagerBreedExecutor restart completed");

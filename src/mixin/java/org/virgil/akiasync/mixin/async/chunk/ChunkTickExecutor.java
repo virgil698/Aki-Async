@@ -11,19 +11,19 @@ public final class ChunkTickExecutor {
     private static volatile ThreadPoolExecutor FALLBACK_POOL;
     private static volatile int threadCount = 4;
     private static volatile boolean initialized = false;
-    
+
     private static synchronized void initializePools() {
         if (initialized && POOL != null && !POOL.isShutdown()) {
             return;
         }
-        
+
         POOL = new ForkJoinPool(
             threadCount,
             ForkJoinPool.defaultForkJoinWorkerThreadFactory,
             null,
             false
         );
-        
+
         FALLBACK_POOL = new ThreadPoolExecutor(
             threadCount, threadCount,
             60L, TimeUnit.SECONDS,
@@ -41,7 +41,7 @@ public final class ChunkTickExecutor {
             },
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
-        
+
         initialized = true;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
@@ -56,14 +56,14 @@ public final class ChunkTickExecutor {
             return snap;
         }, POOL);
     }
-    
+
     public static java.util.concurrent.ExecutorService getExecutor() {
         if (POOL == null || POOL.isShutdown()) {
             initializePools();
         }
         return POOL;
     }
-    
+
     public static void setThreadCount(int count) {
         threadCount = Math.max(1, Math.min(count, 16));
     }
@@ -76,21 +76,21 @@ public final class ChunkTickExecutor {
         }
         initialized = false;
     }
-    
+
     public static void restartSmooth() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.debugLog("[AkiAsync-Debug] Starting ChunkTickExecutor smooth restart...");
         }
-        
+
         if (POOL != null || FALLBACK_POOL != null) {
             ForkJoinPool oldPool = POOL;
             ThreadPoolExecutor oldFallback = FALLBACK_POOL;
-            
+
             initialized = false;
             POOL = null;
             FALLBACK_POOL = null;
-            
+
             if (oldPool != null) {
                 oldPool.shutdown();
                 try {
@@ -111,7 +111,7 @@ public final class ChunkTickExecutor {
                     Thread.currentThread().interrupt();
                 }
             }
-            
+
             if (oldFallback != null) {
                 oldFallback.shutdown();
                 try {
@@ -133,7 +133,7 @@ public final class ChunkTickExecutor {
                 }
             }
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge completeBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (completeBridge != null) {
             completeBridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor restart completed, will reinitialize on next use");

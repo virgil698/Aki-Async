@@ -7,7 +7,7 @@ import net.minecraft.world.entity.schedule.Activity;
 public class BrainTickHelper {
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity> BrainSnapshot tickSnapshot(
-            Brain<E> brain, 
+            Brain<E> brain,
             BrainSnapshot snapshot,
             ServerLevel level,
             E entity

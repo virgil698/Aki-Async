@@ -32,7 +32,7 @@ public abstract class BlazeTickMixin {
         aki$next = level.getGameTime() + 3;
         try {
             aki$snap = BlazeSnapshot.capture(blaze, level);
-            CompletableFuture<BlazeDiff> future = AsyncBrainExecutor.runSync(() -> 
+            CompletableFuture<BlazeDiff> future = AsyncBrainExecutor.runSync(() ->
                 BlazeCpuCalculator.runCpuOnly(blaze, aki$snap), timeout, TimeUnit.MICROSECONDS);
             BlazeDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new BlazeDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(blaze, level);

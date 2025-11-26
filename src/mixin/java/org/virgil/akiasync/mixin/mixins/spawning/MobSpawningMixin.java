@@ -66,14 +66,14 @@ public abstract class MobSpawningMixin {
                 return false;
             }
         }
-        
+
         try {
             int cx = (pos.getX() >> 4) << 4;
             int cz = (pos.getZ() >> 4) << 4;
             int minY = level.dimensionType().minY();
             int maxY = minY + level.dimensionType().height();
             AABB box = new AABB(cx, minY, cz, cx + 16, maxY, cz + 16);
-            
+
             int mobCount = level.getEntitiesOfClass(Mob.class, box, m -> m.getType().getCategory() == category).size();
             return cached_maxPerChunk > 0 && mobCount >= cached_maxPerChunk;
         } catch (Throwable ignored) {
@@ -82,22 +82,22 @@ public abstract class MobSpawningMixin {
     }
     private static synchronized void akiasync$initMobSpawning() {
         if (initialized) return;
-        
+
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isMobSpawningEnabled();
             cached_densityControlEnabled = bridge.isDensityControlEnabled();
             cached_maxPerChunk = bridge.getMaxEntitiesPerChunk();
-            
+
             if (isFolia) {
-                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized in Folia mode: enabled=" + cached_enabled + 
+                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized in Folia mode: enabled=" + cached_enabled +
                     ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk + " (with region safety checks)");
             } else {
                 bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk);

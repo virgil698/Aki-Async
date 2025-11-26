@@ -20,17 +20,17 @@ import net.minecraft.util.RandomSource;
 @SuppressWarnings("unused")
 @Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$TreasureMapForEmeralds")
 public class VillagerTradesMixin {
-    
+
     @Shadow private int emeraldCost;
     @Shadow private TagKey<Structure> destination;
     @Shadow private String displayName;
     @Shadow private Holder<MapDecorationType> destinationType;
     @Shadow private int maxUses;
     @Shadow private int villagerXp;
-    
+
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile boolean initialized = false;
-    
+
     @Inject(
         method = "getOffer",
         at = @At(
@@ -40,29 +40,29 @@ public class VillagerTradesMixin {
         cancellable = true
     )
     private void interceptTreasureMapCreation(
-        Entity trader, 
-        RandomSource random, 
+        Entity trader,
+        RandomSource random,
         CallbackInfoReturnable<MerchantOffer> cir
     ) {
         if (!initialized) { aki$initVillagerTrades(); }
         if (!cached_enabled) return;
-        
+
         MerchantOffer baseOffer = new MerchantOffer(
             new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, this.emeraldCost),
             new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.MAP),
             this.maxUses, this.villagerXp, 0.2F);
-        
+
         org.virgil.akiasync.mixin.async.StructureLocatorBridge.createExplorerMapAsync(
-            baseOffer, trader, random, this.destination, this.displayName, 
+            baseOffer, trader, random, this.destination, this.displayName,
             this.destinationType, this.maxUses, this.villagerXp, cir);
-        
+
         cir.setReturnValue(baseOffer);
     }
-    
+
     @Unique
     private static synchronized void aki$initVillagerTrades() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isVillagerTradeMapsEnabled();

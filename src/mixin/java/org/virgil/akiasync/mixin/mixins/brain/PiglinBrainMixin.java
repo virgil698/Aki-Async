@@ -30,13 +30,13 @@ public abstract class PiglinBrainMixin {
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initPiglinAsync(); }
         if (!cached_enabled) return;
-        net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin = 
+        net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin =
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
         Piglin piglin = abstractPiglin instanceof Piglin ? (Piglin) abstractPiglin : null;
-        net.minecraft.world.entity.monster.piglin.PiglinBrute brute = 
-            abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ? 
+        net.minecraft.world.entity.monster.piglin.PiglinBrute brute =
+            abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ?
             (net.minecraft.world.entity.monster.piglin.PiglinBrute) abstractPiglin : null;
         if (level.getGameTime() < this.aki$nextAsyncTick) {
             return;
@@ -57,7 +57,7 @@ public abstract class PiglinBrainMixin {
         if (!cached_enabled) return;
         if (this.aki$snapshot == null) return;
         executionCount++;
-        net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin = 
+        net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin =
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
@@ -103,7 +103,7 @@ public abstract class PiglinBrainMixin {
     @Unique
     private static synchronized void aki$initPiglinAsync() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isPiglinOptimizationEnabled();

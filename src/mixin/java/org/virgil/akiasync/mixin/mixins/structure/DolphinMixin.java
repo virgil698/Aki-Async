@@ -13,12 +13,12 @@ import net.minecraft.world.entity.animal.Dolphin;
 @SuppressWarnings("unused")
 @Mixin(targets = "net.minecraft.world.entity.animal.Dolphin$DolphinSwimToTreasureGoal")
 public class DolphinMixin {
-    
+
     @Shadow private Dolphin dolphin;
-    
+
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile boolean initialized = false;
-    
+
     @Inject(
         method = "start",
         at = @At(
@@ -30,15 +30,15 @@ public class DolphinMixin {
     private void interceptDolphinTreasureHunt(CallbackInfo ci) {
         if (!initialized) { aki$initDolphinTreasureHunt(); }
         if (!cached_enabled) return;
-        
+
         org.virgil.akiasync.mixin.async.StructureLocatorBridge.findDolphinTreasureAsync(this.dolphin);
         ci.cancel();
     }
-    
+
     @Unique
     private static synchronized void aki$initDolphinTreasureHunt() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isDolphinTreasureHuntEnabled();

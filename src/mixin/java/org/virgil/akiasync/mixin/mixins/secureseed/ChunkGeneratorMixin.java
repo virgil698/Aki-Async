@@ -14,7 +14,7 @@ import org.virgil.akiasync.mixin.secureseed.crypto.random.WorldgenCryptoRandom;
 
 @Mixin(ChunkGenerator.class)
 public abstract class ChunkGeneratorMixin {
-    
+
     private static volatile Boolean cached_enabled = null;
 
     @ModifyVariable(
@@ -27,7 +27,7 @@ public abstract class ChunkGeneratorMixin {
     )
     private WorldgenRandom replaceRandomDecoration(WorldgenRandom value, BlockPos blockPos) {
         if (!isEnabled()) return value;
-        
+
         return new WorldgenCryptoRandom(
             blockPos.getX(),
             blockPos.getZ(),
@@ -46,7 +46,7 @@ public abstract class ChunkGeneratorMixin {
     )
     private WorldgenRandom replaceRandomStructures(WorldgenRandom value, ChunkPos chunkPos) {
         if (!isEnabled()) return value;
-        
+
         return new WorldgenCryptoRandom(
             chunkPos.x,
             chunkPos.z,

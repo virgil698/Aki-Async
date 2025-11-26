@@ -25,11 +25,11 @@ public class ExplosionSnapshot {
         this.fire = fire;
         this.blocks = new HashMap<>();
         this.protectedBlocks = new HashSet<>();
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         boolean landProtectionEnabled = bridge != null && bridge.isTNTLandProtectionEnabled();
-        
+
         int minX = (int) Math.floor(center.x - power - 1);
         int minY = (int) Math.floor(center.y - power - 1);
         int minZ = (int) Math.floor(center.z - power - 1);
@@ -38,13 +38,13 @@ public class ExplosionSnapshot {
         int maxZ = (int) Math.ceil(center.z + power + 1);
         minY = Math.max(level.getMinY(), minY);
         maxY = Math.min(level.getMaxY(), maxY);
-        
+
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     blocks.put(pos, level.getBlockState(pos));
-                    
+
                     if (landProtectionEnabled && !bridge.canTNTExplodeAt(level, pos)) {
                         protectedBlocks.add(pos);
                         if (bridge.isTNTDebugEnabled()) {
@@ -55,7 +55,7 @@ public class ExplosionSnapshot {
             }
         }
         double radius = 8.0;
-        this.entities = level.getEntities(null, 
+        this.entities = level.getEntities(null,
             new net.minecraft.world.phys.AABB(
                 center.x - radius, center.y - radius, center.z - radius,
                 center.x + radius, center.y + radius, center.z + radius
@@ -82,7 +82,7 @@ public class ExplosionSnapshot {
     public ServerLevel getLevel() {
         return level;
     }
-    
+
     public boolean isProtected(BlockPos pos) {
         return protectedBlocks.contains(pos);
     }

@@ -27,7 +27,7 @@ public abstract class GuardianTickMixin {
         aki$next = level.getGameTime() + 3;
         try {
             aki$snap = GuardianSnapshot.capture(guardian, level);
-            CompletableFuture<GuardianDiff> future = AsyncBrainExecutor.runSync(() -> 
+            CompletableFuture<GuardianDiff> future = AsyncBrainExecutor.runSync(() ->
                 GuardianCpuCalculator.runCpuOnly(guardian, aki$snap), timeout, TimeUnit.MICROSECONDS);
             GuardianDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new GuardianDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(guardian, level);

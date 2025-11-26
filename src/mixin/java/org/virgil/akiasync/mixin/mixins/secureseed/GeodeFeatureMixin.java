@@ -11,7 +11,7 @@ import org.virgil.akiasync.mixin.secureseed.crypto.random.WorldgenCryptoRandom;
 
 @Mixin(GeodeFeature.class)
 public abstract class GeodeFeatureMixin {
-    
+
     private static volatile Boolean cached_enabled = null;
 
     @ModifyVariable(
@@ -34,8 +34,8 @@ public abstract class GeodeFeatureMixin {
     private static boolean isEnabled() {
         if (cached_enabled == null) {
             var bridge = BridgeManager.getBridge();
-            cached_enabled = bridge != null && 
-                           bridge.isSecureSeedEnabled() && 
+            cached_enabled = bridge != null &&
+                           bridge.isSecureSeedEnabled() &&
                            bridge.isSecureSeedProtectOres();
         }
         return cached_enabled;

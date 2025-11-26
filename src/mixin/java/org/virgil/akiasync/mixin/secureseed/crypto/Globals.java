@@ -15,7 +15,7 @@ public class Globals {
 
     public static final long[] worldSeed = new long[WORLD_SEED_LONGS];
     public static final ThreadLocal<Integer> dimension = ThreadLocal.withInitial(() -> 0);
-    
+
     private static final ConcurrentHashMap<String, long[]> seedCache = new ConcurrentHashMap<>();
     private static final int MAX_CACHE_SIZE = 100;
 
@@ -98,7 +98,7 @@ public class Globals {
 
         return sb.toString();
     }
-    
+
     public static void clearCache() {
         seedCache.clear();
     }

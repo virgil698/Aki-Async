@@ -15,25 +15,36 @@ public abstract class CollisionOptimizationMixin {
         if (!initialized) { akiasync$initCollisionOptimization(); }
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
-        
+
         if (akiasync$isVirtualEntity(self)) {
             return;
         }
-        
+
         if (self instanceof net.minecraft.world.entity.item.ItemEntity item) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isDebugLoggingEnabled()) {
                 bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for ItemEntity: " +
-                    "inLava=" + item.isInLava() + ", onFire=" + item.isOnFire() + 
+                    "inLava=" + item.isInLava() + ", onFire=" + item.isOnFire() +
                     ", fireTicks=" + item.getRemainingFireTicks() +
                     ", pos=" + item.blockPosition());
             }
             return;
         }
-        
+
+        if (self instanceof net.minecraft.world.entity.vehicle.AbstractMinecart minecart) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for Minecart: " +
+                    "inLava=" + minecart.isInLava() + ", onFire=" + minecart.isOnFire() +
+                    ", fireTicks=" + minecart.getRemainingFireTicks() +
+                    ", pos=" + minecart.blockPosition());
+            }
+            return;
+        }
+
         if (self instanceof net.minecraft.world.entity.item.FallingBlockEntity falling) {
             double verticalSpeed = Math.abs(falling.getDeltaMovement().y);
-            
+
             if (verticalSpeed < 0.01) {
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null && bridge.isDebugLoggingEnabled()) {
@@ -42,14 +53,14 @@ public abstract class CollisionOptimizationMixin {
                 }
                 return;
             }
-            
+
             return;
         }
-        
+
         if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
             return;
         }
-        
+
         if (self instanceof net.minecraft.world.entity.LivingEntity living) {
             if (living.getTicksFrozen() > 0) {
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -62,11 +73,11 @@ public abstract class CollisionOptimizationMixin {
                 return;
             }
         }
-        
+
         if (self instanceof net.minecraft.world.entity.projectile.Projectile) {
             return;
         }
-        
+
         if (self.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
@@ -75,11 +86,11 @@ public abstract class CollisionOptimizationMixin {
     private void optimizeEntityPush(Entity other, CallbackInfo ci) {
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
-        
+
         if (akiasync$isVirtualEntity(self) || akiasync$isVirtualEntity(other)) {
             return;
         }
-        if (self.getDeltaMovement().lengthSqr() < minMovement && 
+        if (self.getDeltaMovement().lengthSqr() < minMovement &&
             other.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }
@@ -92,7 +103,7 @@ public abstract class CollisionOptimizationMixin {
         }
         return false;
     }
-    
+
     private static synchronized void akiasync$initCollisionOptimization() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();

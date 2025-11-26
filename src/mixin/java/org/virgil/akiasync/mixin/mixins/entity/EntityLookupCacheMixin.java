@@ -22,9 +22,9 @@ public abstract class EntityLookupCacheMixin {
         if (!initialized) { akiasync$initLookupCache(); }
         if (!enabled) return;
         long now = System.currentTimeMillis();
-        if (cachedEntities != null && 
-            cachedBox != null && 
-            cachedBox.equals(box) && 
+        if (cachedEntities != null &&
+            cachedBox != null &&
+            cachedBox.equals(box) &&
             now - cacheTime < cacheDuration) {
             List<Entity> filtered = new java.util.ArrayList<>();
             for (Entity entity : cachedEntities) {

@@ -16,7 +16,7 @@ public final class PillagerDiff {
     public void applyTo(AbstractIllager illager, net.minecraft.server.level.ServerLevel level) {
         if (chargeScore > 0) {
             org.virgil.akiasync.mixin.util.REFLECTIONS.setField(
-                illager, "crossbowChargedStartTime", 
+                illager, "crossbowChargedStartTime",
                 chargeScore > 0 ? level.getGameTime() : 0L
             );
         }

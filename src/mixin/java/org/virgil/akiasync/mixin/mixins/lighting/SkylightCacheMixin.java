@@ -43,7 +43,7 @@ public abstract class SkylightCacheMixin {
         }
     }
     private static void cleanupCache(long currentTime) {
-        SKYLIGHT_CACHE.entrySet().removeIf(entry -> 
+        SKYLIGHT_CACHE.entrySet().removeIf(entry ->
             currentTime - entry.getValue().timestamp > cacheDurationMs * 10
         );
     }

@@ -82,7 +82,7 @@ public class EntityThrottlingManager {
                             plugin.getLogger().warning("[EntityThrottling] Unknown entity type: " + key);
                         }
                     } else if (limit > 0 || removal > 0) {
-                        plugin.getLogger().warning("[EntityThrottling] Invalid configuration for " + key + 
+                        plugin.getLogger().warning("[EntityThrottling] Invalid configuration for " + key +
                             " (limit=" + limit + ", removal=" + removal + "). Limit must be less than removal.");
                     }
                 }
@@ -125,7 +125,7 @@ public class EntityThrottlingManager {
             if (count > limit.getRemoval()) {
                 int toRemove = Math.min(count - limit.getRemoval(), removalBatchSize);
                 removeOldestEntities(counter, toRemove);
-                
+
                 if (plugin.getConfigManager().isDebugLoggingEnabled()) {
                     plugin.getLogger().info(String.format(
                         "[EntityThrottling] %s: %d/%d (removed %d oldest)",
@@ -135,7 +135,7 @@ public class EntityThrottlingManager {
             }
             else if (count > limit.getLimit()) {
                 counter.setThrottled(true);
-                
+
                 if (plugin.getConfigManager().isDebugLoggingEnabled()) {
                     plugin.getLogger().info(String.format(
                         "[EntityThrottling] %s: %d/%d (throttled)",
@@ -148,22 +148,22 @@ public class EntityThrottlingManager {
 
     private void removeOldestEntities(EntityCounter counter, int count) {
         List<Entity> entities = counter.getEntities();
-        
+
         entities.sort(Comparator.comparingInt(Entity::getTicksLived).reversed());
 
         int removed = 0;
         for (Entity entity : entities) {
             if (removed >= count) break;
-            
+
             if (entity.customName() != null) continue;
-            
+
             if (entity instanceof org.bukkit.entity.LivingEntity) {
                 org.bukkit.entity.LivingEntity living = (org.bukkit.entity.LivingEntity) entity;
                 if (living.isLeashed()) continue;
             }
-            
+
             if (entity.isInsideVehicle()) continue;
-            
+
             entity.remove();
             removed++;
         }
@@ -174,7 +174,7 @@ public class EntityThrottlingManager {
 
         EntityType type = entity.getType();
         EntityCounter counter = entityCounters.get(type);
-        
+
         if (counter == null || !counter.isThrottled()) {
             return false;
         }

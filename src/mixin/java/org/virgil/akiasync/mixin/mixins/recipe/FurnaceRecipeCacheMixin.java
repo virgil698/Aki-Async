@@ -24,7 +24,7 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 @Mixin(AbstractFurnaceBlockEntity.class)
 public abstract class FurnaceRecipeCacheMixin {
-    
+
     @Unique private static volatile boolean enabled;
     @Unique private static volatile int cacheSize;
     @Unique private static volatile boolean applyToBlastFurnace;
@@ -34,28 +34,28 @@ public abstract class FurnaceRecipeCacheMixin {
     @Unique private static int cacheHits = 0;
     @Unique private static int cacheMisses = 0;
     @Unique private static int totalLookups = 0;
-    
+
     @Unique private ItemStack akiasync$cachedInput = ItemStack.EMPTY;
     @Unique private long akiasync$lastCacheTime = 0;
-    
+
     @Shadow
     @Final
     public RecipeType<? extends AbstractCookingRecipe> recipeType;
-    
+
     @Shadow
     public double cookSpeedMultiplier;
-    
+
     @Inject(method = "serverTick", at = @At("HEAD"))
-    private static void onServerTick(ServerLevel level, BlockPos pos, BlockState state, 
+    private static void onServerTick(ServerLevel level, BlockPos pos, BlockState state,
                                      AbstractFurnaceBlockEntity blockEntity, CallbackInfo ci) {
         if (!initialized) {
             akiasync$initFurnaceCache();
         }
     }
-    
+
     @Unique private RecipeHolder<? extends AbstractCookingRecipe> akiasync$cachedRecipe;
     @Unique private int akiasync$cachedCookTime = 0;
-    
+
     @Inject(method = "getTotalCookTime", at = @At("HEAD"), cancellable = true)
     private static void optimizeCookTimeCalculation(ServerLevel level, AbstractFurnaceBlockEntity furnace,
                                                    RecipeType<? extends AbstractCookingRecipe> recipeType,
@@ -64,36 +64,36 @@ public abstract class FurnaceRecipeCacheMixin {
         if (!initialized) {
             akiasync$initFurnaceCache();
         }
-        
+
         if (!enabled) return;
-        
+
         if (!akiasync$shouldApplyCacheStatic(furnace)) return;
-        
+
         try {
             FurnaceRecipeCacheMixin mixin = (FurnaceRecipeCacheMixin) (Object) furnace;
-            
+
             totalLookups++;
-            
+
             ItemStack inputItem = furnace.getItem(0);
             if (mixin.akiasync$isCacheValidSimple(inputItem)) {
                 if (mixin.akiasync$cachedRecipe != null && mixin.akiasync$cachedCookTime > 0) {
                     cacheHits++;
-                    
+
                     int finalCookTime = (int) Math.ceil(mixin.akiasync$cachedCookTime / cookSpeedMultiplier);
                     cir.setReturnValue(finalCookTime);
-                    
+
                     if (totalLookups % 1000 == 0) {
                         akiasync$logCacheStatsStatic();
                     }
                     return;
                 }
             }
-            
+
             cacheMisses++;
         } catch (Throwable t) {
         }
     }
-    
+
     @Inject(method = "getTotalCookTime", at = @At("RETURN"))
     private static void cacheRecipeResult(ServerLevel level, AbstractFurnaceBlockEntity furnace,
                                          RecipeType<? extends AbstractCookingRecipe> recipeType,
@@ -101,15 +101,15 @@ public abstract class FurnaceRecipeCacheMixin {
                                          CallbackInfoReturnable<Integer> cir) {
         if (!enabled) return;
         if (!akiasync$shouldApplyCacheStatic(furnace)) return;
-        
+
         try {
             FurnaceRecipeCacheMixin mixin = (FurnaceRecipeCacheMixin) (Object) furnace;
             ItemStack inputItem = furnace.getItem(0);
-            
+
             if (!inputItem.isEmpty()) {
                 SingleRecipeInput input = new SingleRecipeInput(inputItem);
                 var recipe = level.recipeAccess().getRecipeFor(recipeType, input, level);
-                
+
                 if (recipe.isPresent()) {
                     RecipeHolder<? extends AbstractCookingRecipe> recipeHolder = recipe.get();
                     mixin.akiasync$cachedRecipe = recipeHolder;
@@ -121,49 +121,49 @@ public abstract class FurnaceRecipeCacheMixin {
         } catch (Throwable t) {
         }
     }
-    
+
     @Inject(method = "setItem", at = @At("HEAD"))
     private void clearCacheOnItemChange(int slot, ItemStack stack, CallbackInfo ci) {
         if (!enabled) return;
-        
+
         if (slot == 0) {
             akiasync$clearCache();
         }
     }
-    
+
     @Unique
     private boolean akiasync$isCacheValidSimple(ItemStack input) {
         if (akiasync$cachedInput.isEmpty()) return false;
-        
+
         if (!ItemStack.isSameItemSameComponents(akiasync$cachedInput, input)) {
             return false;
         }
-        
+
         long currentTime = System.currentTimeMillis();
         if (currentTime - akiasync$lastCacheTime > 60000) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     @Unique
     private void akiasync$clearCache() {
         akiasync$cachedInput = ItemStack.EMPTY;
         akiasync$cachedCookTime = 0;
         akiasync$lastCacheTime = 0;
     }
-    
+
     @Unique
     private boolean akiasync$shouldApplyCache() {
         return akiasync$shouldApplyCacheStatic((AbstractFurnaceBlockEntity) (Object) this);
     }
-    
+
     @Unique
     private static boolean akiasync$shouldApplyCacheStatic(AbstractFurnaceBlockEntity furnace) {
         try {
             RecipeType<?> type = furnace.recipeType;
-            
+
             if (type == RecipeType.SMELTING) {
                 return true;
             }
@@ -173,23 +173,23 @@ public abstract class FurnaceRecipeCacheMixin {
             if (type == RecipeType.SMOKING) {
                 return applyToSmoker;
             }
-            
+
             return true;
         } catch (Throwable t) {
             return true;
         }
     }
-    
+
     @Unique
     private static void akiasync$logCacheStatsStatic() {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            
+
             if (bridge != null) {
-                double hitRate = totalLookups > 0 ? 
+                double hitRate = totalLookups > 0 ?
                     (double) cacheHits / totalLookups * 100 : 0;
-                
+
                 bridge.debugLog(
                     "[AkiAsync-FurnaceCache] Stats: Lookups=%d, Hits=%d, Misses=%d, HitRate=%.2f%%",
                     totalLookups, cacheHits, cacheMisses, hitRate
@@ -198,21 +198,21 @@ public abstract class FurnaceRecipeCacheMixin {
         } catch (Throwable t) {
         }
     }
-    
+
     @Unique
     private static synchronized void akiasync$initFurnaceCache() {
         if (initialized) return;
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge != null) {
             enabled = bridge.isFurnaceRecipeCacheEnabled();
             cacheSize = bridge.getFurnaceRecipeCacheSize();
             applyToBlastFurnace = bridge.isFurnaceCacheApplyToBlastFurnace();
             applyToSmoker = bridge.isFurnaceCacheApplyToSmoker();
             fixBurnTimeBug = bridge.isFurnaceFixBurnTimeBug();
-            
+
             bridge.debugLog("[AkiAsync] FurnaceRecipeCache initialized:");
             bridge.debugLog("  - Enabled: " + enabled);
             bridge.debugLog("  - Cache size: " + cacheSize);
@@ -222,7 +222,7 @@ public abstract class FurnaceRecipeCacheMixin {
         } else {
             enabled = false;
         }
-        
+
         initialized = true;
     }
 }

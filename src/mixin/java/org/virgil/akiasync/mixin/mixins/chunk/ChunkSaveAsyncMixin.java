@@ -10,13 +10,13 @@ import net.minecraft.server.level.ChunkHolder;
 @Pseudo
 @Mixin(value = ChunkHolder.class, remap = false)
 public class ChunkSaveAsyncMixin {
-    
+
     private static volatile Boolean isFolia = null;
     private static volatile boolean initialized = false;
     private static volatile long foliaCallCount = 0;
     private static volatile long asyncCallCount = 0;
     private static volatile long lastLogTime = 0;
-    
+
     private static boolean checkFolia() {
         if (isFolia == null) {
             synchronized (ChunkSaveAsyncMixin.class) {
@@ -35,10 +35,10 @@ public class ChunkSaveAsyncMixin {
         }
         return isFolia;
     }
-    
+
     private static void logFoliaDetection(boolean detected) {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
                 if (detected) {
@@ -52,13 +52,13 @@ public class ChunkSaveAsyncMixin {
         } catch (Exception e) {
         }
     }
-    
+
     private static void logStatistics() {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLogTime > 60000) {
             lastLogTime = currentTime;
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
                     if (isFolia) {
@@ -77,7 +77,7 @@ public class ChunkSaveAsyncMixin {
             }
         }
     }
-    
+
     @Redirect(
         method = "moonrise$scheduleSave",
         at = @At(
@@ -93,46 +93,46 @@ public class ChunkSaveAsyncMixin {
             callUnsafeSave(holder, flush);
             return;
         }
-        
+
         if (flush) {
             callUnsafeSave(holder, flush);
             return;
         }
-        
+
         asyncCallCount++;
         logStatistics();
-        
+
         try {
             java.lang.reflect.Field levelField = holder.getClass().getDeclaredField("level");
             levelField.setAccessible(true);
             Object level = levelField.get(holder);
-            
+
             if (level == null) {
                 callUnsafeSave(holder, flush);
                 return;
             }
-            
+
             java.lang.reflect.Method getSchedulerMethod = level.getClass().getMethod("moonrise$getChunkTaskScheduler");
             Object scheduler = getSchedulerMethod.invoke(level);
-            
+
             java.lang.reflect.Field saveExecutorField = scheduler.getClass().getDeclaredField("saveExecutor");
             saveExecutorField.setAccessible(true);
             Object saveExecutor = saveExecutorField.get(scheduler);
-            
+
             if (saveExecutor == null) {
                 callUnsafeSave(holder, flush);
                 return;
             }
-            
-            java.lang.reflect.Method executeMethod = saveExecutor.getClass().getMethod("execute", 
+
+            java.lang.reflect.Method executeMethod = saveExecutor.getClass().getMethod("execute",
                 java.util.concurrent.Executor.class, Runnable.class, long.class);
-            
+
             long pos = 0L;
             try {
                 java.lang.reflect.Method getPosMethod = holder.getClass().getMethod("toLong");
                 pos = (long) getPosMethod.invoke(holder);
             } catch (Exception ignored) {}
-            
+
             final long finalPos = pos;
             final ChunkHolder finalHolder = holder;
             executeMethod.invoke(saveExecutor, null, (Runnable) () -> {
@@ -141,10 +141,10 @@ public class ChunkSaveAsyncMixin {
                 } catch (Exception ex) {
                 }
             }, finalPos);
-            
+
         } catch (Exception e) {
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null && asyncCallCount <= 5) {
                     bridge.debugLog("[AkiAsync-ChunkSave] Async save failed, fallback to sync: " + e.getMessage());
@@ -153,7 +153,7 @@ public class ChunkSaveAsyncMixin {
             callUnsafeSave(holder, flush);
         }
     }
-    
+
     private void callUnsafeSave(ChunkHolder holder, boolean flush) {
         try {
             java.lang.reflect.Method unsafeSaveMethod = holder.getClass()
@@ -162,7 +162,7 @@ public class ChunkSaveAsyncMixin {
             unsafeSaveMethod.invoke(holder, flush);
         } catch (Exception e) {
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
                     bridge.errorLog("[AkiAsync-ChunkSave] CRITICAL: Failed to save chunk - " + e.getMessage());

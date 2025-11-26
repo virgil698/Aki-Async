@@ -9,23 +9,23 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class StructureCacheManager {
-    
+
     private static StructureCacheManager instance;
     private final AkiAsyncPlugin plugin;
-    
+
     private final ConcurrentHashMap<String, CacheEntry> structureCache;
     private final ConcurrentHashMap<String, Long> negativeCache;
-    
+
     private volatile int maxCacheSize;
     private volatile long expirationMinutes;
     private volatile boolean cachingEnabled;
-    
+
     private final ScheduledExecutorService cleanupExecutor;
-    
+
     private volatile long cacheHits = 0;
     private volatile long cacheMisses = 0;
     private volatile long negativeHits = 0;
-    
+
     private StructureCacheManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         this.structureCache = new ConcurrentHashMap<>();
@@ -35,22 +35,22 @@ public class StructureCacheManager {
             t.setDaemon(true);
             return t;
         });
-        
+
         updateConfiguration();
         startCleanupTask();
     }
-    
+
     public static synchronized StructureCacheManager getInstance(AkiAsyncPlugin plugin) {
         if (instance == null) {
             instance = new StructureCacheManager(plugin);
         }
         return instance;
     }
-    
+
     public static StructureCacheManager getInstance() {
         return instance;
     }
-    
+
     public void updateConfiguration() {
         if (plugin.getBridge() != null) {
             this.cachingEnabled = plugin.getBridge().isStructureCachingEnabled();
@@ -62,12 +62,12 @@ public class StructureCacheManager {
             this.expirationMinutes = 30;
         }
     }
-    
+
     public BlockPos getCachedStructure(String cacheKey) {
         if (!cachingEnabled) {
             return null;
         }
-        
+
         CacheEntry entry = structureCache.get(cacheKey);
         if (entry != null) {
             if (isExpired(entry)) {
@@ -77,29 +77,29 @@ public class StructureCacheManager {
             cacheHits++;
             return entry.position;
         }
-        
+
         cacheMisses++;
         return null;
     }
-    
+
     public void cacheStructure(String cacheKey, BlockPos position) {
         if (!cachingEnabled) {
             return;
         }
-        
+
         if (structureCache.size() >= maxCacheSize) {
             evictOldestEntries();
         }
-        
+
         CacheEntry entry = new CacheEntry(position, System.currentTimeMillis());
         structureCache.put(cacheKey, entry);
     }
-    
+
     public boolean isNegativeCached(String cacheKey) {
         if (!cachingEnabled) {
             return false;
         }
-        
+
         Long timestamp = negativeCache.get(cacheKey);
         if (timestamp != null) {
             if (isExpired(timestamp)) {
@@ -109,32 +109,32 @@ public class StructureCacheManager {
             negativeHits++;
             return true;
         }
-        
+
         return false;
     }
-    
+
     public void cacheNegativeResult(String cacheKey) {
         if (!cachingEnabled) {
             return;
         }
-        
+
         if (negativeCache.size() >= maxCacheSize) {
             evictOldestNegativeEntries();
         }
-        
+
         negativeCache.put(cacheKey, System.currentTimeMillis());
     }
-    
+
     public void clearCache() {
         structureCache.clear();
         negativeCache.clear();
         resetStatistics();
-        
+
         if (plugin.getBridge() != null && plugin.getBridge().isStructureLocationDebugEnabled()) {
             plugin.getLogger().info("[AkiAsync] Structure cache cleared");
         }
     }
-    
+
     public CacheStatistics getStatistics() {
         return new CacheStatistics(
             structureCache.size(),
@@ -145,13 +145,13 @@ public class StructureCacheManager {
             calculateHitRate()
         );
     }
-    
+
     public void resetStatistics() {
         cacheHits = 0;
         cacheMisses = 0;
         negativeHits = 0;
     }
-    
+
     public void shutdown() {
         cleanupExecutor.shutdown();
         try {
@@ -162,72 +162,72 @@ public class StructureCacheManager {
             cleanupExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        
+
         clearCache();
         instance = null;
     }
-    
+
     private boolean isExpired(CacheEntry entry) {
         return isExpired(entry.timestamp);
     }
-    
+
     private boolean isExpired(long timestamp) {
         long expirationTime = expirationMinutes * 60 * 1000;
         return System.currentTimeMillis() - timestamp > expirationTime;
     }
-    
+
     private void evictOldestEntries() {
         if (structureCache.size() < maxCacheSize * 0.8) {
             return;
         }
-        
+
         long oldestTime = System.currentTimeMillis();
         String oldestKey = null;
-        
+
         for (var entry : structureCache.entrySet()) {
             if (entry.getValue().timestamp < oldestTime) {
                 oldestTime = entry.getValue().timestamp;
                 oldestKey = entry.getKey();
             }
         }
-        
+
         if (oldestKey != null) {
             structureCache.remove(oldestKey);
         }
     }
-    
+
     private void evictOldestNegativeEntries() {
         if (negativeCache.size() < maxCacheSize * 0.8) {
             return;
         }
-        
+
         long oldestTime = System.currentTimeMillis();
         String oldestKey = null;
-        
+
         for (var entry : negativeCache.entrySet()) {
             if (entry.getValue() < oldestTime) {
                 oldestTime = entry.getValue();
                 oldestKey = entry.getKey();
             }
         }
-        
+
         if (oldestKey != null) {
             negativeCache.remove(oldestKey);
         }
     }
-    
+
     private void startCleanupTask() {
         cleanupExecutor.scheduleAtFixedRate(this::performCleanup, 5, 5, TimeUnit.MINUTES);
     }
-    
+
     private void performCleanup() {
         if (!cachingEnabled) {
             return;
         }
-        
+
         int removedStructures = 0;
         int removedNegative = 0;
-        
+
         var structureIterator = structureCache.entrySet().iterator();
         while (structureIterator.hasNext()) {
             var entry = structureIterator.next();
@@ -236,7 +236,7 @@ public class StructureCacheManager {
                 removedStructures++;
             }
         }
-        
+
         var negativeIterator = negativeCache.entrySet().iterator();
         while (negativeIterator.hasNext()) {
             var entry = negativeIterator.next();
@@ -245,7 +245,7 @@ public class StructureCacheManager {
                 removedNegative++;
             }
         }
-        
+
         if (plugin.getBridge() != null && plugin.getBridge().isStructureLocationDebugEnabled()) {
             if (removedStructures > 0 || removedNegative > 0) {
                 plugin.getLogger().info(String.format(
@@ -255,22 +255,22 @@ public class StructureCacheManager {
             }
         }
     }
-    
+
     private double calculateHitRate() {
         long totalRequests = cacheHits + cacheMisses;
         return totalRequests > 0 ? (double) cacheHits / totalRequests * 100.0 : 0.0;
     }
-    
+
     private static class CacheEntry {
         final BlockPos position;
         final long timestamp;
-        
+
         CacheEntry(BlockPos position, long timestamp) {
             this.position = position;
             this.timestamp = timestamp;
         }
     }
-    
+
     public static class CacheStatistics {
         public final int structureCacheSize;
         public final int negativeCacheSize;
@@ -278,8 +278,8 @@ public class StructureCacheManager {
         public final long cacheMisses;
         public final long negativeHits;
         public final double hitRate;
-        
-        CacheStatistics(int structureCacheSize, int negativeCacheSize, 
+
+        CacheStatistics(int structureCacheSize, int negativeCacheSize,
                        long cacheHits, long cacheMisses, long negativeHits, double hitRate) {
             this.structureCacheSize = structureCacheSize;
             this.negativeCacheSize = negativeCacheSize;
@@ -288,7 +288,7 @@ public class StructureCacheManager {
             this.negativeHits = negativeHits;
             this.hitRate = hitRate;
         }
-        
+
         @Override
         public String toString() {
             return String.format(

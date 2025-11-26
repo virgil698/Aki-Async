@@ -22,7 +22,7 @@ public abstract class WorldOptionsMixin implements IWorldOptionsFeatureSeed {
     private long[] secureSeed$featureSeed = Globals.createRandomWorldSeed();
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void onInit(long seed, boolean generateStructures, boolean generateBonusChest, 
+    private void onInit(long seed, boolean generateStructures, boolean generateBonusChest,
                        java.util.Optional<String> legacyCustomOptions, CallbackInfo ci) {
         this.secureSeed$featureSeed = Globals.createRandomWorldSeed();
     }

@@ -9,7 +9,7 @@ import org.virgil.akiasync.mixin.secureseed.crypto.Hashing;
 public class WorldgenCryptoRandom extends WorldgenRandom {
     private static final int MAX_RANDOM_BIT_INDEX = 512;
     private static final ThreadLocal<long[]> THREAD_LOCAL_BUFFER = ThreadLocal.withInitial(() -> new long[16]);
-    
+
     private final long[] randomBits = new long[8];
     private int randomBitIndex = MAX_RANDOM_BIT_INDEX;
 
@@ -20,14 +20,14 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
     private void setSecureSeed(int x, int z, Globals.Salt salt, long extra) {
         long[] message = THREAD_LOCAL_BUFFER.get();
-        
+
         System.arraycopy(Globals.worldSeed, 0, message, 0, Globals.WORLD_SEED_LONGS);
-        
+
         message[Globals.WORLD_SEED_LONGS] = ((long) x << 32) | (z & 0xffffffffL);
         message[Globals.WORLD_SEED_LONGS + 1] = salt.ordinal();
         message[Globals.WORLD_SEED_LONGS + 2] = extra;
         message[Globals.WORLD_SEED_LONGS + 3] = Globals.dimension.get();
-        
+
         Hashing.hash(message, randomBits, new long[16], 0, false);
         randomBitIndex = 0;
     }
@@ -82,7 +82,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
         if (bound <= 0) {
             throw new IllegalArgumentException("bound must be positive");
         }
-        
+
         int bits = Mth.ceillog2(bound);
         int result;
         do {
@@ -120,7 +120,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
     @Override
     public void setFeatureSeed(long populationSeed, int index, int step) {
-        setSecureSeed((int) (populationSeed >> 32), (int) populationSeed, 
+        setSecureSeed((int) (populationSeed >> 32), (int) populationSeed,
                      Globals.Salt.DECORATION, index + 10000L * step);
     }
 
@@ -187,7 +187,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
         public double nextGaussian() {
             return 0;
         }
-        
+
         @Override
         public void consumeCount(int count) {
         }

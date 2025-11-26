@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 @Mixin(PathNavigation.class)
 public abstract class BlockPosPoolMixin {
     @Shadow protected Mob mob;
-    private static final ThreadLocal<BlockPos.MutableBlockPos> POS_POOL = 
+    private static final ThreadLocal<BlockPos.MutableBlockPos> POS_POOL =
         ThreadLocal.withInitial(BlockPos.MutableBlockPos::new);
     private static volatile boolean enabled;
     private static volatile boolean initialized = false;

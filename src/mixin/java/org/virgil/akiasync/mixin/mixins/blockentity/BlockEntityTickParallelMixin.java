@@ -29,53 +29,53 @@ public abstract class BlockEntityTickParallelMixin {
     @Unique private static volatile boolean protectContainers;
     @Unique private static volatile int timeoutMs;
     @Unique private static int executionCount = 0;
-    
+
     @Unique private static java.lang.reflect.Field blockEntityTickersField = null;
     @Unique private static boolean blockEntityTickersFieldChecked = false;
-    
+
     @Inject(method = "tickBlockEntities", at = @At("HEAD"), cancellable = true, require = 0)
     private void parallelTickBlockEntities(CallbackInfo ci) {
         if (!initialized) { akiasync$initBlockEntityParallel(); }
         if (!enabled) return;
-        
+
         List<TickingBlockEntity> blockEntityTickers = akiasync$getBlockEntityTickers();
         if (blockEntityTickers == null || blockEntityTickers.size() < minBlockEntities) return;
-        
+
         ci.cancel();
         executionCount++;
-        
+
         List<List<TickingBlockEntity>> batches = akiasync$partitionBlockEntities(blockEntityTickers, batchSize);
-        
+
         try {
             List<CompletableFuture<Void>> futures = new ArrayList<>(batches.size());
-            
+
             for (List<TickingBlockEntity> batch : batches) {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     for (TickingBlockEntity blockEntity : batch) {
                         if (blockEntity == null) continue;
-                        
+
                         try {
                             if (protectContainers && akiasync$isContainerBlockEntity(blockEntity)) {
                                 continue;
                             }
-                            
+
                             blockEntity.tick();
                         } catch (Throwable t) {
                             if (executionCount <= 3) {
-                                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                 if (bridge != null) {
-                                    bridge.errorLog("[AkiAsync-BlockEntity] Error ticking block entity: " + 
+                                    bridge.errorLog("[AkiAsync-BlockEntity] Error ticking block entity: " +
                                         blockEntity.getType() + " at " + blockEntity.getPos());
                                 }
                             }
                         }
                     }
                 }, executor);
-                
+
                 futures.add(future);
             }
-            
+
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .get(timeoutMs, TimeUnit.MILLISECONDS);
             if (protectContainers) {
@@ -87,9 +87,9 @@ public abstract class BlockEntityTickParallelMixin {
                     }
                 }
             }
-            
+
             if (executionCount % 100 == 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
                     bridge.debugLog(
@@ -98,17 +98,17 @@ public abstract class BlockEntityTickParallelMixin {
                     );
                 }
             }
-            
+
         } catch (Throwable t) {
             if (executionCount <= 3) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
-                    bridge.errorLog("[AkiAsync-BlockEntity] Parallel execution failed, falling back to sync: " + 
+                    bridge.errorLog("[AkiAsync-BlockEntity] Parallel execution failed, falling back to sync: " +
                         t.getMessage());
                 }
             }
-            
+
             for (TickingBlockEntity blockEntity : blockEntityTickers) {
                 if (blockEntity != null) {
                     try {
@@ -118,11 +118,11 @@ public abstract class BlockEntityTickParallelMixin {
             }
         }
     }
-    
+
     @Unique
     private boolean akiasync$isContainerBlockEntity(TickingBlockEntity blockEntity) {
         if (!protectContainers) return false;
-        
+
         String type = blockEntity.getType();
         return type.contains("chest") ||
                type.contains("barrel") ||
@@ -139,7 +139,7 @@ public abstract class BlockEntityTickParallelMixin {
                type.contains("lectern") ||
                type.contains("jukebox");
     }
-    
+
     @Unique
     private boolean akiasync$isLithiumSleepingBlockEntity(TickingBlockEntity blockEntity) {
         try {
@@ -149,7 +149,7 @@ public abstract class BlockEntityTickParallelMixin {
             return false;
         }
     }
-    
+
     @Unique
     private List<List<TickingBlockEntity>> akiasync$partitionBlockEntities(
         List<TickingBlockEntity> list, int size) {
@@ -159,7 +159,7 @@ public abstract class BlockEntityTickParallelMixin {
         }
         return result;
     }
-    
+
     @Unique
     @SuppressWarnings("unchecked")
     private List<TickingBlockEntity> akiasync$getBlockEntityTickers() {
@@ -178,32 +178,32 @@ public abstract class BlockEntityTickParallelMixin {
                 }
             }
         }
-        
+
         if (blockEntityTickersField == null) {
             return null;
         }
-        
+
         try {
             return (List<TickingBlockEntity>) blockEntityTickersField.get(this);
         } catch (Throwable t) {
             return null;
         }
     }
-    
+
     @Unique
     private static synchronized void akiasync$initBlockEntityParallel() {
         if (initialized) return;
-        
+
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
         }
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge != null) {
             if (isFolia) {
                 enabled = false;
@@ -215,7 +215,7 @@ public abstract class BlockEntityTickParallelMixin {
                 protectContainers = bridge.isBlockEntityParallelProtectContainers();
                 timeoutMs = bridge.getBlockEntityParallelTimeoutMs();
                 executor = bridge.getGeneralExecutor();
-                
+
                 bridge.debugLog("[AkiAsync] BlockEntityTickParallel initialized:");
                 bridge.debugLog("  - Enabled: " + enabled);
                 bridge.debugLog("  - Min block entities: " + minBlockEntities);
@@ -226,7 +226,7 @@ public abstract class BlockEntityTickParallelMixin {
         } else {
             enabled = false;
         }
-        
+
         initialized = true;
     }
 }

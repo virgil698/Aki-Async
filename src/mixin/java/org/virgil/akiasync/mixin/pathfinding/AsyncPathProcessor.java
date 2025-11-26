@@ -53,7 +53,7 @@ public class AsyncPathProcessor {
                 keepAliveSeconds, TimeUnit.SECONDS,
                 workQueue,
                 threadFactory,
-                new ThreadPoolExecutor.CallerRunsPolicy() 
+                new ThreadPoolExecutor.CallerRunsPolicy()
             );
 
             int prestarted = executor.prestartAllCoreThreads();

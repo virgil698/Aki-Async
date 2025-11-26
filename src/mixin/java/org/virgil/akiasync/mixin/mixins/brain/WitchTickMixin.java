@@ -29,7 +29,7 @@ public abstract class WitchTickMixin {
         aki$next = level.getGameTime() + 3;
         try {
             aki$snap = WitchSnapshot.capture(witch, level);
-            CompletableFuture<WitchDiff> future = AsyncBrainExecutor.runSync(() -> 
+            CompletableFuture<WitchDiff> future = AsyncBrainExecutor.runSync(() ->
                 WitchCpuCalculator.runCpuOnly(witch, aki$snap), timeout, TimeUnit.MICROSECONDS);
             WitchDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new WitchDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(witch, level);

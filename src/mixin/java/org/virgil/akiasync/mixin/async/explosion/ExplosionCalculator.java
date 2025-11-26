@@ -27,12 +27,12 @@ public class ExplosionCalculator {
 
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
         this.snapshot = snapshot;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        this.useFullRaycast = bridge != null && 
-            bridge.isTNTVanillaCompatibilityEnabled() && 
+        this.useFullRaycast = bridge != null &&
+            bridge.isTNTVanillaCompatibilityEnabled() &&
             bridge.isTNTUseFullRaycast();
-        
+
         WorkStealingTaskScheduler tempScheduler = null;
         if (!isFoliaEnvironment()) {
             try {
@@ -56,7 +56,7 @@ public class ExplosionCalculator {
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
                 for (int rayZ = 0; rayZ < RAYCAST_SAMPLES; rayZ++) {
-                    if (!useFullRaycast && 
+                    if (!useFullRaycast &&
                         rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
                         rayY != 0 && rayY != RAYCAST_SAMPLES - 1 &&
                         rayZ != 0 && rayZ != RAYCAST_SAMPLES - 1) {
@@ -83,38 +83,38 @@ public class ExplosionCalculator {
                                 if (!state.getFluidState().isEmpty()) {
                                     continue;
                                 }
-                                if (state.canBeReplaced() && (state.isAir() || 
+                                if (state.canBeReplaced() && (state.isAir() ||
                                     state.is(net.minecraft.world.level.block.Blocks.WATER) ||
                                     state.is(net.minecraft.world.level.block.Blocks.LAVA) ||
                                     state.is(net.minecraft.world.level.block.Blocks.FIRE) ||
                                     state.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE))) {
-                                    
-                                    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+                                    org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                                        bridge.debugLog("[AkiAsync-TNT] Skipping replaceable block at " + pos + ": " + 
+                                        bridge.debugLog("[AkiAsync-TNT] Skipping replaceable block at " + pos + ": " +
                                             state.getBlock().getDescriptionId() + " (canBeReplaced: " + state.canBeReplaced() + ")");
                                     }
                                     continue;
                                 }
-                                
+
                                 if (snapshot.isProtected(pos)) {
-                                    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                                    org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                     if (bridge != null && bridge.isTNTDebugEnabled()) {
                                         bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected by land protection (from snapshot), skipping");
                                     }
                                     continue;
                                 }
-                                
+
                                 if (destroyedBlocks.putIfAbsent(pos, true) == null) {
                                     toDestroy.add(pos);
-                                    
-                                    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+                                    org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                                        bridge.debugLog("[AkiAsync-TNT] Adding block to destroy at " + pos + ": " + 
-                                            state.getBlock().getDescriptionId() + " (resistance: " + resistance + 
+                                        bridge.debugLog("[AkiAsync-TNT] Adding block to destroy at " + pos + ": " +
+                                            state.getBlock().getDescriptionId() + " (resistance: " + resistance +
                                             ", rayPower: " + rayPower + ", canBeReplaced: " + state.canBeReplaced() + ")");
                                     }
                                 }
@@ -138,27 +138,27 @@ public class ExplosionCalculator {
             double dz = entity.getPosition().z - center.z;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (dist >= radius) continue;
-            
+
             double exposure = calculateExposure(center, entity);
             if (exposure <= 0) continue;
-            
+
             double impact = (1.0 - dist / radius) * exposure;
-            
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Entity damage calculation: " + 
-                    entity.getUuid() + " dist=" + String.format("%.2f", dist) + 
-                    " exposure=" + String.format("%.3f", exposure) + 
+                bridge.debugLog("[AkiAsync-TNT] Entity damage calculation: " +
+                    entity.getUuid() + " dist=" + String.format("%.2f", dist) +
+                    " exposure=" + String.format("%.3f", exposure) +
                     " impact=" + String.format("%.3f", impact));
             }
-            
+
             if (impact <= 0.0) continue;
-            
+
             double knockbackX = dx / dist * impact;
             double knockbackY = Math.max(dy / dist * impact, impact * 0.3);
             double knockbackZ = dz / dist * impact;
-            
+
             double maxKnockback = 2.0;
             double knockbackLength = Math.sqrt(knockbackX * knockbackX + knockbackY * knockbackY + knockbackZ * knockbackZ);
             if (knockbackLength > maxKnockback) {
@@ -167,7 +167,7 @@ public class ExplosionCalculator {
                 knockbackY *= scale;
                 knockbackZ *= scale;
             }
-            
+
             toHurt.put(entity.getUuid(), new Vec3(knockbackX, knockbackY, knockbackZ));
         }
     }
@@ -176,18 +176,18 @@ public class ExplosionCalculator {
         double sizeX = aabb.maxX - aabb.minX;
         double sizeY = aabb.maxY - aabb.minY;
         double sizeZ = aabb.maxZ - aabb.minZ;
-        
+
         double stepX = 1.0 / (sizeX * 2.0 + 1.0);
         double stepY = 1.0 / (sizeY * 2.0 + 1.0);
         double stepZ = 1.0 / (sizeZ * 2.0 + 1.0);
-        
+
         if (stepX < 0 || stepY < 0 || stepZ < 0) {
             return 0;
         }
-        
+
         int visibleRays = 0;
         int totalRays = 0;
-        
+
         for (double x = 0.0; x <= 1.0; x += stepX) {
             for (double y = 0.0; y <= 1.0; y += stepY) {
                 for (double z = 0.0; z <= 1.0; z += stepZ) {
@@ -195,7 +195,7 @@ public class ExplosionCalculator {
                     double targetY = Mth.lerp(y, aabb.minY, aabb.maxY);
                     double targetZ = Mth.lerp(z, aabb.minZ, aabb.maxZ);
                     Vec3 target = new Vec3(targetX, targetY, targetZ);
-                    
+
                     if (!hasBlockCollisionImproved(explosionCenter, target)) {
                         visibleRays++;
                     }
@@ -203,33 +203,33 @@ public class ExplosionCalculator {
                 }
             }
         }
-        
+
         double exposure = (double) visibleRays / totalRays;
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null && bridge.isTNTDebugEnabled()) {
-            bridge.debugLog("[AkiAsync-TNT] Entity exposure calculation: " + 
-                entity.getUuid() + " exposure=" + String.format("%.3f", exposure) + 
+            bridge.debugLog("[AkiAsync-TNT] Entity exposure calculation: " +
+                entity.getUuid() + " exposure=" + String.format("%.3f", exposure) +
                 " (" + visibleRays + "/" + totalRays + " rays)");
         }
-        
+
         return exposure;
     }
-    
+
     private boolean hasBlockCollisionImproved(Vec3 start, Vec3 end) {
         Vec3 dir = end.subtract(start);
         double dist = dir.length();
         if (dist < 0.01) return false;
-        
+
         dir = dir.normalize();
-        
+
         double stepSize = 0.2;
         for (double step = 0; step < dist; step += stepSize) {
             Vec3 pos = start.add(dir.scale(step));
             BlockPos blockPos = new BlockPos((int)Math.floor(pos.x), (int)Math.floor(pos.y), (int)Math.floor(pos.z));
             BlockState state = snapshot.getBlockState(blockPos);
-            
+
             if (!state.isAir() && state.getFluidState().isEmpty()) {
                 float resistance = state.getBlock().getExplosionResistance();
                 if (resistance > 0.5f) {
@@ -239,9 +239,9 @@ public class ExplosionCalculator {
         }
         return false;
     }
-    
+
     private static volatile Boolean isFolia = null;
-    
+
     private static boolean isFoliaEnvironment() {
         if (isFolia == null) {
             try {

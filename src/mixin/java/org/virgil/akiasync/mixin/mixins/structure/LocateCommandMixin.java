@@ -22,12 +22,12 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 @SuppressWarnings("unused")
 @Mixin(LocateCommand.class)
 public class LocateCommandMixin {
-    
+
     @Unique private static volatile boolean cached_enabled;
     @Unique private static volatile int searchRadius;
     @Unique private static volatile boolean skipKnownStructures;
     @Unique private static volatile boolean initialized = false;
-    
+
     @Inject(
         method = "locateStructure",
         at = @At(
@@ -46,18 +46,18 @@ public class LocateCommandMixin {
     ) {
         if (!initialized) { aki$initLocateCommand(); }
         if (!cached_enabled) return;
-        
+
         CommandSource source = sourceStack.source;
         if (source instanceof ServerPlayer || source instanceof MinecraftServer) {
             org.virgil.akiasync.mixin.async.StructureLocatorBridge.locateStructureAsync(sourceStack, structureResult, holderSet);
             cir.setReturnValue(0);
         }
     }
-    
+
     @Unique
     private static synchronized void aki$initLocateCommand() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isLocateCommandEnabled();

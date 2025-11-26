@@ -83,7 +83,7 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     private void aki$offloadBrain(ServerLevel level, E entity, CallbackInfo ci) {
         boolean isVillager = entity instanceof Villager || entity instanceof WanderingTrader;
         boolean isPiglin = entity instanceof Piglin;
-        boolean enabled = (isVillager && cached_villagerEnabled) 
+        boolean enabled = (isVillager && cached_villagerEnabled)
                        || (isPiglin && cached_piglinEnabled)
                        || (!isVillager && !isPiglin && cached_simpleEnabled);
         if (!enabled) return;
@@ -98,8 +98,8 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
                 return BrainCpuCalculator.runCpuOnly(brain, level, poiSnap);
             }, shortTimeout, TimeUnit.MICROSECONDS);
             BrainDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
-                future, 
-                shortTimeout, 
+                future,
+                shortTimeout,
                 TimeUnit.MICROSECONDS,
                 () -> new BrainDiff()
             );
@@ -129,7 +129,7 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     @Unique
     private static synchronized void aki$initAsyncAI() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();

@@ -15,7 +15,7 @@ public final class PiglinCpuCalculator {
         try {
             List<PiglinSnapshot.PlayerGoldInfo> holdingGoldPlayers = snapshot.getNearbyPlayers().stream()
                 .filter(PiglinSnapshot.PlayerGoldInfo::holdingGold)
-                .sorted(Comparator.comparingDouble((PiglinSnapshot.PlayerGoldInfo playerInfo) -> 
+                .sorted(Comparator.comparingDouble((PiglinSnapshot.PlayerGoldInfo playerInfo) ->
                     scoreBarterTarget(playerInfo.pos(), snapshot.getInventoryItems(), piglin.blockPosition())
                 ).reversed())
                 .collect(Collectors.toList());

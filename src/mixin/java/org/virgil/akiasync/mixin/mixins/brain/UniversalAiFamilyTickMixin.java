@@ -48,12 +48,12 @@ public abstract class UniversalAiFamilyTickMixin {
         Mob mob = (Mob) (Object) this;
         ServerLevel level = (ServerLevel) mob.level();
         if (level == null) return;
-        
+
         boolean isNewEntity = aki$next == 0;
         boolean inDanger = mob.isInLava() || mob.isOnFire() || mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0;
-        
+
         if (!isNewEntity && !inDanger && level.getGameTime() < aki$next) return;
-        
+
         int currentTickInterval = tickInterval;
         if (dabEnabled) {
             currentTickInterval = aki$calculateDynamicTickInterval(mob, level);
@@ -64,7 +64,7 @@ public abstract class UniversalAiFamilyTickMixin {
         }
         try {
             aki$snap = UniversalAiSnapshot.capture(mob, level);
-            CompletableFuture<UniversalAiDiff> future = AsyncBrainExecutor.runSync(() -> 
+            CompletableFuture<UniversalAiDiff> future = AsyncBrainExecutor.runSync(() ->
                 UniversalAiCpuCalculator.runCpuOnly(mob, aki$snap), timeout, TimeUnit.MICROSECONDS);
             UniversalAiDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new UniversalAiDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(mob, level);
@@ -77,18 +77,18 @@ public abstract class UniversalAiFamilyTickMixin {
         if (nearestPlayer == null) {
             return dabMaxTickInterval;
         }
-        
+
         double distance = mob.distanceTo(nearestPlayer);
-        
+
         if (distance < dabStartDistance) {
             return 1;
         }
-        
+
         int interval = (int) (1 + (distance - dabStartDistance) / dabActivationDistMod);
-        
+
         return Math.min(interval, dabMaxTickInterval);
     }
-    
+
     @Unique
     private boolean aki$shouldSkipDueToStill(Mob mob) {
         if (mob.isInLava() || mob.isOnFire()) {
@@ -96,7 +96,7 @@ public abstract class UniversalAiFamilyTickMixin {
             aki$lastPos = mob.position();
             return false;
         }
-        
+
         Vec3 cur = mob.position();
         if (aki$lastPos == null) {
             aki$lastPos = cur;
@@ -121,7 +121,7 @@ public abstract class UniversalAiFamilyTickMixin {
         }
         return false;
     }
-    
+
     @Unique
     private boolean aki$shouldProtectAI(Mob mob) {
         totalChecks++;
@@ -131,64 +131,64 @@ public abstract class UniversalAiFamilyTickMixin {
             if (debugEnabled) protectionCount++;
             return true;
         }
-        
+
         if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
             return true;
         }
-        
+
         if (mob.getTarget() != null) {
             return true;
         }
-        
+
         if (mob.isInLava() || mob.isOnFire()) {
             return true;
         }
-        
+
         if (mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0) {
             return true;
         }
-        
+
         if (mob.onGround() || mob.isInLiquid() || mob.isPassenger()) {
             net.minecraft.world.phys.AABB searchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
-            java.util.List<net.minecraft.world.entity.Entity> nearbyEntities = 
-                mob.level().getEntities(mob, searchBox, entity -> 
+            java.util.List<net.minecraft.world.entity.Entity> nearbyEntities =
+                mob.level().getEntities(mob, searchBox, entity ->
                     entity instanceof net.minecraft.world.entity.vehicle.AbstractMinecart);
-            
+
             if (!nearbyEntities.isEmpty()) {
                 return true;
             }
         }
-        
+
         if (mob.isPassenger() || mob.getVehicle() != null) {
             return true;
         }
-        
+
         if (mob.getMoveControl() != null && mob.getMoveControl().hasWanted()) {
             return true;
         }
-        
+
         if (mob instanceof net.minecraft.world.entity.monster.Monster) {
             net.minecraft.world.phys.AABB playerSearchBox = mob.getBoundingBox().inflate(8.0, 4.0, 8.0);
-            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
+            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers =
                 mob.level().getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, playerSearchBox);
-            
+
             if (!nearbyPlayers.isEmpty()) {
                 return true;
             }
-            
+
             if (nearbyPlayers.isEmpty()) {
                 net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
-                java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles = 
-                    mob.level().getEntities(mob, vehicleSearchBox, entity -> 
+                java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles =
+                    mob.level().getEntities(mob, vehicleSearchBox, entity ->
                         entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
                         entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse);
-                
+
                 if (!nearbyVehicles.isEmpty()) {
                     return true;
                 }
             }
         }
-        
+
         if (debugEnabled && totalChecks % 10000 == 0) {
             double protectionRate = (protectionCount * 100.0) / totalChecks;
             org.virgil.akiasync.mixin.bridge.Bridge debugBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -199,33 +199,33 @@ public abstract class UniversalAiFamilyTickMixin {
                 );
             }
         }
-        
+
         return false;
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;
-        
+
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         enabled = bridge != null && bridge.isUniversalAiOptimizationEnabled();
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         enabledEntities = bridge != null ? bridge.getUniversalAiEntities() : java.util.Collections.emptySet();
         respectBrainThrottle = bridge != null && bridge.isBrainThrottleEnabled();
         debugEnabled = bridge != null && bridge.isDebugLoggingEnabled();
-        
+
         if (bridge != null) {
             dabEnabled = bridge.isDabEnabled();
             dabStartDistance = bridge.getDabStartDistance();
             dabActivationDistMod = bridge.getDabActivationDistMod();
             dabMaxTickInterval = bridge.getDabMaxTickInterval();
         }
-        
+
         if (isFolia) {
             tickInterval = Math.max(1, 3 / 2);
             if (bridge != null) {
@@ -248,7 +248,7 @@ public abstract class UniversalAiFamilyTickMixin {
                 }
             }
         }
-        
+
         init = true;
     }
 }
