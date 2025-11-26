@@ -67,9 +67,6 @@ public interface Bridge {
     int getBlockEntityParallelBatchSize();
     boolean isBlockEntityParallelProtectContainers();
     int getBlockEntityParallelTimeoutMs();
-    boolean isItemEntityOptimizationEnabled();
-    int getItemEntityAgeInterval();
-    int getItemEntityMinNearbyItems();
     
     boolean isSimpleEntitiesOptimizationEnabled();
     
@@ -312,4 +309,21 @@ public interface Bridge {
     int getCraftingRecipeCacheSize();
     boolean isCraftingOptimizeBatchCrafting();
     boolean isCraftingReduceNetworkTraffic();
+    
+    boolean isMinecartCauldronDestructionEnabled();
+    
+    boolean isFallingBlockParallelEnabled();
+    int getMinFallingBlocksForParallel();
+    int getFallingBlockBatchSize();
+    
+    boolean isItemEntityParallelEnabled();
+    int getMinItemEntitiesForParallel();
+    int getItemEntityBatchSize();
+    boolean isItemEntityMergeOptimizationEnabled();
+    int getItemEntityMergeInterval();
+    int getItemEntityMinNearbyItems();
+    double getItemEntityMergeRange();
+    boolean isItemEntityAgeOptimizationEnabled();
+    int getItemEntityAgeInterval();
+    double getItemEntityPlayerDetectionRange();
 }

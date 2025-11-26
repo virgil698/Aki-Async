@@ -20,35 +20,47 @@ public abstract class CollisionOptimizationMixin {
             return;
         }
         
-        if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
-            return;
-        }
-        
-        if (self instanceof net.minecraft.world.entity.player.Player player) {
-            if (player.isInPowderSnow || player.getTicksFrozen() > 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for powder snow: " +
-                        "inPowderSnow=" + player.isInPowderSnow + ", ticksFrozen=" + player.getTicksFrozen());
-                }
-                return;
-            }
-        }
-        
-        if (self instanceof net.minecraft.world.entity.LivingEntity living) {
-            if (living.getTicksFrozen() > 0) {
-                return;
-            }
-        }
-        
         if (self instanceof net.minecraft.world.entity.item.ItemEntity item) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isDebugLoggingEnabled()) {
                 bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for ItemEntity: " +
                     "inLava=" + item.isInLava() + ", onFire=" + item.isOnFire() + 
-                    ", fireTicks=" + item.getRemainingFireTicks());
+                    ", fireTicks=" + item.getRemainingFireTicks() +
+                    ", pos=" + item.blockPosition());
             }
             return;
+        }
+        
+        if (self instanceof net.minecraft.world.entity.item.FallingBlockEntity falling) {
+            double verticalSpeed = Math.abs(falling.getDeltaMovement().y);
+            
+            if (verticalSpeed < 0.01) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-Collision] FallingBlock near ground, preserving full collision check: " +
+                        "verticalSpeed=" + verticalSpeed + ", pos=" + falling.blockPosition());
+                }
+                return;
+            }
+            
+            return;
+        }
+        
+        if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+            return;
+        }
+        
+        if (self instanceof net.minecraft.world.entity.LivingEntity living) {
+            if (living.getTicksFrozen() > 0) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    if (living instanceof net.minecraft.world.entity.player.Player player) {
+                        bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for frozen entity: " +
+                            "inPowderSnow=" + player.isInPowderSnow + ", ticksFrozen=" + living.getTicksFrozen());
+                    }
+                }
+                return;
+            }
         }
         
         if (self instanceof net.minecraft.world.entity.projectile.Projectile) {

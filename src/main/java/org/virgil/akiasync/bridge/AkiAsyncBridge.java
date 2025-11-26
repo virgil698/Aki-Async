@@ -192,15 +192,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     public int getBlockEntityParallelTimeoutMs() { return config.getBlockEntityParallelTimeoutMs(); }
     
     @Override
-    public boolean isItemEntityOptimizationEnabled() { return config.isItemEntityOptimizationEnabled(); }
-    
-    @Override
-    public int getItemEntityAgeInterval() { return config.getItemEntityAgeInterval(); }
-    
-    @Override
-    public int getItemEntityMinNearbyItems() { return config.getItemEntityMinNearbyItems(); }
-    
-    @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {return config.isSimpleEntitiesOptimizationEnabled();}
     
     @Override
@@ -943,5 +934,75 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public boolean isCraftingReduceNetworkTraffic() {
         return config != null && config.isCraftingReduceNetworkTraffic();
+    }
+    
+    @Override
+    public boolean isMinecartCauldronDestructionEnabled() {
+        return config != null && config.isMinecartCauldronDestructionEnabled();
+    }
+    
+    @Override
+    public boolean isFallingBlockParallelEnabled() {
+        return config != null && config.isFallingBlockParallelEnabled();
+    }
+    
+    @Override
+    public int getMinFallingBlocksForParallel() {
+        return config != null ? config.getMinFallingBlocksForParallel() : 20;
+    }
+    
+    @Override
+    public int getFallingBlockBatchSize() {
+        return config != null ? config.getFallingBlockBatchSize() : 10;
+    }
+    
+    @Override
+    public boolean isItemEntityParallelEnabled() {
+        return config != null && config.isItemEntityParallelEnabled();
+    }
+    
+    @Override
+    public int getMinItemEntitiesForParallel() {
+        return config != null ? config.getMinItemEntitiesForParallel() : 50;
+    }
+    
+    @Override
+    public int getItemEntityBatchSize() {
+        return config != null ? config.getItemEntityBatchSize() : 20;
+    }
+    
+    @Override
+    public boolean isItemEntityMergeOptimizationEnabled() {
+        return config != null && config.isItemEntityMergeOptimizationEnabled();
+    }
+    
+    @Override
+    public int getItemEntityMergeInterval() {
+        return config != null ? config.getItemEntityMergeInterval() : 5;
+    }
+    
+    @Override
+    public int getItemEntityMinNearbyItems() {
+        return config != null ? config.getItemEntityMinNearbyItems() : 3;
+    }
+    
+    @Override
+    public double getItemEntityMergeRange() {
+        return config != null ? config.getItemEntityMergeRange() : 1.5;
+    }
+    
+    @Override
+    public boolean isItemEntityAgeOptimizationEnabled() {
+        return config != null && config.isItemEntityAgeOptimizationEnabled();
+    }
+    
+    @Override
+    public int getItemEntityAgeInterval() {
+        return config != null ? config.getItemEntityAgeInterval() : 10;
+    }
+    
+    @Override
+    public double getItemEntityPlayerDetectionRange() {
+        return config != null ? config.getItemEntityPlayerDetectionRange() : 8.0;
     }
 }

@@ -98,11 +98,11 @@ public class ExplosionCalculator {
                                     continue;
                                 }
                                 
-                                org.virgil.akiasync.mixin.bridge.Bridge landBridge = 
-                                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                                if (landBridge != null && !landBridge.canTNTExplodeAt(snapshot.getLevel(), pos)) {
-                                    if (landBridge.isTNTDebugEnabled()) {
-                                        landBridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected by land protection plugin, skipping");
+                                if (snapshot.isProtected(pos)) {
+                                    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+                                        org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                                        bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected by land protection (from snapshot), skipping");
                                     }
                                     continue;
                                 }

@@ -55,9 +55,6 @@ public class ConfigManager {
     private int blockEntityParallelBatchSize;
     private boolean blockEntityParallelProtectContainers;
     private int blockEntityParallelTimeoutMs;
-    private boolean itemEntityOptimizationEnabled;
-    private int itemEntityAgeInterval;
-    private int itemEntityMinNearbyItems;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     private boolean entityTickParallel;
@@ -163,6 +160,23 @@ public class ConfigManager {
     private boolean craftingOptimizeBatchCrafting;
     private boolean craftingReduceNetworkTraffic;
     
+    private boolean minecartCauldronDestructionEnabled;
+    
+    private boolean fallingBlockParallelEnabled;
+    private int minFallingBlocksForParallel;
+    private int fallingBlockBatchSize;
+    
+    private boolean itemEntityParallelEnabled;
+    private int minItemEntitiesForParallel;
+    private int itemEntityBatchSize;
+    private boolean itemEntityMergeOptimizationEnabled;
+    private int itemEntityMergeInterval;
+    private int itemEntityMinNearbyItems;
+    private double itemEntityMergeRange;
+    private boolean itemEntityAgeOptimizationEnabled;
+    private int itemEntityAgeInterval;
+    private double itemEntityPlayerDetectionRange;
+    
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
@@ -245,9 +259,6 @@ public class ConfigManager {
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
         blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
         blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
-        itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
-        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
-        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -368,12 +379,29 @@ public class ConfigManager {
         craftingOptimizeBatchCrafting = config.getBoolean("recipe-optimization.crafting-recipe-cache.optimize-batch-crafting", true);
         craftingReduceNetworkTraffic = config.getBoolean("recipe-optimization.crafting-recipe-cache.reduce-network-traffic", true);
         
+        minecartCauldronDestructionEnabled = config.getBoolean("servercore-optimizations.minecart-cauldron-destruction.enabled", true);
+        
+        fallingBlockParallelEnabled = config.getBoolean("falling-block-optimization.enabled", true);
+        minFallingBlocksForParallel = config.getInt("falling-block-optimization.min-falling-blocks", 20);
+        fallingBlockBatchSize = config.getInt("falling-block-optimization.batch-size", 10);
+        
+        itemEntityParallelEnabled = config.getBoolean("item-entity-optimizations.parallel-processing.enabled", true);
+        minItemEntitiesForParallel = config.getInt("item-entity-optimizations.parallel-processing.min-item-entities", 50);
+        itemEntityBatchSize = config.getInt("item-entity-optimizations.parallel-processing.batch-size", 20);
+        itemEntityMergeOptimizationEnabled = config.getBoolean("item-entity-optimizations.smart-merge.enabled", true);
+        itemEntityMergeInterval = config.getInt("item-entity-optimizations.smart-merge.merge-interval", 5);
+        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.smart-merge.min-nearby-items", 3);
+        itemEntityMergeRange = config.getDouble("item-entity-optimizations.smart-merge.merge-range", 1.5);
+        itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-optimizations.age-optimization.enabled", true);
+        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-optimization.age-interval", 10);
+        itemEntityPlayerDetectionRange = config.getDouble("item-entity-optimizations.age-optimization.player-detection-range", 8.0);
+        
         validateConfigVersion();
         validateConfig();
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 9;
+        final int CURRENT_CONFIG_VERSION = 10;
         
         if (configVersion != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
@@ -495,9 +523,6 @@ public class ConfigManager {
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
         blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
         blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
-        itemEntityOptimizationEnabled = config.getBoolean("item-entity-optimizations.enabled", true);
-        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-increment-interval", 10);
-        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.min-nearby-items", 3);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -828,9 +853,6 @@ public class ConfigManager {
     public int getBlockEntityParallelBatchSize() { return blockEntityParallelBatchSize; }
     public boolean isBlockEntityParallelProtectContainers() { return blockEntityParallelProtectContainers; }
     public int getBlockEntityParallelTimeoutMs() { return blockEntityParallelTimeoutMs; }
-    public boolean isItemEntityOptimizationEnabled() { return itemEntityOptimizationEnabled; }
-    public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
-    public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }
@@ -939,6 +961,23 @@ public class ConfigManager {
     public int getCraftingRecipeCacheSize() { return craftingRecipeCacheSize; }
     public boolean isCraftingOptimizeBatchCrafting() { return craftingOptimizeBatchCrafting; }
     public boolean isCraftingReduceNetworkTraffic() { return craftingReduceNetworkTraffic; }
+    
+    public boolean isMinecartCauldronDestructionEnabled() { return minecartCauldronDestructionEnabled; }
+    
+    public boolean isFallingBlockParallelEnabled() { return fallingBlockParallelEnabled; }
+    public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
+    public int getFallingBlockBatchSize() { return fallingBlockBatchSize; }
+    
+    public boolean isItemEntityParallelEnabled() { return itemEntityParallelEnabled; }
+    public int getMinItemEntitiesForParallel() { return minItemEntitiesForParallel; }
+    public int getItemEntityBatchSize() { return itemEntityBatchSize; }
+    public boolean isItemEntityMergeOptimizationEnabled() { return itemEntityMergeOptimizationEnabled; }
+    public int getItemEntityMergeInterval() { return itemEntityMergeInterval; }
+    public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }
+    public double getItemEntityMergeRange() { return itemEntityMergeRange; }
+    public boolean isItemEntityAgeOptimizationEnabled() { return itemEntityAgeOptimizationEnabled; }
+    public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
+    public double getItemEntityPlayerDetectionRange() { return itemEntityPlayerDetectionRange; }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;

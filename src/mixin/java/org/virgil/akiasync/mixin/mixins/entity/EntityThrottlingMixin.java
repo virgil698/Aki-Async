@@ -20,6 +20,22 @@ public class EntityThrottlingMixin {
                 return;
             }
             
+            // ItemEntity在危险环境中不能被节流，需要检测炼药锅岩浆等销毁机制
+            if (self instanceof net.minecraft.world.entity.item.ItemEntity) {
+                // 岩浆、火焰、炼药锅等环境需要每tick检测
+                if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+                    return; // 不节流，确保能被正确销毁
+                }
+                
+                // 检查是否在炼药锅内部（通过位置检测）
+                net.minecraft.core.BlockPos pos = self.blockPosition();
+                net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
+                if (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
+                    state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
+                    return; // 在炼药锅中，不节流
+                }
+            }
+            
             Bridge bridge = BridgeManager.getBridge();
             if (bridge == null) {
                 return;
