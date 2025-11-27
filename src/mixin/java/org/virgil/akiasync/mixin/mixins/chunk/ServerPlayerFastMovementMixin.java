@@ -25,6 +25,12 @@ public abstract class ServerPlayerFastMovementMixin {
     @Unique private static volatile boolean debugEnabled = false;
     @Unique private static volatile boolean initialized = false;
     @Unique private static volatile boolean isFolia = false;
+    
+    
+    @Unique private static volatile boolean centerOffsetEnabled = false;
+    @Unique private static volatile double minOffsetSpeed = 3.0;  
+    @Unique private static volatile double maxOffsetSpeed = 9.0;  
+    @Unique private static volatile double maxOffsetRatio = 0.75; 
 
     @Unique private PlayerMovementData aki$movementData;
     @Unique private Vec3 aki$lastPosition;
@@ -70,7 +76,7 @@ public abstract class ServerPlayerFastMovementMixin {
             aki$movementData.updatePosition(currentPos.x, currentPos.y, currentPos.z, currentTime);
 
             double speed = aki$movementData.getSpeed();
-
+            
             Bridge bridge = BridgeManager.getBridge();
             if (debugEnabled && bridge != null) {
                 bridge.debugLog(
@@ -85,97 +91,10 @@ public abstract class ServerPlayerFastMovementMixin {
             if (speed < speedThreshold) {
                 return;
             }
-
-            int dynamicPredictionTicks = predictionTicks;
-            int dynamicPreloadDistance = preloadDistance;
-            int dynamicMaxLoads = maxConcurrentLoads;
-            String speedLevel = "NORMAL";
-
-            if (speed > 1.5) {
-                dynamicPredictionTicks = (int)(predictionTicks * 1.5);
-                dynamicPreloadDistance = (int)(preloadDistance * 1.5);
-                dynamicMaxLoads = maxConcurrentLoads * 3;
-                speedLevel = "ULTRA_FAST";
-            } else if (speed > 1.0) {
-                dynamicPredictionTicks = (int)(predictionTicks * 1.2);
-                dynamicPreloadDistance = (int)(preloadDistance * 1.2);
-                dynamicMaxLoads = maxConcurrentLoads * 2;
-                speedLevel = "FAST";
-            }
-
-            if (debugEnabled && bridge != null) {
-                bridge.debugLog(
-                    "[FastChunk-Adjust] Player %s: level=%s, prediction=%dticks, distance=%dchunks, concurrent=%d",
-                    self.getScoreboardName(),
-                    speedLevel,
-                    dynamicPredictionTicks,
-                    dynamicPreloadDistance,
-                    dynamicMaxLoads
-                );
-            }
-
-            double[] predictedPos = aki$movementData.predictPosition(dynamicPredictionTicks);
-
-            Set<ChunkPos> chunksToLoad = aki$calculateChunksToLoad(self, predictedPos, aki$movementData, dynamicPreloadDistance);
-
-            if (chunksToLoad.isEmpty()) {
-                return;
-            }
-
-            final ServerPlayer finalPlayer = self;
-            final double finalSpeed = speed;
-            final int totalChunks = chunksToLoad.size();
-            final String finalSpeedLevel = speedLevel;
-
-            if (debugEnabled && bridge != null) {
-                bridge.debugLog(
-                    "[FastChunk-Load] Player %s: speed=%.3f (%s), loading %d chunks",
-                    self.getScoreboardName(),
-                    speed,
-                    speedLevel,
-                    totalChunks
-                );
-            }
+            
+            
             if (bridge != null) {
-
-                if (isFolia) {
-
-                    aki$scheduleFoliaChunkLoad(finalPlayer, chunksToLoad, finalSpeed, totalChunks, bridge, dynamicMaxLoads);
-                } else {
-
-                    final int finalMaxLoads = dynamicMaxLoads;
-                    bridge.safeExecute(() -> {
-                    try {
-                        int loaded = 0;
-                        for (ChunkPos chunkPos : chunksToLoad) {
-                            if (loaded >= finalMaxLoads) {
-                                break;
-                            }
-                            if (aki$shouldLoadChunk(finalPlayer, chunkPos)) {
-
-                                aki$loadChunkAsync(finalPlayer, chunkPos, finalSpeed);
-                                loaded++;
-                            }
-                        }
-
-                        if (debugEnabled) {
-                            final int finalLoaded = loaded;
-                            bridge.debugLog(
-                                "[FastChunk-Result] Player %s: speed=%.3f (%s), loaded %d/%d chunks",
-                                finalPlayer.getScoreboardName(),
-                                finalSpeed,
-                                finalSpeedLevel,
-                                finalLoaded,
-                                totalChunks
-                            );
-                        }
-                    } catch (Exception ex) {
-                        if (debugEnabled) {
-                            bridge.errorLog("[FastChunk] Async chunk loading error: %s", ex.getMessage());
-                        }
-                    }
-                    }, "FastMovementChunkLoad");
-                }
+                aki$processChunkLoadingAsync(self, speed, bridge);
             }
 
         } catch (Exception e) {
@@ -186,6 +105,131 @@ public abstract class ServerPlayerFastMovementMixin {
                     bridge.errorLog("[FastChunk] Error in fast movement detection: %s", e.getMessage());
                 }
             }
+        }
+    }
+
+    @Unique
+    private void aki$processChunkLoadingAsync(ServerPlayer player, double speed, Bridge bridge) {
+        
+        bridge.safeExecute(() -> {
+            try {
+                
+                aki$doChunkLoading(player, speed, bridge);
+            } catch (Exception e) {
+                if (debugEnabled) {
+                    bridge.errorLog("[FastChunk] Async processing error: %s", e.getMessage());
+                }
+            }
+        }, "FastChunkLoadingAsync");
+    }
+    
+    
+    @Unique
+    private void aki$doChunkLoading(ServerPlayer player, double speed, Bridge bridge) {
+        
+        int dynamicPredictionTicks = predictionTicks;
+        int dynamicPreloadDistance = preloadDistance;
+        int dynamicMaxLoads = maxConcurrentLoads;
+        String speedLevel = "NORMAL";
+
+        if (speed > 1.5) {
+            dynamicPredictionTicks = (int)(predictionTicks * 1.5);
+            dynamicPreloadDistance = (int)(preloadDistance * 1.5);
+            dynamicMaxLoads = maxConcurrentLoads * 3;
+            speedLevel = "ULTRA_FAST";
+        } else if (speed > 1.0) {
+            dynamicPredictionTicks = (int)(predictionTicks * 1.2);
+            dynamicPreloadDistance = (int)(preloadDistance * 1.2);
+            dynamicMaxLoads = maxConcurrentLoads * 2;
+            speedLevel = "FAST";
+        }
+
+        if (debugEnabled) {
+            bridge.debugLog(
+                "[FastChunk-Adjust] Player %s: level=%s, prediction=%dticks, distance=%dchunks, concurrent=%d",
+                player.getScoreboardName(),
+                speedLevel,
+                dynamicPredictionTicks,
+                dynamicPreloadDistance,
+                dynamicMaxLoads
+            );
+        }
+
+        double[] predictedPos = aki$movementData.predictPosition(dynamicPredictionTicks);
+        
+        
+        ChunkPos loadCenter = aki$calculateLoadCenter(player, speed, aki$movementData, dynamicPreloadDistance);
+
+        Set<ChunkPos> chunksToLoad = aki$calculateChunksToLoad(player, predictedPos, aki$movementData, dynamicPreloadDistance, loadCenter);
+
+        if (chunksToLoad.isEmpty()) {
+            return;
+        }
+        
+        
+        java.util.List<ChunkPos> sortedChunks = new java.util.ArrayList<>(chunksToLoad);
+        sortedChunks.sort((a, b) -> {
+            int distA = (a.x - loadCenter.x) * (a.x - loadCenter.x) + (a.z - loadCenter.z) * (a.z - loadCenter.z);
+            int distB = (b.x - loadCenter.x) * (b.x - loadCenter.x) + (b.z - loadCenter.z) * (b.z - loadCenter.z);
+            return Integer.compare(distA, distB);
+        });
+        
+        
+        int adjustedMaxLoads = dynamicMaxLoads;
+        java.util.UUID playerId = player.getUUID();
+        int queueSize = bridge.getPlayerPacketQueueSize(playerId);
+        int congestionLevel = bridge.detectPlayerCongestion(playerId);
+        
+        
+        if (congestionLevel >= 3 || queueSize > 500) {
+            adjustedMaxLoads = Math.max(1, dynamicMaxLoads / 4);
+        } else if (congestionLevel >= 2 || queueSize > 300) {
+            adjustedMaxLoads = Math.max(2, dynamicMaxLoads / 2);
+        } else if (congestionLevel >= 1 || queueSize > 100) {
+            adjustedMaxLoads = Math.max(3, dynamicMaxLoads * 3 / 4);
+        }
+        
+        if (debugEnabled && adjustedMaxLoads != dynamicMaxLoads) {
+            bridge.debugLog(
+                "[FastChunk-Throttle] Player %s: queue=%d, congestion=%d, loads=%d->%d",
+                player.getScoreboardName(),
+                queueSize,
+                congestionLevel,
+                dynamicMaxLoads,
+                adjustedMaxLoads
+            );
+        }
+
+        if (debugEnabled) {
+            bridge.debugLog(
+                "[FastChunk-Load] Player %s: speed=%.3f (%s), loading %d chunks (async)",
+                player.getScoreboardName(),
+                speed,
+                speedLevel,
+                sortedChunks.size()
+            );
+        }
+
+        int submitted = 0;
+        int priority = 100; 
+        
+        for (int i = 0; i < sortedChunks.size() && submitted < adjustedMaxLoads; i++) {
+            ChunkPos chunkPos = sortedChunks.get(i);
+            if (aki$shouldLoadChunk(player, chunkPos)) {
+                
+                int chunkPriority = priority - i; 
+                bridge.submitChunkLoad(player, chunkPos, chunkPriority, speed);
+                submitted++;
+            }
+        }
+
+        if (debugEnabled) {
+            bridge.debugLog(
+                "[FastChunk-Result] Player %s: submitted %d/%d chunks to scheduler",
+                player.getScoreboardName(),
+                submitted,
+                sortedChunks.size()
+            );
         }
     }
 
@@ -213,9 +257,19 @@ public abstract class ServerPlayerFastMovementMixin {
                 maxConcurrentLoads = bridge.getFastMovementMaxConcurrentLoads();
                 predictionTicks = bridge.getFastMovementPredictionTicks();
                 debugEnabled = false;
+                
+                
+                centerOffsetEnabled = bridge.isCenterOffsetEnabled();
+                minOffsetSpeed = bridge.getMinOffsetSpeed();
+                maxOffsetSpeed = bridge.getMaxOffsetSpeed();
+                maxOffsetRatio = bridge.getMaxOffsetRatio();
 
                 if (isFolia) {
                     bridge.debugLog("[FastChunk] Initialized in Folia mode with region safety checks");
+                }
+                if (centerOffsetEnabled) {
+                    bridge.debugLog("[FastChunk] Center offset enabled: speed range %.1f-%.1f b/t, max offset ratio %.1f%%",
+                        minOffsetSpeed, maxOffsetSpeed, maxOffsetRatio * 100);
                 }
             }
             initialized = true;
@@ -247,48 +301,131 @@ public abstract class ServerPlayerFastMovementMixin {
     }
 
     @Unique
-    private Set<ChunkPos> aki$calculateChunksToLoad(ServerPlayer player, double[] predictedPos, PlayerMovementData data, int dynamicPreloadDistance) {
+    private ChunkPos aki$calculateLoadCenter(ServerPlayer player, double speed, PlayerMovementData data, int dynamicPreloadDistance) {
+        ChunkPos currentChunk = player.chunkPosition();
+        
+        
+        if (!centerOffsetEnabled || speed < minOffsetSpeed || speed > maxOffsetSpeed) {
+            return currentChunk;
+        }
+        
+        
+        double[] velocity = data.getVelocity();
+        if (velocity == null) {
+            return currentChunk;
+        }
+        
+        double velX = velocity[0];
+        double velZ = velocity[2];
+        double velLength = Math.sqrt(velX * velX + velZ * velZ);
+        
+        if (velLength < 0.1) {
+            return currentChunk;
+        }
+        
+        
+        double dirX = velX / velLength;
+        double dirZ = velZ / velLength;
+        
+        
+        int viewDistance = player.getServer().getPlayerList().getViewDistance();
+        double maxOffsetChunks = viewDistance * maxOffsetRatio;
+        
+        
+        double speedRatio = Math.min(1.0, (speed - minOffsetSpeed) / (maxOffsetSpeed - minOffsetSpeed));
+        double offsetDistance = maxOffsetChunks * speedRatio;
+        
+        
+        int offsetX = (int) Math.round(dirX * offsetDistance);
+        int offsetZ = (int) Math.round(dirZ * offsetDistance);
+        
+        ChunkPos offsetCenter = new ChunkPos(currentChunk.x + offsetX, currentChunk.z + offsetZ);
+        
+        if (debugEnabled) {
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog(
+                    "[FastChunk-Offset] Player %s: speed=%.2f b/t, offset=(%d, %d) chunks, ratio=%.1f%%, center=(%d, %d)",
+                    player.getScoreboardName(),
+                    speed,
+                    offsetX, offsetZ,
+                    speedRatio * 100,
+                    offsetCenter.x, offsetCenter.z
+                );
+            }
+        }
+        
+        return offsetCenter;
+    }
+    
+    @Unique
+    private Set<ChunkPos> aki$calculateChunksToLoad(ServerPlayer player, double[] predictedPos, PlayerMovementData data, int dynamicPreloadDistance, ChunkPos loadCenter) {
         Set<ChunkPos> chunks = new HashSet<>();
 
         ChunkPos currentChunk = player.chunkPosition();
-        int currentChunkX = currentChunk.x;
-        int currentChunkZ = currentChunk.z;
+        
+        int centerChunkX = loadCenter.x;
+        int centerChunkZ = loadCenter.z;
 
-        int predictedChunkX = (int) predictedPos[0] >> 4;
-        int predictedChunkZ = (int) predictedPos[2] >> 4;
-
-        double dirX = predictedChunkX - currentChunkX;
-        double dirZ = predictedChunkZ - currentChunkZ;
-        double length = Math.sqrt(dirX * dirX + dirZ * dirZ);
-
-        if (length > 0) {
-            dirX /= length;
-            dirZ /= length;
+        double[] velocity = data.getVelocity();
+        if (velocity == null) {
+            return chunks;
         }
+        
+        double velX = velocity[0];
+        double velZ = velocity[2];
+        double velLength = Math.sqrt(velX * velX + velZ * velZ);
+        
+        if (velLength < 0.1) {
+            return chunks;
+        }
+        
+        
+        double dirX = velX / velLength;
+        double dirZ = velZ / velLength;
 
-        int nearRadius = Math.min(4, dynamicPreloadDistance / 2);
+        int nearRadius = 2;
         for (int dx = -nearRadius; dx <= nearRadius; dx++) {
             for (int dz = -nearRadius; dz <= nearRadius; dz++) {
-
                 if (dx * dx + dz * dz <= nearRadius * nearRadius) {
-                    chunks.add(new ChunkPos(currentChunkX + dx, currentChunkZ + dz));
+                    chunks.add(new ChunkPos(centerChunkX + dx, centerChunkZ + dz));
                 }
             }
         }
 
-        if (length > 0) {
-            for (int dist = 1; dist <= dynamicPreloadDistance; dist++) {
-                int centerX = currentChunkX + (int)(dirX * dist);
-                int centerZ = currentChunkZ + (int)(dirZ * dist);
+        for (int dist = 1; dist <= dynamicPreloadDistance; dist++) {
+            int targetX = centerChunkX + (int)(dirX * dist);
+            int targetZ = centerChunkZ + (int)(dirZ * dist);
 
-                int width = Math.max(2, dist * 2 / 3);
+            int width;
+            if (dist <= 3) {
+                width = 3;  
+            } else if (dist <= 6) {
+                width = 2;  
+            } else {
+                width = 1;  
+            }
 
-                for (int dx = -width; dx <= width; dx++) {
-                    for (int dz = -width; dz <= width; dz++) {
-
-                        double normalizedDist = Math.sqrt(dx * dx + dz * dz);
-                        if (normalizedDist <= width) {
-                            chunks.add(new ChunkPos(centerX + dx, centerZ + dz));
+            for (int dx = -width; dx <= width; dx++) {
+                for (int dz = -width; dz <= width; dz++) {
+                    
+                    double pointX = dx;
+                    double pointZ = dz;
+                    double pointLength = Math.sqrt(pointX * pointX + pointZ * pointZ);
+                    
+                    if (pointLength <= width) {
+                        
+                        if (pointLength < 0.1) {
+                            
+                            chunks.add(new ChunkPos(targetX + dx, targetZ + dz));
+                        } else {
+                            
+                            double dotProduct = (pointX * dirX + pointZ * dirZ) / pointLength;
+                            
+                            
+                            if (dotProduct > 0) {
+                                chunks.add(new ChunkPos(targetX + dx, targetZ + dz));
+                            }
                         }
                     }
                 }
@@ -311,7 +448,7 @@ public abstract class ServerPlayerFastMovementMixin {
     }
 
     @Unique
-    private void aki$scheduleFoliaChunkLoad(ServerPlayer player, Set<ChunkPos> chunksToLoad,
+    private void aki$scheduleFoliaChunkLoad(ServerPlayer player, java.util.List<ChunkPos> chunksToLoad,
                                             double speed, int totalChunks, Bridge bridge, int maxLoads) {
         try {
 
@@ -383,56 +520,6 @@ public abstract class ServerPlayerFastMovementMixin {
                 if (bridge != null) {
                     bridge.errorLog(
                         "[FastChunk] Failed to sync load chunk (%d, %d): %s",
-                        chunkPos.x, chunkPos.z,
-                        ex.getMessage()
-                    );
-                }
-            }
-        }
-    }
-
-    @Unique
-    private void aki$loadChunkAsync(ServerPlayer player, ChunkPos chunkPos, double speed) {
-        try {
-
-            net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) player.level();
-
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-
-                    level.getChunk(chunkPos.x, chunkPos.z, net.minecraft.world.level.chunk.status.ChunkStatus.FULL, true);
-
-                    if (debugEnabled) {
-                        Bridge bridge = BridgeManager.getBridge();
-                        if (bridge != null) {
-                            bridge.debugLog(
-                                "[FastChunk] Loaded chunk (%d, %d) for player %s (speed: %.2f)",
-                                chunkPos.x, chunkPos.z,
-                                player.getScoreboardName(),
-                                speed
-                            );
-                        }
-                    }
-                } catch (Exception ex) {
-                    if (debugEnabled) {
-                        Bridge bridge = BridgeManager.getBridge();
-                        if (bridge != null) {
-                            bridge.errorLog(
-                                "[FastChunk] Failed to load chunk (%d, %d): %s",
-                                chunkPos.x, chunkPos.z,
-                                ex.getMessage()
-                            );
-                        }
-                    }
-                }
-            });
-
-        } catch (Exception ex) {
-            if (debugEnabled) {
-                Bridge bridge = BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.errorLog(
-                        "[FastChunk] Failed to start async chunk load (%d, %d): %s",
                         chunkPos.x, chunkPos.z,
                         ex.getMessage()
                     );

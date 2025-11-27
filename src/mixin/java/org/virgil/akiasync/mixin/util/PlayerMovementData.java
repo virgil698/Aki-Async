@@ -72,4 +72,8 @@ public class PlayerMovementData {
 
         return new double[]{predictedX, lastY, predictedZ};
     }
+    
+    public double[] getVelocity() {
+        return new double[]{velocityX, 0, velocityZ};
+    }
 }

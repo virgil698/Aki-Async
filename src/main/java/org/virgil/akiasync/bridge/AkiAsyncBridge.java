@@ -1023,7 +1023,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
 
     @Override
     public boolean isChunkSendOptimizationEnabled() {
-        return config != null && config.isChunkSendOptimizationEnabled();
+        return config != null && config.isChunkRateControlEnabled();
     }
 
     @Override
@@ -1394,5 +1394,47 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
     @Override
     public int getFastMovementPredictionTicks() {
         return config != null ? config.getFastMovementPredictionTicks() : 40;
+    }
+
+    @Override
+    public boolean isCenterOffsetEnabled() {
+        return config != null ? config.isCenterOffsetEnabled() : true;
+    }
+
+    @Override
+    public double getMinOffsetSpeed() {
+        return config != null ? config.getMinOffsetSpeed() : 3.0;
+    }
+
+    @Override
+    public double getMaxOffsetSpeed() {
+        return config != null ? config.getMaxOffsetSpeed() : 9.0;
+    }
+
+    @Override
+    public double getMaxOffsetRatio() {
+        return config != null ? config.getMaxOffsetRatio() : 0.75;
+    }
+
+    @Override
+    public int getAsyncLoadingBatchSize() {
+        return config != null ? config.getAsyncLoadingBatchSize() : 2;
+    }
+
+    @Override
+    public long getAsyncLoadingBatchDelayMs() {
+        return config != null ? config.getAsyncLoadingBatchDelayMs() : 20L;
+    }
+
+    @Override
+    public void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed) {
+        if (plugin == null) {
+            return;
+        }
+        
+        org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler scheduler = plugin.getChunkLoadScheduler();
+        if (scheduler != null) {
+            scheduler.submitChunkLoad(player, chunkPos, priority, speed);
+        }
     }
 }

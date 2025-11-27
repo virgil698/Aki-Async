@@ -47,6 +47,7 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Network Optimization: " + (plugin.getConfigManager().isNetworkOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Fast Movement Chunk Load: " + (plugin.getConfigManager().isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Center Offset Loading: " + (plugin.getConfigManager().isCenterOffsetEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "========================================");
     }
     @Override
@@ -54,4 +55,3 @@ public class VersionCommand implements BasicCommand {
         return "akiasync.version";
     }
 }
-

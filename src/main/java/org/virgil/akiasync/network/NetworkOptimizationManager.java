@@ -13,6 +13,7 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NetworkOptimizationManager implements Listener {
@@ -140,23 +141,31 @@ public class NetworkOptimizationManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
+        
+        
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                if (packetPriorityEnabled) {
+                    playerQueues.put(playerId, new PriorityPacketQueue(
+                        player.getName(), logger, debugEnabled
+                    ));
+                }
 
-        if (packetPriorityEnabled) {
-            playerQueues.put(playerId, new PriorityPacketQueue(
-                player.getName(), logger, debugEnabled
-            ));
-        }
+                if (chunkRateControlEnabled) {
+                    chunkRateController.updatePlayerLocation(player);
+                }
 
-        if (chunkRateControlEnabled) {
-            chunkRateController.updatePlayerLocation(player);
-        }
-
-        if (debugEnabled) {
-            logger.info(String.format(
-                "[NetworkOptimization] Player %s joined, network optimization enabled",
-                player.getName()
-            ));
-        }
+                if (debugEnabled) {
+                    logger.info(String.format(
+                        "[NetworkOptimization] Player %s joined, network optimization enabled (async)",
+                        player.getName()
+                    ));
+                }
+            } catch (Exception e) {
+                logger.log(Level.WARNING, 
+                    "[NetworkOptimization] Error in async player join handling", e);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

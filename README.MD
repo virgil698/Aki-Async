@@ -239,6 +239,7 @@ entity-tick-parallel:
 # [AkiAsync]   Minecart Cauldron Destruction: ON
 # [AkiAsync]   Network Optimization: ON
 # [AkiAsync]   Fast Movement Chunk Load: ON
+# [AkiAsync]   Center Offset Loading: ON
 # [AkiAsync] ========================================
 ```
 
@@ -263,10 +264,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 11
-# 说明：当前配置版本为11，如果配置版本不等于11，则需要更新配置文件
-# Description: The current configuration version is 11, if the configuration version is not equal to 11, you need to update the configuration file
-version: 11
+# 当前版本 / Current version: 12
+# 说明：当前配置版本为12，如果配置版本不等于12，则需要更新配置文件
+# Description: The current configuration version is 12, if the configuration version is not equal to 12, you need to update the configuration file
+version: 12
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -1270,6 +1271,61 @@ fast-movement-chunk-load:
   #   - 高速移动: 48 ticks (2.4秒, x1.2)
   #   - 超高速移动: 60 ticks (3秒, x1.5) [烟花鞘翅]
   prediction-ticks: 40
+  
+  # 智能偏移式区块加载中心 / Smart Center Offset Chunk Loading
+  # 说明：根据玩家移动速度和方向，动态偏移区块加载中心，实现类似远视距的体验
+  # Description: Dynamically offset chunk loading center based on player speed and direction
+  # 适用场景 / Use Cases:
+  # - 鞘翅高速飞行时提前加载前方地形 / Preload terrain ahead during fast elytra flight
+  # - 小视距服务器模拟远视距效果 / Simulate far render distance on low view distance servers
+  # - 减少高速移动时的卡顿和撞山 / Reduce lag and crashes during high-speed movement
+  center-offset:
+    # 启用智能偏移 / Enable center offset
+    # 说明：启用后，区块加载中心会根据速度方向偏移
+    # Description: When enabled, chunk loading center shifts based on movement direction
+    enabled: true
+    
+    # 最小触发速度（方块/tick）/ Minimum trigger speed (blocks/tick)
+    # 说明：低于此速度时不进行偏移（60 b/s = 3 b/t）
+    # Description: No offset below this speed (60 blocks/sec = 3 blocks/tick)
+    # 推荐值 / Recommended: 3.0 (默认), 2.0 (更敏感), 4.0 (更保守)
+    min-speed: 3.0
+    
+    # 最大触发速度（方块/tick）/ Maximum trigger speed (blocks/tick)
+    # 说明：超过此速度时不再增加偏移（180 b/s = 9 b/t）
+    # Description: No additional offset above this speed (180 blocks/sec = 9 blocks/tick)
+    # 推荐值 / Recommended: 9.0 (默认), 7.0 (更保守), 12.0 (更激进)
+    # 注意：速度过高可能导致玩家被卸载，请谨慎调整
+    # Warning: Too high speed may cause player to be unloaded, adjust carefully
+    max-speed: 9.0
+    
+    # 最大偏移比例 / Maximum offset ratio
+    # 说明：偏移距离占视距的最大比例（0.75 = 75%）
+    # Description: Maximum offset distance as ratio of view distance (0.75 = 75%)
+    # 推荐值 / Recommended: 0.75 (默认), 0.5 (保守), 0.9 (激进)
+    # 计算公式 / Formula: 最大偏移 = 视距 × 比例 × 速度比例
+    # 示例 / Example: 视距10，速度6 b/t，比例0.75 → 偏移 = 10 × 0.75 × 0.5 = 3.75区块
+    max-offset-ratio: 0.75
+  
+  # 异步加载批量控制 / Async Loading Batch Control
+  # 说明：控制区块异步加载的批次大小和延迟，防止MSPT飙升
+  # Description: Control chunk async loading batch size and delay to prevent MSPT spikes
+  async-loading:
+    # 批次大小 / Batch size
+    # 说明：每批加载的区块数量，加载完一批后会延迟再加载下一批
+    # Description: Number of chunks to load per batch, delay between batches
+    # 推荐值 / Recommended: 2 (默认，最保守), 3 (平衡), 4 (激进)
+    # 注意：值越大，加载越快，但MSPT可能越高
+    # Warning: Higher values load faster but may cause higher MSPT
+    batch-size: 2
+    
+    # 批次延迟（毫秒）/ Batch delay (milliseconds)
+    # 说明：每批加载后的延迟时间，给服务器时间处理
+    # Description: Delay after each batch to give server time to process
+    # 推荐值 / Recommended: 20 (默认，最保守), 15 (平衡), 10 (激进)
+    # 注意：值越小，加载越快，但MSPT可能越高
+    # Warning: Lower values load faster but may cause higher MSPT
+    batch-delay-ms: 20
 
 # ==========================================
 # 性能监控 / Performance Monitoring

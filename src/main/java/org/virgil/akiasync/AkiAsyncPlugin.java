@@ -3,6 +3,7 @@ package org.virgil.akiasync;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import org.virgil.akiasync.cache.CacheManager;
+import org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler;
 import org.virgil.akiasync.command.DebugCommand;
 import org.virgil.akiasync.command.ReloadCommand;
 import org.virgil.akiasync.command.VersionCommand;
@@ -21,6 +22,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private CacheManager cacheManager;
     private org.virgil.akiasync.throttling.EntityThrottlingManager throttlingManager;
     private org.virgil.akiasync.network.NetworkOptimizationManager networkOptimizationManager;
+    private ChunkLoadPriorityScheduler chunkLoadScheduler;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
 
     @Override
@@ -96,6 +98,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Network optimization enabled");
         }
 
+        if (configManager.isFastMovementChunkLoadEnabled()) {
+            chunkLoadScheduler = new ChunkLoadPriorityScheduler(configManager);
+            chunkLoadScheduler.start();
+            getLogger().info("[AkiAsync] Chunk load priority scheduler enabled");
+        }
+
         if (configManager.isPerformanceMetricsEnabled()) {
             startCombinedMetrics();
         }
@@ -156,6 +164,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         if (networkOptimizationManager != null) {
             networkOptimizationManager.shutdown();
+        }
+
+        if (chunkLoadScheduler != null) {
+            chunkLoadScheduler.shutdown();
         }
 
         if (executorManager != null) {
@@ -239,6 +251,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
     public org.virgil.akiasync.network.NetworkOptimizationManager getNetworkOptimizationManager() {
         return networkOptimizationManager;
+    }
+
+    public ChunkLoadPriorityScheduler getChunkLoadScheduler() {
+        return chunkLoadScheduler;
     }
 
     public void restartMetricsScheduler() {

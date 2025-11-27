@@ -5,7 +5,7 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 11;
+    private static final int CURRENT_CONFIG_VERSION = 12;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -214,6 +214,13 @@ public class ConfigManager {
     private int fastMovementPreloadDistance;
     private int fastMovementMaxConcurrentLoads;
     private int fastMovementPredictionTicks;
+
+    private boolean centerOffsetEnabled;
+    private double minOffsetSpeed;
+    private double maxOffsetSpeed;
+    private double maxOffsetRatio;
+    private int asyncLoadingBatchSize;
+    private long asyncLoadingBatchDelayMs;
 
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -469,6 +476,14 @@ public class ConfigManager {
         fastMovementPreloadDistance = config.getInt("fast-movement-chunk-load.preload-distance", 8);
         fastMovementMaxConcurrentLoads = config.getInt("fast-movement-chunk-load.max-concurrent-loads", 4);
         fastMovementPredictionTicks = config.getInt("fast-movement-chunk-load.prediction-ticks", 40);
+
+        centerOffsetEnabled = config.getBoolean("fast-movement-chunk-load.center-offset.enabled", true);
+        minOffsetSpeed = config.getDouble("fast-movement-chunk-load.center-offset.min-speed", 3.0);
+        maxOffsetSpeed = config.getDouble("fast-movement-chunk-load.center-offset.max-speed", 9.0);
+        maxOffsetRatio = config.getDouble("fast-movement-chunk-load.center-offset.max-offset-ratio", 0.75);
+        
+        asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.async-loading.batch-size", 2);
+        asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
 
         validateConfigVersion();
         validateConfig();
@@ -735,11 +750,11 @@ public class ConfigManager {
             brainThrottleInterval = 0;
         }
         if (asyncAITimeoutMicros < 100) {
-            plugin.getLogger().warning("Async AI timeout too low, setting to 100娓璼");
+            plugin.getLogger().warning("Async AI timeout too low, setting to 100");
             asyncAITimeoutMicros = 100;
         }
         if (asyncAITimeoutMicros > 5000) {
-            plugin.getLogger().warning("Async AI timeout too high, setting to 5000娓璼 (5ms)");
+            plugin.getLogger().warning("Async AI timeout too high, setting to 5000");
             asyncAITimeoutMicros = 5000;
         }
         if (entityTickThreads < 1) entityTickThreads = 1;
@@ -1056,7 +1071,6 @@ public class ConfigManager {
     public boolean isNetworkOptimizationEnabled() { return networkOptimizationEnabled; }
     public boolean isPacketPriorityEnabled() { return packetPriorityEnabled; }
     public boolean isChunkRateControlEnabled() { return chunkRateControlEnabled; }
-    public boolean isChunkSendOptimizationEnabled() { return chunkRateControlEnabled; }
     public boolean isCongestionDetectionEnabled() { return congestionDetectionEnabled; }
     public int getHighPingThreshold() { return highPingThreshold; }
     public int getCriticalPingThreshold() { return criticalPingThreshold; }
@@ -1089,6 +1103,13 @@ public class ConfigManager {
     public int getFastMovementPreloadDistance() { return fastMovementPreloadDistance; }
     public int getFastMovementMaxConcurrentLoads() { return fastMovementMaxConcurrentLoads; }
     public int getFastMovementPredictionTicks() { return fastMovementPredictionTicks; }
+
+    public boolean isCenterOffsetEnabled() { return centerOffsetEnabled; }
+    public double getMinOffsetSpeed() { return minOffsetSpeed; }
+    public double getMaxOffsetSpeed() { return maxOffsetSpeed; }
+    public double getMaxOffsetRatio() { return maxOffsetRatio; }
+    public int getAsyncLoadingBatchSize() { return asyncLoadingBatchSize; }
+    public long getAsyncLoadingBatchDelayMs() { return asyncLoadingBatchDelayMs; }
 
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;

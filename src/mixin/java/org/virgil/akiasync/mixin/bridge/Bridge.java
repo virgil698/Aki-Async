@@ -378,4 +378,14 @@ public interface Bridge {
     int getFastMovementPreloadDistance();
     int getFastMovementMaxConcurrentLoads();
     int getFastMovementPredictionTicks();
+
+    boolean isCenterOffsetEnabled();
+    double getMinOffsetSpeed();
+    double getMaxOffsetSpeed();
+    double getMaxOffsetRatio();
+    int getAsyncLoadingBatchSize();
+    long getAsyncLoadingBatchDelayMs();
+    
+    
+    void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
 }
