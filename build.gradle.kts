@@ -69,6 +69,9 @@ repositories {
     maven("https://repo.leavesmc.org/snapshots/") {
         name = "leavesmc-snapshots"
     }
+    maven("https://repo.viaversion.com") {
+        name = "viaversion"
+    }
     exclusiveContent {
         forRepository {
             maven("https://jitpack.io") {
@@ -121,6 +124,9 @@ dependencies {
             isTransitive = false
         }
         compileOnly("com.github.angeschossen:LandsAPI:6.28.11") {
+            isTransitive = false
+        }
+        compileOnly("com.viaversion:viaversion-api:5.1.1") {
             isTransitive = false
         }
     }

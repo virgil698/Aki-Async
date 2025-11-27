@@ -388,4 +388,8 @@ public interface Bridge {
     
     
     void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
+    
+    boolean isPlayerUsingViaVersion(java.util.UUID playerId);
+    boolean isViaConnectionInPlayState(java.util.UUID playerId);
+    int getPlayerProtocolVersion(java.util.UUID playerId);
 }

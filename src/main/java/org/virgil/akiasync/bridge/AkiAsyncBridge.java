@@ -1437,4 +1437,23 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
             scheduler.submitChunkLoad(player, chunkPos, priority, speed);
         }
     }
+    
+    @Override
+    public boolean isPlayerUsingViaVersion(java.util.UUID playerId) {
+        return org.virgil.akiasync.compat.ViaVersionCompat.isPlayerUsingVia(playerId);
+    }
+    
+    @Override
+    public boolean isViaConnectionInPlayState(java.util.UUID playerId) {
+        return org.virgil.akiasync.compat.ViaVersionCompat.isConnectionInPlayState(playerId);
+    }
+    
+    @Override
+    public int getPlayerProtocolVersion(java.util.UUID playerId) {
+        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
+        if (player != null) {
+            return org.virgil.akiasync.compat.ViaVersionCompat.getPlayerProtocolVersion(player);
+        }
+        return -1;
+    }
 }

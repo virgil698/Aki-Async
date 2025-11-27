@@ -32,6 +32,12 @@ public abstract class ChunkSendRateMixin {
             }
 
             UUID playerId = player.getUUID();
+            
+            if (bridge.isPlayerUsingViaVersion(playerId)) {
+                if (!bridge.isViaConnectionInPlayState(playerId)) {
+                    return;
+                }
+            }
 
             bridge.updatePlayerChunkLocation(player);
 

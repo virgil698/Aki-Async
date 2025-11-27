@@ -2,6 +2,7 @@ package org.virgil.akiasync.mixin.mixins.network;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,6 +40,16 @@ public abstract class PacketSendMixin {
             ServerPlayer player = this.getPlayer();
             if (player == null) {
                 return;
+            }
+
+            if (bridge.isPlayerUsingViaVersion(player.getUUID())) {
+                if (packet instanceof ClientboundLevelChunkWithLightPacket) {
+                    return;
+                }
+                
+                if (!bridge.isViaConnectionInPlayState(player.getUUID())) {
+                    return;
+                }
             }
 
             if (!bridge.shouldPacketUseQueue(packet)) {
