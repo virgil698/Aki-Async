@@ -1,18 +1,16 @@
 package org.virgil.akiasync.executor;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.compat.FoliaExecutorAdapter;
+import org.virgil.akiasync.util.resource.ExecutorLifecycleManager;
+import org.virgil.akiasync.util.resource.ResourceTracker;
 public class AsyncExecutorManager {
     private final AkiAsyncPlugin plugin;
     private final ThreadPoolExecutor executorService;
@@ -25,66 +23,48 @@ public class AsyncExecutorManager {
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
-        int maxQueueSize = plugin.getConfigManager().getMaxQueueSize();
-        ThreadFactory threadFactory = new ThreadFactory() {
-            private final AtomicInteger threadNumber = new AtomicInteger(1);
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "AkiAsync-Worker-" + threadNumber.getAndIncrement());
-                thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY);
-                return thread;
-            }
-        };
-        BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maxQueueSize);
-        this.executorService = new ThreadPoolExecutor(
-            threadPoolSize,
-            threadPoolSize,
-            60L, TimeUnit.SECONDS,
-            workQueue,
-            threadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        int prestarted = executorService.prestartAllCoreThreads();
         int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
-        ThreadFactory lightingThreadFactory = new ThreadFactory() {
-            private final AtomicInteger threadNumber = new AtomicInteger(1);
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "AkiAsync-Lighting-" + threadNumber.getAndIncrement());
-                thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY - 1);
-                return thread;
-            }
-        };
-        this.lightingExecutor = new ThreadPoolExecutor(
-            lightingThreads,
-            lightingThreads,
-            60L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(500),
-            lightingThreadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()
-        );
+        int tntThreads = plugin.getConfigManager().getTNTThreads();
+
+        this.executorService = (ThreadPoolExecutor) ResourceTracker.track(
+            ExecutorLifecycleManager.createExecutor("AkiAsync-Worker", threadPoolSize, true),
+            "AkiAsync-Worker-Executor");
+        
+        this.lightingExecutor = (ThreadPoolExecutor) ResourceTracker.track(
+            ExecutorLifecycleManager.createExecutor("AkiAsync-Lighting", lightingThreads, true),
+            "AkiAsync-Lighting-Executor");
+
+        int prestarted = executorService.prestartAllCoreThreads();
         int lightingPrestarted = lightingExecutor.prestartAllCoreThreads();
 
-        int tntThreads = plugin.getConfigManager().getTNTThreads();
-        this.tntExecutor = new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT");
+        this.tntExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT"),
+            "AkiAsync-TNT-Executor");
+        this.chunkTickExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, 4, "AkiAsync-ChunkTick"),
+            "AkiAsync-ChunkTick-Executor");
+        this.villagerBreedExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, 4, "AkiAsync-VillagerBreed"),
+            "AkiAsync-VillagerBreed-Executor");
+        this.brainExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain"),
+            "AkiAsync-Brain-Executor");
 
-        this.chunkTickExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-ChunkTick");
-        this.villagerBreedExecutor = new FoliaExecutorAdapter(plugin, 4, "AkiAsync-VillagerBreed");
-        this.brainExecutor = new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain");
-
-        this.metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "AkiAsync-Metrics");
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.metricsExecutor = ResourceTracker.track(
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread thread = new Thread(r, "AkiAsync-Metrics");
+                thread.setDaemon(true);
+                return thread;
+            }),
+            "AkiAsync-Metrics-Executor");
+        
         plugin.getLogger().info("General executor initialized: " + threadPoolSize + " threads (prestarted: " + prestarted + ")");
         plugin.getLogger().info("Lighting executor initialized: " + lightingThreads + " threads (prestarted: " + lightingPrestarted + ")");
         plugin.getLogger().info("TNT executor initialized: " + tntThreads + " threads (Folia-compatible)");
         plugin.getLogger().info("ChunkTick executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("Brain executor initialized: " + (threadPoolSize / 2) + " threads (Folia-compatible)");
+        plugin.getLogger().info("All executors tracked by ResourceTracker for leak detection");
     }
     public Future<?> submit(Runnable task) {
         return executorService.submit(task);
@@ -97,49 +77,46 @@ public class AsyncExecutorManager {
     }
     public void shutdown() {
         plugin.getLogger().info("Shutting down async executors...");
-        executorService.shutdown();
-        lightingExecutor.shutdown();
-        tntExecutor.shutdown();
-        chunkTickExecutor.shutdown();
-        villagerBreedExecutor.shutdown();
-        brainExecutor.shutdown();
-        metricsExecutor.shutdown();
-        try {
-            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("General executor did not terminate in time, forcing shutdown...");
-                executorService.shutdownNow();
-            }
-            if (!lightingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("Lighting executor did not terminate in time, forcing shutdown...");
-                lightingExecutor.shutdownNow();
-            }
-            if (!tntExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("TNT executor did not terminate in time, forcing shutdown...");
-                tntExecutor.shutdownNow();
-            }
-            if (!chunkTickExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("ChunkTick executor did not terminate in time, forcing shutdown...");
-                chunkTickExecutor.shutdownNow();
-            }
-            if (!villagerBreedExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("VillagerBreed executor did not terminate in time, forcing shutdown...");
-                villagerBreedExecutor.shutdownNow();
-            }
-            if (!brainExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("Brain executor did not terminate in time, forcing shutdown...");
-                brainExecutor.shutdownNow();
-            }
-            metricsExecutor.shutdownNow();
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-            lightingExecutor.shutdownNow();
-            tntExecutor.shutdownNow();
-            chunkTickExecutor.shutdownNow();
-            villagerBreedExecutor.shutdownNow();
-            brainExecutor.shutdownNow();
-            metricsExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
+        
+        boolean generalShutdown = ExecutorLifecycleManager.shutdownGracefully(executorService, 10, TimeUnit.SECONDS);
+        if (!generalShutdown) {
+            plugin.getLogger().warning("General executor did not terminate gracefully");
         }
+        
+        boolean lightingShutdown = ExecutorLifecycleManager.shutdownGracefully(lightingExecutor, 5, TimeUnit.SECONDS);
+        if (!lightingShutdown) {
+            plugin.getLogger().warning("Lighting executor did not terminate gracefully");
+        }
+        
+        boolean tntShutdown = ExecutorLifecycleManager.shutdownGracefully(tntExecutor, 5, TimeUnit.SECONDS);
+        if (!tntShutdown) {
+            plugin.getLogger().warning("TNT executor did not terminate gracefully");
+        }
+        
+        boolean chunkTickShutdown = ExecutorLifecycleManager.shutdownGracefully(chunkTickExecutor, 5, TimeUnit.SECONDS);
+        if (!chunkTickShutdown) {
+            plugin.getLogger().warning("ChunkTick executor did not terminate gracefully");
+        }
+        
+        boolean villagerBreedShutdown = ExecutorLifecycleManager.shutdownGracefully(villagerBreedExecutor, 5, TimeUnit.SECONDS);
+        if (!villagerBreedShutdown) {
+            plugin.getLogger().warning("VillagerBreed executor did not terminate gracefully");
+        }
+        
+        boolean brainShutdown = ExecutorLifecycleManager.shutdownGracefully(brainExecutor, 5, TimeUnit.SECONDS);
+        if (!brainShutdown) {
+            plugin.getLogger().warning("Brain executor did not terminate gracefully");
+        }
+        
+        metricsExecutor.shutdownNow();
+        
+        java.util.List<String> unclosed = ResourceTracker.getUnclosedResources();
+        if (!unclosed.isEmpty()) {
+            plugin.getLogger().warning("Found " + unclosed.size() + " unclosed executor resources: " + unclosed);
+            plugin.getLogger().warning("Forcing cleanup of unclosed resources...");
+            ResourceTracker.closeAll();
+        }
+        
         plugin.getLogger().info("Async executors shut down successfully");
     }
     public ExecutorService getExecutorService() {
@@ -176,78 +153,13 @@ public class AsyncExecutorManager {
     }
     public void restartSmooth() {
         plugin.getLogger().info("[AkiAsync] Starting smooth restart of async executors...");
+        
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
-        int maxQueueSize = plugin.getConfigManager().getMaxQueueSize();
-        ThreadFactory threadFactory = new ThreadFactory() {
-            private final AtomicInteger threadNumber = new AtomicInteger(1);
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "AkiAsync-Smooth-" + threadNumber.getAndIncrement());
-                thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY - 1);
-                return thread;
-            }
-        };
-        BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maxQueueSize);
-        ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(
-            threadPoolSize,
-            threadPoolSize,
-            60L, TimeUnit.SECONDS,
-            workQueue,
-            threadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()
-        );
         int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
-        ThreadFactory lightingThreadFactory = new ThreadFactory() {
-            private final AtomicInteger threadNumber = new AtomicInteger(1);
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "AkiAsync-Lighting-Smooth-" + threadNumber.getAndIncrement());
-                thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY - 1);
-                return thread;
-            }
-        };
-        ThreadPoolExecutor newLightingExecutor = new ThreadPoolExecutor(
-            lightingThreads,
-            lightingThreads,
-            60L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(500),
-            lightingThreadFactory,
-            new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        ThreadPoolExecutor oldExecutor = executorService;
-        ThreadPoolExecutor oldLightingExecutor = lightingExecutor;
-        oldExecutor.shutdown();
-        oldLightingExecutor.shutdown();
-        try {
-            if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                plugin.getLogger().warning("General executor did not terminate in time, forcing shutdown...");
-                oldExecutor.shutdownNow();
-            }
-            if (!oldLightingExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                plugin.getLogger().warning("Lighting executor did not terminate in time, forcing shutdown...");
-                oldLightingExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            oldExecutor.shutdownNow();
-            oldLightingExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-        try {
-            java.lang.reflect.Field executorField = AsyncExecutorManager.class.getDeclaredField("executorService");
-            executorField.setAccessible(true);
-            executorField.set(this, newExecutor);
-            java.lang.reflect.Field lightingField = AsyncExecutorManager.class.getDeclaredField("lightingExecutor");
-            lightingField.setAccessible(true);
-            lightingField.set(this, newLightingExecutor);
-            plugin.getLogger().info("[AkiAsync] Executors smoothly restarted with new configuration");
-            plugin.getLogger().info("  - General executor: " + threadPoolSize + " threads");
-            plugin.getLogger().info("  - Lighting executor: " + lightingThreads + " threads");
-        } catch (Exception e) {
-            plugin.getLogger().severe("Failed to replace executor references: " + e.getMessage());
-            newExecutor.shutdownNow();
-            newLightingExecutor.shutdownNow();
-        }
+        
+        plugin.getLogger().warning("[AkiAsync] Smooth restart requires plugin reload to take effect");
+        plugin.getLogger().warning("  - Desired general executor threads: " + threadPoolSize);
+        plugin.getLogger().warning("  - Desired lighting executor threads: " + lightingThreads);
+        plugin.getLogger().warning("  - Please use /reload or restart the server to apply new thread pool sizes");
     }
 }

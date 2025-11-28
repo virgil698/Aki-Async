@@ -386,10 +386,23 @@ public interface Bridge {
     int getAsyncLoadingBatchSize();
     long getAsyncLoadingBatchDelayMs();
     
-    
     void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
     
     boolean isPlayerUsingViaVersion(java.util.UUID playerId);
     boolean isViaConnectionInPlayState(java.util.UUID playerId);
     int getPlayerProtocolVersion(java.util.UUID playerId);
+
+    boolean isTeleportOptimizationEnabled();
+    boolean isTeleportPacketBypassEnabled();
+    int getTeleportBoostDurationSeconds();
+    int getTeleportMaxChunkRate();
+    boolean isTeleportFilterNonEssentialPackets();
+    boolean isTeleportDebugEnabled();
+    
+    boolean isTeleportPacket(net.minecraft.network.protocol.Packet<?> packet);
+    void markPlayerTeleportStart(java.util.UUID playerId);
+    boolean isPlayerTeleporting(java.util.UUID playerId);
+    boolean shouldSendPacketDuringTeleport(net.minecraft.network.protocol.Packet<?> packet, java.util.UUID playerId);
+    void recordTeleportBypassedPacket();
+    String getTeleportStatistics();
 }

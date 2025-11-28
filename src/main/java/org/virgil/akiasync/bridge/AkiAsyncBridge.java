@@ -6,8 +6,10 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.config.ConfigManager;
 import org.virgil.akiasync.compat.FoliaSchedulerAdapter;
 import org.virgil.akiasync.compat.FoliaEntityAdapter;
+import org.virgil.akiasync.util.concurrency.ConfigReloadListener;
+import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
-public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
+public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, ConfigReloadListener {
 
     private final AkiAsyncPlugin plugin;
     private ConfigManager config;
@@ -27,6 +29,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         this.chunkTickExecutor = chunkTickExecutor;
         this.villagerBreedExecutor = villagerBreedExecutor;
         this.brainExecutor = brainExecutor;
+        
+        ConfigReloader.registerListener(this);
+    }
+    
+    @Override
+    public void onConfigReload(ConfigManager newConfig) {
+        
+        this.config = newConfig;
+        plugin.getLogger().info("[AkiAsync] Bridge configuration updated after reload");
     }
 
     @Override
@@ -1455,5 +1466,119 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
             return org.virgil.akiasync.compat.ViaVersionCompat.getPlayerProtocolVersion(player);
         }
         return -1;
+    }
+
+    @Override
+    public boolean isTeleportOptimizationEnabled() {
+        return config != null && config.isTeleportOptimizationEnabled();
+    }
+
+    @Override
+    public boolean isTeleportPacketBypassEnabled() {
+        return config != null && config.isTeleportPacketBypassEnabled();
+    }
+
+    @Override
+    public int getTeleportBoostDurationSeconds() {
+        return config != null ? config.getTeleportBoostDurationSeconds() : 5;
+    }
+
+    @Override
+    public int getTeleportMaxChunkRate() {
+        return config != null ? config.getTeleportMaxChunkRate() : 25;
+    }
+
+    @Override
+    public boolean isTeleportFilterNonEssentialPackets() {
+        return config != null && config.isTeleportFilterNonEssentialPackets();
+    }
+
+    @Override
+    public boolean isTeleportDebugEnabled() {
+        return config != null && config.isTeleportDebugEnabled();
+    }
+
+    @Override
+    public boolean isTeleportPacket(net.minecraft.network.protocol.Packet<?> packet) {
+        return org.virgil.akiasync.network.TeleportPacketDetector.isTeleportPacket(packet);
+    }
+
+    @Override
+    public void markPlayerTeleportStart(java.util.UUID playerId) {
+        if (plugin == null || playerId == null) {
+            return;
+        }
+
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        if (manager == null) {
+            return;
+        }
+
+        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
+        if (tracker != null) {
+            tracker.markTeleportStart(playerId);
+        }
+    }
+
+    @Override
+    public boolean isPlayerTeleporting(java.util.UUID playerId) {
+        if (plugin == null || playerId == null) {
+            return false;
+        }
+
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        if (manager == null) {
+            return false;
+        }
+
+        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
+        return tracker != null && tracker.isTeleporting(playerId);
+    }
+
+    @Override
+    public boolean shouldSendPacketDuringTeleport(net.minecraft.network.protocol.Packet<?> packet, java.util.UUID playerId) {
+        if (plugin == null || packet == null || playerId == null) {
+            return true;
+        }
+
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        if (manager == null) {
+            return true;
+        }
+
+        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
+        return tracker == null || tracker.shouldSendDuringTeleport(packet);
+    }
+
+    @Override
+    public void recordTeleportBypassedPacket() {
+        if (plugin == null) {
+            return;
+        }
+
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        if (manager == null) {
+            return;
+        }
+
+        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
+        if (tracker != null) {
+            tracker.recordBypassedPacket();
+        }
+    }
+
+    @Override
+    public String getTeleportStatistics() {
+        if (plugin == null) {
+            return "N/A";
+        }
+
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        if (manager == null) {
+            return "N/A";
+        }
+
+        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
+        return tracker != null ? tracker.getDetailedStatistics() : "N/A";
     }
 }

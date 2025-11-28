@@ -133,7 +133,7 @@ public abstract class FurnaceRecipeCacheMixin {
 
     @Unique
     private boolean akiasync$isCacheValidSimple(ItemStack input) {
-        if (akiasync$cachedInput.isEmpty()) return false;
+        if (input == null || akiasync$cachedInput == null || akiasync$cachedInput.isEmpty()) return false;
 
         if (!ItemStack.isSameItemSameComponents(akiasync$cachedInput, input)) {
             return false;
@@ -163,6 +163,9 @@ public abstract class FurnaceRecipeCacheMixin {
     private static boolean akiasync$shouldApplyCacheStatic(AbstractFurnaceBlockEntity furnace) {
         try {
             RecipeType<?> type = furnace.recipeType;
+            if (type == null) {
+                return true;
+            }
 
             if (type == RecipeType.SMELTING) {
                 return true;

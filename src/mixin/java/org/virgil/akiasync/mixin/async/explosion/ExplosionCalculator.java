@@ -1,11 +1,8 @@
 package org.virgil.akiasync.mixin.async.explosion;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.virgil.akiasync.mixin.optimization.OptimizationManager;
@@ -23,6 +20,8 @@ public class ExplosionCalculator {
     private final ConcurrentHashMap<BlockPos, Boolean> destroyedBlocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
     private final boolean useFullRaycast;
+    
+    @SuppressWarnings("unused")
     private final WorkStealingTaskScheduler scheduler;
 
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
@@ -52,6 +51,9 @@ public class ExplosionCalculator {
 
     private void calculateAffectedBlocks() {
         Vec3 center = snapshot.getCenter();
+        if (center == null) {
+            return;
+        }
         float power = snapshot.getPower();
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
@@ -131,6 +133,9 @@ public class ExplosionCalculator {
     }
     private void calculateEntityDamage() {
         Vec3 center = snapshot.getCenter();
+        if (center == null) {
+            return;
+        }
         double radius = 8.0;
         for (ExplosionSnapshot.EntitySnapshot entity : snapshot.getEntities()) {
             double dx = entity.getPosition().x - center.x;
@@ -218,11 +223,22 @@ public class ExplosionCalculator {
     }
 
     private boolean hasBlockCollisionImproved(Vec3 start, Vec3 end) {
+        if (start == null || end == null) {
+            return false;
+        }
+        
         Vec3 dir = end.subtract(start);
+        if (dir == null) {
+            return false;
+        }
+        
         double dist = dir.length();
         if (dist < 0.01) return false;
 
         dir = dir.normalize();
+        if (dir == null) {
+            return false;
+        }
 
         double stepSize = 0.2;
         for (double step = 0; step < dist; step += stepSize) {

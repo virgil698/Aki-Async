@@ -28,6 +28,7 @@ public abstract class FallingBlockParallelMixin {
     private static long lastMspt = 20;
 
     @Inject(method = "tick", at = @At("TAIL"))
+    @SuppressWarnings("resource") 
     private void parallelFallingBlockTick(CallbackInfo ci) {
         if (!initialized) {
             akiasync$initFallingBlockParallel();

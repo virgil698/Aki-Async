@@ -30,26 +30,44 @@ public abstract class EntityTickChunkParallelMixin {
     static {
         java.lang.reflect.Field tempField = null;
         try {
-            for (String fieldName : new String[]{"active", "f", "b", "entries", "activeEntities"}) {
+            
+            String[] fieldNames = {"active", "f", "b", "c", "d", "e", "entries", "activeEntities", "iterable"};
+            
+            for (String fieldName : fieldNames) {
                 try {
                     tempField = EntityTickList.class.getDeclaredField(fieldName);
                     tempField.setAccessible(true);
-                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null) {
-                        bridge.debugLog("[AkiAsync] EntityTickList field cached successfully: " + fieldName);
+                    
+                    if (Map.class.isAssignableFrom(tempField.getType())) {
+                        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (bridge != null) {
+                            bridge.debugLog("[AkiAsync] EntityTickList field found: " + fieldName);
+                        }
+                        break;
+                    } else {
+                        tempField = null; 
                     }
-                    break;
                 } catch (NoSuchFieldException ignored) {
                 }
             }
+            
             if (tempField == null) {
+                
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                 if (bridge != null) {
-                    bridge.debugLog("[AkiAsync] EntityTickList field not found, will use reflection fallback");
+                    bridge.debugLog("[AkiAsync] EntityTickList field not found. Available fields:");
+                    for (Field f : EntityTickList.class.getDeclaredFields()) {
+                        bridge.debugLog("[AkiAsync]   - " + f.getName() + " : " + f.getType().getSimpleName());
+                    }
+                    bridge.debugLog("[AkiAsync] Entity tick parallelization will be disabled (feature gracefully degraded)");
                 }
             }
         } catch (Exception e) {
-            System.err.println("[AkiAsync] Failed to cache field: " + e.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync] EntityTickList field lookup error: " + 
+                    e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
         }
         ACTIVE_FIELD_CACHE = tempField;
     }
@@ -78,11 +96,18 @@ public abstract class EntityTickChunkParallelMixin {
                             }
 
                             if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
-                                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb) {
+                                
+                                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb orb) {
                                     int entityId = realEntity.getId();
-                                    if (!processingExperienceOrbs.add(entityId)) {
+                                    
+                                    if (orb.isRemoved()) {
                                         return;
                                     }
+                                    
+                                    if (!processingExperienceOrbs.add(entityId)) {
+                                        return; 
+                                    }
+                                    
                                     try {
                                         action.accept(entity);
                                     } finally {
@@ -130,15 +155,41 @@ public abstract class EntityTickChunkParallelMixin {
         if (mspt <= 30) return 50;
         return 25;
     }
+    
+    @SuppressWarnings("unchecked") 
     private List<EntityAccess> getActiveEntities() {
         if (ACTIVE_FIELD_CACHE == null) return null;
+        Object map = null;
         try {
-            Object map = ACTIVE_FIELD_CACHE.get(this);
+            map = ACTIVE_FIELD_CACHE.get(this);
             if (map instanceof Map) {
-                return new ArrayList<>(((Map<?, EntityAccess>) map).values());
+                Map<?, ?> rawMap = (Map<?, ?>) map;
+                
+                boolean allValid = true;
+                for (Object value : rawMap.values()) {
+                    if (value != null && !(value instanceof EntityAccess)) {
+                        allValid = false;
+                        break;
+                    }
+                }
+                
+                if (allValid) {
+                    
+                    Map<?, EntityAccess> typedMap = (Map<?, EntityAccess>) rawMap;
+                    return new ArrayList<>(typedMap.values());
+                }
             }
-        } catch (IllegalAccessException | ClassCastException e) {
+        } catch (IllegalAccessException e) {
+            
+            System.err.println("[EntityTickParallel] Field access denied: " + e.getMessage());
+        } catch (ClassCastException e) {
+            
+            System.err.println("[EntityTickParallel] ClassCastException: expected Map but got " + 
+                (map != null ? map.getClass().getName() : "null"));
         } catch (Exception e) {
+            
+            System.err.println("[EntityTickParallel] Unexpected error getting entities: " + 
+                e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         return null;
     }

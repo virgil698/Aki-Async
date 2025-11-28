@@ -1,40 +1,38 @@
 package org.virgil.akiasync.mixin.bridge;
 
-public final class BridgeManager {
+import java.util.Optional;
 
-    private static volatile Bridge bridge = null;
+public final class BridgeManager {
 
     private BridgeManager() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
     public static void setBridge(Bridge bridge) {
-        if (BridgeManager.bridge != null) {
-            throw new IllegalStateException("Bridge has already been set");
-        }
-        BridgeManager.bridge = bridge;
-        System.out.println("[AkiAsync] Bridge implementation registered: " + bridge.getClass().getName());
+        AtomicBridge.setBridge(bridge);
     }
 
     public static Bridge getBridge() {
-        return bridge;
+        return AtomicBridge.getBridge().orElse(null);
     }
 
     public static boolean isBridgeInitialized() {
-        return bridge != null;
+        return AtomicBridge.getBridge().isPresent();
     }
 
     public static void clearBridge() {
-        bridge = null;
+        AtomicBridge.clearBridge();
         System.out.println("[AkiAsync] Bridge cleared");
     }
 
     public static void validateAndDisplayConfigurations() {
-        if (bridge == null) {
+        Optional<Bridge> bridgeOpt = AtomicBridge.getBridge();
+        if (!bridgeOpt.isPresent()) {
             System.err.println("[AkiAsync] Cannot validate: Bridge not initialized");
             return;
         }
 
+        Bridge bridge = bridgeOpt.get();
         System.out.println("[AkiAsync] ========== Mixin Configuration Status ==========");
 
         try {
@@ -59,10 +57,10 @@ public final class BridgeManager {
             System.out.println("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() +
                 ", capacity=" + bridge.getListPreallocCapacity());
 
-            System.out.println("[AkiAsync] 閿?All configurations validated successfully");
-            System.out.println("[AkiAsync] 閿?Mixins will initialize on first use (lazy loading)");
+            System.out.println("[AkiAsync] ✓ All configurations validated successfully");
+            System.out.println("[AkiAsync] ✓ Mixins will initialize on first use (lazy loading)");
         } catch (Exception e) {
-            System.err.println("[AkiAsync] 閿?Configuration validation error: " + e.getMessage());
+            System.err.println("[AkiAsync] ✗ Configuration validation error: " + e.getMessage());
             e.printStackTrace();
         }
 

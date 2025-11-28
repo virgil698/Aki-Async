@@ -27,9 +27,13 @@ public class EntityThrottlingMixin {
                 }
 
                 net.minecraft.core.BlockPos pos = self.blockPosition();
+                if (pos == null) {
+                    return;
+                }
+                
                 net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
-                if (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
-                    state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
+                if (state != null && (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
+                    state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock)) {
                     return;
                 }
             }
@@ -41,10 +45,18 @@ public class EntityThrottlingMixin {
                 }
 
                 net.minecraft.core.BlockPos pos = self.blockPosition();
-                net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
-                if (state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
+                if (pos == null) {
                     return;
                 }
+                
+                net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
+                if (state != null && state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
+                    return;
+                }
+            }
+
+            if (self instanceof net.minecraft.world.entity.ExperienceOrb) {
+                return; 
             }
 
             Bridge bridge = BridgeManager.getBridge();

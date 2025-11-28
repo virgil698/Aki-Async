@@ -48,7 +48,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         org.virgil.akiasync.util.VirtualEntityDetector.setLogger(getLogger(), configManager.isDebugLoggingEnabled());
         
-        // 初始化ViaVersion兼容层
         org.virgil.akiasync.compat.ViaVersionCompat.initialize();
 
         getLogger().info("[AkiAsync] Bridge registered successfully");
@@ -95,6 +94,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         registerCommand("aki-reload", new ReloadCommand(this));
         registerCommand("aki-debug", new DebugCommand(this));
         registerCommand("aki-version", new VersionCommand(this));
+        registerCommand("aki-teleport-stats", new org.virgil.akiasync.command.TeleportStatsCommand(this));
 
         if (configManager.isNetworkOptimizationEnabled()) {
             networkOptimizationManager = new org.virgil.akiasync.network.NetworkOptimizationManager(this);
@@ -115,7 +115,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
         getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version");
+        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-teleport-stats");
         getLogger().info("");
         getLogger().info("[+] Core Features:");
         getLogger().info("  [+] Async Entity Tracker: " + (configManager.isEntityTrackerEnabled() ? "Enabled" : "Disabled"));

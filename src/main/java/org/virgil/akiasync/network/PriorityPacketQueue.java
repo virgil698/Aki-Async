@@ -35,13 +35,14 @@ public class PriorityPacketQueue {
     }
 
     public boolean offer(Packet<?> packet, PacketPriority priority) {
-
-        if (queue.size() >= MAX_QUEUE_SIZE) {
+        
+        int currentSize = queue.size();
+        if (currentSize >= MAX_QUEUE_SIZE) {
             droppedPackets.incrementAndGet();
             if (debugEnabled) {
                 logger.warning(String.format(
-                    "[PacketQueue] Queue full for player %s, dropping %s packet",
-                    playerName, priority.name()
+                    "[PacketQueue] Queue full for player %s (size=%d), dropping %s packet",
+                    playerName, currentSize, priority.name()
                 ));
             }
             return false;

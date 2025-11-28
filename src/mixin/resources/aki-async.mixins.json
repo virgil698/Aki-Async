@@ -30,6 +30,7 @@
     "entity.ItemEntityParallelMixin",
     "entity.ItemEntityMergeMixin",
     "entity.ItemEntityAgeMixin",
+    "entity.ExperienceOrbMergeMixin",
     "blockentity.BlockEntityTickParallelMixin",
     "memory.PredicateCacheMixin",
     "memory.BlockPosPoolMixin",

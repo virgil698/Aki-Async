@@ -66,6 +66,8 @@ public class ConfigReloadListener implements Listener {
 
             plugin.getLogger().info("[AkiAsync] Phase 4: Updating configuration and metrics...");
             plugin.getBridge().updateConfiguration(plugin.getConfigManager());
+            
+            plugin.getLogger().info("[AkiAsync]   -> Block tick mixin will reload on next tick");
 
             Thread.sleep(100);
             if (plugin.getConfigManager().isPerformanceMetricsEnabled()) {

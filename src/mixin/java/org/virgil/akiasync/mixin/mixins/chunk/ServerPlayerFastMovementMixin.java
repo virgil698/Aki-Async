@@ -26,7 +26,6 @@ public abstract class ServerPlayerFastMovementMixin {
     @Unique private static volatile boolean initialized = false;
     @Unique private static volatile boolean isFolia = false;
     
-    
     @Unique private static volatile boolean centerOffsetEnabled = false;
     @Unique private static volatile double minOffsetSpeed = 3.0;  
     @Unique private static volatile double maxOffsetSpeed = 9.0;  
@@ -92,7 +91,6 @@ public abstract class ServerPlayerFastMovementMixin {
                 return;
             }
             
-            
             if (bridge != null) {
                 aki$processChunkLoadingAsync(self, speed, bridge);
             }
@@ -122,7 +120,6 @@ public abstract class ServerPlayerFastMovementMixin {
             }
         }, "FastChunkLoadingAsync");
     }
-    
     
     @Unique
     private void aki$doChunkLoading(ServerPlayer player, double speed, Bridge bridge) {
@@ -157,7 +154,6 @@ public abstract class ServerPlayerFastMovementMixin {
 
         double[] predictedPos = aki$movementData.predictPosition(dynamicPredictionTicks);
         
-        
         ChunkPos loadCenter = aki$calculateLoadCenter(player, speed, aki$movementData, dynamicPreloadDistance);
 
         Set<ChunkPos> chunksToLoad = aki$calculateChunksToLoad(player, predictedPos, aki$movementData, dynamicPreloadDistance, loadCenter);
@@ -166,7 +162,6 @@ public abstract class ServerPlayerFastMovementMixin {
             return;
         }
         
-        
         java.util.List<ChunkPos> sortedChunks = new java.util.ArrayList<>(chunksToLoad);
         sortedChunks.sort((a, b) -> {
             int distA = (a.x - loadCenter.x) * (a.x - loadCenter.x) + (a.z - loadCenter.z) * (a.z - loadCenter.z);
@@ -174,12 +169,10 @@ public abstract class ServerPlayerFastMovementMixin {
             return Integer.compare(distA, distB);
         });
         
-        
         int adjustedMaxLoads = dynamicMaxLoads;
         java.util.UUID playerId = player.getUUID();
         int queueSize = bridge.getPlayerPacketQueueSize(playerId);
         int congestionLevel = bridge.detectPlayerCongestion(playerId);
-        
         
         if (congestionLevel >= 3 || queueSize > 500) {
             adjustedMaxLoads = Math.max(1, dynamicMaxLoads / 4);
@@ -258,7 +251,6 @@ public abstract class ServerPlayerFastMovementMixin {
                 predictionTicks = bridge.getFastMovementPredictionTicks();
                 debugEnabled = false;
                 
-                
                 centerOffsetEnabled = bridge.isCenterOffsetEnabled();
                 minOffsetSpeed = bridge.getMinOffsetSpeed();
                 maxOffsetSpeed = bridge.getMaxOffsetSpeed();
@@ -304,11 +296,9 @@ public abstract class ServerPlayerFastMovementMixin {
     private ChunkPos aki$calculateLoadCenter(ServerPlayer player, double speed, PlayerMovementData data, int dynamicPreloadDistance) {
         ChunkPos currentChunk = player.chunkPosition();
         
-        
         if (!centerOffsetEnabled || speed < minOffsetSpeed || speed > maxOffsetSpeed) {
             return currentChunk;
         }
-        
         
         double[] velocity = data.getVelocity();
         if (velocity == null) {
@@ -323,18 +313,14 @@ public abstract class ServerPlayerFastMovementMixin {
             return currentChunk;
         }
         
-        
         double dirX = velX / velLength;
         double dirZ = velZ / velLength;
-        
         
         int viewDistance = player.getServer().getPlayerList().getViewDistance();
         double maxOffsetChunks = viewDistance * maxOffsetRatio;
         
-        
         double speedRatio = Math.min(1.0, (speed - minOffsetSpeed) / (maxOffsetSpeed - minOffsetSpeed));
         double offsetDistance = maxOffsetChunks * speedRatio;
-        
         
         int offsetX = (int) Math.round(dirX * offsetDistance);
         int offsetZ = (int) Math.round(dirZ * offsetDistance);
@@ -380,7 +366,6 @@ public abstract class ServerPlayerFastMovementMixin {
             return chunks;
         }
         
-        
         double dirX = velX / velLength;
         double dirZ = velZ / velLength;
 
@@ -421,7 +406,6 @@ public abstract class ServerPlayerFastMovementMixin {
                         } else {
                             
                             double dotProduct = (pointX * dirX + pointZ * dirZ) / pointLength;
-                            
                             
                             if (dotProduct > 0) {
                                 chunks.add(new ChunkPos(targetX + dx, targetZ + dz));

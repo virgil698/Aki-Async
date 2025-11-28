@@ -19,7 +19,10 @@ public class ChunkSendRateController {
     private int baseChunkSendRate = 10;
     private int maxChunkSendRate = 20;
     private int minChunkSendRate = 3;
+    private int teleportMaxChunkRate = 25;
     private double viewDirectionPriorityWeight = 2.0;
+    
+    private PlayerTeleportTracker teleportTracker;
 
     private static class PlayerChunkSendStatus {
         private final UUID playerId;
@@ -89,8 +92,16 @@ public class ChunkSendRateController {
     public int calculateChunkSendRate(Player player) {
         if (player == null) return baseChunkSendRate;
 
-        PlayerChunkSendStatus status = playerStatus.get(player.getUniqueId());
+        UUID playerId = player.getUniqueId();
+        PlayerChunkSendStatus status = playerStatus.get(playerId);
         if (status == null) return baseChunkSendRate;
+
+        if (teleportTracker != null && teleportTracker.isTeleporting(playerId)) {
+            
+            int rate = teleportMaxChunkRate;
+            status.setCurrentRate(rate);
+            return rate;
+        }
 
         NetworkCongestionDetector.CongestionLevel congestion =
             congestionDetector.detectCongestion(player);
@@ -192,6 +203,14 @@ public class ChunkSendRateController {
         this.viewDirectionPriorityWeight = weight;
     }
 
+    public void setTeleportMaxChunkRate(int rate) {
+        this.teleportMaxChunkRate = rate;
+    }
+
+    public void setTeleportTracker(PlayerTeleportTracker tracker) {
+        this.teleportTracker = tracker;
+    }
+
     public int getBaseChunkSendRate() {
         return baseChunkSendRate;
     }
@@ -202,5 +221,9 @@ public class ChunkSendRateController {
 
     public int getMinChunkSendRate() {
         return minChunkSendRate;
+    }
+
+    public int getTeleportMaxChunkRate() {
+        return teleportMaxChunkRate;
     }
 }

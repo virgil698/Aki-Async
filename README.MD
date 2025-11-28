@@ -63,7 +63,7 @@
 
 ### 1. 下载插件
 
-从 [Releases](https://github.com/virgil698/Aki-Async/releases) 下载最新版本
+从 [MineBBS](https://www.minebbs.com/resources/aki-async-leaves-luminol.14159/) 或 [Releases](https://github.com/virgil698/Aki-Async/releases) 下载最新版本
 
 ### 2. 安装插件
 
@@ -249,6 +249,68 @@ entity-tick-parallel:
 
 </details>
 
+<details>
+<summary><b>🛜 /aki-teleport-stats [reset] - 网络统计信息</b></summary>
+
+**功能**：查看玩家传送优化的详细统计数据，监控传送性能和网络包处理情况
+
+**权限**：`akiasync.teleportstats`（默认仅OP可用）
+
+**前置条件**：
+- 网络优化管理器必须启用
+- 传送优化功能必须在配置中开启
+
+**使用方法**：
+```bash
+# 查看统计信息
+/aki-teleport-stats
+
+# 重置所有统计数据
+/aki-teleport-stats reset
+```
+
+**统计信息包含**：
+- 📊 **Active teleports**：当前正在进行的传送数量
+- 📈 **Total teleports**：总传送次数
+- ✅ **Successful**：成功完成的传送次数和成功率
+- ❌ **Failed**：失败的传送次数
+- ⏱️ **Average delay**：平均传送延迟（毫秒）
+- 🔝 **Maximum delay**：最大传送延迟（毫秒）
+- 📦 **Bypassed packets**：优先发送的数据包数量
+- 🚫 **Filtered packets**：被过滤的非必要数据包数量
+- ⚙️ **Boost duration**：传送加速持续时间（秒）
+- 🔧 **Filter enabled**：是否启用数据包过滤
+
+**示例输出**：
+```
+========== Teleport Tracker Statistics ==========
+Active teleports: 2
+Total teleports: 156
+Successful: 154 (98.7%)
+Failed: 2
+Average delay: 245.32ms
+Maximum delay: 1203.45ms
+Bypassed packets: 3421
+Filtered packets: 8932
+Boost duration: 5s
+Filter enabled: true
+================================================
+```
+
+**使用场景**：
+- 🟢 监控传送优化效果
+- 🟢 诊断传送延迟问题
+- 🟢 评估网络包过滤效率
+- 🟢 性能调优参考数据
+- 🟡 定期重置统计以获取新数据
+
+**配置关联**：
+此命令的统计数据受以下配置影响：
+- `network-optimization.teleport-optimization.enabled`
+- `network-optimization.teleport-optimization.boost-duration-seconds`
+- `network-optimization.teleport-optimization.filter-non-essential-packets`
+
+</details>
 ---
 
 ## ⚙️ 配置说明
@@ -264,10 +326,10 @@ entity-tick-parallel:
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 12
-# 说明：当前配置版本为12，如果配置版本不等于12，则需要更新配置文件
-# Description: The current configuration version is 12, if the configuration version is not equal to 12, you need to update the configuration file
-version: 12
+# 当前版本 / Current version: 13
+# 说明：当前配置版本为13，如果配置版本不等于13，则需要更新配置文件
+# Description: The current configuration version is 13, if the configuration version is not equal to 13, you need to update the configuration file
+version: 13
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -469,7 +531,7 @@ entity-tick-parallel:
 #   - Items in dangerous environments won't be throttled (lava, fire, cauldron)
 entity-throttling:
   # 启用开关 / Enable toggle
-  enabled: true
+  enabled: false
   # 配置文件路径 / Configuration file path
   # 默认：plugins/AkiAsync/throttling.yml
   # Default: plugins/AkiAsync/throttling.yml
@@ -1011,6 +1073,23 @@ advanced-optimizations:
 # ==========================================
 # 说明：使用1024位加密种子保护世界生成，防止种子破解
 # Description: Use 1024-bit encrypted seed to protect world generation from seed cracking
+# 
+# ⚠️ 重要警告 / IMPORTANT WARNING:
+# 1. 一旦启用此功能，世界将使用加密种子生成
+# 2. 启用后不能随意关闭，否则会导致：
+#    - 新生成的区块与旧区块不匹配（区块边界错乱）
+#    - 结构生成位置改变（村庄、要塞等消失或重新生成）
+#    - 矿石分布完全改变
+#    - 史莱姆区块位置改变
+# 3. 如需关闭，必须删除世界重新生成，或接受上述后果
+# 
+# Once enabled, the world will use encrypted seeds for generation
+# DO NOT disable after enabling, or it will cause:
+#    - Chunk boundary mismatches between old and new chunks
+#    - Structure positions changed (villages, strongholds may disappear)
+#    - Ore distribution completely changed
+#    - Slime chunk positions changed
+# To disable, you must delete the world and regenerate, or accept the consequences
 secure-seed:
   # 启用安全种子 / Enable secure seed
   enabled: false
@@ -1216,6 +1295,82 @@ network-optimization:
     # Description: Considered high bandwidth usage when exceeding this value (default 1MB/s)
     # 推荐值 / Recommended: 1048576 (1MB/s, 默认), 524288 (512KB/s, 严格), 2097152 (2MB/s, 宽松)
     high-bandwidth-threshold: 1048576
+
+  # 传送优化 / Teleport Optimization
+  # 说明：优化玩家传送时的网络性能，防止传送时被踢出
+  # Description: Optimize network performance during player teleportation to prevent disconnection
+  # 
+  # 问题背景 / Background:
+  #   - 传送时会发送大量关键数据包（位置、区块、状态等）
+  #   - 这些包进入优先级队列可能导致延迟
+  #   - 客户端等待超时后会被踢出（Connection reset）
+  # 
+  # 解决方案 / Solution:
+  #   - 传送包直接发送，绕过队列系统
+  #   - 传送期间提升区块发送速率
+  #   - 过滤非必需包（粒子、音效等）
+  # 
+  # 适用场景 / Use Cases:
+  #   - RTP 随机传送 / Random teleport
+  #   - 登录系统传送 / Login system teleport
+  #   - 命令传送 / Command teleport
+  #   - 跨维度传送 / Cross-dimension teleport
+  teleport-optimization:
+    # 启用传送优化 / Enable teleport optimization
+    enabled: true
+    
+    # 传送包绕过队列 / Bypass queue for teleport packets
+    # 说明：传送相关的数据包直接发送，不进入优先级队列
+    # Description: Teleport-related packets are sent directly, bypassing priority queue
+    # 包括的包类型 / Included packet types:
+    #   - ClientboundPlayerPositionPacket (玩家位置同步)
+    #   - ClientboundRespawnPacket (重生/维度切换)
+    #   - ClientboundGameEventPacket (游戏状态变更)
+    #   - ClientboundSetDefaultSpawnPositionPacket (设置出生点)
+    #   - ClientboundChangeDifficultyPacket (难度变更)
+    bypass-queue: true
+    
+    # 传送后速率提升持续时间（秒）/ Boost duration after teleport (seconds)
+    # 说明：传送后保持高速率发送区块的时间
+    # Description: Duration to maintain high chunk send rate after teleport
+    # 推荐值 / Recommended: 5 (默认), 3 (低配服务器), 7 (高配服务器)
+    # 优化：延长到7秒，配合降低的速率实现渐进式加载 / Optimized: Extended to 7s for gradual loading with reduced rate
+    boost-duration-seconds: 7
+    
+    # 传送期间最大区块发送速率 / Max chunk send rate during teleport
+    # 说明：传送期间的区块发送速率（chunks/tick）
+    # Description: Chunk send rate during teleport (chunks/tick)
+    # 推荐值 / Recommended: 25 (默认), 20 (低配服务器), 30 (高配服务器)
+    # 注意：此值应大于 chunk-rate-control.max-rate
+    # Note: This value should be greater than chunk-rate-control.max-rate
+    # 优化：降低到15以减少MSPT飙升 / Optimized: Reduced to 15 to prevent MSPT spikes
+    max-chunk-rate: 15
+    
+    # 过滤非必需包 / Filter non-essential packets
+    # 说明：传送期间暂停发送非必需的装饰性数据包
+    # Description: Pause sending non-essential decorative packets during teleport
+    # 
+    # 必需包（继续发送）/ Essential packets (continue sending):
+    #   - 传送包 / Teleport packets
+    #   - 区块数据 / Chunk data
+    #   - 玩家状态（生命值、经验、能力）/ Player status (health, exp, abilities)
+    #   - 容器内容 / Container contents
+    #   - KeepAlive 包 / KeepAlive packets
+    # 
+    # 非必需包（暂停发送）/ Non-essential packets (paused):
+    #   - 粒子效果 / Particle effects
+    #   - 音效 / Sound effects
+    #   - 标题/副标题 / Titles/subtitles
+    #   - 记分板更新 / Scoreboard updates
+    #   - 实体移动（非玩家）/ Entity movement (non-player)
+    filter-non-essential-packets: true
+    
+    # 调试模式 / Debug mode
+    # 说明：启用详细的传送优化日志
+    # Description: Enable detailed teleport optimization logs
+    # 注意：仅用于调试，生产环境建议关闭
+    # Note: For debugging only, recommended to disable in production
+    debug-enabled: false
 
 # ==========================================
 # 高速移动区块预加载 / Fast Movement Chunk Loading
@@ -1476,7 +1631,7 @@ zero-delay-factory-entities:
 </details>
 
 <details>
-<summary><b>📖 entities.yml 完整配置项（点击展开）</b></summary>
+<summary><b>📖 throttling.yml 完整配置项（点击展开）</b></summary>
 
 ```yml
 # ==========================================

@@ -26,16 +26,27 @@ public class NetworkOptimizationManager implements Listener {
     private final ChunkSendRateController chunkRateController;
     private final PriorityPacketScheduler packetScheduler;
     private final PacketSendWorker packetSendWorker;
+    private final PlayerTeleportTracker teleportTracker;
     private final Map<UUID, PriorityPacketQueue> playerQueues = new ConcurrentHashMap<>();
 
     private boolean packetPriorityEnabled;
     private boolean chunkRateControlEnabled;
     private boolean congestionDetectionEnabled;
-
-    private volatile long lastStatsTime = System.currentTimeMillis();
-    private static final long STATS_INTERVAL_MS = 60000;
+    private boolean teleportOptimizationEnabled;
+    
+    private boolean isFolia = false;
+    private Object pingUpdateTask = null;
+    private Object chunkUpdateTask = null;
+    private Object statsTask = null;
 
     public NetworkOptimizationManager(AkiAsyncPlugin plugin) {
+        
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {
+            isFolia = false;
+        }
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.debugEnabled = plugin.getConfigManager().isDebugLoggingEnabled();
@@ -46,6 +57,14 @@ public class NetworkOptimizationManager implements Listener {
         this.packetSendWorker = new PacketSendWorker(packetScheduler, plugin.getConfigManager());
 
         loadConfiguration();
+
+        this.teleportTracker = new PlayerTeleportTracker(
+            plugin,
+            logger,
+            debugEnabled,
+            plugin.getConfigManager().getTeleportBoostDurationSeconds(),
+            plugin.getConfigManager().isTeleportFilterNonEssentialPackets()
+        );
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
@@ -60,12 +79,14 @@ public class NetworkOptimizationManager implements Listener {
         logger.info("  - Packet Priority: " + (packetPriorityEnabled ? "Enabled" : "Disabled"));
         logger.info("  - Chunk Rate Control: " + (chunkRateControlEnabled ? "Enabled" : "Disabled"));
         logger.info("  - Congestion Detection: " + (congestionDetectionEnabled ? "Enabled" : "Disabled"));
+        logger.info("  - Teleport Optimization: " + (teleportOptimizationEnabled ? "Enabled" : "Disabled"));
     }
 
     private void loadConfiguration() {
         packetPriorityEnabled = plugin.getConfigManager().isPacketPriorityEnabled();
         chunkRateControlEnabled = plugin.getConfigManager().isChunkRateControlEnabled();
         congestionDetectionEnabled = plugin.getConfigManager().isCongestionDetectionEnabled();
+        teleportOptimizationEnabled = plugin.getConfigManager().isTeleportOptimizationEnabled();
 
         congestionDetector.setHighPingThreshold(
             plugin.getConfigManager().getHighPingThreshold()
@@ -86,33 +107,90 @@ public class NetworkOptimizationManager implements Listener {
         chunkRateController.setMinChunkSendRate(
             plugin.getConfigManager().getMinChunkSendRate()
         );
+        chunkRateController.setTeleportMaxChunkRate(
+            plugin.getConfigManager().getTeleportMaxChunkRate()
+        );
+        
+        if (teleportTracker != null) {
+            chunkRateController.setTeleportTracker(teleportTracker);
+        }
     }
 
     private void startPeriodicTasks() {
-
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (!congestionDetectionEnabled) return;
-
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                congestionDetector.updatePlayerPing(player);
+        if (isFolia) {
+            
+            try {
+                Object server = Bukkit.getServer();
+                Object globalScheduler = server.getClass().getMethod("getGlobalRegionScheduler").invoke(server);
+                java.lang.reflect.Method runAtFixedRateMethod = globalScheduler.getClass().getMethod(
+                    "runAtFixedRate", 
+                    org.bukkit.plugin.Plugin.class, 
+                    java.util.function.Consumer.class, 
+                    long.class, 
+                    long.class
+                );
+                
+                pingUpdateTask = runAtFixedRateMethod.invoke(
+                    globalScheduler, plugin,
+                    (java.util.function.Consumer<Object>) task -> {
+                        if (!congestionDetectionEnabled) return;
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            congestionDetector.updatePlayerPing(player);
+                        }
+                    },
+                    20L, 20L
+                );
+                
+                chunkUpdateTask = runAtFixedRateMethod.invoke(
+                    globalScheduler, plugin,
+                    (java.util.function.Consumer<Object>) task -> {
+                        if (!chunkRateControlEnabled) return;
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            chunkRateController.updatePlayerLocation(player);
+                        }
+                    },
+                    100L, 100L
+                );
+                
+                statsTask = runAtFixedRateMethod.invoke(
+                    globalScheduler, plugin,
+                    (java.util.function.Consumer<Object>) task -> logStatistics(),
+                    1200L, 1200L
+                );
+                
+                logger.info("[NetworkOptimization] Using Folia GlobalRegionScheduler");
+            } catch (Exception e) {
+                logger.severe("[NetworkOptimization] Failed to start Folia tasks: " + e.getMessage());
+                e.printStackTrace();
             }
-        }, 20L, 20L);
+        } else {
+            
+            Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                if (!congestionDetectionEnabled) return;
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    congestionDetector.updatePlayerPing(player);
+                }
+            }, 20L, 20L);
 
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (!chunkRateControlEnabled) return;
+            Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                if (!chunkRateControlEnabled) return;
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    chunkRateController.updatePlayerLocation(player);
+                }
+            }, 100L, 100L);
 
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                chunkRateController.updatePlayerLocation(player);
-            }
-        }, 100L, 100L);
-
-        Bukkit.getScheduler().runTaskTimer(plugin, this::logStatistics, 1200L, 1200L);
+            Bukkit.getScheduler().runTaskTimer(plugin, this::logStatistics, 1200L, 1200L);
+        }
     }
 
     private void logStatistics() {
         if (!debugEnabled) return;
 
         logger.info("========== Network Optimization Statistics ==========");
+
+        if (teleportOptimizationEnabled && teleportTracker != null) {
+            logger.info(String.format("[Teleport] %s", teleportTracker.getStatistics()));
+        }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID playerId = player.getUniqueId();
@@ -142,30 +220,27 @@ public class NetworkOptimizationManager implements Listener {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
         
-        
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                if (packetPriorityEnabled) {
-                    playerQueues.put(playerId, new PriorityPacketQueue(
-                        player.getName(), logger, debugEnabled
-                    ));
-                }
-
-                if (chunkRateControlEnabled) {
-                    chunkRateController.updatePlayerLocation(player);
-                }
-
-                if (debugEnabled) {
-                    logger.info(String.format(
-                        "[NetworkOptimization] Player %s joined, network optimization enabled (async)",
-                        player.getName()
-                    ));
-                }
-            } catch (Exception e) {
-                logger.log(Level.WARNING, 
-                    "[NetworkOptimization] Error in async player join handling", e);
+        try {
+            if (packetPriorityEnabled) {
+                playerQueues.put(playerId, new PriorityPacketQueue(
+                    player.getName(), logger, debugEnabled
+                ));
             }
-        });
+
+            if (chunkRateControlEnabled) {
+                chunkRateController.updatePlayerLocation(player);
+            }
+
+            if (debugEnabled) {
+                logger.info(String.format(
+                    "[NetworkOptimization] Player %s joined, network optimization enabled",
+                    player.getName()
+                ));
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, 
+                "[NetworkOptimization] Error in player join handling", e);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -176,6 +251,10 @@ public class NetworkOptimizationManager implements Listener {
         packetScheduler.clearQueue(playerId);
         congestionDetector.removePlayer(playerId);
         chunkRateController.removePlayer(playerId);
+        
+        if (teleportTracker != null) {
+            teleportTracker.markTeleportComplete(playerId);
+        }
 
         if (debugEnabled) {
             logger.info(String.format(
@@ -207,12 +286,32 @@ public class NetworkOptimizationManager implements Listener {
         return chunkRateController;
     }
 
+    public PlayerTeleportTracker getTeleportTracker() {
+        return teleportTracker;
+    }
+
     public void reloadConfiguration() {
         loadConfiguration();
         logger.info("[NetworkOptimization] Configuration reloaded");
     }
 
     public void shutdown() {
+        
+        if (isFolia) {
+            try {
+                if (pingUpdateTask != null) {
+                    cancelFoliaTask(pingUpdateTask, "PingUpdate");
+                }
+                if (chunkUpdateTask != null) {
+                    cancelFoliaTask(chunkUpdateTask, "ChunkUpdate");
+                }
+                if (statsTask != null) {
+                    cancelFoliaTask(statsTask, "Stats");
+                }
+            } catch (Exception e) {
+                logger.warning("[NetworkOptimization] Failed to cancel Folia tasks: " + e.getMessage());
+            }
+        }
 
         if (packetPriorityEnabled) {
             packetSendWorker.stop();
@@ -226,6 +325,11 @@ public class NetworkOptimizationManager implements Listener {
         playerQueues.clear();
         congestionDetector.clear();
         chunkRateController.clear();
+        
+        if (teleportTracker != null) {
+            teleportTracker.shutdown();
+        }
+        
         logger.info("[NetworkOptimization] Network optimization manager shut down");
     }
 
@@ -241,7 +345,27 @@ public class NetworkOptimizationManager implements Listener {
         return congestionDetectionEnabled;
     }
 
+    public boolean isTeleportOptimizationEnabled() {
+        return teleportOptimizationEnabled;
+    }
+
     public PriorityPacketScheduler getPacketScheduler() {
         return packetScheduler;
+    }
+    
+    private void cancelFoliaTask(Object task, String taskName) {
+        try {
+            java.lang.reflect.Method cancelMethod = null;
+            try {
+                cancelMethod = task.getClass().getDeclaredMethod("cancel");
+                cancelMethod.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                cancelMethod = task.getClass().getMethod("cancel");
+            }
+            cancelMethod.invoke(task);
+            logger.info("[NetworkOptimization] Folia " + taskName + " task cancelled successfully");
+        } catch (Exception e) {
+            logger.warning("[NetworkOptimization] Failed to cancel " + taskName + " task: " + e.getClass().getName());
+        }
     }
 }

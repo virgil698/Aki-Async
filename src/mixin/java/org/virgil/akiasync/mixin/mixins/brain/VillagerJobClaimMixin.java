@@ -29,11 +29,20 @@ public abstract class VillagerJobClaimMixin {
         }
 
         Brain<?> brain = villager.getBrain();
-        Optional<GlobalPos> wanted = brain.getMemory(MemoryModuleType.JOB_SITE);
-        if (wanted.isEmpty()) return;
+        if (brain == null) return;
+        
+        MemoryModuleType<GlobalPos> jobSiteMemory = MemoryModuleType.JOB_SITE;
+        if (jobSiteMemory == null) return;
+        
+        Optional<GlobalPos> wanted = brain.getMemory(jobSiteMemory);
+        if (wanted == null || wanted.isEmpty()) return;
 
         GlobalPos globalPos = wanted.get();
+        if (globalPos == null) return;
+        
         BlockPos pos = globalPos.pos();
+        if (pos == null) return;
+        
         ServerLevel level = (ServerLevel) villager.level();
 
         Optional<BlockPos> result = level.getPoiManager().take(
@@ -52,7 +61,9 @@ public abstract class VillagerJobClaimMixin {
             return;
         }
 
-        brain.eraseMemory(MemoryModuleType.JOB_SITE);
+        if (jobSiteMemory != null) {
+            brain.eraseMemory(jobSiteMemory);
+        }
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {

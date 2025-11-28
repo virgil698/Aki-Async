@@ -1,4 +1,6 @@
 package org.virgil.akiasync.mixin.mixins.lighting;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -15,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.lighting.LightEngine;
-@SuppressWarnings("unused")
+
+@SuppressWarnings({"unused", "rawtypes"}) 
 @Mixin(value = LightEngine.class, priority = 1100)
 public abstract class LightEngineAsyncMixin {
     private static volatile boolean enabled;
@@ -29,9 +32,9 @@ public abstract class LightEngineAsyncMixin {
     private static volatile boolean advancedStatsEnabled = false;
     private static volatile boolean initialized = false;
     private static volatile boolean isFolia = false;
-    @SuppressWarnings("unchecked")
-    private static final Queue<BlockPos>[] LAYERED_QUEUES = new Queue[16];
-    private static final AtomicInteger[] layerSizes = new AtomicInteger[16];
+    
+    private static final List<Queue<BlockPos>> LAYERED_QUEUES = new ArrayList<>(16);
+    private static final List<AtomicInteger> layerSizes = new ArrayList<>(16);
     private static final Map<BlockPos, Long> UPDATE_METADATA = new ConcurrentHashMap<>();
     private static final Set<BlockPos> PENDING_UPDATES = ConcurrentHashMap.newKeySet();
     private static final Queue<BlockPos> LIGHT_UPDATE_QUEUE = new LinkedBlockingQueue<>(5000);
@@ -42,8 +45,8 @@ public abstract class LightEngineAsyncMixin {
     private static final long ADJUSTMENT_INTERVAL = 5000;
     static {
         for (int i = 0; i < 16; i++) {
-            LAYERED_QUEUES[i] = new LinkedBlockingQueue<>(5000);
-            layerSizes[i] = new AtomicInteger(0);
+            LAYERED_QUEUES.add(new LinkedBlockingQueue<>(5000));
+            layerSizes.add(new AtomicInteger(0));
         }
     }
     @Inject(method = "checkBlock", at = @At("HEAD"), cancellable = true)
@@ -62,8 +65,8 @@ public abstract class LightEngineAsyncMixin {
 
             if (useLayeredQueue) {
                 int lightLevel = getLightLevel(pos);
-                LAYERED_QUEUES[lightLevel].offer(immutablePos);
-                layerSizes[lightLevel].incrementAndGet();
+                LAYERED_QUEUES.get(lightLevel).offer(immutablePos);
+                layerSizes.get(lightLevel).incrementAndGet();
                 UPDATE_METADATA.put(immutablePos, ((long)lightLevel << 32) | System.currentTimeMillis());
             } else {
                 LIGHT_UPDATE_QUEUE.offer(immutablePos);
@@ -120,7 +123,7 @@ public abstract class LightEngineAsyncMixin {
             int totalProcessed = 0;
             int maxProcess = batchThreshold * 2;
             for (int level = 15; level >= 0 && totalProcessed < maxProcess; level--) {
-                Queue<BlockPos> queue = LAYERED_QUEUES[level];
+                Queue<BlockPos> queue = LAYERED_QUEUES.get(level);
                 BlockPos pos;
                 while ((pos = queue.poll()) != null && totalProcessed < maxProcess) {
                     Long metadata = UPDATE_METADATA.remove(pos);
@@ -129,7 +132,7 @@ public abstract class LightEngineAsyncMixin {
                         long age = System.currentTimeMillis() - timestamp;
                         if (age > 5000) {
                             PENDING_UPDATES.remove(pos);
-                            layerSizes[level].decrementAndGet();
+                            layerSizes.get(level).decrementAndGet();
                             continue;
                         }
                     }
@@ -139,7 +142,7 @@ public abstract class LightEngineAsyncMixin {
                     } catch (Exception e) {
                     }
                     PENDING_UPDATES.remove(pos);
-                    layerSizes[level].decrementAndGet();
+                    layerSizes.get(level).decrementAndGet();
                 }
             }
             if (advancedStatsEnabled || batchCount <= 3) {
@@ -150,7 +153,7 @@ public abstract class LightEngineAsyncMixin {
                     }
                     if (advancedStatsEnabled) {
                         for (int i = 15; i >= 0; i--) {
-                            int size = layerSizes[i].get();
+                            int size = layerSizes.get(i).get();
                             if (size > 0) {
                                 org.virgil.akiasync.mixin.bridge.Bridge levelBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                 if (levelBridge != null) {
@@ -228,13 +231,14 @@ public abstract class LightEngineAsyncMixin {
         try {
             processing = true;
 
-            for (int i = 0; i < LAYERED_QUEUES.length; i++) {
-                Queue<BlockPos> queue = LAYERED_QUEUES[i];
+            for (int i = 0; i < LAYERED_QUEUES.size(); i++) {
+                Queue<BlockPos> queue = LAYERED_QUEUES.get(i);
                 if (queue != null) {
                     queue.clear();
                 }
-                if (layerSizes[i] != null) {
-                    layerSizes[i].set(0);
+                AtomicInteger size = layerSizes.get(i);
+                if (size != null) {
+                    size.set(0);
                 }
             }
 

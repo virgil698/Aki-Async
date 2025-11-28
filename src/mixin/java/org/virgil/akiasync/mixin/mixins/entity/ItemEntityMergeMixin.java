@@ -93,7 +93,15 @@ public abstract class ItemEntityMergeMixin {
 
     @Unique
     private List<ItemEntity> akiasync$getNearbyItems(ItemEntity self) {
-        AABB searchBox = self.getBoundingBox().inflate(mergeRange);
+        AABB boundingBox = self.getBoundingBox();
+        if (boundingBox == null) {
+            return java.util.Collections.emptyList();
+        }
+        
+        AABB searchBox = boundingBox.inflate(mergeRange);
+        if (searchBox == null) {
+            return java.util.Collections.emptyList();
+        }
 
         return self.level().getEntitiesOfClass(
             ItemEntity.class,
@@ -109,7 +117,15 @@ public abstract class ItemEntityMergeMixin {
         }
 
         net.minecraft.core.BlockPos pos = item.blockPosition();
+        if (pos == null) {
+            return false;
+        }
+        
         net.minecraft.world.level.block.state.BlockState state = item.level().getBlockState(pos);
+        if (state == null) {
+            return false;
+        }
+        
         if (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
             state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
             return true;

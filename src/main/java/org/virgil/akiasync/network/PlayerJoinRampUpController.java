@@ -12,9 +12,7 @@ public class PlayerJoinRampUpController {
     private final Logger logger;
     private final boolean debugEnabled;
     
-    
     private final Map<UUID, PlayerJoinState> playerJoinStates = new ConcurrentHashMap<>();
-    
     
     private int initialSendRate;        
     private int targetSendRate;         
@@ -25,13 +23,11 @@ public class PlayerJoinRampUpController {
         this.logger = logger;
         this.debugEnabled = debugEnabled;
         
-        
         this.initialSendRate = 3;  
         this.targetSendRate = 50;
         this.rampUpDurationSeconds = 15;  
         this.rampUpSteps = 10;  
     }
-    
     
     private static class PlayerJoinState {
         private final long joinTime;
@@ -69,7 +65,6 @@ public class PlayerJoinRampUpController {
         }
     }
     
-    
     public void onPlayerJoin(Player player) {
         UUID playerId = player.getUniqueId();
         playerJoinStates.put(playerId, new PlayerJoinState(initialSendRate));
@@ -83,11 +78,9 @@ public class PlayerJoinRampUpController {
         }
     }
     
-    
     public void onPlayerQuit(UUID playerId) {
         playerJoinStates.remove(playerId);
     }
-    
     
     public int getPlayerSendRate(UUID playerId) {
         PlayerJoinState state = playerJoinStates.get(playerId);
@@ -99,10 +92,8 @@ public class PlayerJoinRampUpController {
         return state.getCurrentSendRate();
     }
     
-    
     private void updatePlayerSendRate(UUID playerId, PlayerJoinState state) {
         long elapsedSeconds = state.getElapsedSeconds();
-        
         
         if (elapsedSeconds >= rampUpDurationSeconds) {
             state.setCurrentSendRate(targetSendRate);
@@ -118,13 +109,10 @@ public class PlayerJoinRampUpController {
             return;
         }
         
-        
         int targetStep = (int) (elapsedSeconds * rampUpSteps / rampUpDurationSeconds);
-        
         
         if (targetStep > state.getCurrentStep()) {
             state.incrementStep();
-            
             
             double progress = (double) state.getCurrentStep() / rampUpSteps;
             int newRate = (int) (initialSendRate + (targetSendRate - initialSendRate) * progress);
@@ -145,11 +133,9 @@ public class PlayerJoinRampUpController {
         }
     }
     
-    
     public boolean isPlayerInRampUp(UUID playerId) {
         return playerJoinStates.containsKey(playerId);
     }
-    
     
     public double getPlayerRampUpProgress(UUID playerId) {
         PlayerJoinState state = playerJoinStates.get(playerId);
@@ -160,7 +146,6 @@ public class PlayerJoinRampUpController {
         long elapsedSeconds = state.getElapsedSeconds();
         return Math.min(1.0, (double) elapsedSeconds / rampUpDurationSeconds);
     }
-    
     
     public void configure(int initialRate, int targetRate, int durationSeconds, int steps) {
         this.initialSendRate = Math.max(1, initialRate);
@@ -179,7 +164,6 @@ public class PlayerJoinRampUpController {
         }
     }
     
-    
     public String getStatistics() {
         int activeRampUps = playerJoinStates.size();
         if (activeRampUps == 0) {
@@ -194,7 +178,6 @@ public class PlayerJoinRampUpController {
             rampUpDurationSeconds
         );
     }
-    
     
     public void clear() {
         playerJoinStates.clear();

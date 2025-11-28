@@ -86,6 +86,8 @@ public class VirtualEntityDetector {
             }
 
         } catch (Throwable t) {
+            
+            debugLog("Error checking ZNPC entity: " + t.getClass().getSimpleName());
         }
 
         return false;
@@ -114,6 +116,8 @@ public class VirtualEntityDetector {
                     }
                 }
             } catch (Throwable t) {
+                
+                debugLog("Error checking item PDC: " + t.getClass().getSimpleName());
             }
 
             try {
@@ -131,9 +135,13 @@ public class VirtualEntityDetector {
                     }
                 }
             } catch (Throwable t) {
+                
+                debugLog("Error checking ItemStack meta: " + t.getClass().getSimpleName());
             }
 
         } catch (Throwable t) {
+            
+            debugLog("Error checking QuickShop display item: " + t.getClass().getSimpleName());
         }
 
         return false;
@@ -158,9 +166,13 @@ public class VirtualEntityDetector {
                     }
                 }
             } catch (Throwable t) {
+                
+                debugLog("Error checking entity PDC: " + t.getClass().getSimpleName());
             }
 
         } catch (Throwable t) {
+            
+            debugLog("Error checking virtual entity markers: " + t.getClass().getSimpleName());
         }
 
         return false;

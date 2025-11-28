@@ -2,10 +2,11 @@ package org.virgil.akiasync.config;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 12;
+    private static final int CURRENT_CONFIG_VERSION = 13;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -221,6 +222,13 @@ public class ConfigManager {
     private double maxOffsetRatio;
     private int asyncLoadingBatchSize;
     private long asyncLoadingBatchDelayMs;
+
+    private boolean teleportOptimizationEnabled;
+    private boolean teleportBypassQueue;
+    private int teleportBoostDurationSeconds;
+    private int teleportMaxChunkRate;
+    private boolean teleportFilterNonEssentialPackets;
+    private boolean teleportDebugEnabled;
 
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -484,6 +492,13 @@ public class ConfigManager {
         
         asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.async-loading.batch-size", 2);
         asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
+
+        teleportOptimizationEnabled = config.getBoolean("network-optimization.teleport-optimization.enabled", true);
+        teleportBypassQueue = config.getBoolean("network-optimization.teleport-optimization.bypass-queue", true);
+        teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
+        teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
+        teleportFilterNonEssentialPackets = config.getBoolean("network-optimization.teleport-optimization.filter-non-essential-packets", true);
+        teleportDebugEnabled = config.getBoolean("network-optimization.teleport-optimization.debug-enabled", false);
 
         validateConfigVersion();
         validateConfig();
@@ -854,6 +869,9 @@ public class ConfigManager {
     public void reload() {
         loadConfig();
         plugin.getLogger().info("Configuration reloaded successfully!");
+        
+        ConfigReloader.notifyReload(this);
+        plugin.getLogger().info("Notified " + ConfigReloader.getListenerCount() + " config reload listeners");
     }
 
     public boolean isEntityTrackerEnabled() {
@@ -1114,4 +1132,11 @@ public class ConfigManager {
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
     }
+
+    public boolean isTeleportOptimizationEnabled() { return teleportOptimizationEnabled; }
+    public boolean isTeleportPacketBypassEnabled() { return teleportBypassQueue; }
+    public int getTeleportBoostDurationSeconds() { return teleportBoostDurationSeconds; }
+    public int getTeleportMaxChunkRate() { return teleportMaxChunkRate; }
+    public boolean isTeleportFilterNonEssentialPackets() { return teleportFilterNonEssentialPackets; }
+    public boolean isTeleportDebugEnabled() { return teleportDebugEnabled; }
 }
