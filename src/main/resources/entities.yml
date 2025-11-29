@@ -1,0 +1,102 @@
+# ==========================================
+# AkiAsync 实体列表配置 / Entity List Configuration
+# ==========================================
+
+# 实体ID格式：minecraft:entity_name
+# Entity ID format: minecraft:entity_name
+
+# ==========================================
+# 统一AI优化实体列表 / Universal AI Optimization Entity List
+# ==========================================
+universal-ai-entities:
+  # 攻击型生物 / Hostile Mobs
+  - "minecraft:skeleton"
+  - "minecraft:zombie"
+  - "minecraft:creeper"
+  - "minecraft:spider"
+  - "minecraft:enderman"
+  - "minecraft:phantom"
+  - "minecraft:drowned"
+  - "minecraft:hoglin"
+  - "minecraft:zoglin"
+  - "minecraft:stray"
+  - "minecraft:husk"
+  - "minecraft:zombie_villager"
+  - "minecraft:shulker"
+  - "minecraft:silverfish"
+  - "minecraft:endermite"
+  - "minecraft:cave_spider"
+  - "minecraft:wither_skeleton"
+  - "minecraft:witch"
+  - "minecraft:slime"
+  - "minecraft:magma_cube"
+  
+  # 防御型生物 / Defense Mobs (Golems)
+  - "minecraft:iron_golem"
+  - "minecraft:snow_golem"
+  
+  # 被动型生物 / Passive Mobs (Animals)
+  - "minecraft:pig"
+  - "minecraft:cow"
+  - "minecraft:sheep"
+  - "minecraft:chicken"
+  - "minecraft:rabbit"
+  - "minecraft:bat"
+  - "minecraft:fox"
+  - "minecraft:strider"
+  - "minecraft:frog"
+  - "minecraft:camel"
+  - "minecraft:goat"
+  - "minecraft:mushroom_cow"
+  - "minecraft:sniffer"
+  
+  # 水生生物 / Aquatic Mobs
+  - "minecraft:dolphin"
+  - "minecraft:squid"
+  - "minecraft:glow_squid"
+  - "minecraft:turtle"
+  - "minecraft:pufferfish"
+  - "minecraft:tropical_fish"
+  - "minecraft:cod"
+  - "minecraft:salmon"
+  - "minecraft:axolotl"
+  
+  # 驯服/中立型生物 / Tamed/Neutral Mobs
+  - "minecraft:wolf"
+  - "minecraft:cat"
+  - "minecraft:horse"
+  - "minecraft:donkey"
+  - "minecraft:mule"
+  - "minecraft:llama"
+  - "minecraft:parrot"
+  - "minecraft:polar_bear"
+  - "minecraft:panda"
+  - "minecraft:bee"
+  - "minecraft:ocelot"
+  - "minecraft:trader_llama"
+  
+  # 村民相关 / Villager Related
+  # 注意：村民和流浪商人有专门的优化模块，通常不需要在这里启用
+  # Note: Villagers and wandering traders have dedicated optimization modules
+  # - "minecraft:villager"
+  # - "minecraft:wandering_trader"
+
+# ==========================================
+# 零延迟工厂实体列表 / Zero-Delay Factory Entity List
+# ==========================================
+# 说明：这些方块实体使用零延迟工厂模式优化
+# Description: These block entities use zero-delay factory pattern optimization
+zero-delay-factory-entities:
+  - "minecraft:hopper"
+  - "minecraft:furnace"
+  - "minecraft:blast_furnace"
+  - "minecraft:smoker"
+  - "minecraft:brewing_stand"
+  - "minecraft:beacon"
+  - "minecraft:chest"
+  - "minecraft:trapped_chest"
+  - "minecraft:barrel"
+  - "minecraft:shulker_box"
+  - "minecraft:ender_chest"
+  - "minecraft:dropper"
+  - "minecraft:dispenser"
