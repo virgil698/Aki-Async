@@ -67,6 +67,11 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("[AkiAsync] Phase 4: Updating configuration and metrics...");
             plugin.getBridge().updateConfiguration(plugin.getConfigManager());
             
+            if (plugin.getVirtualEntityCompatManager() != null) {
+                plugin.getLogger().info("[AkiAsync]   -> Reloading virtual entity compatibility...");
+                plugin.getVirtualEntityCompatManager().reload();
+            }
+            
             plugin.getLogger().info("[AkiAsync]   -> Block tick mixin will reload on next tick");
 
             Thread.sleep(100);

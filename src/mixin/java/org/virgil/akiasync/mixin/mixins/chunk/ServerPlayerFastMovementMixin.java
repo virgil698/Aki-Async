@@ -314,9 +314,9 @@ public abstract class ServerPlayerFastMovementMixin {
         }
         
         double dirX = velX / velLength;
-        double dirZ = velZ / velLength;
+        double dirZ = velZ / velZ;
         
-        int viewDistance = player.getServer().getPlayerList().getViewDistance();
+        int viewDistance = ((net.minecraft.server.level.ServerLevel)player.level()).getServer().getPlayerList().getViewDistance();
         double maxOffsetChunks = viewDistance * maxOffsetRatio;
         
         double speedRatio = Math.min(1.0, (speed - minOffsetSpeed) / (maxOffsetSpeed - minOffsetSpeed));
@@ -422,7 +422,7 @@ public abstract class ServerPlayerFastMovementMixin {
     @Unique
     private boolean aki$shouldLoadChunk(ServerPlayer player, ChunkPos chunkPos) {
 
-        int viewDistance = player.getServer().getPlayerList().getViewDistance();
+        int viewDistance = ((net.minecraft.server.level.ServerLevel)player.level()).getServer().getPlayerList().getViewDistance();
         ChunkPos playerChunk = player.chunkPosition();
 
         int dx = Math.abs(chunkPos.x - playerChunk.x);

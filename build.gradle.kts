@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.13-SNAPSHOT"
+version = "3.2.14-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -95,6 +95,17 @@ repositories {
             includeGroup("com.sk89q.worldedit")
         }
     }
+    
+    // Virtual entity plugin repositories
+    maven("https://repo.codemc.io/repository/maven-public/") {
+        name = "codemc"
+    }
+    maven("https://repo.fancyplugins.de/releases") {
+        name = "fancyplugins"
+    }
+    maven("https://repo.pyr.lol/snapshots") {
+        name = "pyr"
+    }
     mavenLocal()
 }
 
@@ -127,6 +138,12 @@ dependencies {
             isTransitive = false
         }
         compileOnly("com.viaversion:viaversion-api:5.1.1") {
+            isTransitive = false
+        }
+        compileOnly("de.oliver:FancyNpcs:2.8.1") {
+            isTransitive = false
+        }
+        compileOnly("lol.pyr:znpcsplus-api:2.1.0-SNAPSHOT") {
             isTransitive = false
         }
     }

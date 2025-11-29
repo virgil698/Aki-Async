@@ -24,6 +24,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private org.virgil.akiasync.network.NetworkOptimizationManager networkOptimizationManager;
     private ChunkLoadPriorityScheduler chunkLoadScheduler;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
+    private org.virgil.akiasync.compat.VirtualEntityCompatManager virtualEntityCompatManager;
 
     @Override
     public void onEnable() {
@@ -49,6 +50,28 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.util.VirtualEntityDetector.setLogger(getLogger(), configManager.isDebugLoggingEnabled());
         
         org.virgil.akiasync.compat.ViaVersionCompat.initialize();
+
+        virtualEntityCompatManager = new org.virgil.akiasync.compat.VirtualEntityCompatManager(this);
+        virtualEntityCompatManager.initialize();
+        
+        if (virtualEntityCompatManager.isEnabled()) {
+            org.virgil.akiasync.util.VirtualEntityDetector.setDetectorRegistry(
+                virtualEntityCompatManager.getDetectorRegistry()
+            );
+            
+            org.virgil.akiasync.network.PacketClassifier.setVirtualEntityHandler(
+                virtualEntityCompatManager.getPacketHandler()
+            );
+            
+            java.util.Map<String, Boolean> availability = virtualEntityCompatManager.getPluginAvailability();
+            if (!availability.isEmpty()) {
+                getLogger().info("[VirtualEntity] Plugin availability status:");
+                for (java.util.Map.Entry<String, Boolean> entry : availability.entrySet()) {
+                    getLogger().info("  - " + entry.getKey() + ": " + 
+                                   (entry.getValue() ? "Available" : "Not found"));
+                }
+            }
+        }
 
         getLogger().info("[AkiAsync] Bridge registered successfully");
 
@@ -149,6 +172,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         if (throttlingManager != null) {
             throttlingManager.shutdown();
+        }
+
+        if (virtualEntityCompatManager != null) {
+            virtualEntityCompatManager.shutdown();
         }
 
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
@@ -258,6 +285,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
     public ChunkLoadPriorityScheduler getChunkLoadScheduler() {
         return chunkLoadScheduler;
+    }
+
+    public org.virgil.akiasync.compat.VirtualEntityCompatManager getVirtualEntityCompatManager() {
+        return virtualEntityCompatManager;
     }
 
     public void restartMetricsScheduler() {

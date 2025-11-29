@@ -405,4 +405,9 @@ public interface Bridge {
     boolean shouldSendPacketDuringTeleport(net.minecraft.network.protocol.Packet<?> packet, java.util.UUID playerId);
     void recordTeleportBypassedPacket();
     String getTeleportStatistics();
+    
+    boolean shouldVirtualEntityPacketBypassQueue(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player);
+    
+    boolean isViewFrustumFilterEnabled();
+    boolean shouldFilterPacketByViewFrustum(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player);
 }

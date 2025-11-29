@@ -20,6 +20,22 @@ public class EntityThrottlingMixin {
                 return;
             }
 
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge == null) {
+                return;
+            }
+
+            if (bridge.isVirtualEntity(self)) {
+                
+                if (bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[EntityThrottling] Excluded virtual entity from throttling: %s, uuid=%s",
+                        self.getClass().getSimpleName(),
+                        self.getUUID().toString()
+                    );
+                }
+                return;
+            }
+
             if (self instanceof net.minecraft.world.entity.item.ItemEntity) {
 
                 if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
@@ -34,6 +50,10 @@ public class EntityThrottlingMixin {
                 net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
                 if (state != null && (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
                     state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock)) {
+                    return;
+                }
+
+                if (state != null && state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock) {
                     return;
                 }
             }
@@ -53,15 +73,14 @@ public class EntityThrottlingMixin {
                 if (state != null && state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
                     return;
                 }
+
+                if (state != null && state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock) {
+                    return;
+                }
             }
 
             if (self instanceof net.minecraft.world.entity.ExperienceOrb) {
                 return; 
-            }
-
-            Bridge bridge = BridgeManager.getBridge();
-            if (bridge == null) {
-                return;
             }
 
             if (bridge.shouldThrottleEntity(self)) {

@@ -1495,7 +1495,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isTeleportDebugEnabled() {
-        return config != null && config.isTeleportDebugEnabled();
+        return config != null && config.isDebugLoggingEnabled();
     }
 
     @Override
@@ -1580,5 +1580,62 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
         org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
         return tracker != null ? tracker.getDetailedStatistics() : "N/A";
+    }
+
+    @Override
+    public boolean shouldVirtualEntityPacketBypassQueue(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player) {
+        if (plugin == null) {
+            return false;
+        }
+
+        try {
+            
+            java.lang.reflect.Field handlerField = org.virgil.akiasync.network.PacketClassifier.class.getDeclaredField("virtualEntityHandler");
+            handlerField.setAccessible(true);
+            org.virgil.akiasync.compat.VirtualEntityPacketHandler handler = 
+                (org.virgil.akiasync.compat.VirtualEntityPacketHandler) handlerField.get(null);
+            
+            if (handler == null) {
+                return false;
+            }
+
+            return handler.shouldBypassQueue(packet, player);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean isViewFrustumFilterEnabled() {
+        if (plugin == null) {
+            return false;
+        }
+        
+        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+        return manager != null && manager.isViewFrustumFilterEnabled();
+    }
+    
+    @Override
+    public boolean shouldFilterPacketByViewFrustum(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player) {
+        if (plugin == null || packet == null || player == null) {
+            return false;
+        }
+        
+        try {
+            org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
+            if (manager == null || !manager.isViewFrustumFilterEnabled()) {
+                return false;
+            }
+            
+            org.virgil.akiasync.network.ViewFrustumPacketFilter filter = manager.getViewFrustumFilter();
+            if (filter == null) {
+                return false;
+            }
+            
+            return filter.shouldFilterPacket(packet, player);
+        } catch (Exception e) {
+            
+            return false;
+        }
     }
 }

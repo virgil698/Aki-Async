@@ -6,7 +6,7 @@ import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 13;
+    private static final int CURRENT_CONFIG_VERSION = 14;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -173,6 +173,10 @@ public class ConfigManager {
     private boolean packetPriorityEnabled;
     private boolean chunkRateControlEnabled;
     private boolean congestionDetectionEnabled;
+    private boolean viewFrustumFilterEnabled;
+    private boolean viewFrustumFilterEntities;
+    private boolean viewFrustumFilterBlocks;
+    private boolean viewFrustumFilterParticles;
     private int highPingThreshold;
     private int criticalPingThreshold;
     private long highBandwidthThreshold;
@@ -228,7 +232,17 @@ public class ConfigManager {
     private int teleportBoostDurationSeconds;
     private int teleportMaxChunkRate;
     private boolean teleportFilterNonEssentialPackets;
-    private boolean teleportDebugEnabled;
+
+    private boolean virtualEntityCompatibilityEnabled;
+    private boolean virtualEntityBypassPacketQueue;
+    private boolean virtualEntityExcludeFromThrottling;
+    private boolean fancynpcsCompatEnabled;
+    private boolean fancynpcsUseAPI;
+    private int fancynpcsPriority;
+    private boolean znpcsplusCompatEnabled;
+    private boolean znpcsplusUseAPI;
+    private int znpcsplusPriority;
+    private java.util.List<String> virtualEntityDetectionOrder;
 
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -453,6 +467,10 @@ public class ConfigManager {
         packetPriorityEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
         chunkRateControlEnabled = config.getBoolean("network-optimization.chunk-rate-control.enabled", true);
         congestionDetectionEnabled = config.getBoolean("network-optimization.congestion-detection.enabled", true);
+        viewFrustumFilterEnabled = config.getBoolean("network-optimization.view-frustum-filter.enabled", false);
+        viewFrustumFilterEntities = config.getBoolean("network-optimization.view-frustum-filter.filter-entities", true);
+        viewFrustumFilterBlocks = config.getBoolean("network-optimization.view-frustum-filter.filter-blocks", true);
+        viewFrustumFilterParticles = config.getBoolean("network-optimization.view-frustum-filter.filter-particles", true);
         highPingThreshold = config.getInt("network-optimization.congestion-detection.high-ping-threshold", 200);
         criticalPingThreshold = config.getInt("network-optimization.congestion-detection.critical-ping-threshold", 500);
         highBandwidthThreshold = config.getLong("network-optimization.congestion-detection.high-bandwidth-threshold", 1048576L);
@@ -498,7 +516,20 @@ public class ConfigManager {
         teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
         teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
         teleportFilterNonEssentialPackets = config.getBoolean("network-optimization.teleport-optimization.filter-non-essential-packets", true);
-        teleportDebugEnabled = config.getBoolean("network-optimization.teleport-optimization.debug-enabled", false);
+
+        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
+        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
+        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
+        
+        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.enabled", true);
+        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.use-api", true);
+        fancynpcsPriority = config.getInt("virtual-entity-compatibility.plugins.fancynpcs.priority", 90);
+        
+        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.enabled", true);
+        znpcsplusUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.use-api", false);
+        znpcsplusPriority = config.getInt("virtual-entity-compatibility.plugins.znpcsplus.priority", 90);
+        
+        virtualEntityDetectionOrder = config.getStringList("virtual-entity-compatibility.detection-order");
 
         validateConfigVersion();
         validateConfig();
@@ -734,6 +765,20 @@ public class ConfigManager {
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
+
+        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
+        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
+        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
+        
+        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.enabled", true);
+        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.use-api", true);
+        fancynpcsPriority = config.getInt("virtual-entity-compatibility.plugins.fancynpcs.priority", 90);
+        
+        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.enabled", true);
+        znpcsplusUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.use-api", false);
+        znpcsplusPriority = config.getInt("virtual-entity-compatibility.plugins.znpcsplus.priority", 90);
+        
+        virtualEntityDetectionOrder = config.getStringList("virtual-entity-compatibility.detection-order");
 
         validateConfig();
     }
@@ -1090,6 +1135,10 @@ public class ConfigManager {
     public boolean isPacketPriorityEnabled() { return packetPriorityEnabled; }
     public boolean isChunkRateControlEnabled() { return chunkRateControlEnabled; }
     public boolean isCongestionDetectionEnabled() { return congestionDetectionEnabled; }
+    public boolean isViewFrustumFilterEnabled() { return viewFrustumFilterEnabled; }
+    public boolean isViewFrustumFilterEntities() { return viewFrustumFilterEntities; }
+    public boolean isViewFrustumFilterBlocks() { return viewFrustumFilterBlocks; }
+    public boolean isViewFrustumFilterParticles() { return viewFrustumFilterParticles; }
     public int getHighPingThreshold() { return highPingThreshold; }
     public int getCriticalPingThreshold() { return criticalPingThreshold; }
     public long getHighBandwidthThreshold() { return highBandwidthThreshold; }
@@ -1138,5 +1187,19 @@ public class ConfigManager {
     public int getTeleportBoostDurationSeconds() { return teleportBoostDurationSeconds; }
     public int getTeleportMaxChunkRate() { return teleportMaxChunkRate; }
     public boolean isTeleportFilterNonEssentialPackets() { return teleportFilterNonEssentialPackets; }
-    public boolean isTeleportDebugEnabled() { return teleportDebugEnabled; }
+
+    public boolean isVirtualEntityCompatibilityEnabled() { return virtualEntityCompatibilityEnabled; }
+    public boolean isVirtualEntityBypassPacketQueue() { return virtualEntityBypassPacketQueue; }
+    public boolean isVirtualEntityExcludeFromThrottling() { return virtualEntityExcludeFromThrottling; }
+    public boolean isVirtualEntityDebugEnabled() { return enableDebugLogging; }
+    
+    public boolean isFancynpcsCompatEnabled() { return fancynpcsCompatEnabled; }
+    public boolean isFancynpcsUseAPI() { return fancynpcsUseAPI; }
+    public int getFancynpcsPriority() { return fancynpcsPriority; }
+    
+    public boolean isZnpcsplusCompatEnabled() { return znpcsplusCompatEnabled; }
+    public boolean isZnpcsplusUseAPI() { return znpcsplusUseAPI; }
+    public int getZnpcsplusPriority() { return znpcsplusPriority; }
+    
+    public java.util.List<String> getVirtualEntityDetectionOrder() { return virtualEntityDetectionOrder; }
 }

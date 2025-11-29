@@ -39,6 +39,29 @@ public abstract class PacketSendMixin {
                 return;
             }
 
+            if (bridge.shouldVirtualEntityPacketBypassQueue(packet, player)) {
+                
+                if (bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[PacketSend] Virtual entity packet bypassing queue: %s for player %s",
+                        packet.getClass().getSimpleName(),
+                        player.getUUID().toString()
+                    );
+                }
+                return; 
+            }
+            
+            if (bridge.shouldFilterPacketByViewFrustum(packet, player)) {
+                
+                if (bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[PacketSend] Filtered packet outside view frustum: %s for player %s",
+                        packet.getClass().getSimpleName(),
+                        player.getUUID().toString()
+                    );
+                }
+                ci.cancel();
+                return;
+            }
+
             if (bridge.isTeleportOptimizationEnabled() && bridge.isTeleportPacketBypassEnabled()) {
                 if (bridge.isTeleportPacket(packet)) {
                     

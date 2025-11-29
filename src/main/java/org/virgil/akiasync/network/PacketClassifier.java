@@ -2,12 +2,28 @@ package org.virgil.akiasync.network;
 
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.server.level.ServerPlayer;
+import org.virgil.akiasync.compat.VirtualEntityPacketHandler;
 
 public class PacketClassifier {
 
+    private static VirtualEntityPacketHandler virtualEntityHandler;
+
+    public static void setVirtualEntityHandler(VirtualEntityPacketHandler handler) {
+        virtualEntityHandler = handler;
+    }
+
     public static PacketPriority classify(Packet<?> packet) {
+        return classify(packet, null);
+    }
+
+    public static PacketPriority classify(Packet<?> packet, ServerPlayer player) {
         if (packet == null) {
             return PacketPriority.NORMAL;
+        }
+
+        if (isVirtualEntityPacket(packet, player)) {
+            return PacketPriority.CRITICAL;
         }
 
         if (packet instanceof ClientboundContainerSetContentPacket ||
@@ -85,5 +101,19 @@ public class PacketClassifier {
                packet instanceof ClientboundSetExperiencePacket ||
                packet instanceof ClientboundPlayerAbilitiesPacket ||
                packet instanceof ClientboundPlayerPositionPacket;
+    }
+
+    private static boolean isVirtualEntityPacket(Packet<?> packet, ServerPlayer player) {
+        
+        if (virtualEntityHandler == null || player == null) {
+            return false;
+        }
+
+        try {
+            return virtualEntityHandler.isVirtualEntityRelatedPacket(packet, player);
+        } catch (Exception e) {
+            
+            return false;
+        }
     }
 }

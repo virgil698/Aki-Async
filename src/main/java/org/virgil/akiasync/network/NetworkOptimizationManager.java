@@ -27,12 +27,14 @@ public class NetworkOptimizationManager implements Listener {
     private final PriorityPacketScheduler packetScheduler;
     private final PacketSendWorker packetSendWorker;
     private final PlayerTeleportTracker teleportTracker;
+    private final ViewFrustumPacketFilter viewFrustumFilter;
     private final Map<UUID, PriorityPacketQueue> playerQueues = new ConcurrentHashMap<>();
 
     private boolean packetPriorityEnabled;
     private boolean chunkRateControlEnabled;
     private boolean congestionDetectionEnabled;
     private boolean teleportOptimizationEnabled;
+    private boolean viewFrustumFilterEnabled;
     
     private boolean isFolia = false;
     private Object pingUpdateTask = null;
@@ -55,6 +57,7 @@ public class NetworkOptimizationManager implements Listener {
         this.chunkRateController = new ChunkSendRateController(congestionDetector);
         this.packetScheduler = new PriorityPacketScheduler(plugin.getConfigManager());
         this.packetSendWorker = new PacketSendWorker(packetScheduler, plugin.getConfigManager());
+        this.viewFrustumFilter = new ViewFrustumPacketFilter();
 
         loadConfiguration();
 
@@ -80,6 +83,7 @@ public class NetworkOptimizationManager implements Listener {
         logger.info("  - Chunk Rate Control: " + (chunkRateControlEnabled ? "Enabled" : "Disabled"));
         logger.info("  - Congestion Detection: " + (congestionDetectionEnabled ? "Enabled" : "Disabled"));
         logger.info("  - Teleport Optimization: " + (teleportOptimizationEnabled ? "Enabled" : "Disabled"));
+        logger.info("  - View Frustum Filter: " + (viewFrustumFilterEnabled ? "Enabled" : "Disabled"));
     }
 
     private void loadConfiguration() {
@@ -87,6 +91,19 @@ public class NetworkOptimizationManager implements Listener {
         chunkRateControlEnabled = plugin.getConfigManager().isChunkRateControlEnabled();
         congestionDetectionEnabled = plugin.getConfigManager().isCongestionDetectionEnabled();
         teleportOptimizationEnabled = plugin.getConfigManager().isTeleportOptimizationEnabled();
+        
+        try {
+            viewFrustumFilterEnabled = plugin.getConfigManager().isViewFrustumFilterEnabled();
+            viewFrustumFilter.setEnabled(viewFrustumFilterEnabled);
+            viewFrustumFilter.setFilterEntities(plugin.getConfigManager().isViewFrustumFilterEntities());
+            viewFrustumFilter.setFilterBlocks(plugin.getConfigManager().isViewFrustumFilterBlocks());
+            viewFrustumFilter.setFilterParticles(plugin.getConfigManager().isViewFrustumFilterParticles());
+            viewFrustumFilter.setDebugEnabled(plugin.getConfigManager().isDebugLoggingEnabled());
+        } catch (NoSuchMethodError e) {
+            
+            viewFrustumFilterEnabled = false;
+            viewFrustumFilter.setEnabled(false);
+        }
 
         congestionDetector.setHighPingThreshold(
             plugin.getConfigManager().getHighPingThreshold()
@@ -251,6 +268,7 @@ public class NetworkOptimizationManager implements Listener {
         packetScheduler.clearQueue(playerId);
         congestionDetector.removePlayer(playerId);
         chunkRateController.removePlayer(playerId);
+        viewFrustumFilter.removePlayer(playerId);
         
         if (teleportTracker != null) {
             teleportTracker.markTeleportComplete(playerId);
@@ -266,11 +284,21 @@ public class NetworkOptimizationManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!chunkRateControlEnabled) return;
-
-        if (event.getFrom().getYaw() != event.getTo().getYaw() ||
-            event.getFrom().getPitch() != event.getTo().getPitch()) {
+        boolean viewChanged = event.getFrom().getYaw() != event.getTo().getYaw() ||
+                             event.getFrom().getPitch() != event.getTo().getPitch();
+        
+        if (chunkRateControlEnabled && viewChanged) {
             chunkRateController.updatePlayerLocation(event.getPlayer());
+        }
+        
+        if (viewFrustumFilterEnabled && viewChanged) {
+            try {
+                net.minecraft.server.level.ServerPlayer nmsPlayer = 
+                    ((org.bukkit.craftbukkit.entity.CraftPlayer) event.getPlayer()).getHandle();
+                viewFrustumFilter.updatePlayerView(nmsPlayer);
+            } catch (Exception e) {
+                
+            }
         }
     }
 
@@ -325,12 +353,21 @@ public class NetworkOptimizationManager implements Listener {
         playerQueues.clear();
         congestionDetector.clear();
         chunkRateController.clear();
+        viewFrustumFilter.clear();
         
         if (teleportTracker != null) {
             teleportTracker.shutdown();
         }
         
         logger.info("[NetworkOptimization] Network optimization manager shut down");
+    }
+    
+    public ViewFrustumPacketFilter getViewFrustumFilter() {
+        return viewFrustumFilter;
+    }
+    
+    public boolean isViewFrustumFilterEnabled() {
+        return viewFrustumFilterEnabled;
     }
 
     public boolean isPacketPriorityEnabled() {

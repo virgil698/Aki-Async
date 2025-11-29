@@ -56,22 +56,28 @@ public abstract class ItemEntityAgeMixin {
 
         akiasync$updateStaticState(self);
 
-        if (aki$isStatic && !akiasync$hasNearbyPlayer(self)) {
-            aki$ageTickCounter++;
+        if (aki$isStatic && !akiasync$hasNearbyPlayer(self) && self.onGround()) {
+            
+            net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
+            double velocitySq = deltaMovement.lengthSqr();
+            
+            if (velocitySq < 0.0001) {
+                aki$ageTickCounter++;
 
-            if (aki$ageTickCounter % ageIncrementInterval != 0) {
-                age++;
-                ci.cancel();
-                return;
-            }
+                if (aki$ageTickCounter % ageIncrementInterval != 0) {
+                    age++;
+                    ci.cancel();
+                    return;
+                }
 
-            aki$ageTickCounter = 0;
+                aki$ageTickCounter = 0;
 
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-ItemAge] Static item throttled: age=%d, pos=%s",
-                    age, self.blockPosition());
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-ItemAge] Static item throttled: age=%d, pos=%s",
+                        age, self.blockPosition());
+                }
             }
         }
     }
