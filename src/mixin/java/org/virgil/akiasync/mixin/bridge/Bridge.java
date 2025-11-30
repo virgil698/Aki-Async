@@ -207,6 +207,8 @@ public interface Bridge {
     int getChunkTickThreads();
 
     long getChunkTickTimeoutMicros();
+    
+    int getChunkTickAsyncBatchSize();
 
     boolean isStructureLocationAsyncEnabled();
 
@@ -298,6 +300,9 @@ public interface Bridge {
 
     boolean isTNTLandProtectionEnabled();
     boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+    
+    boolean isBlockLockerProtectionEnabled();
+    boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state);
 
     boolean isFurnaceRecipeCacheEnabled();
     int getFurnaceRecipeCacheSize();
@@ -410,4 +415,11 @@ public interface Bridge {
     
     boolean isViewFrustumFilterEnabled();
     boolean shouldFilterPacketByViewFrustum(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player);
+    
+    boolean isSuffocationOptimizationEnabled();
+    boolean isFastRayTraceEnabled();
+    boolean isMapRenderingOptimizationEnabled();
+    int getMapRenderingThreads();
+    
+    void runOnMainThread(Runnable task);
 }

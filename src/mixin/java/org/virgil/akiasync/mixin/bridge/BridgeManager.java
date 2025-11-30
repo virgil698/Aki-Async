@@ -61,7 +61,11 @@ public final class BridgeManager {
             System.out.println("[AkiAsync] ✓ Mixins will initialize on first use (lazy loading)");
         } catch (Exception e) {
             System.err.println("[AkiAsync] ✗ Configuration validation error: " + e.getMessage());
-            e.printStackTrace();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                e.printStackTrace(new java.io.PrintWriter(sw));
+                bridge.debugLog("[AkiAsync] Stack trace: " + sw.toString());
+            }
         }
 
         System.out.println("[AkiAsync] ========================================================");

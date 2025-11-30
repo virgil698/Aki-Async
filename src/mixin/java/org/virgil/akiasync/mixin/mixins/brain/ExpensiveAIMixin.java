@@ -44,17 +44,19 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     @Unique private static int executionCount = 0;
     @Unique private static int successCount = 0;
     @Unique private static int timeoutCount = 0;
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void aki$takeSnapshot(ServerLevel level, E entity, CallbackInfo ci) {
         if (!initialized) { aki$initAsyncAI(); }
+        
         boolean isVillager = entity instanceof Villager || entity instanceof WanderingTrader;
         boolean isPiglin = entity instanceof Piglin;
+        
+        if (isVillager || isPiglin) {
+            return;
+        }
+        
         boolean usePOI;
-        if (isVillager && cached_villagerEnabled) {
-            usePOI = cached_villagerUsePOI;
-        } else if (isPiglin && cached_piglinEnabled) {
-            usePOI = cached_piglinUsePOI;
-        } else if (!isVillager && !isPiglin && cached_simpleEnabled) {
+        if (cached_simpleEnabled) {
             usePOI = cached_simpleUsePOI;
         } else {
             return;
@@ -81,19 +83,23 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     }
     @Inject(method = "tick", at = @At("RETURN"))
     private void aki$offloadBrain(ServerLevel level, E entity, CallbackInfo ci) {
+        
         boolean isVillager = entity instanceof Villager || entity instanceof WanderingTrader;
         boolean isPiglin = entity instanceof Piglin;
-        boolean enabled = (isVillager && cached_villagerEnabled)
-                       || (isPiglin && cached_piglinEnabled)
-                       || (!isVillager && !isPiglin && cached_simpleEnabled);
-        if (!enabled) return;
+        
+        if (isVillager || isPiglin) {
+            return;
+        }
+        
+        if (!cached_simpleEnabled) return;
         if (this.aki$brainSnapshot == null) return;
         executionCount++;
         Brain<E> brain = (Brain<E>) (Object) this;
         final BrainSnapshot snapshot = this.aki$brainSnapshot;
         final Map<BlockPos, PoiRecord> poiSnap = this.aki$poiSnapshot;
         try {
-            long shortTimeout = Math.min(cached_timeoutMicros, 100L);
+            
+            long shortTimeout = cached_timeoutMicros;
             CompletableFuture<BrainDiff> future = AsyncBrainExecutor.runSync(() -> {
                 return BrainCpuCalculator.runCpuOnly(brain, level, poiSnap);
             }, shortTimeout, TimeUnit.MICROSECONDS);
@@ -109,17 +115,21 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
                 if (executionCount % 1000 == 0) {
                     double successRate = (successCount * 100.0) / executionCount;
                     double timeoutRate = (timeoutCount * 100.0) / executionCount;
-                    System.out.println(String.format(
-                        "[AkiAsync-ExpensiveAI] Stats: %d execs | %.1f%% success | %.1f%% timeout | %s",
-                        executionCount, successRate, timeoutRate, AsyncBrainExecutor.getStatistics()
-                    ));
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.debugLog(String.format(
+                            "[AkiAsync-ExpensiveAI] Stats: %d execs | %.1f%% success | %.1f%% timeout | %s",
+                            executionCount, successRate, timeoutRate, AsyncBrainExecutor.getStatistics()
+                        ));
+                    }
                 }
             } else {
                 timeoutCount++;
             }
         } catch (Exception e) {
-            if (executionCount <= 3) {
-                System.err.println("[AkiAsync-ExpensiveAI] Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled() && executionCount <= 3) {
+                bridge.debugLog("[AkiAsync-ExpensiveAI] Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         } finally {
             this.aki$poiSnapshot = null;

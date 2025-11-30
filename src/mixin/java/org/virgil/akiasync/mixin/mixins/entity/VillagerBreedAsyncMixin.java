@@ -306,6 +306,10 @@ public class VillagerBreedAsyncMixin {
                 return true;
             }
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync-Villager] Failed to check avoid target: " + e.getMessage());
+            }
         }
 
         if (villager.canBreed()) {

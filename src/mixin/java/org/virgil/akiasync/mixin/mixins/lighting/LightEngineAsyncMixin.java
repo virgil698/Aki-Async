@@ -140,6 +140,10 @@ public abstract class LightEngineAsyncMixin {
                         lightEngine.checkBlock(pos);
                         totalProcessed++;
                     } catch (Exception e) {
+                        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                            bridge.debugLog("[AkiAsync-LightEngine] Failed to check block at " + pos + ": " + e.getMessage());
+                        }
                     }
                     PENDING_UPDATES.remove(pos);
                     layerSizes.get(level).decrementAndGet();
@@ -179,6 +183,10 @@ public abstract class LightEngineAsyncMixin {
                     lightEngine.checkBlock(pos);
                     processed++;
                 } catch (Exception e) {
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.debugLog("[AkiAsync-LightEngine] Failed to process light update at " + pos + ": " + e.getMessage());
+                    }
                 }
                 PENDING_UPDATES.remove(pos);
                 queueSize.decrementAndGet();
@@ -248,6 +256,10 @@ public abstract class LightEngineAsyncMixin {
             UPDATE_METADATA.clear();
 
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync-LightEngine] Error clearing queues: " + e.getMessage());
+            }
         } finally {
             processing = false;
         }

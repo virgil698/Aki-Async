@@ -104,7 +104,7 @@ public class ExplosionCalculator {
                                     org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                                        bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected by land protection (from snapshot), skipping");
+                                        bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected (from snapshot), skipping");
                                     }
                                     continue;
                                 }

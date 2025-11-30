@@ -2,6 +2,7 @@ package org.virgil.akiasync.executor;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -13,8 +14,8 @@ import org.virgil.akiasync.util.resource.ExecutorLifecycleManager;
 import org.virgil.akiasync.util.resource.ResourceTracker;
 public class AsyncExecutorManager {
     private final AkiAsyncPlugin plugin;
-    private final ThreadPoolExecutor executorService;
-    private final ThreadPoolExecutor lightingExecutor;
+    private final ForkJoinPool executorService;  
+    private final ForkJoinPool lightingExecutor;  
     private final ExecutorService tntExecutor;
     private final ExecutorService chunkTickExecutor;
     private final ExecutorService villagerBreedExecutor;
@@ -26,16 +27,16 @@ public class AsyncExecutorManager {
         int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
         int tntThreads = plugin.getConfigManager().getTNTThreads();
 
-        this.executorService = (ThreadPoolExecutor) ResourceTracker.track(
-            ExecutorLifecycleManager.createExecutor("AkiAsync-Worker", threadPoolSize, true),
-            "AkiAsync-Worker-Executor");
+        this.executorService = (ForkJoinPool) ResourceTracker.track(
+            ExecutorLifecycleManager.createForkJoinPool("AkiAsync-Worker", threadPoolSize, true),
+            "AkiAsync-Worker-ForkJoinPool");
         
-        this.lightingExecutor = (ThreadPoolExecutor) ResourceTracker.track(
-            ExecutorLifecycleManager.createExecutor("AkiAsync-Lighting", lightingThreads, true),
-            "AkiAsync-Lighting-Executor");
+        this.lightingExecutor = (ForkJoinPool) ResourceTracker.track(
+            ExecutorLifecycleManager.createForkJoinPool("AkiAsync-Lighting", lightingThreads, true),
+            "AkiAsync-Lighting-ForkJoinPool");
 
-        int prestarted = executorService.prestartAllCoreThreads();
-        int lightingPrestarted = lightingExecutor.prestartAllCoreThreads();
+        int poolSize = executorService.getPoolSize();
+        int lightingPoolSize = lightingExecutor.getPoolSize();
 
         this.tntExecutor = ResourceTracker.track(
             new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT"),
@@ -58,8 +59,8 @@ public class AsyncExecutorManager {
             }),
             "AkiAsync-Metrics-Executor");
         
-        plugin.getLogger().info("General executor initialized: " + threadPoolSize + " threads (prestarted: " + prestarted + ")");
-        plugin.getLogger().info("Lighting executor initialized: " + lightingThreads + " threads (prestarted: " + lightingPrestarted + ")");
+        plugin.getLogger().info("General executor initialized: ForkJoinPool with parallelism=" + threadPoolSize + " (work-stealing enabled)");
+        plugin.getLogger().info("Lighting executor initialized: ForkJoinPool with parallelism=" + lightingThreads + " (work-stealing enabled)");
         plugin.getLogger().info("TNT executor initialized: " + tntThreads + " threads (Folia-compatible)");
         plugin.getLogger().info("ChunkTick executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
@@ -138,14 +139,15 @@ public class AsyncExecutorManager {
         return brainExecutor;
     }
     public String getStatistics() {
+        
         return String.format(
-            "Pool: %d/%d | Active: %d | Queue: %d | Completed: %d | Total: %d",
+            "ForkJoinPool: Size=%d | Active=%d | Running=%d | Queued=%d | Steal=%d | Parallelism=%d",
             executorService.getPoolSize(),
-            executorService.getCorePoolSize(),
-            executorService.getActiveCount(),
-            executorService.getQueue().size(),
-            executorService.getCompletedTaskCount(),
-            executorService.getTaskCount()
+            executorService.getActiveThreadCount(),
+            executorService.getRunningThreadCount(),
+            executorService.getQueuedSubmissionCount(),
+            executorService.getStealCount(),
+            executorService.getParallelism()
         );
     }
     public boolean isShutdown() {

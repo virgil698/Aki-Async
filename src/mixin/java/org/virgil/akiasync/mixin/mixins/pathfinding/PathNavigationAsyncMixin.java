@@ -77,10 +77,18 @@ public class PathNavigationAsyncMixin {
             }
         } catch (Exception e) {
             if (System.currentTimeMillis() % 10000 < 100) {
-                System.err.println("[AkiAsync-PathNav] Reflection error: " + e.getMessage());
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-PathNav] Reflection error: " + e.getMessage());
+                }
             }
         }
-        return null;
+        
+        try {
+            return new Path(new java.util.ArrayList<>(), targets.iterator().next(), false);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private static synchronized void initializeReflection() {

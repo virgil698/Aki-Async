@@ -20,6 +20,14 @@ public class EntityThrottlingMixin {
                 return;
             }
 
+            if (self instanceof net.minecraft.world.entity.Mob) {
+                return;
+            }
+
+            if (self instanceof net.minecraft.world.entity.player.Player) {
+                return;
+            }
+
             Bridge bridge = BridgeManager.getBridge();
             if (bridge == null) {
                 return;

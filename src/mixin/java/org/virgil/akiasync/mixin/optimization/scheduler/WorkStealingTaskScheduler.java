@@ -3,13 +3,15 @@ package org.virgil.akiasync.mixin.optimization.scheduler;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 public class WorkStealingTaskScheduler {
 
     private final int parallelism;
     private final ExecutorService executor;
     private final AtomicInteger taskIndex = new AtomicInteger();
-    private final AtomicInteger finishedTasks = new AtomicInteger();
+    private final CountDownLatch finishedLatch;
     private final BlockingQueue<Runnable> mainThreadTasks = new LinkedBlockingQueue<>(2000);
 
     private static final WorkStealingTaskScheduler INSTANCE = new WorkStealingTaskScheduler();
@@ -20,6 +22,7 @@ public class WorkStealingTaskScheduler {
 
     private WorkStealingTaskScheduler() {
         this.parallelism = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
+        this.finishedLatch = new CountDownLatch(parallelism);
         this.executor = Executors.newFixedThreadPool(parallelism, r -> {
             Thread t = new Thread(r, "AkiAsync-WorkStealing-" + System.currentTimeMillis());
             t.setDaemon(true);
@@ -34,30 +37,39 @@ public class WorkStealingTaskScheduler {
         }
 
         taskIndex.set(0);
-        finishedTasks.set(0);
+        CountDownLatch latch = new CountDownLatch(parallelism);
 
         for (int i = 0; i < parallelism; i++) {
-            executor.execute(() -> processWorkStealingTasks(items, processor, batchSize));
+            executor.execute(() -> {
+                try {
+                    processWorkStealingTasks(items, processor, batchSize);
+                } finally {
+                    latch.countDown();
+                }
+            });
         }
 
-        while (taskIndex.get() < items.length) {
-            runMainThreadTasks();
-            handleBatchTasks(items, processor, Math.min(batchSize, 5));
-        }
-
-        while (finishedTasks.get() != parallelism) {
-            runMainThreadTasks();
+        try {
+            while (!latch.await(1, TimeUnit.MILLISECONDS)) {
+                runMainThreadTasks();
+                if (taskIndex.get() < items.length) {
+                    handleBatchTasks(items, processor, Math.min(batchSize, 5));
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[AkiAsync-WorkStealing] Batch processing interrupted");
+            }
         }
 
         runMainThreadTasks();
     }
 
     private <T> void processWorkStealingTasks(T[] items, Consumer<T> processor, int batchSize) {
-        try {
-            while (handleBatchTasks(items, processor, batchSize)) {
-            }
-        } finally {
-            finishedTasks.incrementAndGet();
+        while (handleBatchTasks(items, processor, batchSize)) {
+            
         }
     }
 
@@ -75,9 +87,10 @@ public class WorkStealingTaskScheduler {
                 try {
                     processor.accept(items[i]);
                 } catch (Exception e) {
-                    scheduleMainThreadTask(() -> {
-                        System.err.println("[AkiAsync-WorkStealing] Task processing error: " + e.getMessage());
-                    });
+                    Bridge bridge = BridgeManager.getBridge();
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.debugLog("[AkiAsync-WorkStealing] Task processing error: " + e.getMessage());
+                    }
                 }
             }
         }
@@ -90,7 +103,10 @@ public class WorkStealingTaskScheduler {
             try {
                 task.run();
             } catch (Exception e) {
-                System.err.println("[AkiAsync-WorkStealing] Task execution error (queue full): " + e.getMessage());
+                Bridge bridge = BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-WorkStealing] Task execution error (queue full): " + e.getMessage());
+                }
             }
         }
     }
@@ -104,7 +120,10 @@ public class WorkStealingTaskScheduler {
                 task.run();
                 processed++;
             } catch (Exception e) {
-                System.err.println("[AkiAsync-WorkStealing] Main thread task error: " + e.getMessage());
+                Bridge bridge = BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-WorkStealing] Main thread task error: " + e.getMessage());
+                }
             }
         }
     }
@@ -128,7 +147,7 @@ public class WorkStealingTaskScheduler {
         return new SchedulerStats(
             parallelism,
             taskIndex.get(),
-            finishedTasks.get(),
+            (int) finishedLatch.getCount(),
             mainThreadTasks.size(),
             !executor.isShutdown()
         );

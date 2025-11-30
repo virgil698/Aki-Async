@@ -175,11 +175,11 @@ public abstract class ServerPlayerFastMovementMixin {
         int congestionLevel = bridge.detectPlayerCongestion(playerId);
         
         if (congestionLevel >= 3 || queueSize > 500) {
-            adjustedMaxLoads = Math.max(1, dynamicMaxLoads / 4);
+            adjustedMaxLoads = Math.max(1, dynamicMaxLoads / 4);  
         } else if (congestionLevel >= 2 || queueSize > 300) {
-            adjustedMaxLoads = Math.max(2, dynamicMaxLoads / 2);
+            adjustedMaxLoads = Math.max(2, dynamicMaxLoads / 2);  
         } else if (congestionLevel >= 1 || queueSize > 100) {
-            adjustedMaxLoads = Math.max(3, dynamicMaxLoads * 3 / 4);
+            adjustedMaxLoads = Math.max(3, dynamicMaxLoads * 3 / 4);  
         }
         
         if (debugEnabled && adjustedMaxLoads != dynamicMaxLoads) {
@@ -314,7 +314,7 @@ public abstract class ServerPlayerFastMovementMixin {
         }
         
         double dirX = velX / velLength;
-        double dirZ = velZ / velZ;
+        double dirZ = velZ / velLength;  
         
         int viewDistance = ((net.minecraft.server.level.ServerLevel)player.level()).getServer().getPlayerList().getViewDistance();
         double maxOffsetChunks = viewDistance * maxOffsetRatio;

@@ -29,6 +29,7 @@ public class ExplosionSnapshot {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         boolean landProtectionEnabled = bridge != null && bridge.isTNTLandProtectionEnabled();
+        boolean blockLockerEnabled = bridge != null && bridge.isBlockLockerProtectionEnabled();
 
         int minX = (int) Math.floor(center.x - power - 1);
         int minY = (int) Math.floor(center.y - power - 1);
@@ -43,12 +44,21 @@ public class ExplosionSnapshot {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    blocks.put(pos, level.getBlockState(pos));
+                    BlockState state = level.getBlockState(pos);
+                    blocks.put(pos, state);
 
                     if (landProtectionEnabled && !bridge.canTNTExplodeAt(level, pos)) {
                         protectedBlocks.add(pos);
                         if (bridge.isTNTDebugEnabled()) {
                             bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by land protection");
+                        }
+                        continue;
+                    }
+
+                    if (blockLockerEnabled && bridge.isBlockLockerProtected(level, pos, state)) {
+                        protectedBlocks.add(pos);
+                        if (bridge.isTNTDebugEnabled()) {
+                            bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by BlockLocker");
                         }
                     }
                 }

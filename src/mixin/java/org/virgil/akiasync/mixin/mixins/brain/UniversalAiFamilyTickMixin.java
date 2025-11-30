@@ -41,11 +41,24 @@ public abstract class UniversalAiFamilyTickMixin {
     private void aki$universal(CallbackInfo ci) {
         if (!init) { aki$init(); }
         if (!enabled) return;
-        String entityType = ((Mob)(Object)this).getType().toString();
+        
+        Mob mob = (Mob) (Object) this;
+        
+        if (mob instanceof net.minecraft.world.entity.monster.Blaze ||
+            mob instanceof net.minecraft.world.entity.monster.Evoker ||
+            mob instanceof net.minecraft.world.entity.monster.Guardian ||
+            mob instanceof net.minecraft.world.entity.monster.Witch ||
+            mob instanceof net.minecraft.world.entity.monster.Pillager ||
+            mob instanceof net.minecraft.world.entity.monster.Vindicator ||
+            mob instanceof net.minecraft.world.entity.monster.Ravager) {
+            return; 
+        }
+        
+        String entityType = mob.getType().toString();
         if (enabledEntities != null && !enabledEntities.contains(entityType)) {
             return;
         }
-        Mob mob = (Mob) (Object) this;
+        
         ServerLevel level = (ServerLevel) mob.level();
         if (level == null) return;
 
@@ -84,8 +97,12 @@ public abstract class UniversalAiFamilyTickMixin {
             return 1;
         }
 
-        int interval = (int) (1 + (distance - dabStartDistance) / dabActivationDistMod);
-
+        double distanceFromStart = distance - dabStartDistance;
+        double tickFrequency = (distanceFromStart * distanceFromStart) / Math.pow(2, dabActivationDistMod);
+        
+        int interval = (int) Math.ceil(tickFrequency);
+        interval = Math.max(1, interval);
+        
         return Math.min(interval, dabMaxTickInterval);
     }
 

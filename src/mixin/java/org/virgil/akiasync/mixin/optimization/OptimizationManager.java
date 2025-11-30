@@ -8,7 +8,7 @@ import org.virgil.akiasync.mixin.optimization.thread.VirtualThreadService;
 public class OptimizationManager {
 
     private static final OptimizationManager INSTANCE = new OptimizationManager();
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
     private BlockPosIterationCache blockPosCache;
     private WorkStealingTaskScheduler taskScheduler;
@@ -31,41 +31,47 @@ public class OptimizationManager {
     }
 
     private void initialize() {
-        System.out.println("[AkiAsync-Optimization] Initializing Nitori-style optimizations...");
-
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
 
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Optimization] Initializing Nitori-style optimizations...");
+        }
+
         boolean nitoriEnabled = bridge != null && bridge.isNitoriOptimizationsEnabled();
         if (!nitoriEnabled) {
-            System.out.println("[AkiAsync-Optimization] Nitori optimizations disabled by configuration");
+            if (bridge != null) {
+                bridge.debugLog("[AkiAsync-Optimization] Nitori optimizations disabled by configuration");
+            }
             return;
         }
 
         if (bridge.isBlockPosCacheEnabled()) {
             blockPosCache = BlockPosIterationCache.INSTANCE;
-            System.out.println("[AkiAsync-Optimization] BlockPos iteration cache initialized");
+            bridge.debugLog("[AkiAsync-Optimization] BlockPos iteration cache initialized");
         }
 
         if (bridge.isWorkStealingEnabled()) {
             taskScheduler = WorkStealingTaskScheduler.getInstance();
-            System.out.println("[AkiAsync-Optimization] Work-stealing task scheduler initialized with " +
+            bridge.debugLog("[AkiAsync-Optimization] Work-stealing task scheduler initialized with " +
                 taskScheduler.getStats().parallelism + " threads");
         }
 
         if (bridge.isVirtualThreadEnabled()) {
             virtualThreadService = VirtualThreadService.get();
             if (virtualThreadService != null) {
-                System.out.println("[AkiAsync-Optimization] Virtual Thread support enabled (Java " +
+                bridge.debugLog("[AkiAsync-Optimization] Virtual Thread support enabled (Java " +
                     VirtualThreadService.getJavaMajorVersion() + ")");
             } else {
-                System.out.println("[AkiAsync-Optimization] Virtual Thread not supported on this JVM");
+                bridge.debugLog("[AkiAsync-Optimization] Virtual Thread not supported on this JVM");
             }
         }
 
         stats = new OptimizationStats();
 
-        System.out.println("[AkiAsync-Optimization] Nitori-style optimizations initialized successfully");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Optimization] Nitori-style optimizations initialized successfully");
+        }
     }
 
     public BlockPosIterationCache getBlockPosCache() {
@@ -112,13 +118,20 @@ public class OptimizationManager {
     }
 
     public void shutdown() {
-        System.out.println("[AkiAsync-Optimization] Shutting down optimizations...");
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Optimization] Shutting down optimizations...");
+        }
 
         if (taskScheduler != null) {
             taskScheduler.shutdown();
         }
 
-        System.out.println("[AkiAsync-Optimization] Shutdown complete");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync-Optimization] Shutdown complete");
+        }
     }
 
     public enum OptimizationType {
@@ -151,21 +164,26 @@ public class OptimizationManager {
     }
 
     public void printPerformanceReport() {
-        System.out.println("=== AkiAsync Optimization Performance Report ===");
-        System.out.println("Uptime: " + (stats.getUptimeMillis() / 1000) + " seconds");
-        System.out.println("Entity Collections Created: " + stats.entityCollectionsCreated);
-        System.out.println("BlockPos Cache Hits: " + stats.blockPosCacheHits);
-        System.out.println("Work-Stealing Tasks: " + stats.workStealingTasksProcessed);
-        System.out.println("Virtual Threads Used: " + stats.virtualThreadsUsed);
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        if (bridge == null) return;
+        
+        bridge.debugLog("=== AkiAsync Optimization Performance Report ===");
+        bridge.debugLog("Uptime: " + (stats.getUptimeMillis() / 1000) + " seconds");
+        bridge.debugLog("Entity Collections Created: " + stats.entityCollectionsCreated);
+        bridge.debugLog("BlockPos Cache Hits: " + stats.blockPosCacheHits);
+        bridge.debugLog("Work-Stealing Tasks: " + stats.workStealingTasksProcessed);
+        bridge.debugLog("Virtual Threads Used: " + stats.virtualThreadsUsed);
 
         if (taskScheduler != null) {
-            System.out.println("Task Scheduler: " + taskScheduler.getStats());
+            bridge.debugLog("Task Scheduler: " + taskScheduler.getStats());
         }
 
-        System.out.println("Available Optimizations:");
+        bridge.debugLog("Available Optimizations:");
         for (OptimizationType type : OptimizationType.values()) {
-            System.out.println("  " + type + ": " + isOptimizationAvailable(type));
+            bridge.debugLog("  " + type + ": " + isOptimizationAvailable(type));
         }
-        System.out.println("===============================================");
+        bridge.debugLog("===============================================");
     }
 }

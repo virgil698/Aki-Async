@@ -1,171 +1,162 @@
 package org.virgil.akiasync.mixin.pathfinding;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
 public class AsyncPath {
 
-    private volatile PathProcessState processState = PathProcessState.WAITING;
+  private volatile PathState processState = PathState.WAITING;
+  private final List<Runnable> postProcessing = new ArrayList<>(0);
+  private final Set<BlockPos> positions;
+  private final Supplier<Path> pathSupplier;
+  private volatile Path delegatedPath;
+  private final List<Node> emptyNodeList;
 
-    private final List<Runnable> postProcessing = new ArrayList<>(0);
+  public AsyncPath(List<Node> emptyNodeList, Set<BlockPos> positions, Supplier<Path> pathSupplier) {
+    this.emptyNodeList = emptyNodeList;
+    this.positions = positions;
+    this.pathSupplier = pathSupplier;
+    this.delegatedPath = new Path(emptyNodeList, null, false);
 
-    private final Set<BlockPos> positions;
+    AsyncPathProcessor.queue(this);
+  }
 
-    private final Supplier<Path> pathSupplier;
+  public boolean isProcessed() {
+    return this.processState == PathState.COMPLETED;
+  }
 
-    private volatile Path delegatedPath;
+  public synchronized void postProcessing(Runnable runnable) {
+    if (isProcessed()) {
+      runnable.run();
+    } else {
+      this.postProcessing.add(runnable);
+    }
+  }
 
-    private final List<Node> emptyNodeList;
+  public boolean hasSameProcessingPositions(final Set<BlockPos> positions) {
+    if (this.positions.size() != positions.size()) {
+      return false;
+    }
+    return this.positions.containsAll(positions);
+  }
 
-    public AsyncPath(List<Node> emptyNodeList, Set<BlockPos> positions, Supplier<Path> pathSupplier) {
-        this.emptyNodeList = emptyNodeList;
-        this.positions = positions;
-        this.pathSupplier = pathSupplier;
-
-        this.delegatedPath = new Path(emptyNodeList, null, false);
-
-        AsyncPathProcessor.queue(this);
+  public synchronized void process() {
+    if (this.processState == PathState.COMPLETED || this.processState == PathState.PROCESSING) {
+      return;
     }
 
-    public boolean isProcessed() {
-        return this.processState == PathProcessState.COMPLETED;
-    }
+    processState = PathState.PROCESSING;
 
-    public synchronized void postProcessing(Runnable runnable) {
-        if (isProcessed()) {
-            runnable.run();
-        } else {
-            this.postProcessing.add(runnable);
-        }
-    }
+    try {
+      final Path bestPath = this.pathSupplier.get();
 
-    public boolean hasSameProcessingPositions(final Set<BlockPos> positions) {
-        if (this.positions.size() != positions.size()) {
-            return false;
-        }
-        return this.positions.containsAll(positions);
-    }
+      if (bestPath != null) {
+        this.delegatedPath = bestPath;
+      }
 
-    public synchronized void process() {
-        if (this.processState == PathProcessState.COMPLETED ||
-                this.processState == PathProcessState.PROCESSING) {
-            return;
-        }
+      processState = PathState.COMPLETED;
 
-        processState = PathProcessState.PROCESSING;
-
+      for (Runnable runnable : this.postProcessing) {
         try {
-            final Path bestPath = this.pathSupplier.get();
-
-            if (bestPath != null) {
-
-                this.delegatedPath = bestPath;
-            }
-
-            processState = PathProcessState.COMPLETED;
-
-            for (Runnable runnable : this.postProcessing) {
-                try {
-                    runnable.run();
-                } catch (Exception e) {
-                }
-            }
+          runnable.run();
         } catch (Exception e) {
-            processState = PathProcessState.COMPLETED;
+          
         }
+      }
+    } catch (Exception e) {
+      processState = PathState.COMPLETED;
     }
+  }
 
-    private void checkProcessed() {
-        if (this.processState == PathProcessState.WAITING ||
-                this.processState == PathProcessState.PROCESSING) {
-            this.process();
-        }
+  private void checkProcessed() {
+    if (this.processState == PathState.WAITING || this.processState == PathState.PROCESSING) {
+      this.process();
     }
+  }
 
-    public Path getPath() {
-        checkProcessed();
-        return delegatedPath;
-    }
+  public Path getPath() {
+    checkProcessed();
+    return delegatedPath;
+  }
 
-    public BlockPos getTarget() {
-        checkProcessed();
-        return delegatedPath.getTarget();
-    }
+  public BlockPos getTarget() {
+    checkProcessed();
+    return delegatedPath.getTarget();
+  }
 
-    public float getDistToTarget() {
-        checkProcessed();
-        return delegatedPath.getDistToTarget();
-    }
+  public float getDistToTarget() {
+    checkProcessed();
+    return delegatedPath.getDistToTarget();
+  }
 
-    public boolean canReach() {
-        checkProcessed();
-        return delegatedPath.canReach();
-    }
+  public boolean canReach() {
+    checkProcessed();
+    return delegatedPath.canReach();
+  }
 
-    public Node getEndNode() {
-        checkProcessed();
-        return delegatedPath.getEndNode();
-    }
+  public Node getEndNode() {
+    checkProcessed();
+    return delegatedPath.getEndNode();
+  }
 
-    public Node getNode(int index) {
-        checkProcessed();
-        return delegatedPath.getNode(index);
-    }
+  public Node getNode(int index) {
+    checkProcessed();
+    return delegatedPath.getNode(index);
+  }
 
-    public int getNodeCount() {
-        checkProcessed();
-        return delegatedPath.getNodeCount();
-    }
+  public int getNodeCount() {
+    checkProcessed();
+    return delegatedPath.getNodeCount();
+  }
 
-    public int getNextNodeIndex() {
-        checkProcessed();
-        return delegatedPath.getNextNodeIndex();
-    }
+  public int getNextNodeIndex() {
+    checkProcessed();
+    return delegatedPath.getNextNodeIndex();
+  }
 
-    public Vec3 getEntityPosAtNode(net.minecraft.world.entity.Entity entity, int index) {
-        checkProcessed();
-        return delegatedPath.getEntityPosAtNode(entity, index);
-    }
+  public Vec3 getEntityPosAtNode(net.minecraft.world.entity.Entity entity, int index) {
+    checkProcessed();
+    return delegatedPath.getEntityPosAtNode(entity, index);
+  }
 
-    public boolean isDone() {
-        checkProcessed();
-        return delegatedPath.isDone();
-    }
+  public boolean isDone() {
+    checkProcessed();
+    return delegatedPath.isDone();
+  }
 
-    public void truncateNodes(int length) {
-        checkProcessed();
-        delegatedPath.truncateNodes(length);
-    }
+  public void truncateNodes(int length) {
+    checkProcessed();
+    delegatedPath.truncateNodes(length);
+  }
 
-    public void replaceNode(int index, Node node) {
-        checkProcessed();
-        delegatedPath.replaceNode(index, node);
-    }
+  public void replaceNode(int index, Node node) {
+    checkProcessed();
+    delegatedPath.replaceNode(index, node);
+  }
 
-    public void setNextNodeIndex(int index) {
-        checkProcessed();
-        delegatedPath.setNextNodeIndex(index);
-    }
+  public void setNextNodeIndex(int index) {
+    checkProcessed();
+    delegatedPath.setNextNodeIndex(index);
+  }
 
-    public void advance() {
-        checkProcessed();
-        delegatedPath.advance();
-    }
+  public void advance() {
+    checkProcessed();
+    delegatedPath.advance();
+  }
 
-    public boolean notStarted() {
-        checkProcessed();
-        return delegatedPath.notStarted();
-    }
+  public boolean notStarted() {
+    checkProcessed();
+    return delegatedPath.notStarted();
+  }
 
-    public boolean sameAs(Path other) {
-        checkProcessed();
-        return delegatedPath.sameAs(other);
-    }
+  public boolean sameAs(Path other) {
+    checkProcessed();
+    return delegatedPath.sameAs(other);
+  }
 }

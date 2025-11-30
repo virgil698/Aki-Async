@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.14-SNAPSHOT"
+version = "3.2.15-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -81,6 +81,7 @@ repositories {
         filter {
             includeGroup("com.github.angeschossen") // LandsAPI
             includeGroup("com.github.Zrips")        // Residence
+            includeGroup("com.github.rutgerkok")    // BlockLocker
         }
     }
     
@@ -135,6 +136,9 @@ dependencies {
             isTransitive = false
         }
         compileOnly("com.github.angeschossen:LandsAPI:6.28.11") {
+            isTransitive = false
+        }
+        compileOnly("com.github.rutgerkok:BlockLocker:1.13") {
             isTransitive = false
         }
         compileOnly("com.viaversion:viaversion-api:5.1.1") {

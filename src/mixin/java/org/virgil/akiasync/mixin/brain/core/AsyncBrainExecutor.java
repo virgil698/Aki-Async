@@ -31,55 +31,57 @@ public class AsyncBrainExecutor {
     public static <T> CompletableFuture<T> runSync(Callable<T> task, long timeout, TimeUnit unit) {
         totalExecutions.incrementAndGet();
         long startNanos = org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncStart();
-        final boolean debugEnabled = getDebugEnabled();
+        
         if (executorService == null || executorService.isShutdown()) {
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    T result = task.call();
-                    successCount.incrementAndGet();
-                    return result;
-                } catch (Exception e) {
-                    errorCount.incrementAndGet();
-                    throw new CompletionException(e);
-                }
-            });
+            try {
+                T result = task.call();
+                successCount.incrementAndGet();
+                org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, true, false);
+                return CompletableFuture.completedFuture(result);
+            } catch (Exception e) {
+                errorCount.incrementAndGet();
+                org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, false, false);
+                return CompletableFuture.failedFuture(e);
+            }
         }
+        
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return task.call();
+                T result = task.call();
+                successCount.incrementAndGet();
+                org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, true, false);
+                return result;
             } catch (Exception e) {
+                errorCount.incrementAndGet();
+                org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, false, false);
                 throw new CompletionException(e);
             }
         }, executorService)
         .orTimeout(timeout, unit)
-        .whenComplete((result, throwable) -> {
-            boolean success = throwable == null;
-            boolean isTimeout = throwable instanceof TimeoutException;
-            if (isTimeout) {
+        .exceptionally(throwable -> {
+            if (throwable instanceof TimeoutException || throwable.getCause() instanceof TimeoutException) {
                 timeoutCount.incrementAndGet();
-            } else if (!success) {
-                errorCount.incrementAndGet();
-            } else {
-                successCount.incrementAndGet();
+                org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, false, true);
             }
-            if (debugEnabled) {
-                long duration = System.nanoTime() - startNanos;
-            }
-            org.virgil.akiasync.mixin.metrics.AsyncMetrics.recordAsyncEnd(startNanos, success, isTimeout);
+            return null;
         });
     }
     public static <T> T getWithTimeoutOrRunSync(CompletableFuture<T> future, long timeout, TimeUnit unit, Callable<T> fallbackTask) {
         try {
-            return future.get(timeout, unit);
+            T result = future.get(timeout, unit);
+            successCount.incrementAndGet();
+            return result;
         } catch (TimeoutException e) {
             future.cancel(true);
             timeoutCount.incrementAndGet();
             try {
                 return fallbackTask != null ? fallbackTask.call() : null;
             } catch (Exception ex) {
+                errorCount.incrementAndGet();
                 return null;
             }
         } catch (Exception e) {
+            errorCount.incrementAndGet();
             return null;
         }
     }

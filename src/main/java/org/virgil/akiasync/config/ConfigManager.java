@@ -6,7 +6,7 @@ import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 14;
+    private static final int CURRENT_CONFIG_VERSION = 15;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -14,6 +14,7 @@ public class ConfigManager {
     private int threadPoolSize;
     private int updateIntervalTicks;
     private int maxQueueSize;
+    
     private boolean mobSpawningEnabled;
     private boolean spawnerOptimizationEnabled;
     private boolean densityControlEnabled;
@@ -99,6 +100,7 @@ public class ConfigManager {
     private boolean tntUseVanillaBlockDestruction;
     private boolean tntUseVanillaDrops;
     private boolean tntLandProtectionEnabled;
+    private boolean blockLockerProtectionEnabled;
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
@@ -106,6 +108,8 @@ public class ConfigManager {
     private boolean chunkTickAsyncEnabled;
     private int chunkTickThreads;
     private long chunkTickTimeoutMicros;
+    private int chunkTickAsyncBatchSize;
+    
     private boolean enableDebugLogging;
     private boolean enablePerformanceMetrics;
     private int configVersion;
@@ -176,6 +180,11 @@ public class ConfigManager {
     private boolean viewFrustumFilterEnabled;
     private boolean viewFrustumFilterEntities;
     private boolean viewFrustumFilterBlocks;
+    
+    private boolean suffocationOptimizationEnabled;
+    private boolean fastRayTraceEnabled;
+    private boolean mapRenderingOptimizationEnabled;
+    private int mapRenderingThreads;
     private boolean viewFrustumFilterParticles;
     private int highPingThreshold;
     private int criticalPingThreshold;
@@ -282,6 +291,7 @@ public class ConfigManager {
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
         maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
+        
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
         densityControlEnabled = config.getBoolean("density.enabled", true);
@@ -378,6 +388,7 @@ public class ConfigManager {
         tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
         tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", true);
+        blockLockerProtectionEnabled = config.getBoolean("tnt-explosion-optimization.blocklocker-protection.enabled", true);
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
@@ -512,6 +523,18 @@ public class ConfigManager {
         asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
 
         teleportOptimizationEnabled = config.getBoolean("network-optimization.teleport-optimization.enabled", true);
+        
+        suffocationOptimizationEnabled = config.getBoolean("suffocation-optimization.enabled", true);
+        
+        fastRayTraceEnabled = config.getBoolean("async-ai.villager-optimization.fast-raytrace.enabled", true);
+        asyncVillagerBreedEnabled = config.getBoolean("async-ai.villager-optimization.breed-optimization.async-villager-breed", true);
+        villagerAgeThrottleEnabled = config.getBoolean("async-ai.villager-optimization.breed-optimization.age-throttle", true);
+        villagerBreedThreads = config.getInt("async-ai.villager-optimization.breed-optimization.threads", 4);
+        villagerBreedCheckInterval = config.getInt("async-ai.villager-optimization.breed-optimization.check-interval", 5);
+        
+        mapRenderingOptimizationEnabled = config.getBoolean("fast-movement-chunk-load.map-rendering.enabled", false);
+        mapRenderingThreads = config.getInt("fast-movement-chunk-load.map-rendering.threads", 2);
+        
         teleportBypassQueue = config.getBoolean("network-optimization.teleport-optimization.bypass-queue", true);
         teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
         teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
@@ -599,9 +622,17 @@ public class ConfigManager {
 
         } catch (Exception e) {
             plugin.getLogger().severe("Error during config backup and regeneration: " + e.getMessage());
-            e.printStackTrace();
+            if (plugin.getConfig().getBoolean("performance.debug-logging", false)) {
+                plugin.getLogger().severe("Stack trace: " + getStackTraceAsString(e));
+            }
             return false;
         }
+    }
+    
+    private String getStackTraceAsString(Throwable throwable) {
+        java.io.StringWriter sw = new java.io.StringWriter();
+        throwable.printStackTrace(new java.io.PrintWriter(sw));
+        return sw.toString();
     }
 
     private void reloadConfigWithoutValidation() {
@@ -612,6 +643,7 @@ public class ConfigManager {
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
         maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
+        
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
         densityControlEnabled = config.getBoolean("density.enabled", true);
@@ -713,14 +745,10 @@ public class ConfigManager {
 
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
 
-        asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
-        villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
-        villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
-        villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
-
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
+        chunkTickAsyncBatchSize = config.getInt("chunk-tick-async.batch-size", 16);
 
         structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
         structureLocationThreads = config.getInt("structure-location-async.threads", 3);
@@ -1049,9 +1077,11 @@ public class ConfigManager {
     public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
     public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
     public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
+    public boolean isBlockLockerProtectionEnabled() { return blockLockerProtectionEnabled; }
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
     public int getChunkTickThreads() { return chunkTickThreads; }
     public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
+    public int getChunkTickAsyncBatchSize() { return chunkTickAsyncBatchSize; }
 
     public int getConfigVersion() {
         return configVersion;
@@ -1139,6 +1169,11 @@ public class ConfigManager {
     public boolean isViewFrustumFilterEntities() { return viewFrustumFilterEntities; }
     public boolean isViewFrustumFilterBlocks() { return viewFrustumFilterBlocks; }
     public boolean isViewFrustumFilterParticles() { return viewFrustumFilterParticles; }
+    
+    public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
+    public boolean isFastRayTraceEnabled() { return fastRayTraceEnabled; }
+    public boolean isMapRenderingOptimizationEnabled() { return mapRenderingOptimizationEnabled; }
+    public int getMapRenderingThreads() { return mapRenderingThreads; }
     public int getHighPingThreshold() { return highPingThreshold; }
     public int getCriticalPingThreshold() { return criticalPingThreshold; }
     public long getHighBandwidthThreshold() { return highBandwidthThreshold; }

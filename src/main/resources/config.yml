@@ -3,7 +3,7 @@
 # ==========================================
 
 # 配置版本 / Configuration version (需要更新时会自动提示 / Auto-prompt when update needed)
-version: 14
+version: 15
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -31,6 +31,43 @@ brain:
   throttle: true  # 启用AI降频 / Enable brain throttling
   throttle-interval: 10  # 降频间隔(tick)，静止实体每N tick更新一次 / Throttle interval in ticks, stationary mobs update every N ticks
 
+# 窒息优化 / Suffocation Optimization (仅在实体能受伤时检测窒息 / Only check when entity can take damage)
+suffocation-optimization:
+  enabled: true  # 启用窒息优化 / Enable suffocation optimization
+
+# 虚拟实体兼容性 / Virtual Entity Compatibility (第三方虚拟/发包实体插件)
+# Warning: 禁用后虚拟实体插件可能无法显示 / May break virtual entity plugins when disabled
+virtual-entity-compatibility:
+  enabled: true
+  bypass-packet-queue: true  # 虚拟实体包绕过队列直发 / Bypass queue for virtual entity packets
+  exclude-from-throttling: true  # 从节流排除 / Exclude from throttling
+  
+  plugins:
+    fancynpcs:
+      enabled: true  # FancyNpcs NPC识别为虚拟实体 / Identify as virtual entities
+      use-api: true
+      priority: 90
+    
+    znpcsplus:
+      enabled: true  # ZNPCsPlus NPC识别为虚拟实体 / Identify as virtual entities
+      use-api: false  # 主要通过名称前缀检测 / Primarily name prefix detection
+      priority: 90
+
+# 并行实体Tick / Parallel Entity Tick
+entity-tick-parallel:
+  enabled: true
+  threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  min-entities: 50  # 低于此值不启用并行 / Skip parallel below threshold
+  batch-size: 8  # 8个实体一批 / 8 entities per batch
+
+# 实体节流 / Entity Throttling
+entity-throttling:
+  enabled: false
+  config-file: "throttling.yml"
+  check-interval: 100  # 每N tick检查一次 / Check every N ticks
+  throttle-interval: 3  # 超限后每N tick更新 / Update every N ticks when exceeded
+  removal-batch-size: 10  # 每次最多移除N个 / Remove at most N per check
+
 # ==========================================
 # 零延迟异步AI / Zero-Latency Async AI
 # ==========================================
@@ -41,6 +78,18 @@ async-ai:
   villager-optimization:
     enabled: false
     use-poi-snapshot: true  # 村民需要POI系统(床/工作站) / Needs POI (beds/job sites)
+    
+    # 快速射线追踪 / Fast Raytrace (优化村民视线检测 / Optimize villager line-of-sight)
+    fast-raytrace:
+      enabled: true  # 启用后村民AI性能提升15-20% / 15-20% villager AI boost when enabled
+      cache-size: 256  # 缓存大小 / Cache size
+    
+    # 繁殖优化 / Breed Optimization (异步繁殖逻辑 / Async breeding logic)
+    breed-optimization:
+      async-villager-breed: true  # 异步处理村民繁殖 / Async villager breeding
+      threads: 4  # 繁殖线程数 / Breeding threads
+      age-throttle: true  # 跳过空闲村民20 ticks / Skip idle villagers for 20 ticks
+      check-interval: 5  # 检查间隔 / Check interval
   
   # 猪灵家族优化 / Piglin Family Optimization (支持Piglin, PiglinBrute / UUID虚拟引用+物品比价+恐惧向量)
   piglin-optimization:
@@ -90,44 +139,20 @@ async-ai:
       max-tick-interval: 20  # 最远实体的最大间隔 / Max interval for farthest
 
 # ==========================================
-# 并行实体Tick / Parallel Entity Tick
-# ==========================================
-entity-tick-parallel:
-  enabled: true
-  threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
-  min-entities: 50  # 低于此值不启用并行 / Skip parallel below threshold
-  batch-size: 8  # 8个实体一批 / 8 entities per batch
-
-# ==========================================
-# 实体节流 / Entity Throttling
-# ==========================================
-entity-throttling:
-  enabled: false
-  config-file: "throttling.yml"
-  check-interval: 100  # 每N tick检查一次 / Check every N ticks
-  throttle-interval: 3  # 超限后每N tick更新 / Update every N ticks when exceeded
-  removal-batch-size: 10  # 每次最多移除N个 / Remove at most N per check
-
-# ==========================================
-# 村民繁殖优化 / Villager Breed Optimization
-# ==========================================
-villager-breed-optimization:
-  async-villager-breed: true
-  threads: 4
-  age-throttle: true  # 跳过空闲村民20 ticks / Skip idle villagers for 20 ticks
-  check-interval: 5
-
-# ==========================================
 # VMP优化套件 / VMP Optimizations
 # ==========================================
 vmp-optimizations:
+  # 区块加载优化 - 限制每玩家并发加载数，防止大量玩家同时传送导致卡顿
+  # Chunk loading optimization - Limits concurrent loads per player to prevent lag from mass teleports
   chunk-loading:
     enabled: true
-    max-concurrent-per-player: 5  # 每玩家最大并发区块加载 / Max concurrent chunk loads per player
+    max-concurrent-per-player: 5  # 每玩家最大并发区块加载，降低可减少卡顿但加载更慢 / Max concurrent chunk loads per player, lower = less lag but slower loading
   
+  # 实体追踪优化 - 减少实体追踪范围以降低网络和CPU开销
+  # Entity tracking optimization - Reduces tracking range to lower network and CPU overhead
   entity-tracking:
     enabled: true
-    range-multiplier: 0.8  # 实体追踪范围倍数 / Entity tracking range multiplier
+    range-multiplier: 0.8  # 实体追踪范围倍数(0.8=原版80%)，降低可提升性能但玩家看到实体更晚 / Entity tracking range multiplier (0.8=80% of vanilla), lower = better performance but entities appear later
 
 # ==========================================
 # 红石优化套件 / Redstone Optimizations
@@ -146,24 +171,6 @@ redstone-optimizations:
   cache:
     enabled: true  # 红石缓存 / Redstone cache
     duration-ms: 50  # 缓存持续时间ms / Cache duration
-
-# ==========================================
-# 性能优化套件 / Performance Optimizations
-# ==========================================
-servercore-optimizations:
-  # 矿车炼药锅销毁 / Minecart Cauldron (支持漏斗/箱子矿车 / Hopper/Chest minecarts)
-  minecart-cauldron-destruction:
-    enabled: true
-
-# ==========================================
-# 下落方块并行处理 / Falling Block Parallel (刷沙机优化30-50% / Sand dupers 30-50% boost)
-# Note: 保持原版行为 / Maintains vanilla behavior, Folia下自动禁用 / Aud in Folia
-# ==========================================
-falling-block-optimization:
-  enabled: true
-  min-falling-blocks: 20  # 推荐20-50 / Recommendand dupers, gravity blocks and massive falling block scenarios
-  # 优化效果 / Performance gain:ed: 20-50
-  batch-size: 10  # 推荐10-20 / Recommended: 10-20
 
 # ==========================================
 # 掉落物优化 / Item Entity Optimizations
@@ -189,48 +196,6 @@ item-entity-optimizations:
     player-detection-range: 8.0  # 推荐8.0-16.0 / Recommended: 8.0-16.0
 
 # ==========================================
-# 虚拟实体兼容性 / Virtual Entity Compatibility (第三方虚拟/发包实体插件)
-# Warning: 禁用后虚拟实体插件可能无法显示 / May break virtual entity plugins when disabled
-# ==========================================
-virtual-entity-compatibility:
-  enabled: true
-  bypass-packet-queue: true  # 虚拟实体包绕过队列直发 / Bypass queue for virtual entity packets
-  exclude-from-throttling: true  # 从节流排除 / Exclude from throttling
-  
-  plugins:
-    fancynpcs:
-      enabled: true  # FancyNpcs NPC识别为虚拟实体 / Identify as virtual entities
-      use-api: true
-      priority: 90
-    
-    znpcsplus:
-      enabled: true  # ZNPCsPlus NPC识别为虚拟实体 / Identify as virtual entities
-      use-api: false  # 主要通过名称前缀检测 / Primarily name prefix detection
-      priority: 90
-
-# ==========================================
-# 蜜蜂修复 / Bee Fix (修复7个MC bug / Fixes 7 MC bugs)
-# MC-168329/190042/206401/229321/234364/248332/255743
-# ==========================================
-bee-fix:
-  enabled: true
-
-# ==========================================
-# TNT爆炸优化 / TNT Explosion Optimization (异步计算 / Async calculation)
-# ==========================================
-tnt-explosion-optimization:
-  enabled: true
-  entities:  # 白名单实体 / Whitelisted entities
-    - "minecraft:tnt"
-    - "minecraft:tnt_minecart"
-    - "minecraft:wither_skull"
-  threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
-  
-  # 领地保护集成 / Land Protection (支持Residence/Dominion/WorldGuard/Lands)
-  land-protection:
-    enabled: true  # 需要安装对应插件 / Requires protection plugin installed
-
-# ==========================================
 # 方块实体优化 / Block Entity Optimizations
 # ==========================================
 block-entity-optimizations:
@@ -248,7 +213,7 @@ block-entity-optimizations:
     timeout-ms: 50  # 超时降级同步 / Fallback to sync on timeout
 
 recipe-optimization:
-  # FastFurnace熔炉配方缓存 / FastFurnace (大型模组包TPS提升30-50% / 30-50% TPS boost in modpacks)
+  # FastFurnace熔炉配方缓存 / FastFurnace (自定义配方多时提升明显 / Significant boost with custom recipes)
   furnace-recipe-cache:
     enabled: true  # 缓存熔炉配方避免重复查找 / Cache furnace recipes to avoid repeated lookups
     cache-size: 100  # 每个熔炉缓存数 / Cached recipes per furnace
@@ -257,12 +222,41 @@ recipe-optimization:
     fix-burn-time-bug: true  # 修复>32767燃烧时间bug / Fix >32767 burn time bug
   
   # FastWorkbench工作台缓存 / FastWorkbench (实验性 / Experimental)
-  # Warning: 实验性功能，可能不兼容某些模组 / May be incompatible with some mods
+  # Warning: 实验性功能，可能不兼容某些插件 / May be incompatible with some plugins
   crafting-recipe-cache:
-    enabled: false  # 默认关闭，可能与某些模组冲突 / Disabled by default, may conflict with mods
+    enabled: false  # 默认关闭，可能与某些插件冲突 / Disabled by default, may conflict with plugins
     cache-size: 200  # 工作台配方缓存大小 / Crafting recipe cache size
     optimize-batch-crafting: true  # Shift+点击优化O(i×s)→1 / Shift+click O(i×s)→1
     reduce-network-traffic: true  # 减少配方同步网络流量 / Reduce recipe sync network traffic
+
+servercore-optimizations:
+  # 矿车炼药锅销毁 / Minecart Cauldron (支持漏斗/箱子矿车 / Hopper/Chest minecarts)
+  minecart-cauldron-destruction:
+    enabled: true
+
+# TNT爆炸优化 / TNT Explosion Optimization (异步计算 / Async calculation)
+tnt-explosion-optimization:
+  enabled: true
+  entities:  # 白名单实体 / Whitelisted entities
+    - "minecraft:tnt"
+    - "minecraft:tnt_minecart"
+    - "minecraft:wither_skull"
+  threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  
+  # 领地保护集成 / Land Protection (支持Residence/Dominion/WorldGuard/Lands)
+  land-protection:
+    enabled: true  # 需要安装对应插件 / Requires protection plugin installed
+  
+  # BlockLocker容器保护 / BlockLocker Container Protection
+  blocklocker-protection:
+    enabled: true  # 保护被BlockLocker锁定的容器 / Protect containers locked by BlockLocker
+
+# 下落方块并行处理 / Falling Block Parallel
+falling-block-optimization:
+  enabled: true
+  min-falling-blocks: 20  # 推荐20-50 / Recommendand dupers, gravity blocks and massive falling block scenarios
+  # 优化效果 / Performance gain:ed: 20-50
+  batch-size: 10  # 推荐10-20 / Recommended: 10-20
 
 # ==========================================
 # 光照优化套件 / Lighting Optimizations
@@ -291,15 +285,17 @@ lighting-optimizations:
     log-advanced-stats: false  # 记录详细统计信息(调试用) / Log detailed stats (for debugging)
 
 # ==========================================
-# 区块Tick异步化 / Chunk Tick Async (超时回退保证TPS / Timeout fallback ensures TPS)
+# 区块优化 / Chunk Optimization
 # ==========================================
+# Folia环境下自动禁用 / Auto-disabled on Folia
 chunk-tick-async:
-  enabled: false  # 方块tick异步化(作物/红石等) / Block tick async (crops/redstone etc.), 可能冲突红石机器 / May conflict with redstone
-  threads: 4  # 推荐CPU核心数1/4-1/2 / Recommended: 1/4-1/2 CPU cores
-  timeout-us: 200  # 超时强制中断防卡顿 / Force interrupt on timeout to prevent lag
+  enabled: false  # 方块Tick异步化 / Block tick async
+  threads: 4  # 线程数 / Thread count
+  timeout-us: 200  # 超时(微秒) / Timeout in microseconds
+  batch-size: 16  # 批量大小 / Batch size
 
 # ==========================================
-# 结构查找异步化 / Structure Location Async (CPU密集 / CPU intensive)
+# 结构查找异步化 / Structure Location Async
 # ==========================================
 # 结构定位异步优化 / Structure Location Async Optimization
 # 异步处理结构查找操作，避免主线程阻塞 / Async structure finding to prevent main thread blocking
@@ -351,8 +347,14 @@ structure-location-async:
       enabled: true  # 基于生物群系智能搜索 / Biome-aware intelligent search
 
 # ==========================================
-# 数据包加载优化 / DataPack Loading Optimization
+# 高级特性与实验性优化 / Advanced Features & Experimental Optimizations
 # ==========================================
+# 蜜蜂修复 / Bee Fix (修复7个MC bug / Fixes 7 MC bugs)
+# MC-168329/190042/206401/229321/234364/248332/255743
+bee-fix:
+  enabled: true
+
+# 数据包加载优化 / DataPack Loading Optimization
 datapack-optimization:
   enabled: true
   file-load-threads: 4  # 推荐4-8根据CPU / Recommended: 4-8 by CPU
@@ -361,9 +363,7 @@ datapack-optimization:
   cache-expiration-minutes: 30
   debug-enabled: false
 
-# ==========================================
 # 高级并发优化 / Advanced Concurrency Optimizations (Nitori-style)
-# ==========================================
 nitori:
   enabled: true  # 总开关 / Master switch
   virtual-threads: true  # Java 21+ Virtual Thread / Auto-fallback on older Java
@@ -371,13 +371,11 @@ nitori:
   blockpos-cache: true  # 预计算减少开销 / Pre-compute to reduce overhead
   optimized-collections: true  # 高性能集合类 / High-performance collections
 
-# ==========================================
 # 安全种子保护 / Secure Seed Protection (1024位加密防破解 / 1024-bit encryption)
 # ⚠️ 重要 / IMPORTANT: 启用后不可关闭 / DO NOT disable after enabling
 # 关闭会导致: 区块错乱/结构消失/矿石改变/史莱姆区块变化
 # Disabling causes: Chunk mismatch/Structure loss/Ore changes/Slime chunk changes
 # 如需关闭必须删除世界 / Must delete world to disable
-# ==========================================
 secure-seed:
   enabled: false
   protect-structures: true  # 村庄/要塞/遗迹 / Villages/Strongholds/Monuments
@@ -386,7 +384,7 @@ secure-seed:
   seed-bits: 1024  # 1024/2048/4096, 推荐1024平衡性能 / Recommended 1024 for balance
 
 # ==========================================
-# 网络优化 / Network Optimization (智能包优先级+区块速率控制)
+# 网络优化 / Network Optimization
 # 支持场景: PVP/PVE/农场/刷沙机/高密度区块/鞘翅飞行
 # Scenarios: PVP/PVE/Farms/Sand Dupers/High-density/Elytra
 # ==========================================
@@ -455,10 +453,7 @@ network-optimization:
     filter-blocks: true # 过滤视野外方块更新包 / Filter block update packets outside view
     filter-particles: true # 过滤视野外粒子效果包 / Filter particle packets outside view
 
-# ==========================================
 # 高速移动区块预加载 / Fast Movement Chunk Loading (鞘翅/疾跑/创造飞行)
-# 特性: 自动检测烟花鞘翅超高速，动态调整所有参数 / Auto-detects firework elytra, dynamic params
-# ==========================================
 fast-movement-chunk-load:
   enabled: true
   speed-threshold: 0.5  # 触发速度b/t / Trigger speed (0.5≈10b/s, 推荐0.5/0.3/0.8)
@@ -480,6 +475,11 @@ fast-movement-chunk-load:
   async-loading:
     batch-size: 2  # 每批区块数 / Chunks per batch (2/3/4: 保守/平衡/激进)
     batch-delay-ms: 20  # 批次延迟ms / Batch delay (20/15/10)
+  
+  # 地图渲染加速 / Map Rendering (高速移动时优化地图渲染 / Optimize map rendering during fast movement)
+  map-rendering:
+    enabled: false  # 实验性功能 / Experimental feature
+    threads: 2  # 渲染线程数 / Rendering threads
 
 # ==========================================
 # 性能监控 / Performance Monitoring

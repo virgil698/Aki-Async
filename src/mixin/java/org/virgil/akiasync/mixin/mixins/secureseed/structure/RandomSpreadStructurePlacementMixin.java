@@ -32,7 +32,7 @@ public abstract class RandomSpreadStructurePlacementMixin {
 
         WorldgenCryptoRandom random = new WorldgenCryptoRandom(
             x, z,
-            Globals.Salt.POTENTIONAL_FEATURE,
+            Globals.Salt.POTENTIAL_FEATURE,
             seed
         );
 

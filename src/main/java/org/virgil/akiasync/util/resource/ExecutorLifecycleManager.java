@@ -45,6 +45,37 @@ public final class ExecutorLifecycleManager {
         );
     }
 
+    @Nonnull
+    public static ForkJoinPool createForkJoinPool(
+            @Nonnull String name,
+            int parallelism,
+            boolean asyncMode) {
+        
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be null or empty");
+        }
+        if (parallelism <= 0) {
+            throw new IllegalArgumentException("Parallelism must be positive");
+        }
+
+        ForkJoinPool.ForkJoinWorkerThreadFactory factory = pool -> {
+            ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+            thread.setName(name + "-ForkJoin-" + thread.getPoolIndex());
+            thread.setDaemon(true);
+            return thread;
+        };
+
+        return new ForkJoinPool(
+            parallelism,
+            factory,
+            (thread, throwable) -> {
+                System.err.println("[" + name + "] Uncaught exception in thread " + thread.getName());
+                throwable.printStackTrace();
+            },
+            asyncMode
+        );
+    }
+
     public static boolean shutdownGracefully(
             @Nonnull ExecutorService executor, 
             long timeout, 
@@ -87,6 +118,18 @@ public final class ExecutorLifecycleManager {
 
             boolean healthy = !tpe.isShutdown() && !tpe.isTerminated();
             String message = healthy ? "Healthy" : "Unhealthy";
+
+            return new HealthStatus(healthy, message, poolSize, activeCount, queueSize);
+        }
+
+        if (executor instanceof ForkJoinPool) {
+            ForkJoinPool fjp = (ForkJoinPool) executor;
+            int poolSize = fjp.getPoolSize();
+            int activeCount = fjp.getActiveThreadCount();
+            int queueSize = fjp.getQueuedSubmissionCount();
+
+            boolean healthy = !fjp.isShutdown() && !fjp.isTerminated();
+            String message = healthy ? "Healthy (ForkJoinPool)" : "Unhealthy (ForkJoinPool)";
 
             return new HealthStatus(healthy, message, poolSize, activeCount, queueSize);
         }

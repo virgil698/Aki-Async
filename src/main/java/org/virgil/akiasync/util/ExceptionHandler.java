@@ -94,10 +94,17 @@ public final class ExceptionHandler {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             bridge.errorLog(AkiAsyncConstants.Logging.ERROR_PREFIX + " " + message);
+            if (throwable != null && bridge.isDebugLoggingEnabled()) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                throwable.printStackTrace(new java.io.PrintWriter(sw));
+                bridge.debugLog("Stack trace: " + sw.toString());
+            }
         } else {
             System.err.println(AkiAsyncConstants.Logging.ERROR_PREFIX + " " + message);
             if (throwable != null) {
-                throwable.printStackTrace();
+                java.io.StringWriter sw = new java.io.StringWriter();
+                throwable.printStackTrace(new java.io.PrintWriter(sw));
+                System.err.println("Stack trace: " + sw.toString());
             }
         }
     }

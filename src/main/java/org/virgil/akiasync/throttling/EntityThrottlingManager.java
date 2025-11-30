@@ -125,7 +125,9 @@ public class EntityThrottlingManager {
                                 e.getClass().getSimpleName() + ": " + e.getMessage() + 
                                 " (checkInterval=" + checkInterval + "ticks)");
                             if (plugin.getConfig().getBoolean("debug", false)) {
-                                e.printStackTrace();
+                                java.io.StringWriter sw = new java.io.StringWriter();
+                                e.printStackTrace(new java.io.PrintWriter(sw));
+                                plugin.getLogger().warning("Stack trace: " + sw.toString());
                             }
                         }
                     },

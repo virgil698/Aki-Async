@@ -66,7 +66,7 @@ public class RegionizedPlayerChunkLoaderMixin {
 
             switch (congestionLevel) {
                 case 0:
-
+                    
                     if (isFastMoving) {
                         adjustedRate = Math.min(adjustedRate * 1.5, 25.0);
                     } else {
@@ -74,36 +74,36 @@ public class RegionizedPlayerChunkLoaderMixin {
                     }
                     break;
                 case 1:
-
+                    
                     if (isFastMoving) {
                         adjustedRate = Math.min(adjustedRate * 1.2, 20.0);
                     }
-
                     break;
                 case 2:
-
+                    
                     if (isFastMoving) {
-
-                        adjustedRate = adjustedRate * 0.9;
+                        adjustedRate = adjustedRate * 0.95;  
                     } else {
-                        adjustedRate = adjustedRate * 0.8;
+                        adjustedRate = adjustedRate * 0.85;  
                     }
                     break;
                 case 3:
-
+                    
                     if (isFastMoving) {
-
-                        adjustedRate = adjustedRate * 0.7;
+                        adjustedRate = adjustedRate * 0.85;  
                     } else {
-                        adjustedRate = adjustedRate * 0.6;
+                        adjustedRate = adjustedRate * 0.7;   
                     }
                     break;
                 case 4:
-
-                    adjustedRate = adjustedRate * 0.5;
+                    
+                    if (isFastMoving) {
+                        adjustedRate = adjustedRate * 0.7;   
+                    } else {
+                        adjustedRate = adjustedRate * 0.5;
+                    }
                     break;
                 default:
-
                     break;
             }
 

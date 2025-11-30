@@ -445,6 +445,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public long getChunkTickTimeoutMicros() {return config.getChunkTickTimeoutMicros();}
+    
+    @Override
+    public int getChunkTickAsyncBatchSize() {return config.getChunkTickAsyncBatchSize();}
 
     @Override
     public boolean isStructureLocationAsyncEnabled() {return config.isStructureLocationAsyncEnabled();}
@@ -900,6 +903,19 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             return true;
         }
         return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(level, pos);
+    }
+    
+    @Override
+    public boolean isBlockLockerProtectionEnabled() {
+        return config != null && config.isBlockLockerProtectionEnabled();
+    }
+    
+    @Override
+    public boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        if (!isBlockLockerProtectionEnabled()) {
+            return false;
+        }
+        return org.virgil.akiasync.util.BlockLockerIntegration.isProtected(level, pos, state);
     }
 
     @Override
@@ -1636,6 +1652,44 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         } catch (Exception e) {
             
             return false;
+        }
+    }
+    
+    @Override
+    public boolean isSuffocationOptimizationEnabled() {
+        return config != null && config.isSuffocationOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isFastRayTraceEnabled() {
+        return config != null && config.isFastRayTraceEnabled();
+    }
+    
+    @Override
+    public boolean isMapRenderingOptimizationEnabled() {
+        return config != null && config.isMapRenderingOptimizationEnabled();
+    }
+    
+    @Override
+    public int getMapRenderingThreads() {
+        return config != null ? config.getMapRenderingThreads() : 2;
+    }
+    
+    @Override
+    public void runOnMainThread(Runnable task) {
+        if (task == null) return;
+        
+        try {
+            
+            org.virgil.akiasync.compat.FoliaSchedulerAdapter.runTask(plugin, task);
+        } catch (Exception e) {
+            plugin.getLogger().warning("[AkiAsync] Failed to run task on main thread: " + e.getMessage());
+            
+            try {
+                task.run();
+            } catch (Exception ex) {
+                
+            }
         }
     }
 }
