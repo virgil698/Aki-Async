@@ -39,36 +39,36 @@ async-ai:
   
   # 村民优化 / Villager Optimization (支持Villager, Wandering Trader / POI快照+职业原子占坑)
   villager-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: true  # 村民需要POI系统(床/工作站) / Needs POI (beds/job sites)
   
   # 猪灵家族优化 / Piglin Family Optimization (支持Piglin, PiglinBrute / UUID虚拟引用+物品比价+恐惧向量)
   piglin-optimization:
-    enabled: false  # 启用猪灵AI优化 / Enable piglin AI optimization
+    enabled: true  # 启用猪灵AI优化 / Enable piglin AI optimization
     use-poi-snapshot: false  # 使用POI快照避免主线程查询 / Use POI snapshot to avoid main thread queries
     look-distance: 16  # 猪灵寻找目标的最大距离 / Maximum distance for piglin to look for targets
     barter-distance: 16  # 猪灵物品交易的最大距离 / Maximum distance for piglin bartering
   
   # 掠夺者家族优化 / Pillager Family Optimization (支持Pillager, Vindicator, Ravager / 安全反射+Raid检测)
   pillager-family-optimization:
-    enabled: false  # 启用掠夺者AI优化 / Enable pillager AI optimization
+    enabled: true  # 启用掠夺者AI优化 / Enable pillager AI optimization
     use-poi-snapshot: false  # 使用POI快照避免主线程查询 / Use POI snapshot to avoid main thread queries
   
   # 唤魔者优化 / Evoker Optimization (法术CD+召唤Vex+空地块检测)
   evoker-optimization:
-    enabled: false
+    enabled: true
   
   # 烈焰人优化 / Blaze Optimization (火焰弹CD+火柱空位检测)
   blaze-optimization:
-    enabled: false
+    enabled: true
   
   # 守卫者优化 / Guardian Optimization (激光CD+水下玩家扫描)
   guardian-optimization:
-    enabled: false
+    enabled: true
   
   # 女巫优化 / Witch Optimization (最近玩家目标筛选+安全异常处理)
   witch-optimization:
-    enabled: false
+    enabled: true
   
   # 异步寻路 / Async Pathfinding (Pufferfish技术: A*算法异步化 / A* algorithm offload)
   async-pathfinding:
@@ -171,13 +171,13 @@ falling-block-optimization:
 item-entity-optimizations:
   # 并行处理 / Parallel (刷怪塔40-60%/农场30-50%/爆炸50-70% / Mob farms/Auto farms/Explosions)
   parallel-processing:
-    enabled: true
+    enabled: false #这里为什么改为关闭？不够稳定 可能会导致一些刷机产量急剧下降
     min-item-entities: 50  # 推荐50-100 / Recommended: 50-100
     batch-size: 20  # 推荐20-40 / Recommended: 20-40
   
   # 智能合并 / Smart Merge (减少60-80%检查/降低2-4ms MSPT / 60-80% less checks/2-4ms MSPT)
   smart-merge:
-    enabled: true
+    enabled: false #这里为什么改为关闭？不够稳定 可能会导致一些刷机产量急剧下降
     merge-interval: 5  # 推荐5-10 / Recommended: 5-10
     min-nearby-items: 3  # 推荐3-5 / Recommended: 3-5
     merge-range: 1.5  # 推荐1.5-2.5 / Recommended: 1.5-2.5
@@ -219,16 +219,16 @@ bee-fix:
 # TNT爆炸优化 / TNT Explosion Optimization (异步计算 / Async calculation)
 # ==========================================
 tnt-explosion-optimization:
-  enabled: true
+  enabled: false #这里为什么改为关闭？不够稳定 TNT爆炸异步不推荐开启！
   entities:  # 白名单实体 / Whitelisted entities
     - "minecraft:tnt"
     - "minecraft:tnt_minecart"
     - "minecraft:wither_skull"
   threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
   
-  # 领地保护集成 / Land Protection (支持Residence/Dominion/WorldGuard/Lands)
+  # 领地保护集成 / Land Protection (支持Residence/Dominion/SimpleClaimSystem/WorldGuard/Lands)
   land-protection:
-    enabled: true  # 需要安装对应插件 / Requires protection plugin installed
+    enabled: true  # 需要安装对应插件
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -303,6 +303,7 @@ chunk-tick-async:
 # ==========================================
 # 结构定位异步优化 / Structure Location Async Optimization
 # 异步处理结构查找操作，避免主线程阻塞 / Async structure finding to prevent main thread blocking
+#注 数据包结构定位等不支持
 structure-location-async:
   enabled: true
   threads: 3  # 推荐2-4，根据CPU核心数调整 / Recommended: 2-4, adjust based on CPU cores
@@ -378,6 +379,7 @@ nitori:
 # Disabling causes: Chunk mismatch/Structure loss/Ore changes/Slime chunk changes
 # 如需关闭必须删除世界 / Must delete world to disable
 # ==========================================
+# 实验性功能！！！！ 如果加了修改矿物生成的数据包 protect-ores请改为false
 secure-seed:
   enabled: false
   protect-structures: true  # 村庄/要塞/遗迹 / Villages/Strongholds/Monuments
@@ -391,7 +393,7 @@ secure-seed:
 # Scenarios: PVP/PVE/Farms/Sand Dupers/High-density/Elytra
 # ==========================================
 network-optimization:
-  enabled: true
+  enabled: true #效果不太明显 但是有点用
   
   # 数据包优先级 / Packet Priority (自动分配改善弱网体验 / Auto-assign for poor network)
   # 优先级: CRITICAL(移动/战斗) HIGH(实体/方块) NORMAL(区块/容器) LOW(粒子/音效)
@@ -486,11 +488,12 @@ fast-movement-chunk-load:
 # ==========================================
 performance:
   debug-logging: false  # 统一调试日志 / Unified debug (Warning: 会刷屏 / Console spam!)
-  enable-metrics: true  # 性能指标收集 / Metrics (显示异步任务时间和队列 / Show async times and queues)
+  enable-metrics: false  # 性能指标收集 / Metrics (显示异步任务时间和队列 / Show async times and queues)
 
 # ==========================================
 # 指令配置 / Command Configuration
 # ==========================================
+# 任何时候都不要使用reload功能！！！！！ 当初提这个功能是个错误的决定！
 commands:
   reload:  # /aki-reload指令 / /aki-reload command
     require-confirmation: true  # 二次确认 / Confirmation (首次警告需再次执行 / Warning on first, execute twice)

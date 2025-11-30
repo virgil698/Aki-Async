@@ -14,14 +14,14 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.14-SNAPSHOT"
+version = "3.2.14-1-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
     // INFO: name and version defaults to project name and version
     name = "AkiAsync"
     main = "org.virgil.akiasync.AkiAsyncPlugin"
-    authors.addAll(listOf("virgil698", "AnkiSama"))
+    authors.addAll(listOf("virgil698", "AnkiSama", "XingZi_Nina"))
     description = "Async optimizations for Leaves server - Entity Tracker & More"
     // TODO: support or not is decided by you
     foliaSupported = true
