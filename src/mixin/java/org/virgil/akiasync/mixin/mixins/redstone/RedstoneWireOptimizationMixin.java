@@ -7,22 +7,14 @@ import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.Orientation;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 @Mixin(RedStoneWireBlock.class)
 public class RedstoneWireOptimizationMixin {
-    
-    @Unique
-    private static final Map<ServerLevel, PandaWireEvaluator> aki$evaluatorCache = new ConcurrentHashMap<>();
-
     
     @Inject(method = "updatePowerStrength", at = @At("HEAD"), cancellable = true)
     private void aki$usePandaWire(Level level, BlockPos pos, BlockState state, 
@@ -40,9 +32,9 @@ public class RedstoneWireOptimizationMixin {
         }
 
 
-        PandaWireEvaluator evaluator = aki$evaluatorCache.computeIfAbsent(
+        PandaWireEvaluator evaluator = org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getOrCreateEvaluator(
             serverLevel, 
-            l -> new PandaWireEvaluator(l, (RedStoneWireBlock)(Object)this)
+            (RedStoneWireBlock)(Object)this
         );
         
 
@@ -53,23 +45,5 @@ public class RedstoneWireOptimizationMixin {
         }
 
         ci.cancel();
-    }
-    
-    
-    @Unique
-    public static void aki$clearCache(ServerLevel level) {
-        aki$evaluatorCache.remove(level);
-    }
-    
-    
-    @Unique
-    public static void clearAllCaches() {
-        aki$evaluatorCache.clear();
-    }
-    
-    
-    @Unique
-    public static int getEvaluatorCount() {
-        return aki$evaluatorCache.size();
     }
 }

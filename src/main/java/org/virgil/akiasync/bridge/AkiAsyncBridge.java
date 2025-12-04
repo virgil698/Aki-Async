@@ -1017,7 +1017,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public void clearSakuraOptimizationCaches() {
         try {
             org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearAllCaches();
-            org.virgil.akiasync.mixin.mixins.redstone.RedstoneWireOptimizationMixin.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.clearAllCaches();
             org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.shutdown();
             org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearAllCaches();
             org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.shutdown();
@@ -1063,7 +1063,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             
 
             stats.put("pandawire_evaluators", 
-                org.virgil.akiasync.mixin.mixins.redstone.RedstoneWireOptimizationMixin.getEvaluatorCount());
+                org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount());
             
 
             java.util.Map<String, String> networkStats = new java.util.HashMap<>();
