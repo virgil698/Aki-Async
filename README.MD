@@ -422,6 +422,7 @@ This project references the following excellent open source projects:
 | [Pufferfish](https://github.com/pufferfish-gg/Pufferfish) | Async design reference and compatibility evaluation |
 | [Akarin](https://github.com/Akarin-project/Akarin) | Async design reference and compatibility evaluation |
 | [tt20](https://github.com/snackbag/tt20) | Async design reference and compatibility evaluation |
+| [Sakura](https://github.com/Samsuik/Sakura) | TNT explosion optimization reference |
 
 > **Note**: The above projects are used for Aki-Async design reference and compatibility evaluation. They are for reference only and their code is not directly packaged or reused.
 

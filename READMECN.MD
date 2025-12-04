@@ -422,6 +422,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 | [Pufferfish](https://github.com/pufferfish-gg/Pufferfish) | 异步设计取经与兼容评估 |
 | [Akarin](https://github.com/Akarin-project/Akarin) | 异步设计取经与兼容评估 |
 | [tt20](https://github.com/snackbag/tt20) | 异步设计取经与兼容评估 |
+| [Sakura](https://github.com/Samsuik/Sakura) | TNT爆炸优化参考 |
 
 > **注意**：以上项目用于 Aki-Async 设计取经与兼容评估。仅作参考，不直接打包或复用其代码。
 
