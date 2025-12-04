@@ -17,12 +17,19 @@ public class ExplosionSnapshot {
     private final Vec3 center;
     private final float power;
     private final boolean fire;
+    private final boolean inFluid;
     private final ServerLevel level;
     public ExplosionSnapshot(ServerLevel level, Vec3 center, float power, boolean fire) {
         this.level = level;
         this.center = center;
         this.power = power;
         this.fire = fire;
+        
+
+        BlockPos centerPos = BlockPos.containing(center);
+        BlockState centerState = level.getBlockState(centerPos);
+        this.inFluid = !centerState.getFluidState().isEmpty();
+        
         this.blocks = new HashMap<>();
         this.protectedBlocks = new HashSet<>();
 
@@ -88,6 +95,9 @@ public class ExplosionSnapshot {
     }
     public boolean isFire() {
         return fire;
+    }
+    public boolean isInFluid() {
+        return inFluid;
     }
     public ServerLevel getLevel() {
         return level;

@@ -1,10 +1,10 @@
-package org.virgil.akiasync.mixin.secureseed.crypto.random;
+package org.virgil.akiasync.mixin.crypto.secureseed.crypto.random;
 
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
-import org.virgil.akiasync.mixin.secureseed.crypto.Globals;
-import org.virgil.akiasync.mixin.secureseed.crypto.Hashing;
+import org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals;
+import org.virgil.akiasync.mixin.crypto.secureseed.crypto.Hashing;
 
 public class WorldgenCryptoRandom extends WorldgenRandom {
   

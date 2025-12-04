@@ -99,10 +99,10 @@ public final class BrainMemorySnapshot {
                     brain.setMemory(type, value);
                 }
             } catch (ClassCastException e) {
-                
+
                 System.err.println("[BrainSnapshot] ClassCastException restoring memory type " + type + 
                     ": expected compatible type but got " + 
-                    (memEntry.getValue() != null ? memEntry.getValue().getClass().getName() : "null"));
+                    memEntry.getValue().getClass().getName());
             } catch (Exception e) {
                 
                 System.err.println("[BrainSnapshot] Error restoring memory type " + type + ": " + 

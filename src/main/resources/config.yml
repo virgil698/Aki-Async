@@ -3,7 +3,7 @@
 # ==========================================
 
 # 配置版本 / Configuration version (需要更新时会自动提示 / Auto-prompt when update needed)
-version: 15
+version: 16
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -53,6 +53,21 @@ virtual-entity-compatibility:
       use-api: false  # 主要通过名称前缀检测 / Primarily name prefix detection
       priority: 90
 
+# 实体移动优化 / Living Entity Travel Optimization
+living-entity-travel-optimization:
+  enabled: true
+  skip-interval: 2  # 每N个tick处理一次移动 / Process movement every N ticks
+
+# 行为触发节流 / Behavior Trigger Throttle
+behavior-throttle:
+  enabled: false  # 默认禁用，可能影响AI准确性 / Disabled by default, may affect AI accuracy
+  throttle-interval: 3  # 每N个tick触发一次 / Trigger every N ticks
+
+# 生物消失检查优化 / Mob Despawn Check Optimization
+mob-despawn-optimization:
+  enabled: true
+  check-interval: 20  # 消失检查间隔（ticks） / Despawn check interval (ticks)
+
 # 并行实体Tick / Parallel Entity Tick
 entity-tick-parallel:
   enabled: true
@@ -62,8 +77,8 @@ entity-tick-parallel:
 
 # 实体节流 / Entity Throttling
 entity-throttling:
-  enabled: false
-  config-file: "throttling.yml"
+  enabled: false  # 默认禁用，谨慎启用 / Disabled by default, enable with caution
+  config-file: "throttling.yml" # 如果开启请根据需求进行调整节流列表 / If enabled, adjust throttling list as needed
   check-interval: 100  # 每N tick检查一次 / Check every N ticks
   throttle-interval: 3  # 超限后每N tick更新 / Update every N ticks when exceeded
   removal-batch-size: 10  # 每次最多移除N个 / Remove at most N per check
@@ -83,6 +98,11 @@ async-ai:
     fast-raytrace:
       enabled: true  # 启用后村民AI性能提升15-20% / 15-20% villager AI boost when enabled
       cache-size: 256  # 缓存大小 / Cache size
+    
+    # POI查询缓存 / POI Query Cache (缓存村民POI查询结果 / Cache villager POI queries)
+    poi-cache:
+      enabled: true
+      cache-expire-time: 100  # 缓存过期时间（毫秒） / Cache expiration time (ms)
     
     # 繁殖优化 / Breed Optimization (异步繁殖逻辑 / Async breeding logic)
     breed-optimization:
@@ -164,13 +184,23 @@ redstone-optimizations:
   wire-turbo:
     enabled: true  # 红石线加速 / Redstone wire turbo
   
+  # PandaWire算法 / PandaWire Algorithm (Sakura project)
+  pandawire:
+    enabled: false  # 默认关闭 / Disabled by default
+  
   update-batching:
     enabled: true  # 更新批处理 / Update batching
-    batch-threshold: 8  # 批处理阈值 / Batch threshold
+    batch-threshold: 50  # 批处理阈值，PandaWire使用此值 / Batch threshold, used by PandaWire
   
   cache:
     enabled: true  # 红石缓存 / Redstone cache
     duration-ms: 50  # 缓存持续时间ms / Cache duration
+  
+  # 红石网络缓存 / Redstone Network Cache
+  # Caches redstone wire network patterns for repeated updates
+  network-cache:
+    enabled: true  # 启用网络缓存 / Enable network caching
+    expire-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
 
 # ==========================================
 # 掉落物优化 / Item Entity Optimizations
@@ -211,6 +241,16 @@ block-entity-optimizations:
     batch-size: 16  # 每批次处理的方块实体数 / Block entities per batch
     protect-containers: true  # 容器主线程执行防物品丢失 / Containers on main thread to prevent item loss
     timeout-ms: 50  # 超时降级同步 / Fallback to sync on timeout
+  
+  # 漏斗容器缓存 / Hopper Container Cache (缓存容器查询结果 / Cache container queries)
+  hopper-optimization:
+    enabled: true
+    cache-expire-time: 100  # 缓存过期时间（毫秒） / Cache expiration time (ms)
+  
+  # 矿车tick优化 / Minecart Tick Optimization (降低矿车tick频率 / Reduce minecart tick frequency)
+  minecart-optimization:
+    enabled: true
+    tick-interval: 2  # 矿车tick间隔 / Minecart tick interval
 
 recipe-optimization:
   # FastFurnace熔炉配方缓存 / FastFurnace (自定义配方多时提升明显 / Significant boost with custom recipes)
@@ -242,6 +282,22 @@ tnt-explosion-optimization:
     - "minecraft:tnt_minecart"
     - "minecraft:wither_skull"
   threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  
+  # 爆炸密度缓存 / Explosion Density Cache
+  # Advanced density caching for explosion calculations
+  density-cache:
+    enabled: true  # 启用密度缓存 / Enable density caching
+    cache-expiry-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
+    use-lenient-cache: true  # 使用宽松缓存提高命中率 / Use lenient cache for better hit rate
+  
+  # TNT实体合并 / TNT Entity Merging (Cannon server optimization)
+  # Based on Sakura project's TntExplosion system
+  entity-merge:
+    enabled: false  # 默认关闭 / Disabled by default
+    radius: 1.5  # 合并半径(方块) / Merge radius in blocks
+    max-fuse-difference: 5  # 最大引信时间差(tick) / Max fuse time difference in ticks
+    power-multiplier: 0.5  # 威力增益系数 / Power gain multiplier per merged TNT
+    max-power: 12.0  # 最大爆炸威力 / Maximum explosion power
   
   # 领地保护集成 / Land Protection (支持Residence/Dominion/WorldGuard/Lands)
   land-protection:
@@ -309,10 +365,12 @@ structure-location-async:
     search-radius: 100  # 搜索半径（区块） / Search radius in chunks
     skip-known-structures: false  # 跳过已知结构以加速搜索 / Skip known structures to speed up search
   
-  # 村民交易地图生成 / Villager trade map generation
+  # 村民交易地图优化 / Villager trade map optimization
   villager-trade-maps:
     enabled: true
-    trade-types:  # 异步生成的地图类型 / Map types to generate asynchronously
+    search-radius: 100  # 搜索半径（区块） / Search radius in chunks
+    skip-known-structures: false  # 跳过已知结构 / Skip known structures
+    trade-types:  # 支持的地图类型 / Supported map types
       - "minecraft:ocean_monument_map"
       - "minecraft:woodland_mansion_map"
       - "minecraft:buried_treasure_map"
@@ -322,7 +380,6 @@ structure-location-async:
   dolphin-treasure-hunt:
     enabled: true
     search-radius: 50  # 搜索半径（方块） / Search radius in blocks
-    hunt-interval: 100  # 寻宝间隔（tick） / Hunt interval in ticks
   
   # 箱子探险地图生成 / Chest exploration map generation
   chest-exploration-maps:
@@ -331,7 +388,6 @@ structure-location-async:
       - "minecraft:chests/shipwreck_map"
       - "minecraft:chests/underwater_ruin_big"
       - "minecraft:chests/underwater_ruin_small"
-    preserve-probability: true  # 保持原版概率 / Preserve vanilla probability
   
   # 算法优化 / Algorithm optimization
   algorithm-optimization:
@@ -341,8 +397,6 @@ structure-location-async:
       enabled: true
       max-size: 1000  # 缓存最大条目数 / Maximum cache entries
       expiration-minutes: 30  # 缓存过期时间（分钟） / Cache expiration in minutes
-    precomputation:
-      enabled: true  # 预计算常见结构位置 / Precompute common structure locations
     biome-aware-search:
       enabled: true  # 基于生物群系智能搜索 / Biome-aware intelligent search
 
@@ -360,7 +414,9 @@ datapack-optimization:
   file-load-threads: 4  # 推荐4-8根据CPU / Recommended: 4-8 by CPU
   zip-process-threads: 2  # I/O密集推荐2-4 / I/O intensive, 2-4 recommended
   batch-size: 100  # 影响内存和性能 / Affects memory and performance
-  cache-expiration-minutes: 30
+  cache-expiration-minutes: 30  # 缓存过期时间（分钟） / Cache expiration time (minutes)
+  max-file-cache-size: 1000  # 文件缓存上限，防止内存泄漏 / Max file cache size, prevent memory leak
+  max-filesystem-cache-size: 50  # 文件系统缓存上限 / Max filesystem cache size
   debug-enabled: false
 
 # 高级并发优化 / Advanced Concurrency Optimizations (Nitori-style)
@@ -371,17 +427,45 @@ nitori:
   blockpos-cache: true  # 预计算减少开销 / Pre-compute to reduce overhead
   optimized-collections: true  # 高性能集合类 / High-performance collections
 
-# 安全种子保护 / Secure Seed Protection (1024位加密防破解 / 1024-bit encryption)
+# 安全种子保护 / Secure Seed Protection
 # ⚠️ 重要 / IMPORTANT: 启用后不可关闭 / DO NOT disable after enabling
 # 关闭会导致: 区块错乱/结构消失/矿石改变/史莱姆区块变化
 # Disabling causes: Chunk mismatch/Structure loss/Ore changes/Slime chunk changes
 # 如需关闭必须删除世界 / Must delete world to disable
-secure-seed:
-  enabled: false
+seed-encryption:
+  enabled: false  # 启用种子加密 / Enable seed encryption
+  
+  # 加密方案 / Encryption Scheme
+  # - "legacy": 传统方案，性能更好 / Traditional, better performance
+  # - "quantum": 推荐方案，安全性更强 / Recommended, stronger security
+  scheme: "quantum"  # legacy / quantum
+  
+  # 保护范围 / Protection Scope
   protect-structures: true  # 村庄/要塞/遗迹 / Villages/Strongholds/Monuments
   protect-ores: true  # 钻石/金矿等 / Diamonds/Gold etc.
   protect-slimes: true  # 史莱姆区块 / Slime chunks
-  seed-bits: 1024  # 1024/2048/4096, 推荐1024平衡性能 / Recommended 1024 for balance
+  
+  # Legacy方案配置 / Legacy Scheme Config (仅当scheme=legacy时生效)
+  legacy:
+    seed-bits: 1024  # 1024/2048/4096, 推荐1024平衡性能 / Recommended 1024 for balance
+  
+  # Quantum方案配置 / Quantum Scheme Config (仅当scheme=quantum时生效)
+  quantum:
+    encryption-level: 2  # 加密强度 / Level (1=基础/2=标准推荐/3=最强)
+    private-key-file: "quantum-seed.key"  # 服务器私钥 / Server Key (自动生成，请备份！/ Auto-gen, backup it!)
+    enable-time-decay: false  # 时间衰减 / Time Decay (防时间攻击，可能影响重生成 / Anti-time-attack, may affect regen)
+    cache-size: 10000  # 缓存大小 / Cache size (推荐5000-20000 / Recommended: 5000-20000)
+  
+  # /seed 命令权限控制 / /seed Command Permission Control
+  restrict-seed-command: true  # 限制/seed命令仅OP可用 / Restrict /seed to OPs only (权限等级4 / Permission level 4)
+  seed-command-deny-message: "&c你没有权限使用此命令。只有服务器管理员可以查看世界种子。"  # 拒绝消息 / Deny message
+  
+  # 防插件窃取种子 / Anti-Plugin Seed Theft
+  anti-plugin-theft:
+    enabled: true  # 启用防护 / Enable protection
+    return-fake-seed: true  # 返回假种子 / Return fake seed to suspicious callers
+    fake-seed-value: 0  # 假种子值 / Fake seed value (0 = random, or specify a number)
+    log-suspicious-access: true  # 记录可疑访问 / Log suspicious seed access attempts
 
 # ==========================================
 # 网络优化 / Network Optimization

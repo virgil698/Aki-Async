@@ -13,6 +13,7 @@ import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.villager.BrainCpuCalculator;
 import org.virgil.akiasync.mixin.brain.villager.BrainDiff;
 import org.virgil.akiasync.mixin.brain.villager.BrainSnapshot;
+import org.virgil.akiasync.mixin.poi.BatchPoiManager;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -63,16 +64,12 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
         }
         if (usePOI) {
             try {
-                PoiManager poiManager = level.getPoiManager();
-                this.aki$poiSnapshot = poiManager.getInRange(
-                    type -> true,
+
+                this.aki$poiSnapshot = BatchPoiManager.getPoiInRange(
+                    level,
                     entity.blockPosition(),
-                    48,
-                    PoiManager.Occupancy.ANY
-                ).collect(ImmutableMap.toImmutableMap(
-                    PoiRecord::getPos,
-                    record -> record
-                ));
+                    48
+                );
             } catch (Exception e) {
                 this.aki$poiSnapshot = null;
                 return;
@@ -160,6 +157,8 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
             cached_simpleUsePOI = false;
         }
         initialized = true;
-        bridge.debugLog("[AkiAsync] ExpensiveAIMixin initialized: timeout=" + cached_timeoutMicros + "μs | villager=" + cached_villagerEnabled + "(POI:" + cached_villagerUsePOI + ") | piglin=" + cached_piglinEnabled + "(POI:" + cached_piglinUsePOI + ") | simple=" + cached_simpleEnabled + "(POI:" + cached_simpleUsePOI + ")");
+        if (bridge != null) {
+            bridge.debugLog("[AkiAsync] ExpensiveAIMixin initialized: timeout=" + cached_timeoutMicros + "μs | villager=" + cached_villagerEnabled + "(POI:" + cached_villagerUsePOI + ") | piglin=" + cached_piglinEnabled + "(POI:" + cached_piglinUsePOI + ") | simple=" + cached_simpleEnabled + "(POI:" + cached_simpleUsePOI + ")");
+        }
     }
 }

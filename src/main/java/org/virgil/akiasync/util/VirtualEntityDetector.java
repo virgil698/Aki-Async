@@ -132,7 +132,8 @@ public class VirtualEntityDetector {
             if (bukkitEntity.customName() != null) {
                 String customName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
                     .serialize(bukkitEntity.customName());
-                if (customName != null && customName.startsWith(ZNPC_PREFIX)) {
+
+                if (customName.startsWith(ZNPC_PREFIX)) {
                     return true;
                 }
             }

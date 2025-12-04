@@ -8,6 +8,7 @@ import org.virgil.akiasync.compat.FoliaSchedulerAdapter;
 import org.virgil.akiasync.compat.FoliaEntityAdapter;
 import org.virgil.akiasync.util.concurrency.ConfigReloadListener;
 import org.virgil.akiasync.util.concurrency.ConfigReloader;
+import org.virgil.akiasync.executor.TaskSmoothingScheduler;
 
 public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, ConfigReloadListener {
 
@@ -19,6 +20,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     private final ExecutorService chunkTickExecutor;
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
+    
+
+    private TaskSmoothingScheduler blockTickScheduler;
+    private TaskSmoothingScheduler entityTickScheduler;
+    private TaskSmoothingScheduler blockEntityScheduler;
 
     public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor) {
         this.plugin = plugin;
@@ -30,7 +36,66 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         this.villagerBreedExecutor = villagerBreedExecutor;
         this.brainExecutor = brainExecutor;
         
+
+        initializeSmoothingSchedulers();
+        
         ConfigReloader.registerListener(this);
+    }
+    
+    private void initializeSmoothingSchedulers() {
+        try {
+
+            boolean isFolia = false;
+            try {
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+                isFolia = true;
+            } catch (ClassNotFoundException e) {
+
+            }
+            
+            if (isFolia) {
+                plugin.getLogger().info("[AkiAsync] Folia environment detected - TaskSmoothingScheduler disabled");
+                return;
+            }
+            
+
+            if (config != null && config.isChunkTickAsyncEnabled() && generalExecutor != null) {
+                int batchSize = config.getChunkTickAsyncBatchSize();
+                blockTickScheduler = new TaskSmoothingScheduler(
+                    generalExecutor,
+                    batchSize * 10,
+                    batchSize * 2,
+                    3
+                );
+                plugin.getLogger().info("[AkiAsync] BlockTick TaskSmoothingScheduler initialized");
+            }
+            
+
+            if (config != null && config.isEntityTickParallel() && generalExecutor != null) {
+                int batchSize = config.getEntityTickBatchSize();
+                entityTickScheduler = new TaskSmoothingScheduler(
+                    generalExecutor,
+                    batchSize * 20,
+                    batchSize * 3,
+                    2
+                );
+                plugin.getLogger().info("[AkiAsync] EntityTick TaskSmoothingScheduler initialized");
+            }
+            
+
+            if (config != null && config.isBlockEntityParallelTickEnabled() && generalExecutor != null) {
+                int batchSize = config.getBlockEntityParallelBatchSize();
+                blockEntityScheduler = new TaskSmoothingScheduler(
+                    generalExecutor,
+                    batchSize * 15,
+                    batchSize * 2,
+                    3
+                );
+                plugin.getLogger().info("[AkiAsync] BlockEntity TaskSmoothingScheduler initialized");
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("[AkiAsync] Failed to initialize TaskSmoothingSchedulers: " + e.getMessage());
+        }
     }
     
     @Override
@@ -84,6 +149,24 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public int getBrainThrottleInterval() {return config.getBrainThrottleInterval();}
 
     @Override
+    public boolean isLivingEntityTravelOptimizationEnabled() {return config.isLivingEntityTravelOptimizationEnabled();}
+
+    @Override
+    public int getLivingEntityTravelSkipInterval() {return config.getLivingEntityTravelSkipInterval();}
+
+    @Override
+    public boolean isBehaviorThrottleEnabled() {return config.isBehaviorThrottleEnabled();}
+
+    @Override
+    public int getBehaviorThrottleInterval() {return config.getBehaviorThrottleInterval();}
+
+    @Override
+    public boolean isMobDespawnOptimizationEnabled() {return config.isMobDespawnOptimizationEnabled();}
+
+    @Override
+    public int getMobDespawnCheckInterval() {return config.getMobDespawnCheckInterval();}
+
+    @Override
     public long getAsyncAITimeoutMicros() {return config.getAsyncAITimeoutMicros();}
 
     @Override
@@ -91,6 +174,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isVillagerUsePOISnapshot() {return config.isVillagerUsePOISnapshot();}
+
+    @Override
+    public boolean isVillagerPoiCacheEnabled() {return config.isVillagerPoiCacheEnabled();}
+
+    @Override
+    public int getVillagerPoiCacheExpireTime() {return config.getVillagerPoiCacheExpireTime();}
 
     @Override
     public boolean isPiglinOptimizationEnabled() {return config.isPiglinOptimizationEnabled();}
@@ -201,6 +290,18 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getBlockEntityParallelTimeoutMs() { return config.getBlockEntityParallelTimeoutMs(); }
+
+    @Override
+    public boolean isHopperOptimizationEnabled() {return config.isHopperOptimizationEnabled();}
+
+    @Override
+    public int getHopperCacheExpireTime() {return config.getHopperCacheExpireTime();}
+
+    @Override
+    public boolean isMinecartOptimizationEnabled() {return config.isMinecartOptimizationEnabled();}
+
+    @Override
+    public int getMinecartTickInterval() {return config.getMinecartTickInterval();}
 
     @Override
     public boolean isSimpleEntitiesOptimizationEnabled() {return config.isSimpleEntitiesOptimizationEnabled();}
@@ -324,6 +425,31 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getRedstoneCacheDurationMs() {return config.getRedstoneCacheDurationMs();}
+
+
+    @Override
+    public boolean isUsePandaWireAlgorithm() {return config.isUsePandaWireAlgorithm();}
+
+    @Override
+    public boolean isRedstoneNetworkCacheEnabled() {return config.isRedstoneNetworkCacheEnabled();}
+
+    @Override
+    public int getRedstoneNetworkCacheExpireTicks() {return config.getRedstoneNetworkCacheExpireTicks();}
+
+    @Override
+    public boolean isTNTUseSakuraDensityCache() {return config.isTNTUseSakuraDensityCache();}
+
+    @Override
+    public boolean isTNTMergeEnabled() {return config.isTNTMergeEnabled();}
+
+    @Override
+    public double getTNTMergeRadius() {return config.getTNTMergeRadius();}
+
+    @Override
+    public int getTNTMaxFuseDifference() {return config.getTNTMaxFuseDifference();}
+
+    @Override
+    public float getTNTMergedPowerMultiplier() {return config.getTNTMergedPowerMultiplier();}
 
     @Override
     public boolean isTNTOptimizationEnabled() {return config.isTNTOptimizationEnabled();}
@@ -480,16 +606,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public int getDolphinTreasureSearchRadius() {return config.getDolphinTreasureSearchRadius();}
 
     @Override
-    public int getDolphinTreasureHuntInterval() {return config.getDolphinTreasureHuntInterval();}
-
-    @Override
     public boolean isChestExplorationMapsEnabled() {return config.isChestExplorationMapsEnabled();}
 
     @Override
     public java.util.Set<String> getChestExplorationLootTables() {return config.getChestExplorationLootTables();}
-
-    @Override
-    public boolean isChestMapPreserveProbability() {return config.isChestMapPreserveProbability();}
 
     @Override
     public boolean isStructureLocationDebugEnabled() {return config.isStructureLocationDebugEnabled();}
@@ -502,9 +622,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isStructureCachingEnabled() {return config.isStructureCachingEnabled();}
-
-    @Override
-    public boolean isStructurePrecomputationEnabled() {return config.isStructurePrecomputationEnabled();}
 
     @Override
     public boolean isBiomeAwareSearchEnabled() {return config.isBiomeAwareSearchEnabled();}
@@ -529,6 +646,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public long getDataPackCacheExpirationMinutes() {return config.getDataPackCacheExpirationMinutes();}
+
+    @Override
+    public int getDataPackMaxFileCacheSize() {return config.getDataPackMaxFileCacheSize();}
+
+    @Override
+    public int getDataPackMaxFileSystemCacheSize() {return config.getDataPackMaxFileSystemCacheSize();}
 
     @Override
     public boolean isDataPackDebugEnabled() {return config.isDataPackDebugEnabled();}
@@ -692,30 +815,44 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public void handleChestExplorationMapResult(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir) {
-        if (structurePos == null && throwable == null) {
-            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-                try {
-                    net.minecraft.server.level.ServerLevel level = context.getLevel();
-                    net.minecraft.world.phys.Vec3 origin = context.getOptionalParameter(
-                        net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN);
-                    net.minecraft.core.BlockPos startPos = origin != null ?
-                        net.minecraft.core.BlockPos.containing(origin) : new net.minecraft.core.BlockPos(0, 64, 0);
+    public void handleChestExplorationMapAsyncStart(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> destination, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, int searchRadius, boolean skipKnownStructures, Object cir) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                net.minecraft.server.level.ServerLevel level = context.getLevel();
+                net.minecraft.world.phys.Vec3 origin = context.getOptionalParameter(
+                    net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN);
+                net.minecraft.core.BlockPos startPos = origin != null ?
+                    net.minecraft.core.BlockPos.containing(origin) : new net.minecraft.core.BlockPos(0, 64, 0);
 
-                    if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Starting async chest exploration map creation from " + startPos);
-                    }
-
-                    return null;
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error in async chest exploration map creation: " + e.getMessage());
-                    return null;
+                if (config.isStructureLocationDebugEnabled()) {
+                    System.out.println("[AkiAsync] Starting async chest exploration map creation from " + startPos + " for " + destination.location());
                 }
-            }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
-                handleChestExplorationMapResult(stack, context, (net.minecraft.core.BlockPos) foundStructure, mapDecoration, zoom, asyncThrowable, cir);
-            });
-            return;
-        }
+
+
+                net.minecraft.core.BlockPos foundStructure = level.findNearestMapStructure(
+                    destination, startPos, searchRadius, skipKnownStructures);
+
+                if (config.isStructureLocationDebugEnabled()) {
+                    if (foundStructure != null) {
+                        System.out.println("[AkiAsync] Chest exploration map: structure found at " + foundStructure);
+                    } else {
+                        System.out.println("[AkiAsync] Chest exploration map: no structure found");
+                    }
+                }
+
+                return foundStructure;
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error in async chest exploration map creation: " + e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleChestExplorationMapResult(stack, context, foundStructure, mapDecoration, zoom, asyncThrowable, cir);
+        });
+    }
+
+    @Override
+    public void handleChestExplorationMapResult(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir) {
 
         FoliaSchedulerAdapter.runTask(plugin, () -> {
             try {
@@ -754,27 +891,45 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public void handleVillagerTradeMapResult(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir) {
-        if (structurePos == null && throwable == null) {
-            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-                try {
-                    net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
-                    net.minecraft.core.BlockPos startPos = trader.blockPosition();
+    public void handleVillagerTradeMapAsyncStart(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> destination, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Object cir) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) trader.level();
+                net.minecraft.core.BlockPos startPos = trader.blockPosition();
 
-                    if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Starting async villager trade map creation from " + startPos);
-                    }
-
-                    return null;
-                } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error in async villager trade map creation: " + e.getMessage());
-                    return null;
+                if (config.isStructureLocationDebugEnabled()) {
+                    System.out.println("[AkiAsync] Starting async villager trade map creation from " + startPos + " for " + destination.location());
                 }
-            }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
-                handleVillagerTradeMapResult(offer, trader, (net.minecraft.core.BlockPos) foundStructure, destinationType, displayName, maxUses, villagerXp, asyncThrowable, cir);
-            });
-            return;
-        }
+
+
+                int searchRadius = config.getVillagerTradeMapsSearchRadius();
+                boolean skipKnown = config.isVillagerTradeMapsSkipKnownStructures();
+
+
+                net.minecraft.core.BlockPos foundStructure = level.findNearestMapStructure(
+                    destination, startPos, searchRadius, skipKnown);
+
+                if (config.isStructureLocationDebugEnabled()) {
+                    if (foundStructure != null) {
+                        System.out.println("[AkiAsync] Villager trade map: structure found at " + foundStructure);
+                    } else {
+                        System.out.println("[AkiAsync] Villager trade map: no structure found");
+                    }
+                }
+
+                return foundStructure;
+            } catch (Exception e) {
+                System.err.println("[AkiAsync] Error in async villager trade map creation: " + e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleVillagerTradeMapResult(offer, trader, foundStructure, destinationType, displayName, maxUses, villagerXp, asyncThrowable, cir);
+        });
+    }
+
+    @Override
+    public void handleVillagerTradeMapResult(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir) {
 
         FoliaEntityAdapter.safeEntityOperation(plugin, (org.bukkit.entity.Entity) trader.getBukkitEntity(), (entity) -> {
             try {
@@ -821,10 +976,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public int getVillagerTradeMapsSearchRadius() {return config.getLocateCommandSearchRadius();}
+    public int getVillagerTradeMapsSearchRadius() {return config.getVillagerTradeMapsSearchRadius();}
 
     @Override
-    public boolean isVillagerTradeMapsSkipKnownStructures() {return config.isLocateCommandSkipKnownStructures();}
+    public boolean isVillagerTradeMapsSkipKnownStructures() {return config.isVillagerTradeMapsSkipKnownStructures();}
 
     @Override
     public boolean isDolphinTreasureSkipKnownStructures() {return config.isLocateCommandSkipKnownStructures();}
@@ -857,39 +1012,230 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         org.virgil.akiasync.util.DebugLogger.error(format, args);
     }
 
+
+    @Override
+    public void clearSakuraOptimizationCaches() {
+        try {
+            org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearAllCaches();
+            org.virgil.akiasync.mixin.mixins.redstone.RedstoneWireOptimizationMixin.clearAllCaches();
+            org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.shutdown();
+            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.shutdown();
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error clearing Sakura caches: %s", e.getMessage());
+        }
+    }
+
+    @Override
+    public java.util.Map<String, Object> getSakuraCacheStatistics() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        
+        try {
+
+            java.util.Map<String, String> densityStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+                        org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
+                    densityStats.put(world.getName(), cache.getStats());
+                } catch (Exception e) {
+                    densityStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("density_cache", densityStats);
+            
+
+            java.util.Map<String, String> asyncStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+                        org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
+                    asyncStats.put(world.getName(), manager.getStats());
+                } catch (Exception e) {
+                    asyncStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("async_density_cache", asyncStats);
+            
+
+            stats.put("pandawire_evaluators", 
+                org.virgil.akiasync.mixin.mixins.redstone.RedstoneWireOptimizationMixin.getEvaluatorCount());
+            
+
+            java.util.Map<String, String> networkStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager manager = 
+                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
+                    networkStats.put(world.getName(), manager.getStats());
+                } catch (Exception e) {
+                    networkStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("network_cache", networkStats);
+            
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error getting Sakura cache stats: %s", e.getMessage());
+        }
+        
+        return stats;
+    }
+
+    @Override
+    public void performSakuraCacheCleanup() {
+        try {
+            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    
+
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+                        org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
+                    cache.expire(serverLevel.getGameTime());
+                    
+
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+                        org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
+                    manager.expire(serverLevel.getGameTime());
+                    
+
+                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager networkManager = 
+                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
+                    networkManager.expire(serverLevel.getGameTime());
+                    
+                } catch (Exception e) {
+
+                }
+            }
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error performing Sakura cache cleanup: %s", e.getMessage());
+        }
+    }
+
     @Override
     public boolean isVirtualEntity(net.minecraft.world.entity.Entity entity) {
         return org.virgil.akiasync.util.VirtualEntityDetector.isVirtualEntity(entity);
     }
 
     @Override
+    public boolean isSeedProtectionEnabled() {
+        return config != null && config.isSeedProtectionEnabled();
+    }
+
+    @Override
+    public boolean shouldReturnFakeSeed() {
+        return config != null && config.shouldReturnFakeSeed();
+    }
+
+    @Override
+    public long getFakeSeedValue() {
+        return config != null ? config.getFakeSeedValue() : 0L;
+    }
+    
+
+    @Override
+    public boolean isQuantumSeedEnabled() {
+        return config != null && config.isQuantumSeedEnabled();
+    }
+    
+    @Override
+    public byte[] getQuantumServerKey() {
+        org.virgil.akiasync.crypto.QuantumSeedManager manager = plugin.getQuantumSeedManager();
+        if (manager == null) {
+            return null;
+        }
+
+        try {
+            java.lang.reflect.Field keyManagerField = manager.getClass().getDeclaredField("keyManager");
+            keyManagerField.setAccessible(true);
+            org.virgil.akiasync.crypto.ServerKeyManager keyManager = 
+                (org.virgil.akiasync.crypto.ServerKeyManager) keyManagerField.get(manager);
+            return keyManager.getServerKey();
+        } catch (Exception e) {
+            plugin.getLogger().warning("[AkiAsync-Bridge] Failed to get server key: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    @Override
+    public long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String generationType, long gameTime) {
+        org.virgil.akiasync.crypto.QuantumSeedManager manager = plugin.getQuantumSeedManager();
+        if (manager == null) {
+            return originalSeed;
+        }
+        
+
+        org.virgil.akiasync.mixin.crypto.quantum.GenerationType type;
+        try {
+            type = org.virgil.akiasync.mixin.crypto.quantum.GenerationType.valueOf(generationType.toUpperCase());
+        } catch (Exception e) {
+            type = org.virgil.akiasync.mixin.crypto.quantum.GenerationType.DECORATION;
+        }
+        
+        return manager.getEncryptedSeed(originalSeed, chunkX, chunkZ, dimension, type, gameTime);
+    }
+    
+
+    @Override
     public boolean isSecureSeedEnabled() {
-        return config != null && config.isSecureSeedEnabled();
+        return config != null && config.isSeedEncryptionEnabled() && 
+               "secure".equalsIgnoreCase(config.getSeedEncryptionScheme());
     }
-
+    
     @Override
-    public boolean isSecureSeedProtectStructures() {
-        return config != null && config.isSecureSeedProtectStructures();
+    public long[] getSecureSeedWorldSeed() {
+        return org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals.worldSeed;
     }
-
+    
     @Override
-    public boolean isSecureSeedProtectOres() {
-        return config != null && config.isSecureSeedProtectOres();
-    }
+    public void initializeSecureSeed(long originalSeed) {
+        if (!isSecureSeedEnabled()) {
+            return;
+        }
+        
+        int bits = getSecureSeedBits();
+        plugin.getLogger().info("[AkiAsync-SecureSeed] Initializing with " + bits + " bits");
+        
 
-    @Override
-    public boolean isSecureSeedProtectSlimes() {
-        return config != null && config.isSecureSeedProtectSlimes();
+        org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals.initializeWorldSeed(
+            originalSeed, 
+            bits
+        );
+        
+        plugin.getLogger().info("[AkiAsync-SecureSeed] Seed encryption initialized");
     }
-
+    
     @Override
     public int getSecureSeedBits() {
         return config != null ? config.getSecureSeedBits() : 1024;
     }
+    
 
     @Override
-    public boolean isSecureSeedDebugLogging() {
-        return config != null && config.isSecureSeedDebugLogging();
+    public boolean isSeedEncryptionProtectStructures() {
+        return config != null && config.isSeedEncryptionProtectStructures();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectOres() {
+        return config != null && config.isSeedEncryptionProtectOres();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectSlimes() {
+        return config != null && config.isSeedEncryptionProtectSlimes();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectBiomes() {
+        return config != null && config.isSeedEncryptionProtectBiomes();
     }
 
     @Override
@@ -1690,6 +2036,130 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             } catch (Exception ex) {
                 
             }
+        }
+    }
+    
+    @Override
+    public double getCurrentTPS() {
+        try {
+
+            return plugin.getServer().getTPS()[0];
+        } catch (Exception e) {
+            return 20.0;
+        }
+    }
+    
+    @Override
+    public double getCurrentMSPT() {
+        try {
+
+            long[] tickTimes = plugin.getServer().getTickTimes();
+            if (tickTimes != null && tickTimes.length > 0) {
+
+                long sum = 0;
+                int count = Math.min(100, tickTimes.length);
+                for (int i = 0; i < count; i++) {
+                    sum += tickTimes[i];
+                }
+                return (sum / (double) count) / 1_000_000.0;
+            }
+        } catch (Exception e) {
+
+        }
+        return 50.0;
+    }
+    
+    @Override
+    public Object getBlockTickSmoothingScheduler() {
+        return blockTickScheduler;
+    }
+    
+    @Override
+    public Object getEntityTickSmoothingScheduler() {
+        return entityTickScheduler;
+    }
+    
+    @Override
+    public Object getBlockEntitySmoothingScheduler() {
+        return blockEntityScheduler;
+    }
+    
+    @Override
+    public boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category) {
+        if (scheduler == null || task == null) return false;
+        
+        try {
+            if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
+                TaskSmoothingScheduler.Priority pri = switch (priority) {
+                    case 0 -> TaskSmoothingScheduler.Priority.CRITICAL;
+                    case 1 -> TaskSmoothingScheduler.Priority.HIGH;
+                    case 2 -> TaskSmoothingScheduler.Priority.NORMAL;
+                    case 3 -> TaskSmoothingScheduler.Priority.LOW;
+                    default -> TaskSmoothingScheduler.Priority.NORMAL;
+                };
+                return smoothScheduler.submit(task, pri, category != null ? category : "Unknown");
+            }
+        } catch (Exception e) {
+
+        }
+        return false;
+    }
+    
+    @Override
+    public int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category) {
+        if (scheduler == null || tasks == null || tasks.isEmpty()) return 0;
+        
+        try {
+            if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
+                TaskSmoothingScheduler.Priority pri = switch (priority) {
+                    case 0 -> TaskSmoothingScheduler.Priority.CRITICAL;
+                    case 1 -> TaskSmoothingScheduler.Priority.HIGH;
+                    case 2 -> TaskSmoothingScheduler.Priority.NORMAL;
+                    case 3 -> TaskSmoothingScheduler.Priority.LOW;
+                    default -> TaskSmoothingScheduler.Priority.NORMAL;
+                };
+                
+                int successCount = 0;
+                String cat = category != null ? category : "Unknown";
+                
+
+                for (Runnable task : tasks) {
+                    if (task != null && smoothScheduler.submit(task, pri, cat)) {
+                        successCount++;
+                    }
+                }
+                
+                return successCount;
+            }
+        } catch (Exception e) {
+
+        }
+        return 0;
+    }
+    
+    @Override
+    public void notifySmoothSchedulerTick(Object scheduler) {
+        if (scheduler == null) return;
+        
+        try {
+            if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
+                smoothScheduler.onTick();
+            }
+        } catch (Exception e) {
+
+        }
+    }
+    
+    @Override
+    public void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt) {
+        if (scheduler == null) return;
+        
+        try {
+            if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
+                smoothScheduler.updatePerformanceMetrics(tps, mspt);
+            }
+        } catch (Exception e) {
+
         }
     }
 }

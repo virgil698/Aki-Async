@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public class PlayerTeleportTracker {
+public final class PlayerTeleportTracker {
 
     private final ConcurrentHashMap<UUID, TeleportState> teleportStates = new ConcurrentHashMap<>();
     private final Plugin plugin;
@@ -277,7 +277,7 @@ public class PlayerTeleportTracker {
         double successRate = totalTeleports > 0 ? 
             (successfulTeleports * 100.0 / totalTeleports) : 0.0;
         double avgDelayMs = successfulTeleports > 0 ? 
-            (totalTeleportDelayNanos / successfulTeleports / 1_000_000.0) : 0.0;
+            (totalTeleportDelayNanos / (double) successfulTeleports / 1_000_000.0) : 0.0;
         double maxDelayMs = maxTeleportDelayNanos / 1_000_000.0;
         
         return String.format(
@@ -299,7 +299,7 @@ public class PlayerTeleportTracker {
         double successRate = totalTeleports > 0 ? 
             (successfulTeleports * 100.0 / totalTeleports) : 0.0;
         double avgDelayMs = successfulTeleports > 0 ? 
-            (totalTeleportDelayNanos / successfulTeleports / 1_000_000.0) : 0.0;
+            (totalTeleportDelayNanos / (double) successfulTeleports / 1_000_000.0) : 0.0;
         double maxDelayMs = maxTeleportDelayNanos / 1_000_000.0;
         
         StringBuilder sb = new StringBuilder();

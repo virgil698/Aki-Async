@@ -25,22 +25,19 @@ public class ChunkSendRateController {
     private PlayerTeleportTracker teleportTracker;
 
     private static class PlayerChunkSendStatus {
-        private final UUID playerId;
         private final AtomicInteger currentRate = new AtomicInteger(10);
         private final AtomicLong totalChunksSent = new AtomicLong(0);
         private final AtomicLong priorityChunksSent = new AtomicLong(0);
         private volatile Location lastLocation;
         private volatile Vector lastViewDirection;
-        private volatile long lastUpdateTime = System.currentTimeMillis();
 
         public PlayerChunkSendStatus(UUID playerId) {
-            this.playerId = playerId;
+
         }
 
         public void updateLocation(Location location) {
             this.lastLocation = location;
             this.lastViewDirection = location.getDirection();
-            this.lastUpdateTime = System.currentTimeMillis();
         }
 
         public void recordChunkSent(boolean isPriority) {

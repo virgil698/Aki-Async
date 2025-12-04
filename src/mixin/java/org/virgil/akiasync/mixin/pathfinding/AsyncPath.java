@@ -75,9 +75,17 @@ public class AsyncPath {
   }
 
   private void checkProcessed() {
-    if (this.processState == PathState.WAITING || this.processState == PathState.PROCESSING) {
-      this.process();
+
+
+    if (this.processState == PathState.WAITING) {
+
+      long startTime = System.nanoTime();
+      while (this.processState == PathState.WAITING && 
+             (System.nanoTime() - startTime) < 50_000) {
+        Thread.yield();
+      }
     }
+
   }
 
   public Path getPath() {

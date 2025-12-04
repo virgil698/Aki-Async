@@ -108,7 +108,15 @@ public abstract class UniversalAiFamilyTickMixin {
 
     @Unique
     private boolean aki$shouldSkipDueToStill(Mob mob) {
+
         if (mob.isInLava() || mob.isOnFire()) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
+
+        if (mob.isInWater() || mob.isInLiquid()) {
             aki$stillTicks = 0;
             aki$lastPos = mob.position();
             return false;
@@ -120,11 +128,14 @@ public abstract class UniversalAiFamilyTickMixin {
             aki$stillTicks = 0;
             return false;
         }
+        
         double dx = cur.x - aki$lastPos.x;
         double dy = cur.y - aki$lastPos.y;
         double dz = cur.z - aki$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
-        if (!mob.isInWater() && !mob.isInLava() && mob.onGround() && dist2 < 1.0E-4) {
+        
+
+        if (mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
                 if (aki$shouldProtectAI(mob)) {
@@ -193,16 +204,15 @@ public abstract class UniversalAiFamilyTickMixin {
                 return true;
             }
 
-            if (nearbyPlayers.isEmpty()) {
-                net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
-                java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles =
-                    mob.level().getEntities(mob, vehicleSearchBox, entity ->
-                        entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
-                        entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse);
 
-                if (!nearbyVehicles.isEmpty()) {
-                    return true;
-                }
+            net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
+            java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles =
+                mob.level().getEntities(mob, vehicleSearchBox, entity ->
+                    entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
+                    entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse);
+
+            if (!nearbyVehicles.isEmpty()) {
+                return true;
             }
         }
 

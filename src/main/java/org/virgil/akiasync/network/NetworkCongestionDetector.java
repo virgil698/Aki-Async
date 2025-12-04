@@ -16,7 +16,6 @@ public class NetworkCongestionDetector {
     private long highBandwidthThreshold = 1024 * 1024;
 
     private static class PlayerNetworkStatus {
-        private final UUID playerId;
         private volatile int currentPing;
         private final AtomicLong totalBytesSent = new AtomicLong(0);
         private final AtomicLong totalPacketsSent = new AtomicLong(0);
@@ -25,7 +24,7 @@ public class NetworkCongestionDetector {
         private volatile double currentBandwidth = 0;
 
         public PlayerNetworkStatus(UUID playerId) {
-            this.playerId = playerId;
+
         }
 
         public void updatePing(int ping) {
@@ -125,7 +124,7 @@ public class NetworkCongestionDetector {
             return CongestionLevel.HIGH;
         } else if (ping >= highPingThreshold || bandwidth >= highBandwidthThreshold) {
             return CongestionLevel.MEDIUM;
-        } else if (ping >= highPingThreshold / 2 || bandwidth >= highBandwidthThreshold / 2) {
+        } else if (ping >= highPingThreshold / 2.0 || bandwidth >= highBandwidthThreshold / 2.0) {
             return CongestionLevel.LOW;
         }
 
@@ -147,7 +146,7 @@ public class NetworkCongestionDetector {
             return CongestionLevel.HIGH;
         } else if (ping >= highPingThreshold || bandwidth >= highBandwidthThreshold) {
             return CongestionLevel.MEDIUM;
-        } else if (ping >= highPingThreshold / 2 || bandwidth >= highBandwidthThreshold / 2) {
+        } else if (ping >= highPingThreshold / 2.0 || bandwidth >= highBandwidthThreshold / 2.0) {
             return CongestionLevel.LOW;
         }
 

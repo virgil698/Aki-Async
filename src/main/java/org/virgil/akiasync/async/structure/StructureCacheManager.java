@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 public class StructureCacheManager {
 
@@ -22,9 +24,9 @@ public class StructureCacheManager {
 
     private final ScheduledExecutorService cleanupExecutor;
 
-    private volatile long cacheHits = 0;
-    private volatile long cacheMisses = 0;
-    private volatile long negativeHits = 0;
+    private final AtomicLong cacheHits = new AtomicLong(0);
+    private final AtomicLong cacheMisses = new AtomicLong(0);
+    private final AtomicLong negativeHits = new AtomicLong(0);
 
     private StructureCacheManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -47,7 +49,7 @@ public class StructureCacheManager {
         return instance;
     }
 
-    public static StructureCacheManager getInstance() {
+    public static synchronized StructureCacheManager getInstance() {
         return instance;
     }
 
@@ -74,11 +76,11 @@ public class StructureCacheManager {
                 structureCache.remove(cacheKey);
                 return null;
             }
-            cacheHits++;
+            cacheHits.incrementAndGet();
             return entry.position;
         }
 
-        cacheMisses++;
+        cacheMisses.incrementAndGet();
         return null;
     }
 
@@ -106,7 +108,7 @@ public class StructureCacheManager {
                 negativeCache.remove(cacheKey);
                 return false;
             }
-            negativeHits++;
+            negativeHits.incrementAndGet();
             return true;
         }
 
@@ -139,17 +141,17 @@ public class StructureCacheManager {
         return new CacheStatistics(
             structureCache.size(),
             negativeCache.size(),
-            cacheHits,
-            cacheMisses,
-            negativeHits,
+            cacheHits.get(),
+            cacheMisses.get(),
+            negativeHits.get(),
             calculateHitRate()
         );
     }
 
     public void resetStatistics() {
-        cacheHits = 0;
-        cacheMisses = 0;
-        negativeHits = 0;
+        cacheHits.set(0);
+        cacheMisses.set(0);
+        negativeHits.set(0);
     }
 
     public void shutdown() {
@@ -164,7 +166,9 @@ public class StructureCacheManager {
         }
 
         clearCache();
-        instance = null;
+        synchronized (StructureCacheManager.class) {
+            instance = null;
+        }
     }
 
     private boolean isExpired(CacheEntry entry) {
@@ -177,42 +181,48 @@ public class StructureCacheManager {
     }
 
     private void evictOldestEntries() {
-        if (structureCache.size() < maxCacheSize * 0.8) {
+        if (structureCache.size() < maxCacheSize) {
             return;
         }
 
-        long oldestTime = System.currentTimeMillis();
-        String oldestKey = null;
 
-        for (var entry : structureCache.entrySet()) {
-            if (entry.getValue().timestamp < oldestTime) {
-                oldestTime = entry.getValue().timestamp;
-                oldestKey = entry.getKey();
-            }
-        }
-
-        if (oldestKey != null) {
-            structureCache.remove(oldestKey);
+        int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
+        
+        structureCache.entrySet().stream()
+            .sorted((e1, e2) -> Long.compare(e1.getValue().timestamp, e2.getValue().timestamp))
+            .limit(toRemove)
+            .map(java.util.Map.Entry::getKey)
+            .collect(Collectors.toList())
+            .forEach(structureCache::remove);
+        
+        if (plugin.getBridge() != null && plugin.getBridge().isStructureLocationDebugEnabled()) {
+            plugin.getLogger().info(String.format(
+                "[AkiAsync-StructureCache] Evicted %d old structure entries, current: %d/%d",
+                toRemove, structureCache.size(), maxCacheSize
+            ));
         }
     }
 
     private void evictOldestNegativeEntries() {
-        if (negativeCache.size() < maxCacheSize * 0.8) {
+        if (negativeCache.size() < maxCacheSize) {
             return;
         }
 
-        long oldestTime = System.currentTimeMillis();
-        String oldestKey = null;
 
-        for (var entry : negativeCache.entrySet()) {
-            if (entry.getValue() < oldestTime) {
-                oldestTime = entry.getValue();
-                oldestKey = entry.getKey();
-            }
-        }
-
-        if (oldestKey != null) {
-            negativeCache.remove(oldestKey);
+        int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
+        
+        negativeCache.entrySet().stream()
+            .sorted((e1, e2) -> Long.compare(e1.getValue(), e2.getValue()))
+            .limit(toRemove)
+            .map(java.util.Map.Entry::getKey)
+            .collect(Collectors.toList())
+            .forEach(negativeCache::remove);
+        
+        if (plugin.getBridge() != null && plugin.getBridge().isStructureLocationDebugEnabled()) {
+            plugin.getLogger().info(String.format(
+                "[AkiAsync-StructureCache] Evicted %d old negative entries, current: %d/%d",
+                toRemove, negativeCache.size(), maxCacheSize
+            ));
         }
     }
 
@@ -257,8 +267,8 @@ public class StructureCacheManager {
     }
 
     private double calculateHitRate() {
-        long totalRequests = cacheHits + cacheMisses;
-        return totalRequests > 0 ? (double) cacheHits / totalRequests * 100.0 : 0.0;
+        long totalRequests = cacheHits.get() + cacheMisses.get();
+        return totalRequests > 0 ? (double) cacheHits.get() / totalRequests * 100.0 : 0.0;
     }
 
     private static class CacheEntry {

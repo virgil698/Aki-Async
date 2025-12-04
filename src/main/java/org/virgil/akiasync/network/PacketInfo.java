@@ -52,6 +52,24 @@ public class PacketInfo implements Comparable<PacketInfo> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        PacketInfo other = (PacketInfo) obj;
+        return timestamp == other.timestamp && 
+               priority == other.priority &&
+               packet == other.packet;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = priority.hashCode();
+        result = 31 * result + Long.hashCode(timestamp);
+        result = 31 * result + (packet != null ? System.identityHashCode(packet) : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return String.format("PacketInfo{priority=%s, packet=%s, player=%s, waitingMs=%d}",
             priority.name(),

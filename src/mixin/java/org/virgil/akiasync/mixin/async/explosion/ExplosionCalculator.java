@@ -5,11 +5,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache;
 import org.virgil.akiasync.mixin.optimization.OptimizationManager;
 import org.virgil.akiasync.mixin.optimization.scheduler.WorkStealingTaskScheduler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -20,6 +22,7 @@ public class ExplosionCalculator {
     private final ConcurrentHashMap<BlockPos, Boolean> destroyedBlocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
     private final boolean useFullRaycast;
+    private final SakuraBlockDensityCache densityCache;
     
     @SuppressWarnings("unused")
     private final WorkStealingTaskScheduler scheduler;
@@ -31,6 +34,12 @@ public class ExplosionCalculator {
         this.useFullRaycast = bridge != null &&
             bridge.isTNTVanillaCompatibilityEnabled() &&
             bridge.isTNTUseFullRaycast();
+
+
+        this.densityCache = SakuraBlockDensityCache.getOrCreate(snapshot.getLevel());
+        
+
+        this.densityCache.expire(snapshot.getLevel().getGameTime());
 
         WorkStealingTaskScheduler tempScheduler = null;
         if (!isFoliaEnvironment()) {
@@ -54,6 +63,12 @@ public class ExplosionCalculator {
         if (center == null) {
             return;
         }
+        
+
+        if (snapshot.isInFluid()) {
+            return;
+        }
+        
         float power = snapshot.getPower();
         for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
             for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
@@ -80,11 +95,16 @@ public class ExplosionCalculator {
                         BlockState state = snapshot.getBlockState(pos);
                         if (!state.isAir()) {
                             float resistance = Math.max(0.0f, state.getBlock().getExplosionResistance());
+                            
+
+                            if (!state.getFluidState().isEmpty()) {
+
+                                rayPower -= (resistance + 0.3f) * 0.3f;
+                                continue;
+                            }
+                            
                             rayPower -= (resistance + 0.3f) * 0.3f;
                             if (rayPower > 0.0f && !destroyedBlocks.containsKey(pos)) {
-                                if (!state.getFluidState().isEmpty()) {
-                                    continue;
-                                }
                                 if (state.canBeReplaced() && (state.isAir() ||
                                     state.is(net.minecraft.world.level.block.Blocks.WATER) ||
                                     state.is(net.minecraft.world.level.block.Blocks.LAVA) ||
@@ -177,6 +197,22 @@ public class ExplosionCalculator {
         }
     }
     private double calculateExposure(Vec3 explosionCenter, ExplosionSnapshot.EntitySnapshot entity) {
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+
+        Entity realEntity = snapshot.getLevel().getEntity(entity.getUuid());
+        if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
+            float cachedDensity = densityCache.getBlockDensity(explosionCenter, realEntity);
+            if (cachedDensity != SakuraBlockDensityCache.UNKNOWN_DENSITY) {
+                if (bridge.isTNTDebugEnabled()) {
+                    bridge.debugLog("[AkiAsync-TNT] Using cached density: " + 
+                        entity.getUuid() + " density=" + String.format("%.3f", cachedDensity));
+                }
+                return cachedDensity;
+            }
+        }
+        
         net.minecraft.world.phys.AABB aabb = entity.getBoundingBox();
         double sizeX = aabb.maxX - aabb.minX;
         double sizeY = aabb.maxY - aabb.minY;
@@ -211,8 +247,11 @@ public class ExplosionCalculator {
 
         double exposure = (double) visibleRays / totalRays;
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+
+        if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
+            densityCache.putBlockDensity(explosionCenter, realEntity, (float) exposure);
+        }
+
         if (bridge != null && bridge.isTNTDebugEnabled()) {
             bridge.debugLog("[AkiAsync-TNT] Entity exposure calculation: " +
                 entity.getUuid() + " exposure=" + String.format("%.3f", exposure) +
@@ -246,9 +285,18 @@ public class ExplosionCalculator {
             BlockPos blockPos = new BlockPos((int)Math.floor(pos.x), (int)Math.floor(pos.y), (int)Math.floor(pos.z));
             BlockState state = snapshot.getBlockState(blockPos);
 
-            if (!state.isAir() && state.getFluidState().isEmpty()) {
+
+            if (!state.isAir()) {
                 float resistance = state.getBlock().getExplosionResistance();
-                if (resistance > 0.5f) {
+                
+
+                if (!state.getFluidState().isEmpty()) {
+
+                    if (resistance > 0.5f) {
+                        return true;
+                    }
+                } else if (resistance > 0.5f) {
+
                     return true;
                 }
             }

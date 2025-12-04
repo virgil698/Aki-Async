@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Class name="~.*\.BuildConfig"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Test.*"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin.*"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="SE_BAD_FIELD"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+        <Class name="~org\.virgil\.akiasync\..*"/>
+        <Method name="~(onEnable|onDisable|onLoad)"/>
+    </Match>
+</FindBugsFilter>

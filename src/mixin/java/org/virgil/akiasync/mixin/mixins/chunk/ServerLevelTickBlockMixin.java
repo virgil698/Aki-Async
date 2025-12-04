@@ -27,6 +27,7 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique private static volatile int cached_batchSize = 16;
     @Unique private static volatile boolean isFoliaEnvironment = false;
     @Unique private static ExecutorService ASYNC_BLOCK_TICK_EXECUTOR;
+    @Unique private static Object smoothingScheduler;
     
     @Unique private static final ConcurrentHashMap<Block, BlockTickCategory> BLOCK_CATEGORY_CACHE = new ConcurrentHashMap<>();
     
@@ -82,10 +83,21 @@ public abstract class ServerLevelTickBlockMixin {
         }
     }
     
-    @Inject(method = "tick", at = @At("RETURN"))
-    private void aki$flushAsyncTasks(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
+    @Inject(method = "tick(Ljava/util/function/BooleanSupplier;)V", at = @At("RETURN"), require = 0)
+    private void aki$flushAsyncTasks(CallbackInfo ci) {
         if (!cached_enabled) {
             return;
+        }
+        
+
+        if (smoothingScheduler != null) {
+            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.notifySmoothSchedulerTick(smoothingScheduler);
+                double tps = bridge.getCurrentTPS();
+                double mspt = bridge.getCurrentMSPT();
+                bridge.updateSmoothSchedulerMetrics(smoothingScheduler, tps, mspt);
+            }
         }
         
         ServerLevel level = (ServerLevel) (Object) this;
@@ -126,6 +138,14 @@ public abstract class ServerLevelTickBlockMixin {
 
         if (bridge != null) {
             ASYNC_BLOCK_TICK_EXECUTOR = bridge.getGeneralExecutor();
+            
+
+            if (smoothingScheduler == null && cached_enabled && !isFoliaEnvironment) {
+                smoothingScheduler = bridge.getBlockTickSmoothingScheduler();
+                if (smoothingScheduler != null) {
+                    bridge.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler obtained from Bridge");
+                }
+            }
         }
 
         initialized = true;
@@ -217,6 +237,48 @@ public abstract class ServerLevelTickBlockMixin {
         List<BlockTickTask> batch = new ArrayList<>(tasks);
         tasks.clear();
         
+
+        if (smoothingScheduler != null && !isFoliaEnvironment) {
+            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+
+                java.util.Map<Integer, java.util.List<Runnable>> tasksByPriority = new java.util.HashMap<>();
+                
+                for (BlockTickTask task : batch) {
+                    int priority = aki$determinePriority(task.category);
+                    tasksByPriority.computeIfAbsent(priority, k -> new java.util.ArrayList<>())
+                        .add(() -> {
+                            try {
+                                BlockState currentState = level.getBlockState(task.pos);
+                                if (currentState.is(task.block)) {
+                                    currentState.tick(level, task.pos, level.random);
+                                }
+                            } catch (Throwable t) {
+                                syncFallbackCount.incrementAndGet();
+                                level.getServer().execute(() -> {
+                                    try {
+                                        BlockState state = level.getBlockState(task.pos);
+                                        if (state.is(task.block)) {
+                                            state.tick(level, task.pos, level.random);
+                                        }
+                                    } catch (Throwable ignored) {}
+                                });
+                            }
+                        });
+                }
+                
+
+                for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
+                    bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "BlockTick");
+                }
+                
+                asyncExecutionCount.addAndGet(batch.size());
+                batchSubmissionCount.incrementAndGet();
+                return;
+            }
+        }
+        
+
         if (ASYNC_BLOCK_TICK_EXECUTOR == null || ASYNC_BLOCK_TICK_EXECUTOR.isShutdown()) {
             
             for (BlockTickTask task : batch) {
@@ -410,5 +472,26 @@ public abstract class ServerLevelTickBlockMixin {
         }
 
         return false;
+    }
+    
+    @Unique
+    private static int aki$determinePriority(BlockTickCategory category) {
+        return switch (category) {
+            case REDSTONE, ENTITY_INTERACTION -> 0;
+            case CROP_GROWTH -> 1;
+            case LEAF_DECAY -> 2;
+            case SAFE_ASYNC -> 3;
+        };
+    }
+    
+    @Unique
+    private static void aki$logSmoothingStats() {
+        if (smoothingScheduler != null) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+
+                bridge.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler statistics logged");
+            }
+        }
     }
 }

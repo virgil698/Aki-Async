@@ -1,5 +1,7 @@
 package org.virgil.akiasync.mixin.pathfinding;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -16,6 +18,11 @@ public final class AsyncPathProcessor {
   private static volatile boolean initialized = false;
   private static volatile boolean enabled = false;
   private static final Object LOCK = new Object();
+  
+
+  private static final ThreadLocal<List<AsyncPath>> pendingPaths = ThreadLocal.withInitial(ArrayList::new);
+  private static final AtomicInteger batchCount = new AtomicInteger(0);
+  private static final AtomicInteger totalBatchedPaths = new AtomicInteger(0);
 
   private AsyncPathProcessor() {
     throw new AssertionError("Utility class should not be instantiated");
@@ -80,17 +87,54 @@ public final class AsyncPathProcessor {
       return;
     }
 
+
+    List<AsyncPath> paths = pendingPaths.get();
+    paths.add(path);
+    
+
+    if (paths.size() >= 8) {
+      flushPendingPaths();
+    }
+  }
+  
+  
+  public static void flushPendingPaths() {
+    List<AsyncPath> paths = pendingPaths.get();
+    if (paths.isEmpty()) {
+      return;
+    }
+    
+
+    List<AsyncPath> batch = new ArrayList<>(paths);
+    paths.clear();
+    
+    if (batch.isEmpty()) {
+      return;
+    }
+    
+    batchCount.incrementAndGet();
+    totalBatchedPaths.addAndGet(batch.size());
+    
     try {
+
       executor.execute(() -> {
-        try {
-          path.process();
-        } catch (Exception e) {
-          
+        for (AsyncPath path : batch) {
+          try {
+            path.process();
+          } catch (Exception e) {
+
+          }
         }
       });
     } catch (RejectedExecutionException e) {
-      
-      path.process();
+
+      for (AsyncPath path : batch) {
+        try {
+          path.process();
+        } catch (Exception ex) {
+
+        }
+      }
     }
   }
 
@@ -128,13 +172,19 @@ public final class AsyncPathProcessor {
       return "Async pathfinding: disabled";
     }
 
+    int batches = batchCount.get();
+    int totalPaths = totalBatchedPaths.get();
+    double avgBatchSize = batches > 0 ? (double) totalPaths / batches : 0;
+    
     return String.format(
-        "AsyncPath: Pool=%d/%d | Active=%d | Queue=%d | Completed=%d",
+        "AsyncPath: Pool=%d/%d | Active=%d | Queue=%d | Completed=%d | Batches=%d | AvgBatch=%.1f",
         executor.getPoolSize(),
         executor.getCorePoolSize(),
         executor.getActiveCount(),
         executor.getQueue().size(),
-        executor.getCompletedTaskCount()
+        executor.getCompletedTaskCount(),
+        batches,
+        avgBatchSize
     );
   }
 

@@ -26,11 +26,27 @@ public interface Bridge {
 
     int getBrainThrottleInterval();
 
+    boolean isLivingEntityTravelOptimizationEnabled();
+
+    int getLivingEntityTravelSkipInterval();
+
+    boolean isBehaviorThrottleEnabled();
+
+    int getBehaviorThrottleInterval();
+
+    boolean isMobDespawnOptimizationEnabled();
+
+    int getMobDespawnCheckInterval();
+
     long getAsyncAITimeoutMicros();
 
     boolean isVillagerOptimizationEnabled();
 
     boolean isVillagerUsePOISnapshot();
+
+    boolean isVillagerPoiCacheEnabled();
+
+    int getVillagerPoiCacheExpireTime();
 
     boolean isPiglinOptimizationEnabled();
 
@@ -67,6 +83,14 @@ public interface Bridge {
     int getBlockEntityParallelBatchSize();
     boolean isBlockEntityParallelProtectContainers();
     int getBlockEntityParallelTimeoutMs();
+
+    boolean isHopperOptimizationEnabled();
+
+    int getHopperCacheExpireTime();
+
+    boolean isMinecartOptimizationEnabled();
+
+    int getMinecartTickInterval();
 
     boolean isSimpleEntitiesOptimizationEnabled();
 
@@ -230,13 +254,9 @@ public interface Bridge {
 
     int getDolphinTreasureSearchRadius();
 
-    int getDolphinTreasureHuntInterval();
-
     boolean isChestExplorationMapsEnabled();
 
     java.util.Set<String> getChestExplorationLootTables();
-
-    boolean isChestMapPreserveProbability();
 
     boolean isStructureLocationDebugEnabled();
 
@@ -245,8 +265,6 @@ public interface Bridge {
     String getStructureSearchPattern();
 
     boolean isStructureCachingEnabled();
-
-    boolean isStructurePrecomputationEnabled();
 
     boolean isBiomeAwareSearchEnabled();
 
@@ -260,7 +278,11 @@ public interface Bridge {
 
     void handleDolphinTreasureResult(net.minecraft.world.entity.animal.Dolphin dolphin, net.minecraft.core.BlockPos treasurePos, Throwable throwable);
 
+    void handleChestExplorationMapAsyncStart(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> destination, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, int searchRadius, boolean skipKnownStructures, Object cir);
+
     void handleChestExplorationMapResult(net.minecraft.world.item.ItemStack stack, net.minecraft.world.level.storage.loot.LootContext context, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir);
+
+    void handleVillagerTradeMapAsyncStart(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> destination, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Object cir);
 
     void handleVillagerTradeMapResult(net.minecraft.world.item.trading.MerchantOffer offer, net.minecraft.world.entity.Entity trader, net.minecraft.core.BlockPos structurePos, net.minecraft.core.Holder<net.minecraft.world.level.saveddata.maps.MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir);
 
@@ -280,6 +302,10 @@ public interface Bridge {
 
     long getDataPackCacheExpirationMinutes();
 
+    int getDataPackMaxFileCacheSize();
+
+    int getDataPackMaxFileSystemCacheSize();
+
     boolean isDataPackDebugEnabled();
 
     boolean isDebugLoggingEnabled();
@@ -291,12 +317,27 @@ public interface Bridge {
 
     boolean isVirtualEntity(net.minecraft.world.entity.Entity entity);
 
+
+    boolean isSeedProtectionEnabled();
+    boolean shouldReturnFakeSeed();
+    long getFakeSeedValue();
+    
+
+    boolean isQuantumSeedEnabled();
+    byte[] getQuantumServerKey();
+    long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String generationType, long gameTime);
+    
+
     boolean isSecureSeedEnabled();
-    boolean isSecureSeedProtectStructures();
-    boolean isSecureSeedProtectOres();
-    boolean isSecureSeedProtectSlimes();
+    long[] getSecureSeedWorldSeed();
+    void initializeSecureSeed(long originalSeed);
     int getSecureSeedBits();
-    boolean isSecureSeedDebugLogging();
+    
+
+    boolean isSeedEncryptionProtectStructures();
+    boolean isSeedEncryptionProtectOres();
+    boolean isSeedEncryptionProtectSlimes();
+    boolean isSeedEncryptionProtectBiomes();
 
     boolean isTNTLandProtectionEnabled();
     boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
@@ -422,4 +463,38 @@ public interface Bridge {
     int getMapRenderingThreads();
     
     void runOnMainThread(Runnable task);
+    
+
+    double getCurrentTPS();
+    double getCurrentMSPT();
+    
+
+    Object getBlockTickSmoothingScheduler();
+    Object getEntityTickSmoothingScheduler();
+    Object getBlockEntitySmoothingScheduler();
+    
+    boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category);
+    
+
+    int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category);
+    
+
+    boolean isTNTUseSakuraDensityCache();
+    boolean isTNTMergeEnabled();
+    double getTNTMergeRadius();
+    int getTNTMaxFuseDifference();
+    float getTNTMergedPowerMultiplier();
+    
+
+    boolean isUsePandaWireAlgorithm();
+    boolean isRedstoneNetworkCacheEnabled();
+    int getRedstoneNetworkCacheExpireTicks();
+    
+
+    void clearSakuraOptimizationCaches();
+    java.util.Map<String, Object> getSakuraCacheStatistics();
+    void performSakuraCacheCleanup();
+    
+    void notifySmoothSchedulerTick(Object scheduler);
+    void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt);
 }

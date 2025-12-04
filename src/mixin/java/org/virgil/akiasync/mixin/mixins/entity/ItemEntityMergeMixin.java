@@ -34,7 +34,7 @@ public abstract class ItemEntityMergeMixin {
     @Unique
     private List<ItemEntity> aki$cachedNearbyItems = null;
     @Unique
-    private long aki$lastCacheTime = 0;
+    private int aki$lastCacheTick = 0;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void optimizeMerge(CallbackInfo ci) {
@@ -65,10 +65,11 @@ public abstract class ItemEntityMergeMixin {
 
     @Unique
     private void akiasync$smartMerge(ItemEntity self) {
-        long currentTime = System.currentTimeMillis();
-        if (aki$cachedNearbyItems == null || currentTime - aki$lastCacheTime > 50) {
+
+        int currentTick = self.tickCount;
+        if (aki$cachedNearbyItems == null || currentTick - aki$lastCacheTick >= 3) {
             aki$cachedNearbyItems = akiasync$getNearbyItems(self);
-            aki$lastCacheTime = currentTime;
+            aki$lastCacheTick = currentTick;
         }
 
         if (aki$cachedNearbyItems.size() < minNearbyItems) {

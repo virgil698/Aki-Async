@@ -11,10 +11,11 @@ plugins {
     alias(libs.plugins.runPaper)
     alias(libs.plugins.resourceFactory)
     alias(libs.plugins.accessWiden)
+    id("com.github.spotbugs") version "6.0.26"
 }
 
 group = "org.virgil"
-version = "3.2.15-SNAPSHOT"
+version = "3.2.16-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -222,6 +223,27 @@ tasks {
 
     build {
         dependsOn(shadowJar)
+    }
+    
+    // SpotBugs配置
+    withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
+        reports.create("html") {
+            required.set(true)
+            setStylesheet("fancy-hist.xsl")
+        }
+        reports.create("xml") {
+            required.set(true)
+        }
+    }
+}
+
+// SpotBugs全局配置
+spotbugs {
+    toolVersion.set("4.8.6")
+    effort.set(com.github.spotbugs.snom.Effort.MAX)
+    reportLevel.set(com.github.spotbugs.snom.Confidence.LOW)
+    if (file("spotbugs-exclude.xml").exists()) {
+        excludeFilter.set(file("spotbugs-exclude.xml"))
     }
 }
 

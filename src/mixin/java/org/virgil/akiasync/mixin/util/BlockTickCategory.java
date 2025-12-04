@@ -8,7 +8,7 @@ public enum BlockTickCategory {
     
     CROP_GROWTH(true, 2, "Crop Growth"),
     
-    LEAF_DECAY(true, 3, "Leaf Decay"),
+    LEAF_DECAY(false, 3, "Leaf Decay"),
     
     SAFE_ASYNC(true, 4, "Safe Async");
     

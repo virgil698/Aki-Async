@@ -30,11 +30,22 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             akiasync$stillTicks = 0;
             return;
         }
+
+
+        boolean inFluid = entity.isInWater() || entity.isInLava();
+        if (!inFluid) {
+            net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos((int)cur.x, (int)cur.y, (int)cur.z);
+            net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+            inFluid = !state.getFluidState().isEmpty();
+        }
+        
         double dx = cur.x - akiasync$lastPos.x;
         double dy = cur.y - akiasync$lastPos.y;
         double dz = cur.z - akiasync$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
-        if (!entity.isInWater() && entity.onGround() && dist2 < 1.0E-4) {
+        
+
+        if (!inFluid && entity.onGround() && dist2 < 1.0E-4) {
             akiasync$stillTicks++;
             if (akiasync$stillTicks >= cached_interval) {
                 this.akiasync$skipUntil = gameTime + cached_interval;

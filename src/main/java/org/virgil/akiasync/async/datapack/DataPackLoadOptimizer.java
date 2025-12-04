@@ -34,6 +34,8 @@ public class DataPackLoadOptimizer {
     private volatile int zipProcessThreads;
     private volatile int batchSize;
     private volatile long cacheExpirationMs;
+    private volatile int maxFileCacheSize;
+    private volatile int maxFileSystemCacheSize;
     private volatile boolean debugLogging;
 
     private DataPackLoadOptimizer(AkiAsyncPlugin plugin) {
@@ -67,7 +69,7 @@ public class DataPackLoadOptimizer {
         return instance;
     }
 
-    public static DataPackLoadOptimizer getInstance() {
+    public static synchronized DataPackLoadOptimizer getInstance() {
         return instance;
     }
 
@@ -78,6 +80,8 @@ public class DataPackLoadOptimizer {
             this.zipProcessThreads = plugin.getBridge().getDataPackZipProcessThreads();
             this.batchSize = plugin.getBridge().getDataPackBatchSize();
             this.cacheExpirationMs = plugin.getBridge().getDataPackCacheExpirationMinutes() * 60 * 1000;
+            this.maxFileCacheSize = plugin.getBridge().getDataPackMaxFileCacheSize();
+            this.maxFileSystemCacheSize = plugin.getBridge().getDataPackMaxFileSystemCacheSize();
             this.debugLogging = plugin.getBridge().isDataPackDebugEnabled();
         } else {
             this.optimizationEnabled = true;
@@ -85,6 +89,8 @@ public class DataPackLoadOptimizer {
             this.zipProcessThreads = 2;
             this.batchSize = 100;
             this.cacheExpirationMs = 30 * 60 * 1000;
+            this.maxFileCacheSize = 1000;
+            this.maxFileSystemCacheSize = 50;
             this.debugLogging = false;
         }
     }
@@ -255,12 +261,13 @@ public class DataPackLoadOptimizer {
     }
 
     private void performCleanup() {
-        long currentTime = System.currentTimeMillis();
-        int removedFiles = 0;
-        int removedFileSystems = 0;
+        java.util.concurrent.atomic.AtomicInteger removedFiles = new java.util.concurrent.atomic.AtomicInteger(0);
+        java.util.concurrent.atomic.AtomicInteger removedFileSystems = new java.util.concurrent.atomic.AtomicInteger(0);
+
 
         fileCache.entrySet().removeIf(entry -> {
             if (entry.getValue().isExpired(cacheExpirationMs)) {
+                removedFiles.incrementAndGet();
                 return true;
             }
             return false;
@@ -271,16 +278,54 @@ public class DataPackLoadOptimizer {
                 try {
                     entry.getValue().fileSystem.close();
                 } catch (IOException e) {
+
                 }
+                removedFileSystems.incrementAndGet();
                 return true;
             }
             return false;
         });
 
-        if (debugLogging && (removedFiles > 0 || removedFileSystems > 0)) {
+
+        if (fileCache.size() > maxFileCacheSize) {
+            int toRemove = fileCache.size() - maxFileCacheSize;
+            fileCache.entrySet().stream()
+                .sorted((e1, e2) -> Long.compare(e1.getValue().timestamp, e2.getValue().timestamp))
+                .limit(toRemove)
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toList())
+                .forEach(key -> {
+                    fileCache.remove(key);
+                    removedFiles.incrementAndGet();
+                });
+        }
+
+        if (fileSystemCache.size() > maxFileSystemCacheSize) {
+            int toRemove = fileSystemCache.size() - maxFileSystemCacheSize;
+            fileSystemCache.entrySet().stream()
+                .sorted((e1, e2) -> Long.compare(e1.getValue().timestamp, e2.getValue().timestamp))
+                .limit(toRemove)
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toList())
+                .forEach(key -> {
+                    CachedFileSystem cached = fileSystemCache.remove(key);
+                    if (cached != null) {
+                        try {
+                            cached.fileSystem.close();
+                        } catch (IOException e) {
+
+                        }
+                        removedFileSystems.incrementAndGet();
+                    }
+                });
+        }
+
+        if (debugLogging && (removedFiles.get() > 0 || removedFileSystems.get() > 0)) {
             plugin.getLogger().info(String.format(
-                "[AkiAsync-DataPack] Cleanup completed: removed %d file entries, %d file systems",
-                removedFiles, removedFileSystems
+                "[AkiAsync-DataPack] Cleanup completed: removed %d file entries, %d file systems (current: %d/%d files, %d/%d fs)",
+                removedFiles.get(), removedFileSystems.get(),
+                fileCache.size(), maxFileCacheSize,
+                fileSystemCache.size(), maxFileSystemCacheSize
             ));
         }
     }
@@ -329,7 +374,9 @@ public class DataPackLoadOptimizer {
         }
 
         clearCache();
-        instance = null;
+        synchronized (DataPackLoadOptimizer.class) {
+            instance = null;
+        }
     }
 
     private static class CachedFileSystem {

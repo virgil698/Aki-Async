@@ -47,10 +47,17 @@ public class VillagerBreedExecutor {
     }
 
     public static void clearOldCache(long currentTick) {
-        movementCache.entrySet().removeIf(entry ->
-            (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100
-        );
-        lastPositionCache.clear();
+
+        java.util.Set<UUID> oldVillagers = movementCache.entrySet().stream()
+            .filter(entry -> (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100)
+            .map(java.util.Map.Entry::getKey)
+            .collect(java.util.stream.Collectors.toSet());
+        
+
+        oldVillagers.forEach(uuid -> {
+            movementCache.remove(uuid);
+            lastPositionCache.remove(uuid);
+        });
     }
 
     public static void shutdown() {

@@ -44,7 +44,8 @@ public final class BrainMemoryHelper {
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
-            
+
+
         }
     }
 
@@ -61,7 +62,8 @@ public final class BrainMemoryHelper {
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
-            
+
+
         }
     }
 
@@ -76,7 +78,8 @@ public final class BrainMemoryHelper {
         try {
             brain.eraseMemory(memoryType);
         } catch (Exception e) {
-            
+
+
         }
     }
 

@@ -1,4 +1,4 @@
-package org.virgil.akiasync.mixin.secureseed.crypto;
+package org.virgil.akiasync.mixin.crypto.secureseed.crypto;
 
 public final class Hashing {
 

@@ -35,9 +35,6 @@ public class AsyncExecutorManager {
             ExecutorLifecycleManager.createForkJoinPool("AkiAsync-Lighting", lightingThreads, true),
             "AkiAsync-Lighting-ForkJoinPool");
 
-        int poolSize = executorService.getPoolSize();
-        int lightingPoolSize = lightingExecutor.getPoolSize();
-
         this.tntExecutor = ResourceTracker.track(
             new FoliaExecutorAdapter(plugin, tntThreads, "AkiAsync-TNT"),
             "AkiAsync-TNT-Executor");

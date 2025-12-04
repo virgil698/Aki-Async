@@ -419,6 +419,11 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 | [Async](https://github.com/AxalotLDev/Async) | 异步化边界设计 |
 | [SecureSeed](https://github.com/Earthcomputer/SecureSeed) | 安全种子设计 |
 | [Leaves](https://github.com/LeavesMC/Leaves) | Mixin支持 |
+| [Pufferfish](https://github.com/pufferfish-gg/Pufferfish) | 异步设计取经与兼容评估 |
+| [Akarin](https://github.com/Akarin-project/Akarin) | 异步设计取经与兼容评估 |
+| [tt20](https://github.com/snackbag/tt20) | 异步设计取经与兼容评估 |
+
+> **注意**：以上项目用于 Aki-Async 设计取经与兼容评估。仅作参考，不直接打包或复用其代码。
 
 ---
 
@@ -435,6 +440,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 ### 联系方式
 
 **Issues**: [GitHub Issues](https://github.com/virgil698/Aki-Async/issues)  
+**Discord**：[Discord](https://discord.gg/pv9KdHwXWM)
 **Email**: virgil698@sky233.top  
 **Discord**: xiaokong23357(virgil698)
 

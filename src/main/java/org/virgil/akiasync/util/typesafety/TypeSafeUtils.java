@@ -42,11 +42,11 @@ public final class TypeSafeUtils {
         }
         
         try {
-            
+
             Object handle = bukkitEntity.getClass().getMethod("getHandle").invoke(bukkitEntity);
             return safeCast(handle, net.minecraft.world.entity.Entity.class);
-        } catch (Exception e) {
-            
+        } catch (ReflectiveOperationException e) {
+
             return Optional.empty();
         }
     }

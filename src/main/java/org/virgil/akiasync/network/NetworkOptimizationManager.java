@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NetworkOptimizationManager implements Listener {
+public final class NetworkOptimizationManager implements Listener {
 
     private final AkiAsyncPlugin plugin;
     private final Logger logger;

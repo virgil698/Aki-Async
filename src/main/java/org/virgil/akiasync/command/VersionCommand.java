@@ -39,7 +39,19 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Universal AI: " + (plugin.getConfigManager().isUniversalAiOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  BeeFix: " + (plugin.getConfigManager().isBeeFixEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Structure Location Async: " + (plugin.getConfigManager().isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
-        source.getSender().sendMessage(prefix + "  SecureSeed: " + (plugin.getConfigManager().isSecureSeedEnabled() ? "ON" : "OFF"));
+
+        if (plugin.getConfigManager().isSeedEncryptionEnabled()) {
+            String scheme = plugin.getConfigManager().getSeedEncryptionScheme();
+            if ("quantum".equalsIgnoreCase(scheme)) {
+                source.getSender().sendMessage(prefix + "  Seed Encryption: QuantumSeed (Level " + 
+                    plugin.getConfigManager().getQuantumSeedEncryptionLevel() + ")");
+            } else {
+                source.getSender().sendMessage(prefix + "  Seed Encryption: SecureSeed (" + 
+                    plugin.getConfigManager().getSecureSeedBits() + " bits)");
+            }
+        } else {
+            source.getSender().sendMessage(prefix + "  Seed Encryption: OFF");
+        }
         source.getSender().sendMessage(prefix + "  Falling Block Parallel: " + (plugin.getConfigManager().isFallingBlockParallelEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Parallel: " + (plugin.getConfigManager().isItemEntityParallelEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Smart Merge: " + (plugin.getConfigManager().isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));

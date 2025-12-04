@@ -28,6 +28,11 @@ public class EntityThrottlingMixin {
                 return;
             }
 
+
+            if (self instanceof net.minecraft.world.entity.decoration.ArmorStand) {
+                return;
+            }
+
             Bridge bridge = BridgeManager.getBridge();
             if (bridge == null) {
                 return;
@@ -47,6 +52,11 @@ public class EntityThrottlingMixin {
             if (self instanceof net.minecraft.world.entity.item.ItemEntity) {
 
                 if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+                    return;
+                }
+                
+
+                if (self.isInWater() || self.isInWaterOrRain()) {
                     return;
                 }
 
@@ -69,6 +79,11 @@ public class EntityThrottlingMixin {
             if (self instanceof net.minecraft.world.entity.vehicle.AbstractMinecart) {
 
                 if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
+                    return;
+                }
+                
+
+                if (self.isInWater() || self.isInWaterOrRain()) {
                     return;
                 }
 

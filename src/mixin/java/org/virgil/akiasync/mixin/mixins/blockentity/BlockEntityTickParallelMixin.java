@@ -29,6 +29,7 @@ public abstract class BlockEntityTickParallelMixin {
     @Unique private static volatile boolean protectContainers;
     @Unique private static volatile int timeoutMs;
     @Unique private static int executionCount = 0;
+    @Unique private static volatile Object smoothingScheduler;
 
     @Unique private static java.lang.reflect.Field blockEntityTickersField = null;
     @Unique private static boolean blockEntityTickersFieldChecked = false;
@@ -37,12 +38,68 @@ public abstract class BlockEntityTickParallelMixin {
     private void parallelTickBlockEntities(CallbackInfo ci) {
         if (!initialized) { akiasync$initBlockEntityParallel(); }
         if (!enabled) return;
+        
+
+        if (smoothingScheduler != null) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.notifySmoothSchedulerTick(smoothingScheduler);
+                bridge.updateSmoothSchedulerMetrics(smoothingScheduler, bridge.getCurrentTPS(), bridge.getCurrentMSPT());
+            }
+        }
 
         List<TickingBlockEntity> blockEntityTickers = akiasync$getBlockEntityTickers();
         if (blockEntityTickers == null || blockEntityTickers.size() < minBlockEntities) return;
 
         ci.cancel();
         executionCount++;
+        
+
+        if (smoothingScheduler != null && !isFolia) {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+
+                java.util.Map<Integer, java.util.List<Runnable>> tasksByPriority = new java.util.HashMap<>();
+                
+                for (TickingBlockEntity blockEntity : blockEntityTickers) {
+                    if (blockEntity == null) continue;
+                    
+
+                    if (protectContainers && akiasync$isContainerBlockEntity(blockEntity)) {
+                        continue;
+                    }
+                    
+                    int priority = akiasync$determineBlockEntityPriority(blockEntity);
+                    tasksByPriority.computeIfAbsent(priority, k -> new java.util.ArrayList<>())
+                        .add(() -> {
+                            try {
+                                blockEntity.tick();
+                            } catch (Throwable t) {
+
+                            }
+                        });
+                }
+                
+
+                for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
+                    bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "BlockEntity");
+                }
+                
+
+                if (protectContainers) {
+                    for (TickingBlockEntity blockEntity : blockEntityTickers) {
+                        if (blockEntity != null && akiasync$isContainerBlockEntity(blockEntity)) {
+                            try {
+                                blockEntity.tick();
+                            } catch (Throwable t) {}
+                        }
+                    }
+                }
+            }
+            return;
+        }
 
         List<List<TickingBlockEntity>> batches = akiasync$partitionBlockEntities(blockEntityTickers, batchSize);
 
@@ -228,5 +285,53 @@ public abstract class BlockEntityTickParallelMixin {
         }
 
         initialized = true;
+        
+
+        if (bridge != null && enabled && !isFolia) {
+            smoothingScheduler = bridge.getBlockEntitySmoothingScheduler();
+            if (smoothingScheduler != null) {
+                bridge.debugLog("[AkiAsync] BlockEntity TaskSmoothingScheduler obtained from Bridge");
+            }
+        }
+    }
+    
+    @Unique
+    private int akiasync$determineBlockEntityPriority(TickingBlockEntity blockEntity) {
+        if (blockEntity == null) return 3;
+        
+        try {
+            String type = blockEntity.getType();
+            
+
+            if (type.contains("hopper") || type.contains("piston")) {
+                return 0;
+            }
+            
+
+            if (type.contains("furnace") || type.contains("blast_furnace") ||
+                type.contains("smoker") || type.contains("brewing_stand") ||
+                type.contains("beacon")) {
+                return 1;
+            }
+            
+
+            if (type.contains("chest") || type.contains("barrel") ||
+                type.contains("shulker_box") || type.contains("dropper") ||
+                type.contains("dispenser")) {
+                return 2;
+            }
+            
+
+            if (type.contains("sign") || type.contains("banner") ||
+                type.contains("skull") || type.contains("lectern") ||
+                type.contains("jukebox") || type.contains("campfire")) {
+                return 3;
+            }
+            
+
+            return 2;
+        } catch (Throwable t) {
+            return 3;
+        }
     }
 }

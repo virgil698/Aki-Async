@@ -78,6 +78,20 @@ public abstract class CollisionOptimizationMixin {
             return;
         }
 
+
+        net.minecraft.core.BlockPos pos = self.blockPosition();
+        if (pos != null) {
+            net.minecraft.world.level.block.state.BlockState state = self.level().getBlockState(pos);
+            if (state != null && state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-Collision] Preserving checkInsideBlocks for entity in portal: " +
+                        "type=" + self.getType().getDescriptionId() + ", pos=" + pos);
+                }
+                return;
+            }
+        }
+
         if (self.getDeltaMovement().lengthSqr() < minMovement) {
             ci.cancel();
         }

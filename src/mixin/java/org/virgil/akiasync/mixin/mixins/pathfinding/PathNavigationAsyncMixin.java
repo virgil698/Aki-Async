@@ -84,11 +84,8 @@ public class PathNavigationAsyncMixin {
             }
         }
         
-        try {
-            return new Path(new java.util.ArrayList<>(), targets.iterator().next(), false);
-        } catch (Exception ex) {
-            return null;
-        }
+
+        return null;
     }
 
     private static synchronized void initializeReflection() {

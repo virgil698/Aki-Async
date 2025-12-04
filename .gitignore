@@ -115,5 +115,12 @@ gradle-app.setting
 run/
 runs/
 
+# Temporarily allow look/ for analysis
+look/
+docs/
+src/mixin/java/org/virgil/akiasync/mixin/crypto/quantum/
+src/main/java/org/virgil/akiasync/security/
+src/main/java/org/virgil/akiasync/crypto/
+
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar

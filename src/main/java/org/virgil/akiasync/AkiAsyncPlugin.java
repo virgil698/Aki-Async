@@ -25,10 +25,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private ChunkLoadPriorityScheduler chunkLoadScheduler;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
     private org.virgil.akiasync.compat.VirtualEntityCompatManager virtualEntityCompatManager;
+    private org.virgil.akiasync.crypto.QuantumSeedManager quantumSeedManager;
 
     @Override
     public void onEnable() {
-        instance = this;
+        synchronized (AkiAsyncPlugin.class) {
+            instance = this;
+        }
 
         configManager = new ConfigManager(this);
         configManager.loadConfig();
@@ -94,6 +97,29 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
 
+
+        if (configManager.isSeedEncryptionEnabled()) {
+            if (configManager.isQuantumSeedEnabled()) {
+
+                quantumSeedManager = new org.virgil.akiasync.crypto.QuantumSeedManager(
+                    this,
+                    configManager.getQuantumSeedCacheSize(),
+                    configManager.isQuantumSeedEnableTimeDecay(),
+                    configManager.isQuantumSeedDebugLogging()
+                );
+                quantumSeedManager.initialize();
+                getLogger().info("[AkiAsync] QuantumSeed encryption enabled (Level " + configManager.getQuantumSeedEncryptionLevel() + ")");
+                getLogger().info("[AkiAsync] QuantumSeed features: IbRNG full integration + Regional chunk obfuscation + 6-layer encryption");
+            } else if (configManager.isSecureSeedEnabled()) {
+
+
+                long worldSeed = getServer().getWorlds().get(0).getSeed();
+                bridge.initializeSecureSeed(worldSeed);
+                getLogger().info("[AkiAsync] SecureSeed encryption enabled (" + configManager.getSecureSeedBits() + " bits)");
+                getLogger().info("[AkiAsync] SecureSeed features: BLAKE2b哈希 + 1024位种子空间");
+            }
+        }
+        
         if (configManager.isStructureLocationAsyncEnabled()) {
             org.virgil.akiasync.mixin.async.StructureLocatorBridge.initialize();
             org.virgil.akiasync.async.structure.OptimizedStructureLocator.initialize(this);
@@ -113,6 +139,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         BridgeManager.validateAndDisplayConfigurations();
 
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
+        
+
+        if (configManager.isSeedCommandRestrictionEnabled()) {
+            getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.SeedCommandListener(this), this);
+            getLogger().info("[AkiAsync] /seed command restriction enabled (OP only)");
+        }
 
         registerCommand("aki-reload", new ReloadCommand(this));
         registerCommand("aki-debug", new DebugCommand(this));
@@ -177,16 +209,26 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (virtualEntityCompatManager != null) {
             virtualEntityCompatManager.shutdown();
         }
+        
+
+        try {
+            org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.shutdown();
+            getLogger().info("[AkiAsync] AsyncSeedEncryptor shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("[AkiAsync] Failed to shutdown AsyncSeedEncryptor: " + e.getMessage());
+        }
 
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
+        
 
-        org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.shutdown();
-
-        org.virgil.akiasync.mixin.async.StructureLocatorBridge.shutdown();
-
-        org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
-
-        org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer =
+        try {
+            org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
+            getLogger().info("[AkiAsync] OptimizedStructureLocator shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("[AkiAsync] Failed to shutdown OptimizedStructureLocator: " + e.getMessage());
+        }
+        
+        org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer = 
             org.virgil.akiasync.async.datapack.DataPackLoadOptimizer.getInstance();
         if (optimizer != null) {
             optimizer.shutdown();
@@ -204,7 +246,9 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             executorManager.shutdown();
         }
         getLogger().info("[AkiAsync] Plugin disabled. All async tasks have been gracefully shut down.");
-        instance = null;
+        synchronized (AkiAsyncPlugin.class) {
+            instance = null;
+        }
     }
 
     private void startCombinedMetrics() {
@@ -289,6 +333,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
     public org.virgil.akiasync.compat.VirtualEntityCompatManager getVirtualEntityCompatManager() {
         return virtualEntityCompatManager;
+    }
+    
+    public org.virgil.akiasync.crypto.QuantumSeedManager getQuantumSeedManager() {
+        return quantumSeedManager;
     }
 
     public void restartMetricsScheduler() {

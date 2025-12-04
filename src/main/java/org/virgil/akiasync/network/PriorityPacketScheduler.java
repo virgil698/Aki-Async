@@ -64,16 +64,35 @@ public class PriorityPacketScheduler {
 
             return Long.compare(this.sequence, other.sequence);
         }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            PrioritizedPacket other = (PrioritizedPacket) obj;
+            return timestamp == other.timestamp && 
+                   sequence == other.sequence &&
+                   priority == other.priority &&
+                   packet == other.packet;
+        }
+        
+        @Override
+        public int hashCode() {
+            int result = priority.hashCode();
+            result = 31 * result + Long.hashCode(timestamp);
+            result = 31 * result + Long.hashCode(sequence);
+            result = 31 * result + (packet != null ? System.identityHashCode(packet) : 0);
+            return result;
+        }
     }
 
     private static class PlayerPacketQueue {
         private final PriorityQueue<PrioritizedPacket> queue;
-        private final UUID playerId;
         private final ConfigManager config;
         private long lastSendTime = 0;
 
         public PlayerPacketQueue(UUID playerId, ConfigManager config) {
-            this.playerId = playerId;
+
             this.config = config;
             this.queue = new PriorityQueue<>();
         }

@@ -84,7 +84,9 @@ public class StructureLocatorBridge {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.handleChestExplorationMapResult(stack, context, null, mapDecoration, zoom, null, cir);
+            bridge.handleChestExplorationMapAsyncStart(
+                stack, context, destination, mapDecoration, 
+                zoom, searchRadius, skipKnownStructures, cir);
         }
     }
 
@@ -102,7 +104,9 @@ public class StructureLocatorBridge {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.handleVillagerTradeMapResult(offer, trader, null, destinationType, displayName, maxUses, villagerXp, null, cir);
+            bridge.handleVillagerTradeMapAsyncStart(
+                offer, trader, destination, destinationType, 
+                displayName, maxUses, villagerXp, cir);
         }
     }
 

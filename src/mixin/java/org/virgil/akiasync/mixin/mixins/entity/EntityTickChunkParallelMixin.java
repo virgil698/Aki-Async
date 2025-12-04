@@ -21,6 +21,7 @@ public abstract class EntityTickChunkParallelMixin {
     private static volatile boolean initialized = false;
     private static volatile java.util.concurrent.ExecutorService dedicatedPool;
     private static volatile boolean isFolia = false;
+    private static volatile Object smoothingScheduler;
     private static int executionCount = 0;
     private static long lastMspt = 20;
     private static final java.lang.reflect.Field ACTIVE_FIELD_CACHE;
@@ -77,6 +78,15 @@ public abstract class EntityTickChunkParallelMixin {
     private void entityBatchedParallel(Consumer<EntityAccess> action, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTickParallel(); }
         if (!enabled) return;
+        
+
+        if (smoothingScheduler != null) {
+            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.notifySmoothSchedulerTick(smoothingScheduler);
+                bridge.updateSmoothSchedulerMetrics(smoothingScheduler, bridge.getCurrentTPS(), bridge.getCurrentMSPT());
+            }
+        }
         if (cachedList == null || System.currentTimeMillis() - lastCacheTick > 50) {
             cachedList = getActiveEntities();
             lastCacheTick = System.currentTimeMillis();
@@ -84,6 +94,48 @@ public abstract class EntityTickChunkParallelMixin {
         if (cachedList == null || cachedList.size() < minEntities) return;
         ci.cancel();
         executionCount++;
+        
+
+        if (smoothingScheduler != null && !isFolia) {
+            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+
+                java.util.Map<Integer, java.util.List<Runnable>> tasksByPriority = new java.util.HashMap<>();
+                
+                for (EntityAccess entity : cachedList) {
+                    int priority = akiasync$determineEntityPriority(entity);
+                    tasksByPriority.computeIfAbsent(priority, k -> new java.util.ArrayList<>())
+                        .add(() -> {
+                            try {
+                                if (akiasync$isVirtualEntity(entity)) return;
+                                
+                                if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
+                                    if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb orb) {
+                                        int entityId = realEntity.getId();
+                                        if (orb.isRemoved()) return;
+                                        if (!processingExperienceOrbs.add(entityId)) return;
+                                        try {
+                                            action.accept(entity);
+                                        } finally {
+                                            processingExperienceOrbs.remove(entityId);
+                                        }
+                                        return;
+                                    }
+                                }
+                                action.accept(entity);
+                            } catch (Throwable t) {
+
+                            }
+                        });
+                }
+                
+
+                for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
+                    bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "EntityTick");
+                }
+            }
+            return;
+        }
         List<List<EntityAccess>> batches = partition(cachedList, batchSize);
         long adaptiveTimeout = calculateAdaptiveTimeout(lastMspt);
         try {
@@ -241,10 +293,62 @@ public abstract class EntityTickChunkParallelMixin {
             dedicatedPool = null;
         }
         initialized = true;
+        
+
+        if (bridge != null && enabled && !isFolia) {
+            smoothingScheduler = bridge.getEntityTickSmoothingScheduler();
+            if (smoothingScheduler != null) {
+                bridge.debugLog("[AkiAsync] EntityTick TaskSmoothingScheduler obtained from Bridge");
+            }
+        }
+        
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] EntityTickParallelMixin initialized (entity-batched): enabled=" + enabled +
                 ", isFolia=" + isFolia + ", batchSize=" + batchSize + ", minEntities=" + minEntities +
                 ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
         }
+    }
+    
+    private static int akiasync$determineEntityPriority(EntityAccess entity) {
+        if (entity == null) return 3;
+        
+        try {
+            if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
+
+                if (realEntity instanceof net.minecraft.server.level.ServerPlayer) {
+                    return 0;
+                }
+                
+
+                if (realEntity instanceof net.minecraft.world.entity.Mob mob) {
+                    if (mob.getTarget() != null || mob.getLastHurtByMob() != null) {
+                        return 0;
+                    }
+                    
+
+                    net.minecraft.world.entity.player.Player nearestPlayer = 
+                        realEntity.level().getNearestPlayer(realEntity, 16.0);
+                    if (nearestPlayer != null) {
+                        return 1;
+                    }
+                    
+
+                    return 2;
+                }
+                
+
+                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb ||
+                    realEntity instanceof net.minecraft.world.entity.item.ItemEntity) {
+                    return 3;
+                }
+                
+
+                return 2;
+            }
+        } catch (Throwable t) {
+
+        }
+        
+        return 3;
     }
 }

@@ -6,7 +6,7 @@ import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 15;
+    private static final int CURRENT_CONFIG_VERSION = 16;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -21,9 +21,17 @@ public class ConfigManager {
     private int maxEntitiesPerChunk;
     private boolean brainThrottle;
     private int brainThrottleInterval;
+    private boolean livingEntityTravelOptimizationEnabled;
+    private int livingEntityTravelSkipInterval;
+    private boolean behaviorThrottleEnabled;
+    private int behaviorThrottleInterval;
+    private boolean mobDespawnOptimizationEnabled;
+    private int mobDespawnCheckInterval;
     private long asyncAITimeoutMicros;
     private boolean villagerOptimizationEnabled;
     private boolean villagerUsePOISnapshot;
+    private boolean villagerPoiCacheEnabled;
+    private int villagerPoiCacheExpireTime;
     private boolean piglinOptimizationEnabled;
     private boolean piglinUsePOISnapshot;
     private int piglinLookDistance;
@@ -59,6 +67,10 @@ public class ConfigManager {
     private int blockEntityParallelBatchSize;
     private boolean blockEntityParallelProtectContainers;
     private int blockEntityParallelTimeoutMs;
+    private boolean hopperOptimizationEnabled;
+    private int hopperCacheExpireTime;
+    private boolean minecartOptimizationEnabled;
+    private int minecartTickInterval;
     private boolean simpleEntitiesOptimizationEnabled;
     private boolean simpleEntitiesUsePOISnapshot;
     private boolean entityTickParallel;
@@ -85,6 +97,12 @@ public class ConfigManager {
     private int redstoneUpdateBatchThreshold;
     private boolean redstoneCacheEnabled;
     private int redstoneCacheDurationMs;
+    
+
+    private boolean usePandaWireAlgorithm;
+    private boolean redstoneNetworkCacheEnabled;
+    private int redstoneNetworkCacheExpireTicks;
+    
     private boolean tntOptimizationEnabled;
     private java.util.Set<String> tntExplosionEntities;
     private int tntThreads;
@@ -101,6 +119,14 @@ public class ConfigManager {
     private boolean tntUseVanillaDrops;
     private boolean tntLandProtectionEnabled;
     private boolean blockLockerProtectionEnabled;
+    
+
+    private boolean tntUseSakuraDensityCache;
+    private boolean tntMergeEnabled;
+    private double tntMergeRadius;
+    private int tntMaxFuseDifference;
+    private float tntMergedPowerMultiplier;
+    
     private boolean asyncVillagerBreedEnabled;
     private boolean villagerAgeThrottleEnabled;
     private int villagerBreedThreads;
@@ -120,19 +146,18 @@ public class ConfigManager {
     private int locateCommandSearchRadius;
     private boolean locateCommandSkipKnownStructures;
     private boolean villagerTradeMapsEnabled;
+    private int villagerTradeMapsSearchRadius;
+    private boolean villagerTradeMapsSkipKnownStructures;
     private java.util.Set<String> villagerTradeMapTypes;
     private int villagerMapGenerationTimeoutSeconds;
     private boolean dolphinTreasureHuntEnabled;
     private int dolphinTreasureSearchRadius;
-    private int dolphinTreasureHuntInterval;
     private boolean chestExplorationMapsEnabled;
     private java.util.Set<String> chestExplorationLootTables;
-    private boolean chestMapPreserveProbability;
 
     private boolean structureAlgorithmOptimizationEnabled;
     private String structureSearchPattern;
     private boolean structureCachingEnabled;
-    private boolean structurePrecomputationEnabled;
     private boolean biomeAwareSearchEnabled;
     private int structureCacheMaxSize;
     private long structureCacheExpirationMinutes;
@@ -142,6 +167,8 @@ public class ConfigManager {
     private int dataPackZipProcessThreads;
     private int dataPackBatchSize;
     private long dataPackCacheExpirationMinutes;
+    private int dataPackMaxFileCacheSize;
+    private int dataPackMaxFileSystemCacheSize;
     private boolean dataPackDebugEnabled;
 
     private boolean nitoriOptimizationsEnabled;
@@ -150,11 +177,22 @@ public class ConfigManager {
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
 
-    private boolean secureSeedEnabled;
-    private boolean secureSeedProtectStructures;
-    private boolean secureSeedProtectOres;
-    private boolean secureSeedProtectSlimes;
+
+    private String seedEncryptionScheme;
+    private boolean seedEncryptionEnabled;
+    private boolean seedEncryptionProtectStructures;
+    private boolean seedEncryptionProtectOres;
+    private boolean seedEncryptionProtectSlimes;
+    private boolean seedEncryptionProtectBiomes;
+    
+
     private int secureSeedBits;
+    
+
+    private int quantumSeedEncryptionLevel;
+    private String quantumSeedPrivateKeyFile;
+    private boolean quantumSeedEnableTimeDecay;
+    private int quantumSeedCacheSize;
 
     private boolean furnaceRecipeCacheEnabled;
     private int furnaceRecipeCacheSize;
@@ -290,7 +328,7 @@ public class ConfigManager {
         entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
-        maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
+        maxQueueSize = config.getInt("entity-tracker.max-queue-size", 10000);
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
@@ -298,9 +336,17 @@ public class ConfigManager {
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
         brainThrottle = config.getBoolean("brain.throttle", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
+        livingEntityTravelOptimizationEnabled = config.getBoolean("living-entity-travel-optimization.enabled", true);
+        livingEntityTravelSkipInterval = config.getInt("living-entity-travel-optimization.skip-interval", 2);
+        behaviorThrottleEnabled = config.getBoolean("behavior-throttle.enabled", false);
+        behaviorThrottleInterval = config.getInt("behavior-throttle.throttle-interval", 3);
+        mobDespawnOptimizationEnabled = config.getBoolean("mob-despawn-optimization.enabled", true);
+        mobDespawnCheckInterval = config.getInt("mob-despawn-optimization.check-interval", 20);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
         villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
         villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
+        villagerPoiCacheEnabled = config.getBoolean("async-ai.villager-optimization.poi-cache.enabled", true);
+        villagerPoiCacheExpireTime = config.getInt("async-ai.villager-optimization.poi-cache.cache-expire-time", 100);
         piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
@@ -336,6 +382,10 @@ public class ConfigManager {
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
         blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
         blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
+        hopperOptimizationEnabled = config.getBoolean("block-entity-optimizations.hopper-optimization.enabled", true);
+        hopperCacheExpireTime = config.getInt("block-entity-optimizations.hopper-optimization.cache-expire-time", 100);
+        minecartOptimizationEnabled = config.getBoolean("block-entity-optimizations.minecart-optimization.enabled", true);
+        minecartTickInterval = config.getInt("block-entity-optimizations.minecart-optimization.tick-interval", 2);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -362,6 +412,12 @@ public class ConfigManager {
         redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
+        
+
+        usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.pandawire.enabled", false);
+        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.network-cache.enabled", false);
+        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.network-cache.expire-ticks", 600);
+        
         asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
         villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
         villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
@@ -389,6 +445,14 @@ public class ConfigManager {
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
         tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", true);
         blockLockerProtectionEnabled = config.getBoolean("tnt-explosion-optimization.blocklocker-protection.enabled", true);
+        
+
+        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
+        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", false);
+        tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
+        tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.entity-merge.max-fuse-difference", 5);
+        tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.entity-merge.power-multiplier", 0.5);
+        
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
@@ -400,6 +464,8 @@ public class ConfigManager {
         locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
         locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
         villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
+        villagerTradeMapsSearchRadius = config.getInt("structure-location-async.villager-trade-maps.search-radius", 100);
+        villagerTradeMapsSkipKnownStructures = config.getBoolean("structure-location-async.villager-trade-maps.skip-known-structures", false);
         villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
         if (villagerTradeMapTypes.isEmpty()) {
             villagerTradeMapTypes.add("minecraft:ocean_monument_map");
@@ -409,7 +475,6 @@ public class ConfigManager {
         villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
         dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
         dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
-        dolphinTreasureHuntInterval = config.getInt("structure-location-async.dolphin-treasure-hunt.hunt-interval", 100);
         chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
         chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
         if (chestExplorationLootTables.isEmpty()) {
@@ -417,14 +482,12 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
-        chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
 
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
         structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
         structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
-        structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
 
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
@@ -432,6 +495,8 @@ public class ConfigManager {
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
         dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
         dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
+        dataPackMaxFileCacheSize = config.getInt("datapack-optimization.max-file-cache-size", 1000);
+        dataPackMaxFileSystemCacheSize = config.getInt("datapack-optimization.max-filesystem-cache-size", 50);
         dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
 
         nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
@@ -440,11 +505,41 @@ public class ConfigManager {
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
 
-        secureSeedEnabled = config.getBoolean("secure-seed.enabled", true);
-        secureSeedProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
-        secureSeedProtectOres = config.getBoolean("secure-seed.protect-ores", true);
-        secureSeedProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
-        secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
+
+
+        if (config.contains("seed-encryption.scheme")) {
+
+            seedEncryptionScheme = config.getString("seed-encryption.scheme", "quantum");
+            seedEncryptionEnabled = config.getBoolean("seed-encryption.enabled", false);
+            seedEncryptionProtectStructures = config.getBoolean("seed-encryption.protect-structures", true);
+            seedEncryptionProtectOres = config.getBoolean("seed-encryption.protect-ores", true);
+            seedEncryptionProtectSlimes = config.getBoolean("seed-encryption.protect-slimes", true);
+            seedEncryptionProtectBiomes = config.getBoolean("seed-encryption.protect-biomes", true);
+            
+
+            secureSeedBits = config.getInt("seed-encryption.legacy.seed-bits", 1024);
+            
+
+            quantumSeedEncryptionLevel = config.getInt("seed-encryption.quantum.encryption-level", 2);
+            quantumSeedPrivateKeyFile = config.getString("seed-encryption.quantum.private-key-file", "quantum-seed.key");
+            quantumSeedEnableTimeDecay = config.getBoolean("seed-encryption.quantum.enable-time-decay", false);
+            quantumSeedCacheSize = config.getInt("seed-encryption.quantum.cache-size", 10000);
+        } else {
+
+            seedEncryptionScheme = "legacy";
+            seedEncryptionEnabled = config.getBoolean("secure-seed.enabled", false);
+            seedEncryptionProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
+            seedEncryptionProtectOres = config.getBoolean("secure-seed.protect-ores", true);
+            seedEncryptionProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
+            seedEncryptionProtectBiomes = false;
+            secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
+            
+
+            quantumSeedEncryptionLevel = 2;
+            quantumSeedPrivateKeyFile = "quantum-seed.key";
+            quantumSeedEnableTimeDecay = false;
+            quantumSeedCacheSize = 10000;
+        }
 
         furnaceRecipeCacheEnabled = config.getBoolean("recipe-optimization.furnace-recipe-cache.enabled", true);
         furnaceRecipeCacheSize = config.getInt("recipe-optimization.furnace-recipe-cache.cache-size", 100);
@@ -688,6 +783,10 @@ public class ConfigManager {
         blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
         blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
         blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
+        hopperOptimizationEnabled = config.getBoolean("block-entity-optimizations.hopper-optimization.enabled", true);
+        hopperCacheExpireTime = config.getInt("block-entity-optimizations.hopper-optimization.cache-expire-time", 100);
+        minecartOptimizationEnabled = config.getBoolean("block-entity-optimizations.minecart-optimization.enabled", true);
+        minecartTickInterval = config.getInt("block-entity-optimizations.minecart-optimization.tick-interval", 2);
         simpleEntitiesOptimizationEnabled = config.getBoolean("async-ai.simple-entities.enabled", false);
         simpleEntitiesUsePOISnapshot = config.getBoolean("async-ai.simple-entities.use-poi-snapshot", false);
         entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
@@ -756,6 +855,8 @@ public class ConfigManager {
         locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
         locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
         villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
+        villagerTradeMapsSearchRadius = config.getInt("structure-location-async.villager-trade-maps.search-radius", 100);
+        villagerTradeMapsSkipKnownStructures = config.getBoolean("structure-location-async.villager-trade-maps.skip-known-structures", false);
         villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
         if (villagerTradeMapTypes.isEmpty()) {
             villagerTradeMapTypes.add("minecraft:ocean_monument_map");
@@ -765,7 +866,6 @@ public class ConfigManager {
         villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
         dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
         dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
-        dolphinTreasureHuntInterval = config.getInt("structure-location-async.dolphin-treasure-hunt.hunt-interval", 100);
         chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
         chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
         if (chestExplorationLootTables.isEmpty()) {
@@ -773,14 +873,12 @@ public class ConfigManager {
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
             chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
         }
-        chestMapPreserveProbability = config.getBoolean("structure-location-async.chest-exploration-maps.preserve-probability", true);
 
         structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
         structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
         structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
         structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
         structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
-        structurePrecomputationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.precomputation.enabled", true);
         biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
 
         dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
@@ -894,8 +992,6 @@ public class ConfigManager {
         if (villagerMapGenerationTimeoutSeconds > 300) villagerMapGenerationTimeoutSeconds = 300;
         if (dolphinTreasureSearchRadius < 10) dolphinTreasureSearchRadius = 10;
         if (dolphinTreasureSearchRadius > 200) dolphinTreasureSearchRadius = 200;
-        if (dolphinTreasureHuntInterval < 20) dolphinTreasureHuntInterval = 20;
-        if (dolphinTreasureHuntInterval > 1200) dolphinTreasureHuntInterval = 1200;
     }
 
     private void validateNitoriConfig() {
@@ -995,9 +1091,17 @@ public class ConfigManager {
 
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
+    public boolean isLivingEntityTravelOptimizationEnabled() { return livingEntityTravelOptimizationEnabled; }
+    public int getLivingEntityTravelSkipInterval() { return livingEntityTravelSkipInterval; }
+    public boolean isBehaviorThrottleEnabled() { return behaviorThrottleEnabled; }
+    public int getBehaviorThrottleInterval() { return behaviorThrottleInterval; }
+    public boolean isMobDespawnOptimizationEnabled() { return mobDespawnOptimizationEnabled; }
+    public int getMobDespawnCheckInterval() { return mobDespawnCheckInterval; }
     public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
     public boolean isVillagerOptimizationEnabled() { return villagerOptimizationEnabled; }
     public boolean isVillagerUsePOISnapshot() { return villagerUsePOISnapshot; }
+    public boolean isVillagerPoiCacheEnabled() { return villagerPoiCacheEnabled; }
+    public int getVillagerPoiCacheExpireTime() { return villagerPoiCacheExpireTime; }
     public boolean isPiglinOptimizationEnabled() { return piglinOptimizationEnabled; }
     public boolean isPiglinUsePOISnapshot() { return piglinUsePOISnapshot; }
     public int getPiglinLookDistance() { return piglinLookDistance; }
@@ -1031,6 +1135,10 @@ public class ConfigManager {
     public int getBlockEntityParallelBatchSize() { return blockEntityParallelBatchSize; }
     public boolean isBlockEntityParallelProtectContainers() { return blockEntityParallelProtectContainers; }
     public int getBlockEntityParallelTimeoutMs() { return blockEntityParallelTimeoutMs; }
+    public boolean isHopperOptimizationEnabled() { return hopperOptimizationEnabled; }
+    public int getHopperCacheExpireTime() { return hopperCacheExpireTime; }
+    public boolean isMinecartOptimizationEnabled() { return minecartOptimizationEnabled; }
+    public int getMinecartTickInterval() { return minecartTickInterval; }
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }
@@ -1057,6 +1165,17 @@ public class ConfigManager {
     public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
+    
+
+    public boolean isUsePandaWireAlgorithm() { return usePandaWireAlgorithm; }
+    public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
+    public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
+    public boolean isTNTUseSakuraDensityCache() { return tntUseSakuraDensityCache; }
+    public boolean isTNTMergeEnabled() { return tntMergeEnabled; }
+    public double getTNTMergeRadius() { return tntMergeRadius; }
+    public int getTNTMaxFuseDifference() { return tntMaxFuseDifference; }
+    public float getTNTMergedPowerMultiplier() { return tntMergedPowerMultiplier; }
+    
     public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
     public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
     public int getVillagerBreedThreads() { return villagerBreedThreads; }
@@ -1093,20 +1212,19 @@ public class ConfigManager {
     public int getLocateCommandSearchRadius() { return locateCommandSearchRadius; }
     public boolean isLocateCommandSkipKnownStructures() { return locateCommandSkipKnownStructures; }
     public boolean isVillagerTradeMapsEnabled() { return villagerTradeMapsEnabled; }
+    public int getVillagerTradeMapsSearchRadius() { return villagerTradeMapsSearchRadius; }
+    public boolean isVillagerTradeMapsSkipKnownStructures() { return villagerTradeMapsSkipKnownStructures; }
     public java.util.Set<String> getVillagerTradeMapTypes() { return villagerTradeMapTypes; }
     public int getVillagerMapGenerationTimeoutSeconds() { return villagerMapGenerationTimeoutSeconds; }
     public boolean isDolphinTreasureHuntEnabled() { return dolphinTreasureHuntEnabled; }
     public int getDolphinTreasureSearchRadius() { return dolphinTreasureSearchRadius; }
-    public int getDolphinTreasureHuntInterval() { return dolphinTreasureHuntInterval; }
     public boolean isChestExplorationMapsEnabled() { return chestExplorationMapsEnabled; }
     public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
-    public boolean isChestMapPreserveProbability() { return chestMapPreserveProbability; }
     public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
 
     public boolean isStructureAlgorithmOptimizationEnabled() { return structureAlgorithmOptimizationEnabled; }
     public String getStructureSearchPattern() { return structureSearchPattern; }
     public boolean isStructureCachingEnabled() { return structureCachingEnabled; }
-    public boolean isStructurePrecomputationEnabled() { return structurePrecomputationEnabled; }
     public boolean isBiomeAwareSearchEnabled() { return biomeAwareSearchEnabled; }
     public int getStructureCacheMaxSize() { return structureCacheMaxSize; }
     public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
@@ -1116,6 +1234,8 @@ public class ConfigManager {
     public int getDataPackZipProcessThreads() { return dataPackZipProcessThreads; }
     public int getDataPackBatchSize() { return dataPackBatchSize; }
     public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
+    public int getDataPackMaxFileCacheSize() { return dataPackMaxFileCacheSize; }
+    public int getDataPackMaxFileSystemCacheSize() { return dataPackMaxFileSystemCacheSize; }
     public boolean isDataPackDebugEnabled() { return dataPackDebugEnabled; }
 
     public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
@@ -1124,12 +1244,47 @@ public class ConfigManager {
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
 
-    public boolean isSecureSeedEnabled() { return secureSeedEnabled; }
-    public boolean isSecureSeedProtectStructures() { return secureSeedProtectStructures; }
-    public boolean isSecureSeedProtectOres() { return secureSeedProtectOres; }
-    public boolean isSecureSeedProtectSlimes() { return secureSeedProtectSlimes; }
+
+    public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
+    public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
+    public boolean isSeedEncryptionProtectStructures() { return seedEncryptionProtectStructures; }
+    public boolean isSeedEncryptionProtectOres() { return seedEncryptionProtectOres; }
+    public boolean isSeedEncryptionProtectSlimes() { return seedEncryptionProtectSlimes; }
+    public boolean isSeedEncryptionProtectBiomes() { return seedEncryptionProtectBiomes; }
+    
+
+    public boolean isSecureSeedEnabled() { return seedEncryptionEnabled; }
+    public boolean isSecureSeedProtectStructures() { return seedEncryptionProtectStructures; }
+    public boolean isSecureSeedProtectOres() { return seedEncryptionProtectOres; }
+    public boolean isSecureSeedProtectSlimes() { return seedEncryptionProtectSlimes; }
     public int getSecureSeedBits() { return secureSeedBits; }
     public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
+    
+
+    public boolean isQuantumSeedEnabled() { return seedEncryptionEnabled && "quantum".equalsIgnoreCase(seedEncryptionScheme); }
+    public int getQuantumSeedEncryptionLevel() { return quantumSeedEncryptionLevel; }
+    public String getQuantumSeedPrivateKeyFile() { return quantumSeedPrivateKeyFile; }
+    public boolean isQuantumSeedEnableTimeDecay() { return quantumSeedEnableTimeDecay; }
+    public int getQuantumSeedCacheSize() { return quantumSeedCacheSize; }
+    public boolean isQuantumSeedDebugLogging() { return enableDebugLogging; }
+    
+
+    public boolean isSeedCommandRestrictionEnabled() {
+        return config.getBoolean("seed-encryption.restrict-seed-command", true);
+    }
+    
+
+    public boolean isSeedProtectionEnabled() {
+        return config.getBoolean("seed-encryption.anti-plugin-theft.enabled", true);
+    }
+    
+    public boolean shouldReturnFakeSeed() {
+        return config.getBoolean("seed-encryption.anti-plugin-theft.return-fake-seed", true);
+    }
+    
+    public long getFakeSeedValue() {
+        return config.getLong("seed-encryption.anti-plugin-theft.fake-seed-value", 0L);
+    }
 
     public boolean isFurnaceRecipeCacheEnabled() { return furnaceRecipeCacheEnabled; }
     public int getFurnaceRecipeCacheSize() { return furnaceRecipeCacheSize; }

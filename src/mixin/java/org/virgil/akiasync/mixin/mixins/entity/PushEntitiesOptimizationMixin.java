@@ -15,6 +15,14 @@ public abstract class PushEntitiesOptimizationMixin {
         if (!initialized) { akiasync$initPushOptimization(); }
         if (!enabled) return;
         LivingEntity self = (LivingEntity) (Object) this;
+        
+
+
+        if (self instanceof net.minecraft.world.entity.monster.Shulker) {
+
+            return;
+        }
+        
         if (self.getDeltaMovement().lengthSqr() < 1.0E-7) {
             ci.cancel();
             return;

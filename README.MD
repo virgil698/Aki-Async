@@ -419,6 +419,11 @@ This project references the following excellent open source projects:
 | [Async](https://github.com/AxalotLDev/Async) | Async boundary design |
 | [SecureSeed](https://github.com/Earthcomputer/SecureSeed) | Secure seed design |
 | [Leaves](https://github.com/LeavesMC/Leaves) | Mixin support |
+| [Pufferfish](https://github.com/pufferfish-gg/Pufferfish) | Async design reference and compatibility evaluation |
+| [Akarin](https://github.com/Akarin-project/Akarin) | Async design reference and compatibility evaluation |
+| [tt20](https://github.com/snackbag/tt20) | Async design reference and compatibility evaluation |
+
+> **Note**: The above projects are used for Aki-Async design reference and compatibility evaluation. They are for reference only and their code is not directly packaged or reused.
 
 ---
 
@@ -434,7 +439,8 @@ This project references the following excellent open source projects:
 
 ### Contact
 
-**Issues**: [GitHub Issues](https://github.com/virgil698/Aki-Async/issues)  
+**Issues**: [GitHub Issues](https://github.com/virgil698/Aki-Async/issues) 
+**Discord**：[Discord](https://discord.gg/pv9KdHwXWM)
 **Email**: virgil698@sky233.top  
 **Discord**: xiaokong23357(virgil698)
 
