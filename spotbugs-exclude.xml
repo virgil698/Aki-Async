@@ -8,103 +8,87 @@
         <Class name="~.*Test.*"/>
     </Match>
     
-    <!-- Mixin框架相关的误报 - 字段初始化 -->
     <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
     
-    <!-- Mixin框架相关的误报 - 不可能的类型转换 (Mixin会在运行时混入到目标类) -->
     <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="BC_IMPOSSIBLE_CAST"/>
     </Match>
     
-    <!-- Mixin框架相关的误报 - 未调用的私有方法 (Mixin注入方法) -->
     <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
     </Match>
     
-    <!-- Mixin框架相关的误报 - 冗余null检查 -->
     <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
     
-    <!-- 序列化相关 -->
     <Match>
         <Bug pattern="SE_BAD_FIELD"/>
     </Match>
     
-    <!-- 插件生命周期方法的null检查 -->
     <Match>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
         <Class name="~org\.virgil\.akiasync\..*"/>
         <Method name="~(onEnable|onDisable|onLoad)"/>
     </Match>
     
-    <!-- 加密相关 - String.getBytes()使用默认编码是有意为之 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.crypto.quantum.QuantumSeedCore"/>
         <Method name="hashString"/>
         <Bug pattern="DM_DEFAULT_ENCODING"/>
     </Match>
     
-    <!-- 加密相关 - Random只使用一次是有意为之（种子初始化） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals"/>
         <Method name="initializeWorldSeed"/>
         <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE"/>
     </Match>
     
-    <!-- 加密相关 - DummyRandomSource的forkPositional返回null是有意为之 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.crypto.secureseed.crypto.random.WorldgenCryptoRandom$DummyRandomSource"/>
         <Method name="forkPositional"/>
         <Bug pattern="NP_NONNULL_RETURN_VIOLATION"/>
     </Match>
     
-    <!-- 线程池相关 - 懒加载初始化的误报 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.TNTThreadPool"/>
         <Method name="getExecutor"/>
         <Bug pattern="LI_LAZY_INIT_STATIC"/>
     </Match>
     
-    <!-- 结构定位器 - 未读取字段的误报 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.StructureLocatorBridge"/>
         <Field name="initialized"/>
         <Bug pattern="URF_UNREAD_FIELD"/>
     </Match>
     
-    <!-- VillagerBreedAsyncMixin - Optional返回null是有意为之（安全处理） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.mixins.entity.VillagerBreedAsyncMixin"/>
         <Method name="aki$safeGetMemory"/>
         <Bug pattern="NP_OPTIONAL_RETURN_NULL"/>
     </Match>
     
-    <!-- OptimizationManager - volatile字段增量（统计数据，精确性不重要） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.optimization.OptimizationManager"/>
         <Bug pattern="VO_VOLATILE_INCREMENT"/>
     </Match>
     
-    <!-- AsyncPath - 传递null给非null参数（Minecraft API设计问题） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.pathfinding.AsyncPath"/>
         <Bug pattern="NP_NONNULL_PARAM_VIOLATION"/>
     </Match>
     
-    <!-- Mixin框架 - instanceof检查误报（Mixin会在运行时混入） -->
     <Match>
         <Class name="~.*Mixin"/>
         <Bug pattern="BC_IMPOSSIBLE_INSTANCEOF"/>
     </Match>
     
-    <!-- 快照类 - 内部表示暴露是有意为之（性能优化，避免复制） -->
     <Match>
         <Class name="~.*Snapshot.*"/>
         <Bug pattern="EI_EXPOSE_REP"/>
@@ -114,44 +98,37 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     
-    <!-- 执行器类 - 暴露ExecutorService是有意为之 -->
     <Match>
         <Class name="~.*Executor.*"/>
         <Bug pattern="MS_EXPOSE_REP"/>
     </Match>
     
-    <!-- 爆炸计算器 - 冗余null检查（防御性编程） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
     
-    <!-- 红石评估器 - 内部表示暴露是有意为之 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     
-    <!-- 加密相关 - worldSeed数组是有意暴露的（性能） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals"/>
         <Field name="worldSeed"/>
         <Bug pattern="MS_MUTABLE_ARRAY"/>
     </Match>
     
-    <!-- 浮点循环计数器 - 爆炸密度计算需要浮点精度 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator"/>
         <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS"/>
     </Match>
     
-    <!-- 公共字段 - Mixin注入字段，需要公共访问 -->
     <Match>
         <Class name="~.*Mixin"/>
         <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>
     </Match>
     
-    <!-- TNT批处理 - 内部表示暴露是有意为之（性能） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.async.explosion.TNTBatchCollector$ExplosionBatch"/>
         <Bug pattern="EI_EXPOSE_REP"/>
@@ -161,7 +138,6 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     
-    <!-- 异常捕获 - 防御性编程，捕获所有异常避免崩溃 -->
     <Match>
         <Bug pattern="REC_CATCH_EXCEPTION"/>
     </Match>
@@ -169,57 +145,47 @@
         <Bug pattern="DE_MIGHT_IGNORE"/>
     </Match>
     
-    <!-- 双重检查 - 已修复但SpotBugs仍报告 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.mixins.blockentity.BlockEntityTickParallelMixin"/>
         <Method name="akiasync$getBlockEntityTickers"/>
         <Bug pattern="DC_DOUBLECHECK"/>
     </Match>
     
-    <!-- Switch语句 - 不需要default分支（所有情况已覆盖） -->
     <Match>
         <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
     </Match>
     
-    <!-- 死存储 - 临时变量，可接受 -->
     <Match>
         <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
     </Match>
     
-    <!-- 无用条件 - 防御性编程 -->
     <Match>
         <Bug pattern="UC_USELESS_CONDITION"/>
     </Match>
     
-    <!-- 重复分支 - 代码清晰性优先 -->
     <Match>
         <Bug pattern="DB_DUPLICATE_BRANCHES"/>
     </Match>
     
-    <!-- 冗余null检查 - 防御性编程 -->
     <Match>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
     
-    <!-- 实例锁修改静态数据 - 光照引擎特殊设计 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.mixins.lighting.LightEngineAsyncMixin"/>
         <Bug pattern="SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA"/>
     </Match>
     
-    <!-- 优化管理器 - 内部表示暴露是有意为之 -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.optimization.cache.BlockPosIterationCache$BlockPosIterable"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     
-    <!-- 虚拟线程服务 - 构造函数抛出异常是必要的（反射失败） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.optimization.thread.VirtualThreadService$ReflectionVirtualThreadService"/>
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
     
-    <!-- 异步路径 - 内部表示暴露是有意为之（性能） -->
     <Match>
         <Class name="org.virgil.akiasync.mixin.pathfinding.AsyncPath"/>
         <Bug pattern="EI_EXPOSE_REP"/>
