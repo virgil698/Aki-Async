@@ -30,21 +30,4 @@ public class BrainTickHelper {
             return snapshot;
         }
     }
-    public static <E extends LivingEntity> BrainSnapshot tickSnapshotSimple(
-            Brain<E> brain,
-            BrainSnapshot snapshot
-    ) {
-        int sum = 0;
-        for (int i = 0; i < 1000; i++) {
-            sum += i * i;
-        }
-        if (sum < 0) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-VillagerBrain] Async brain tick completed");
-            }
-            return snapshot;
-        }
-        return snapshot;
-    }
 }

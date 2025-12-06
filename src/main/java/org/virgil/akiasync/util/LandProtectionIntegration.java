@@ -34,8 +34,10 @@ public class LandProtectionIntegration {
     private static volatile Method hasRoleFlagMethod = null;
 
     private static final ConcurrentHashMap<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
-    private static final long CACHE_DURATION_MS = 5000;
-    private static final int MAX_CACHE_SIZE = 1000;
+    private static final ConcurrentHashMap<String, ChunkCacheEntry> CHUNK_CACHE = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION_MS = 30000; 
+    private static final int MAX_CACHE_SIZE = 50000; 
+    private static final int MAX_CHUNK_CACHE_SIZE = 1000;
 
     private static class CacheEntry {
         final boolean allowed;
@@ -51,16 +53,43 @@ public class LandProtectionIntegration {
         }
     }
 
+    private static class ChunkCacheEntry {
+        final Boolean allAllowed; 
+        final long timestamp;
+
+        ChunkCacheEntry(Boolean allAllowed) {
+            this.allAllowed = allAllowed;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isValid() {
+            return System.currentTimeMillis() - timestamp < CACHE_DURATION_MS;
+        }
+    }
+
     public static boolean canTNTExplode(ServerLevel level, BlockPos pos) {
         try {
+            
             String cacheKey = getCacheKey(level, pos);
             CacheEntry cached = CACHE.get(cacheKey);
             if (cached != null && cached.isValid()) {
                 return cached.allowed;
             }
 
+            String chunkKey = getChunkCacheKey(level, pos);
+            ChunkCacheEntry chunkCached = CHUNK_CACHE.get(chunkKey);
+            if (chunkCached != null && chunkCached.isValid() && chunkCached.allAllowed != null) {
+                
+                boolean allowed = chunkCached.allAllowed;
+                CACHE.put(cacheKey, new CacheEntry(allowed));
+                return allowed;
+            }
+
             if (CACHE.size() > MAX_CACHE_SIZE) {
                 CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
+            }
+            if (CHUNK_CACHE.size() > MAX_CHUNK_CACHE_SIZE) {
+                CHUNK_CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
             }
 
             World bukkitWorld = level.getWorld();
@@ -102,6 +131,45 @@ public class LandProtectionIntegration {
         } catch (Exception e) {
             DebugLogger.error("[LandProtection] Error checking land protection: " + e.getMessage());
             return true;
+        }
+    }
+
+    public static Boolean checkChunkProtection(ServerLevel level, int chunkX, int chunkZ) {
+        try {
+            String chunkKey = getChunkCacheKeyDirect(level, chunkX, chunkZ);
+            ChunkCacheEntry cached = CHUNK_CACHE.get(chunkKey);
+            if (cached != null && cached.isValid()) {
+                return cached.allAllowed;
+            }
+
+            int baseX = chunkX << 4;
+            int baseZ = chunkZ << 4;
+            
+            Boolean firstResult = null;
+            boolean allSame = true;
+
+            int[] sampleX = {0, 8, 15, 0, 15, 0, 8, 15, 8};
+            int[] sampleZ = {0, 0, 0, 8, 8, 15, 15, 15, 8};
+
+            for (int i = 0; i < sampleX.length; i++) {
+                BlockPos pos = new BlockPos(baseX + sampleX[i], 64, baseZ + sampleZ[i]);
+                boolean allowed = canTNTExplode(level, pos);
+                
+                if (firstResult == null) {
+                    firstResult = allowed;
+                } else if (firstResult != allowed) {
+                    allSame = false;
+                    break;
+                }
+            }
+
+            Boolean result = allSame ? firstResult : null;
+            CHUNK_CACHE.put(chunkKey, new ChunkCacheEntry(result));
+            
+            return result;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking chunk protection: " + e.getMessage());
+            return null;
         }
     }
 
@@ -331,8 +399,19 @@ public class LandProtectionIntegration {
                pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 
+    private static String getChunkCacheKey(ServerLevel level, BlockPos pos) {
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        return getChunkCacheKeyDirect(level, chunkX, chunkZ);
+    }
+
+    private static String getChunkCacheKeyDirect(ServerLevel level, int chunkX, int chunkZ) {
+        return level.dimension().location().toString() + ":chunk:" + chunkX + "," + chunkZ;
+    }
+
     public static void clearCache() {
         CACHE.clear();
+        CHUNK_CACHE.clear();
     }
 
     public static void reset() {

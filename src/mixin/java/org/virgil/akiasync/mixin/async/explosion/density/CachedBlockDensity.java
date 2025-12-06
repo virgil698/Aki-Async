@@ -4,7 +4,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class CachedBlockDensity {
     private AABB source;
     private AABB entity;

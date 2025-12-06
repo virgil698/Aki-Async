@@ -19,10 +19,11 @@ public final class AsyncPathProcessor {
   private static volatile boolean enabled = false;
   private static final Object LOCK = new Object();
   
-
   private static final ThreadLocal<List<AsyncPath>> pendingPaths = ThreadLocal.withInitial(ArrayList::new);
   private static final AtomicInteger batchCount = new AtomicInteger(0);
   private static final AtomicInteger totalBatchedPaths = new AtomicInteger(0);
+  private static final AtomicInteger mergedPaths = new AtomicInteger(0);
+  private static final AtomicInteger cacheHits = new AtomicInteger(0);
 
   private AsyncPathProcessor() {
     throw new AssertionError("Utility class should not be instantiated");
@@ -87,16 +88,13 @@ public final class AsyncPathProcessor {
       return;
     }
 
-
     List<AsyncPath> paths = pendingPaths.get();
     paths.add(path);
     
-
     if (paths.size() >= 8) {
       flushPendingPaths();
     }
   }
-  
   
   public static void flushPendingPaths() {
     List<AsyncPath> paths = pendingPaths.get();
@@ -104,7 +102,6 @@ public final class AsyncPathProcessor {
       return;
     }
     
-
     List<AsyncPath> batch = new ArrayList<>(paths);
     paths.clear();
     
@@ -112,13 +109,18 @@ public final class AsyncPathProcessor {
       return;
     }
     
+    List<AsyncPath> mergedBatch = mergeSimilarPaths(batch);
+    
     batchCount.incrementAndGet();
     totalBatchedPaths.addAndGet(batch.size());
+    if (mergedBatch.size() < batch.size()) {
+      mergedPaths.addAndGet(batch.size() - mergedBatch.size());
+    }
     
     try {
 
       executor.execute(() -> {
-        for (AsyncPath path : batch) {
+        for (AsyncPath path : mergedBatch) {
           try {
             path.process();
           } catch (Exception e) {
@@ -128,7 +130,7 @@ public final class AsyncPathProcessor {
       });
     } catch (RejectedExecutionException e) {
 
-      for (AsyncPath path : batch) {
+      for (AsyncPath path : mergedBatch) {
         try {
           path.process();
         } catch (Exception ex) {
@@ -136,6 +138,52 @@ public final class AsyncPathProcessor {
         }
       }
     }
+  }
+
+  private static List<AsyncPath> mergeSimilarPaths(List<AsyncPath> paths) {
+    if (paths.size() <= 1) {
+      return paths;
+    }
+    
+    List<AsyncPath> merged = new ArrayList<>();
+    List<AsyncPath> duplicates = new ArrayList<>();
+    
+    for (int i = 0; i < paths.size(); i++) {
+      AsyncPath current = paths.get(i);
+      boolean isDuplicate = false;
+      
+      for (AsyncPath existing : merged) {
+        if (current.hasSameProcessingPositions(existing.getPositions())) {
+          
+          duplicates.add(current);
+          
+          existing.postProcessing(() -> {
+            
+            try {
+              java.lang.reflect.Field delegatedPathField = AsyncPath.class.getDeclaredField("delegatedPath");
+              delegatedPathField.setAccessible(true);
+              delegatedPathField.set(current, existing.getPath());
+              
+              java.lang.reflect.Field processStateField = AsyncPath.class.getDeclaredField("processState");
+              processStateField.setAccessible(true);
+              processStateField.set(current, existing.getClass().getDeclaredField("processState").get(existing));
+            } catch (Exception e) {
+              
+              current.process();
+            }
+          });
+          
+          isDuplicate = true;
+          break;
+        }
+      }
+      
+      if (!isDuplicate) {
+        merged.add(current);
+      }
+    }
+    
+    return merged;
   }
 
   public static void shutdown() {
@@ -174,18 +222,31 @@ public final class AsyncPathProcessor {
 
     int batches = batchCount.get();
     int totalPaths = totalBatchedPaths.get();
+    int merged = mergedPaths.get();
+    int hits = cacheHits.get();
     double avgBatchSize = batches > 0 ? (double) totalPaths / batches : 0;
+    double mergeRate = totalPaths > 0 ? (double) merged / totalPaths * 100 : 0;
+    
+    String cacheStats = SharedPathCache.getStats();
     
     return String.format(
-        "AsyncPath: Pool=%d/%d | Active=%d | Queue=%d | Completed=%d | Batches=%d | AvgBatch=%.1f",
+        "AsyncPath: Pool=%d/%d | Active=%d | Queue=%d | Completed=%d | Batches=%d | AvgBatch=%.1f | Merged=%d(%.1f%%) | CacheHits=%d | %s",
         executor.getPoolSize(),
         executor.getCorePoolSize(),
         executor.getActiveCount(),
         executor.getQueue().size(),
         executor.getCompletedTaskCount(),
         batches,
-        avgBatchSize
+        avgBatchSize,
+        merged,
+        mergeRate,
+        hits,
+        cacheStats
     );
+  }
+
+  public static void recordCacheHit() {
+    cacheHits.incrementAndGet();
   }
 
   public static boolean isEnabled() {

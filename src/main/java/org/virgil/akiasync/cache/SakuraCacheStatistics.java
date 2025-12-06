@@ -6,9 +6,7 @@ import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class SakuraCacheStatistics {
-    
     
     public static Map<String, Object> getAllStatistics() {
         Bridge bridge = BridgeManager.getBridge();
@@ -19,7 +17,6 @@ public class SakuraCacheStatistics {
         return bridge.getSakuraCacheStatistics();
     }
     
-    
     public static String formatStatistics() {
         Map<String, Object> stats = getAllStatistics();
         if (stats.isEmpty()) {
@@ -29,7 +26,6 @@ public class SakuraCacheStatistics {
         StringBuilder sb = new StringBuilder();
         sb.append("§6=== Sakura Optimization Cache Statistics ===§r\n");
         
-
         sb.append("§e[TNT Density Cache]§r\n");
         @SuppressWarnings("unchecked")
         Map<String, String> densityStats = (Map<String, String>) stats.get("density_cache");
@@ -39,7 +35,6 @@ public class SakuraCacheStatistics {
             }
         }
         
-
         sb.append("§e[Async Density Cache]§r\n");
         @SuppressWarnings("unchecked")
         Map<String, String> asyncStats = (Map<String, String>) stats.get("async_density_cache");
@@ -49,13 +44,11 @@ public class SakuraCacheStatistics {
             }
         }
         
-
         Object evaluatorCount = stats.get("pandawire_evaluators");
         if (evaluatorCount != null) {
             sb.append(String.format("§e[PandaWire Evaluators]§r\n  §7Cache count: §f%s§r\n", evaluatorCount));
         }
         
-
         sb.append("§e[Redstone Network Cache]§r\n");
         @SuppressWarnings("unchecked")
         Map<String, String> networkStats = (Map<String, String>) stats.get("network_cache");
@@ -67,7 +60,6 @@ public class SakuraCacheStatistics {
         
         return sb.toString();
     }
-    
     
     public static void performPeriodicCleanup() {
         Bridge bridge = BridgeManager.getBridge();

@@ -84,7 +84,6 @@ public class PathNavigationAsyncMixin {
             }
         }
         
-
         return null;
     }
 
@@ -97,7 +96,10 @@ public class PathNavigationAsyncMixin {
                 Mob.class, Set.class, float.class, int.class, float.class);
             cachedFindPathMethod.setAccessible(true);
         } catch (Exception e) {
-            System.err.println("[AkiAsync-PathNav] Failed to initialize reflection: " + e.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[AkiAsync-PathNav] Failed to initialize reflection: " + e.getMessage());
+            }
             cachedFindPathMethod = null;
         }
 

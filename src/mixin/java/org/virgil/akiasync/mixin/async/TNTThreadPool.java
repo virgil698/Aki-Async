@@ -3,7 +3,8 @@ import java.util.concurrent.ExecutorService;
 
 public class TNTThreadPool {
     private static ExecutorService executor;
-    private static int threadCount = Math.max(6, Runtime.getRuntime().availableProcessors() * 3 / 2);
+    
+    private static int threadCount = Math.max(6, (int)(Runtime.getRuntime().availableProcessors() * 1.5));
 
     public static void init(int threads) {
         threadCount = threads;
@@ -21,7 +22,7 @@ public class TNTThreadPool {
         }
     }
 
-    public static ExecutorService getExecutor() {
+    public static synchronized ExecutorService getExecutor() {
         if (executor == null) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -42,6 +43,7 @@ public class TNTThreadPool {
                     }
                 }
             } catch (Exception e) {
+                
             }
         }
 

@@ -48,14 +48,14 @@ public class PacketClassifier {
             packet instanceof ClientboundBlockEntityDataPacket ||
             packet instanceof ClientboundExplodePacket ||
             packet instanceof ClientboundDamageEventPacket ||
-            packet instanceof ClientboundHurtAnimationPacket) {
+            packet instanceof ClientboundHurtAnimationPacket ||
+            packet instanceof ClientboundMapItemDataPacket) {
             return PacketPriority.HIGH;
         }
 
         if (packet instanceof ClientboundLevelChunkWithLightPacket ||
             packet instanceof ClientboundLightUpdatePacket ||
             packet instanceof ClientboundForgetLevelChunkPacket ||
-            packet instanceof ClientboundMapItemDataPacket ||
             packet instanceof ClientboundSetChunkCacheRadiusPacket ||
             packet instanceof ClientboundSetChunkCacheCenterPacket) {
             return PacketPriority.NORMAL;

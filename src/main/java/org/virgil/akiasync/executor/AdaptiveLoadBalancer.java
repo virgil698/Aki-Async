@@ -3,15 +3,12 @@ package org.virgil.akiasync.executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-
 public class AdaptiveLoadBalancer {
     
-
     private static final double MSPT_WARNING = 40.0;
     private static final double MSPT_CRITICAL = 45.0;
     private static final double MSPT_TARGET = 30.0;
     
-
     public enum LoadLevel {
         NORMAL,
         MODERATE,
@@ -23,16 +20,13 @@ public class AdaptiveLoadBalancer {
     private static final AtomicLong lastMsptUpdate = new AtomicLong(0);
     private static final AtomicInteger consecutiveHighLoad = new AtomicInteger(0);
     
-
     private static volatile double taskSubmitRate = 1.0;
-    
     
     public static void updateMspt(double mspt) {
         lastMsptUpdate.set(System.currentTimeMillis());
         
         LoadLevel oldLoad = currentLoad;
         
-
         if (mspt >= MSPT_CRITICAL) {
             currentLoad = LoadLevel.CRITICAL;
             consecutiveHighLoad.incrementAndGet();
@@ -47,10 +41,8 @@ public class AdaptiveLoadBalancer {
             consecutiveHighLoad.set(0);
         }
         
-
         adjustTaskSubmitRate(mspt);
         
-
         if (oldLoad != currentLoad) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -62,7 +54,6 @@ public class AdaptiveLoadBalancer {
             }
         }
     }
-    
     
     private static void adjustTaskSubmitRate(double mspt) {
         switch (currentLoad) {
@@ -85,32 +76,26 @@ public class AdaptiveLoadBalancer {
         }
     }
     
-    
     public static LoadLevel getCurrentLoad() {
         return currentLoad;
     }
     
-    
     public static double getTaskSubmitRate() {
         return taskSubmitRate;
     }
-    
     
     public static boolean shouldSubmitTask() {
         if (currentLoad == LoadLevel.NORMAL) {
             return true;
         }
         
-
         return Math.random() < taskSubmitRate;
     }
-    
     
     public static boolean shouldSkipLowPriority() {
         return currentLoad == LoadLevel.CRITICAL || 
                (currentLoad == LoadLevel.HIGH && consecutiveHighLoad.get() > 3);
     }
-    
     
     public static String getStatistics() {
         return String.format(
@@ -120,7 +105,6 @@ public class AdaptiveLoadBalancer {
             consecutiveHighLoad.get()
         );
     }
-    
     
     public static void reset() {
         currentLoad = LoadLevel.NORMAL;

@@ -25,7 +25,6 @@ public class ExplosionSnapshot {
         this.power = power;
         this.fire = fire;
         
-
         BlockPos centerPos = BlockPos.containing(center);
         BlockState centerState = level.getBlockState(centerPos);
         this.inFluid = !centerState.getFluidState().isEmpty();
@@ -47,6 +46,8 @@ public class ExplosionSnapshot {
         minY = Math.max(level.getMinY(), minY);
         maxY = Math.min(level.getMaxY(), maxY);
 
+        Map<String, Boolean> chunkProtectionCache = new HashMap<>();
+        
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
@@ -54,12 +55,40 @@ public class ExplosionSnapshot {
                     BlockState state = level.getBlockState(pos);
                     blocks.put(pos, state);
 
-                    if (landProtectionEnabled && !bridge.canTNTExplodeAt(level, pos)) {
-                        protectedBlocks.add(pos);
-                        if (bridge.isTNTDebugEnabled()) {
-                            bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by land protection");
+                    boolean isProtected = false;
+
+                    if (landProtectionEnabled) {
+                        
+                        int chunkX = x >> 4;
+                        int chunkZ = z >> 4;
+                        String chunkKey = chunkX + "," + chunkZ;
+                        
+                        Boolean chunkProtection = chunkProtectionCache.get(chunkKey);
+                        if (chunkProtection == null) {
+                            
+                            chunkProtection = bridge.checkChunkProtection(level, chunkX, chunkZ);
+                            chunkProtectionCache.put(chunkKey, chunkProtection);
                         }
-                        continue;
+
+                        if (chunkProtection != null) {
+                            
+                            if (!chunkProtection) {
+                                isProtected = true;
+                            }
+                        } else {
+                            
+                            if (!bridge.canTNTExplodeAt(level, pos)) {
+                                isProtected = true;
+                            }
+                        }
+
+                        if (isProtected) {
+                            protectedBlocks.add(pos);
+                            if (bridge.isTNTDebugEnabled()) {
+                                bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by land protection");
+                            }
+                            continue;
+                        }
                     }
 
                     if (blockLockerEnabled && bridge.isBlockLockerProtected(level, pos, state)) {

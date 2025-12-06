@@ -179,7 +179,8 @@ public abstract class ServerPlayerFastMovementMixin {
         } else if (congestionLevel >= 2 || queueSize > 300) {
             adjustedMaxLoads = Math.max(2, dynamicMaxLoads / 2);  
         } else if (congestionLevel >= 1 || queueSize > 100) {
-            adjustedMaxLoads = Math.max(3, dynamicMaxLoads * 3 / 4);  
+            
+            adjustedMaxLoads = Math.max(3, (int)(dynamicMaxLoads * 0.75));  
         }
         
         if (debugEnabled && adjustedMaxLoads != dynamicMaxLoads) {

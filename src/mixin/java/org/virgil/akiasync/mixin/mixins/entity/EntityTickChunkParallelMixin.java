@@ -3,6 +3,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -79,7 +80,6 @@ public abstract class EntityTickChunkParallelMixin {
         if (!initialized) { akiasync$initEntityTickParallel(); }
         if (!enabled) return;
         
-
         if (smoothingScheduler != null) {
             var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -95,7 +95,6 @@ public abstract class EntityTickChunkParallelMixin {
         ci.cancel();
         executionCount++;
         
-
         if (smoothingScheduler != null && !isFolia) {
             var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -129,7 +128,6 @@ public abstract class EntityTickChunkParallelMixin {
                         });
                 }
                 
-
                 for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
                     bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "EntityTick");
                 }
@@ -139,8 +137,27 @@ public abstract class EntityTickChunkParallelMixin {
         List<List<EntityAccess>> batches = partition(cachedList, batchSize);
         long adaptiveTimeout = calculateAdaptiveTimeout(lastMspt);
         try {
+            
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            ExecutorService executor = dedicatedPool != null ? dedicatedPool : 
+                (bridge != null ? bridge.getGeneralExecutor() : null);
+            
+            if (executor == null) {
+                
+                batches.forEach(batch -> batch.forEach(entity -> {
+                    try {
+                        if (akiasync$isVirtualEntity(entity)) {
+                            return;
+                        }
+                        action.accept(entity);
+                    } catch (Exception ignored) {
+                    }
+                }));
+                return;
+            }
+            
             List<java.util.concurrent.CompletableFuture<Void>> futures = batches.stream()
-                .map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                .<java.util.concurrent.CompletableFuture<Void>>map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
                     batch.forEach(entity -> {
                         try {
                             if (akiasync$isVirtualEntity(entity)) {
@@ -173,14 +190,14 @@ public abstract class EntityTickChunkParallelMixin {
                         } catch (Throwable t) {
                         }
                     });
-                }, dedicatedPool != null ? dedicatedPool : ForkJoinPool.commonPool()))
+                }, executor))
                 .collect(java.util.stream.Collectors.toList());
             java.util.concurrent.CompletableFuture.allOf(futures.toArray(java.util.concurrent.CompletableFuture[]::new))
                 .get(adaptiveTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
             if (executionCount % 100 == 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog(
+                org.virgil.akiasync.mixin.bridge.Bridge logBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (logBridge != null) {
+                    logBridge.debugLog(
                         "[AkiAsync-Parallel] Processed %d entities in %d batches (timeout: %dms)",
                         cachedList.size(), batches.size(), adaptiveTimeout
                     );
@@ -188,10 +205,22 @@ public abstract class EntityTickChunkParallelMixin {
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
-                System.err.println("[AkiAsync-Parallel] Timeout/Error, fallback to sequential: " + t.getMessage());
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.errorLog("[AkiAsync-Parallel] Timeout/Error, fallback to sequential: " + t.getMessage());
+                }
             }
             for (EntityAccess entity : cachedList) {
-                try { action.accept(entity); } catch (Throwable ignored) {}
+                try { 
+                    action.accept(entity); 
+                } catch (Throwable e) {
+                    
+                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null) {
+                        bridge.errorLog("[EntityTick] Error ticking entity %s: %s", 
+                            entity.getClass().getSimpleName(), e.getMessage());
+                    }
+                }
             }
         }
     }
@@ -232,16 +261,22 @@ public abstract class EntityTickChunkParallelMixin {
                 }
             }
         } catch (IllegalAccessException e) {
-            
-            System.err.println("[EntityTickParallel] Field access denied: " + e.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[EntityTickParallel] Field access denied: " + e.getMessage());
+            }
         } catch (ClassCastException e) {
-            
-            System.err.println("[EntityTickParallel] ClassCastException: expected Map but got " + 
-                (map != null ? map.getClass().getName() : "null"));
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[EntityTickParallel] ClassCastException: expected Map but got " + 
+                    (map != null ? map.getClass().getName() : "null"));
+            }
         } catch (Exception e) {
-            
-            System.err.println("[EntityTickParallel] Unexpected error getting entities: " + 
-                e.getClass().getSimpleName() + ": " + e.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[EntityTickParallel] Unexpected error getting entities: " + 
+                    e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
         }
         return null;
     }
@@ -294,7 +329,6 @@ public abstract class EntityTickChunkParallelMixin {
         }
         initialized = true;
         
-
         if (bridge != null && enabled && !isFolia) {
             smoothingScheduler = bridge.getEntityTickSmoothingScheduler();
             if (smoothingScheduler != null) {
@@ -319,30 +353,25 @@ public abstract class EntityTickChunkParallelMixin {
                     return 0;
                 }
                 
-
                 if (realEntity instanceof net.minecraft.world.entity.Mob mob) {
                     if (mob.getTarget() != null || mob.getLastHurtByMob() != null) {
                         return 0;
                     }
                     
-
                     net.minecraft.world.entity.player.Player nearestPlayer = 
                         realEntity.level().getNearestPlayer(realEntity, 16.0);
                     if (nearestPlayer != null) {
                         return 1;
                     }
                     
-
                     return 2;
                 }
                 
-
                 if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb ||
                     realEntity instanceof net.minecraft.world.entity.item.ItemEntity) {
                     return 3;
                 }
                 
-
                 return 2;
             }
         } catch (Throwable t) {

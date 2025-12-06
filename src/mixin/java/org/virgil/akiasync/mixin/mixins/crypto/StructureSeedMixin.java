@@ -9,13 +9,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-
 @Mixin(WorldgenRandom.class)
 public class StructureSeedMixin {
     
     @Shadow
     public void setSeed(long seed) {}
-    
     
     @Inject(
         method = "setLargeFeatureSeed(JII)V",
@@ -28,12 +26,10 @@ public class StructureSeedMixin {
             return;
         }
         
-
         if (!bridge.isSeedProtectionEnabled()) {
             return;
         }
         
-
         if (!bridge.isSeedEncryptionProtectStructures()) {
             return;
         }
@@ -41,7 +37,6 @@ public class StructureSeedMixin {
         try {
             long encryptedSeed;
             
-
             if (bridge.isQuantumSeedEnabled()) {
                 encryptedSeed = aki$encryptStructureWithQuantumSeed(bridge, baseSeed, chunkX, chunkZ);
             }
@@ -53,7 +48,6 @@ public class StructureSeedMixin {
                 return;
             }
             
-
             setSeed(encryptedSeed);
             WorldgenRandom self = (WorldgenRandom)(Object)this;
             long randomLong = self.nextLong();
@@ -65,7 +59,6 @@ public class StructureSeedMixin {
             bridge.errorLog("[SeedEncryption] Failed to encrypt structure seed: %s", e.getMessage());
         }
     }
-    
     
     private long aki$encryptStructureWithQuantumSeed(Bridge bridge, long originalSeed, int x, int z) {
         String dimension = "minecraft:overworld";
@@ -81,28 +74,23 @@ public class StructureSeedMixin {
         );
     }
     
-    
     private long aki$encryptStructureWithSecureSeed(Bridge bridge, long originalSeed, int x, int z) {
         long[] worldSeed = bridge.getSecureSeedWorldSeed();
         if (worldSeed == null || worldSeed.length == 0) {
             return originalSeed;
         }
         
-
         long mixed = originalSeed;
         
-
         for (int i = 0; i < Math.min(worldSeed.length, 12); i++) {
             mixed ^= worldSeed[i];
             mixed = Long.rotateLeft(mixed, 11 + i);
             mixed *= 0x9E3779B97F4A7C15L;
         }
         
-
         mixed ^= ((long) x << 32) | (z & 0xFFFFFFFFL);
         mixed = Long.rotateLeft(mixed, 23);
         
-
         mixed ^= worldSeed[worldSeed.length - 1];
         mixed = Long.rotateLeft(mixed, 31);
         

@@ -22,52 +22,59 @@ public final class BridgeManager {
 
     public static void clearBridge() {
         AtomicBridge.clearBridge();
-        System.out.println("[AkiAsync] Bridge cleared");
+        Bridge bridge = getBridge();
+        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+            bridge.debugLog("[AkiAsync] Bridge cleared");
+        }
     }
 
     public static void validateAndDisplayConfigurations() {
         Optional<Bridge> bridgeOpt = AtomicBridge.getBridge();
         if (!bridgeOpt.isPresent()) {
-            System.err.println("[AkiAsync] Cannot validate: Bridge not initialized");
             return;
         }
 
         Bridge bridge = bridgeOpt.get();
-        System.out.println("[AkiAsync] ========== Mixin Configuration Status ==========");
+        
+        if (!bridge.isDebugLoggingEnabled()) {
+            return;
+        }
+
+        bridge.debugLog("[AkiAsync] ========== Mixin Configuration Status ==========");
 
         try {
-            System.out.println("  [Brain] Throttle: enabled=" + bridge.isBrainThrottleEnabled() +
+            bridge.debugLog("  [Brain] Throttle: enabled=" + bridge.isBrainThrottleEnabled() +
                 ", interval=" + bridge.getBrainThrottleInterval());
 
-            System.out.println("  [Entity] TickParallel: enabled=" + bridge.isEntityTickParallel() +
+            bridge.debugLog("  [Entity] TickParallel: enabled=" + bridge.isEntityTickParallel() +
                 ", threads=" + bridge.getEntityTickThreads() +
                 ", minEntities=" + bridge.getMinEntitiesForParallel());
-            System.out.println("  [Entity] Collision: enabled=" + bridge.isCollisionOptimizationEnabled());
-            System.out.println("  [Entity] Push: enabled=" + bridge.isPushOptimizationEnabled());
-            System.out.println("  [Entity] LookupCache: enabled=" + bridge.isEntityLookupCacheEnabled() +
+            bridge.debugLog("  [Entity] Collision: enabled=" + bridge.isCollisionOptimizationEnabled());
+            bridge.debugLog("  [Entity] Push: enabled=" + bridge.isPushOptimizationEnabled());
+            bridge.debugLog("  [Entity] LookupCache: enabled=" + bridge.isEntityLookupCacheEnabled() +
                 ", duration=" + bridge.getEntityLookupCacheDurationMs() + "ms");
-            System.out.println("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() +
+            bridge.debugLog("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() +
                 ", executor=" + (bridge.getGeneralExecutor() != null));
 
-            System.out.println("  [Spawning] Enabled: " + bridge.isMobSpawningEnabled() +
+            bridge.debugLog("  [Spawning] Enabled: " + bridge.isMobSpawningEnabled() +
                 ", maxPerChunk=" + bridge.getMaxEntitiesPerChunk());
 
-            System.out.println("  [Memory] PredicateCache: " + bridge.isPredicateCacheEnabled());
-            System.out.println("  [Memory] BlockPosPool: " + bridge.isBlockPosPoolEnabled());
-            System.out.println("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() +
+            bridge.debugLog("  [Memory] PredicateCache: " + bridge.isPredicateCacheEnabled());
+            bridge.debugLog("  [Memory] BlockPosPool: " + bridge.isBlockPosPoolEnabled());
+            bridge.debugLog("  [Memory] ListPrealloc: " + bridge.isListPreallocEnabled() +
                 ", capacity=" + bridge.getListPreallocCapacity());
 
-            System.out.println("[AkiAsync] ✓ All configurations validated successfully");
-            System.out.println("[AkiAsync] ✓ Mixins will initialize on first use (lazy loading)");
+            bridge.debugLog("[AkiAsync] ✓ All configurations validated successfully");
+            bridge.debugLog("[AkiAsync] ✓ Mixins will initialize on first use (lazy loading)");
         } catch (Exception e) {
-            System.err.println("[AkiAsync] ✗ Configuration validation error: " + e.getMessage());
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+            bridge.errorLog("[AkiAsync] ✗ Configuration validation error: " + e.getMessage());
+            if (bridge.isDebugLoggingEnabled()) {
                 java.io.StringWriter sw = new java.io.StringWriter();
                 e.printStackTrace(new java.io.PrintWriter(sw));
                 bridge.debugLog("[AkiAsync] Stack trace: " + sw.toString());
             }
         }
 
-        System.out.println("[AkiAsync] ========================================================");
+        bridge.debugLog("[AkiAsync] ========================================================");
     }
 }

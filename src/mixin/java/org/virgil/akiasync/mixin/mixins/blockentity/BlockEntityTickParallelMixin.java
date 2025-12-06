@@ -39,7 +39,6 @@ public abstract class BlockEntityTickParallelMixin {
         if (!initialized) { akiasync$initBlockEntityParallel(); }
         if (!enabled) return;
         
-
         if (smoothingScheduler != null) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -55,7 +54,6 @@ public abstract class BlockEntityTickParallelMixin {
         ci.cancel();
         executionCount++;
         
-
         if (smoothingScheduler != null && !isFolia) {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -66,7 +64,6 @@ public abstract class BlockEntityTickParallelMixin {
                 for (TickingBlockEntity blockEntity : blockEntityTickers) {
                     if (blockEntity == null) continue;
                     
-
                     if (protectContainers && akiasync$isContainerBlockEntity(blockEntity)) {
                         continue;
                     }
@@ -77,23 +74,33 @@ public abstract class BlockEntityTickParallelMixin {
                             try {
                                 blockEntity.tick();
                             } catch (Throwable t) {
-
+                                
+                                org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
+                                    errorBridge.errorLog("[BlockEntity-Smooth] Error ticking %s at %s: %s", 
+                                        blockEntity.getType(), blockEntity.getPos(), t.getMessage());
+                                }
                             }
                         });
                 }
                 
-
                 for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
                     bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "BlockEntity");
                 }
                 
-
                 if (protectContainers) {
                     for (TickingBlockEntity blockEntity : blockEntityTickers) {
                         if (blockEntity != null && akiasync$isContainerBlockEntity(blockEntity)) {
                             try {
                                 blockEntity.tick();
-                            } catch (Throwable t) {}
+                            } catch (Throwable t) {
+                                
+                                org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
+                                    errorBridge.errorLog("[BlockEntity-Container] Error ticking container %s at %s: %s", 
+                                        blockEntity.getType(), blockEntity.getPos(), t.getMessage());
+                                }
+                            }
                         }
                     }
                 }
@@ -140,7 +147,14 @@ public abstract class BlockEntityTickParallelMixin {
                     if (blockEntity != null && akiasync$isContainerBlockEntity(blockEntity)) {
                         try {
                             blockEntity.tick();
-                        } catch (Throwable t) {}
+                        } catch (Throwable t2) {
+                            
+                            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
+                                errorBridge.errorLog("[BlockEntity-Protected] Error ticking protected container %s at %s: %s", 
+                                    blockEntity.getType(), blockEntity.getPos(), t2.getMessage());
+                            }
+                        }
                     }
                 }
             }
@@ -170,7 +184,14 @@ public abstract class BlockEntityTickParallelMixin {
                 if (blockEntity != null) {
                     try {
                         blockEntity.tick();
-                    } catch (Throwable ignored) {}
+                    } catch (Throwable t2) {
+                        
+                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
+                            errorBridge.errorLog("[BlockEntity-Fallback] Error in fallback tick for %s at %s: %s", 
+                                blockEntity.getType(), blockEntity.getPos(), t2.getMessage());
+                        }
+                    }
                 }
             }
         }
@@ -220,6 +241,15 @@ public abstract class BlockEntityTickParallelMixin {
     @Unique
     @SuppressWarnings("unchecked")
     private List<TickingBlockEntity> akiasync$getBlockEntityTickers() {
+        
+        if (blockEntityTickersFieldChecked && blockEntityTickersField != null) {
+            try {
+                return (List<TickingBlockEntity>) blockEntityTickersField.get(this);
+            } catch (Throwable t) {
+                return null;
+            }
+        }
+        
         if (!blockEntityTickersFieldChecked) {
             synchronized (BlockEntityTickParallelMixin.class) {
                 if (!blockEntityTickersFieldChecked) {
@@ -286,7 +316,6 @@ public abstract class BlockEntityTickParallelMixin {
 
         initialized = true;
         
-
         if (bridge != null && enabled && !isFolia) {
             smoothingScheduler = bridge.getBlockEntitySmoothingScheduler();
             if (smoothingScheduler != null) {
@@ -302,33 +331,28 @@ public abstract class BlockEntityTickParallelMixin {
         try {
             String type = blockEntity.getType();
             
-
             if (type.contains("hopper") || type.contains("piston")) {
                 return 0;
             }
             
-
             if (type.contains("furnace") || type.contains("blast_furnace") ||
                 type.contains("smoker") || type.contains("brewing_stand") ||
                 type.contains("beacon")) {
                 return 1;
             }
             
-
             if (type.contains("chest") || type.contains("barrel") ||
                 type.contains("shulker_box") || type.contains("dropper") ||
                 type.contains("dispenser")) {
                 return 2;
             }
             
-
             if (type.contains("sign") || type.contains("banner") ||
                 type.contains("skull") || type.contains("lectern") ||
                 type.contains("jukebox") || type.contains("campfire")) {
                 return 3;
             }
             
-
             return 2;
         } catch (Throwable t) {
             return 3;

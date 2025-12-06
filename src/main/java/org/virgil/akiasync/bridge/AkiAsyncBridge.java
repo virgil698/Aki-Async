@@ -20,13 +20,13 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     private final ExecutorService chunkTickExecutor;
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
+    private final ExecutorService collisionExecutor;
     
-
     private TaskSmoothingScheduler blockTickScheduler;
     private TaskSmoothingScheduler entityTickScheduler;
     private TaskSmoothingScheduler blockEntityScheduler;
 
-    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor) {
+    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor, ExecutorService collisionExecutor) {
         this.plugin = plugin;
         this.config = plugin.getConfigManager();
         this.generalExecutor = generalExecutor;
@@ -35,8 +35,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         this.chunkTickExecutor = chunkTickExecutor;
         this.villagerBreedExecutor = villagerBreedExecutor;
         this.brainExecutor = brainExecutor;
+        this.collisionExecutor = collisionExecutor;
         
-
         initializeSmoothingSchedulers();
         
         ConfigReloader.registerListener(this);
@@ -58,7 +58,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return;
             }
             
-
             if (config != null && config.isChunkTickAsyncEnabled() && generalExecutor != null) {
                 int batchSize = config.getChunkTickAsyncBatchSize();
                 blockTickScheduler = new TaskSmoothingScheduler(
@@ -70,7 +69,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 plugin.getLogger().info("[AkiAsync] BlockTick TaskSmoothingScheduler initialized");
             }
             
-
             if (config != null && config.isEntityTickParallel() && generalExecutor != null) {
                 int batchSize = config.getEntityTickBatchSize();
                 entityTickScheduler = new TaskSmoothingScheduler(
@@ -82,7 +80,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 plugin.getLogger().info("[AkiAsync] EntityTick TaskSmoothingScheduler initialized");
             }
             
-
             if (config != null && config.isBlockEntityParallelTickEnabled() && generalExecutor != null) {
                 int batchSize = config.getBlockEntityParallelBatchSize();
                 blockEntityScheduler = new TaskSmoothingScheduler(
@@ -340,16 +337,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public int getListPreallocCapacity() {return 32;}
 
     @Override
-    public boolean isPushOptimizationEnabled() {return true;}
-
-    @Override
     public boolean isEntityLookupCacheEnabled() {return true;}
 
     @Override
     public int getEntityLookupCacheDurationMs() {return 50;}
-
-    @Override
-    public boolean isCollisionOptimizationEnabled() {return true;}
 
     @Override
     public ExecutorService getGeneralExecutor() { return generalExecutor; }
@@ -365,6 +356,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public ExecutorService getBrainExecutor() { return brainExecutor != null ? brainExecutor : generalExecutor; }
+    
+    @Override
+    public ExecutorService getCollisionExecutor() { return collisionExecutor != null ? collisionExecutor : generalExecutor; }
 
     @Override
     public boolean isAsyncLightingEnabled() {return config.isAsyncLightingEnabled();}
@@ -426,7 +420,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public int getRedstoneCacheDurationMs() {return config.getRedstoneCacheDurationMs();}
 
-
     @Override
     public boolean isUsePandaWireAlgorithm() {return config.isUsePandaWireAlgorithm();}
 
@@ -487,6 +480,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public boolean isBeeFixEnabled() {return config.isBeeFixEnabled();}
 
+    @Override
+    public boolean isEndIslandDensityFixEnabled() {return config.isEndIslandDensityFixEnabled();}
+    
     @Override
     public boolean isTNTUseFullRaycast() {return config.isTNTUseFullRaycast();}
 
@@ -828,7 +824,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     System.out.println("[AkiAsync] Starting async chest exploration map creation from " + startPos + " for " + destination.location());
                 }
 
-
                 net.minecraft.core.BlockPos foundStructure = level.findNearestMapStructure(
                     destination, startPos, searchRadius, skipKnownStructures);
 
@@ -901,10 +896,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     System.out.println("[AkiAsync] Starting async villager trade map creation from " + startPos + " for " + destination.location());
                 }
 
-
                 int searchRadius = config.getVillagerTradeMapsSearchRadius();
                 boolean skipKnown = config.isVillagerTradeMapsSkipKnownStructures();
-
 
                 net.minecraft.core.BlockPos foundStructure = level.findNearestMapStructure(
                     destination, startPos, searchRadius, skipKnown);
@@ -1012,7 +1005,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         org.virgil.akiasync.util.DebugLogger.error(format, args);
     }
 
-
     @Override
     public void clearSakuraOptimizationCaches() {
         try {
@@ -1046,7 +1038,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             }
             stats.put("density_cache", densityStats);
             
-
             java.util.Map<String, String> asyncStats = new java.util.HashMap<>();
             for (org.bukkit.World world : plugin.getServer().getWorlds()) {
                 try {
@@ -1061,11 +1052,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             }
             stats.put("async_density_cache", asyncStats);
             
-
             stats.put("pandawire_evaluators", 
                 org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount());
             
-
             java.util.Map<String, String> networkStats = new java.util.HashMap<>();
             for (org.bukkit.World world : plugin.getServer().getWorlds()) {
                 try {
@@ -1095,17 +1084,14 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     net.minecraft.server.level.ServerLevel serverLevel = 
                         ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
                     
-
                     org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
                         org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
                     cache.expire(serverLevel.getGameTime());
                     
-
                     org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
                         org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
                     manager.expire(serverLevel.getGameTime());
                     
-
                     org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager networkManager = 
                         org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
                     networkManager.expire(serverLevel.getGameTime());
@@ -1139,7 +1125,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         return config != null ? config.getFakeSeedValue() : 0L;
     }
     
-
     @Override
     public boolean isQuantumSeedEnabled() {
         return config != null && config.isQuantumSeedEnabled();
@@ -1171,7 +1156,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             return originalSeed;
         }
         
-
         org.virgil.akiasync.mixin.crypto.quantum.GenerationType type;
         try {
             type = org.virgil.akiasync.mixin.crypto.quantum.GenerationType.valueOf(generationType.toUpperCase());
@@ -1182,7 +1166,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         return manager.getEncryptedSeed(originalSeed, chunkX, chunkZ, dimension, type, gameTime);
     }
     
-
     @Override
     public boolean isSecureSeedEnabled() {
         return config != null && config.isSeedEncryptionEnabled() && 
@@ -1203,7 +1186,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         int bits = getSecureSeedBits();
         plugin.getLogger().info("[AkiAsync-SecureSeed] Initializing with " + bits + " bits");
         
-
         org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals.initializeWorldSeed(
             originalSeed, 
             bits
@@ -1217,7 +1199,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         return config != null ? config.getSecureSeedBits() : 1024;
     }
     
-
     @Override
     public boolean isSeedEncryptionProtectStructures() {
         return config != null && config.isSeedEncryptionProtectStructures();
@@ -1249,6 +1230,14 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             return true;
         }
         return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(level, pos);
+    }
+
+    @Override
+    public Boolean checkChunkProtection(net.minecraft.server.level.ServerLevel level, int chunkX, int chunkZ) {
+        if (!isTNTLandProtectionEnabled()) {
+            return true; 
+        }
+        return org.virgil.akiasync.util.LandProtectionIntegration.checkChunkProtection(level, chunkX, chunkZ);
     }
     
     @Override
@@ -2122,7 +2111,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 int successCount = 0;
                 String cat = category != null ? category : "Unknown";
                 
-
                 for (Runnable task : tasks) {
                     if (task != null && smoothScheduler.submit(task, pri, cat)) {
                         successCount++;
@@ -2161,5 +2149,105 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         } catch (Exception e) {
 
         }
+    }
+    
+    @Override
+    public boolean isCollisionOptimizationEnabled() {
+        return config != null ? config.isCollisionOptimizationEnabled() : true;
+    }
+
+    @Override
+    public boolean isCollisionAggressiveMode() {
+        return config != null ? config.isCollisionAggressiveMode() : true;
+    }
+
+    @Override
+    public boolean isCollisionCacheEnabled() {
+        return config != null ? config.isCollisionCacheEnabled() : true;
+    }
+
+    @Override
+    public int getCollisionCacheLifetimeMs() {
+        return config != null ? config.getCollisionCacheLifetimeMs() : 50;
+    }
+
+    @Override
+    public double getCollisionCacheMovementThreshold() {
+        return config != null ? config.getCollisionCacheMovementThreshold() : 0.01;
+    }
+
+    @Override
+    public boolean isCollisionSpatialPartitionEnabled() {
+        return config != null ? config.isCollisionSpatialPartitionEnabled() : true;
+    }
+
+    @Override
+    public int getCollisionSpatialGridSize() {
+        return config != null ? config.getCollisionSpatialGridSize() : 4;
+    }
+
+    @Override
+    public int getCollisionSpatialDensityThreshold() {
+        return config != null ? config.getCollisionSpatialDensityThreshold() : 50;
+    }
+
+    @Override
+    public int getCollisionSpatialUpdateIntervalMs() {
+        return config != null ? config.getCollisionSpatialUpdateIntervalMs() : 100;
+    }
+
+    @Override
+    public double getCollisionSkipMinMovement() {
+        return config != null ? config.getCollisionSkipMinMovement() : 0.001;
+    }
+
+    @Override
+    public int getCollisionSkipCheckIntervalMs() {
+        return config != null ? config.getCollisionSkipCheckIntervalMs() : 50;
+    }
+    
+    @Override
+    public boolean isPushOptimizationEnabled() {
+        return config != null ? config.isPushOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public double getPushMaxPushPerTick() {
+        return config != null ? config.getPushMaxPushPerTick() : 0.5;
+    }
+    
+    @Override
+    public double getPushDampingFactor() {
+        return config != null ? config.getPushDampingFactor() : 0.7;
+    }
+    
+    @Override
+    public int getPushHighDensityThreshold() {
+        return config != null ? config.getPushHighDensityThreshold() : 10;
+    }
+    
+    @Override
+    public double getPushHighDensityMultiplier() {
+        return config != null ? config.getPushHighDensityMultiplier() : 0.3;
+    }
+    
+    @Override
+    public boolean isAdvancedCollisionOptimizationEnabled() {
+        return config != null ? config.isAdvancedCollisionOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public int getCollisionThreshold() {
+        return config != null ? config.getCollisionThreshold() : 8;
+    }
+    
+    @Override
+    public float getSuffocationDamage() {
+        return config != null ? config.getSuffocationDamage() : 0.5f;
+    }
+    
+    @Override
+    public int getMaxPushIterations() {
+        return config != null ? config.getMaxPushIterations() : 8;
     }
 }

@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.16-SNAPSHOT"
+version = "3.2.17-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {

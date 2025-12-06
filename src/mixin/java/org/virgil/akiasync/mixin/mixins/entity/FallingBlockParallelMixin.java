@@ -56,25 +56,41 @@ public abstract class FallingBlockParallelMixin {
         long adaptiveTimeout = akiasync$calculateFallingTimeout(lastMspt);
 
         try {
+            
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            java.util.concurrent.ExecutorService executor = dedicatedPool != null ? dedicatedPool : 
+                (bridge != null ? bridge.getGeneralExecutor() : null);
+            
+            if (executor == null) {
+                
+                batches.forEach(batch -> batch.forEach(falling -> {
+                    try {
+                        akiasync$preTick(falling);
+                    } catch (Throwable t) {
+                    }
+                }));
+                return;
+            }
+            
             List<CompletableFuture<Void>> futures = batches.stream()
-                .map(batch -> CompletableFuture.runAsync(() -> {
+                .<CompletableFuture<Void>>map(batch -> CompletableFuture.runAsync(() -> {
                     batch.forEach(falling -> {
                         try {
                             akiasync$preTick(falling);
                         } catch (Throwable t) {
                         }
                     });
-                }, dedicatedPool != null ? dedicatedPool : ForkJoinPool.commonPool()))
+                }, executor))
                 .collect(java.util.stream.Collectors.toList());
 
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                 .get(adaptiveTimeout, TimeUnit.MILLISECONDS);
 
             if (executionCount % 100 == 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                org.virgil.akiasync.mixin.bridge.Bridge logBridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog(
+                if (logBridge != null) {
+                    logBridge.debugLog(
                         "[AkiAsync-FallingBlock] Processed %d falling blocks in %d batches (timeout: %dms)",
                         fallingBlocks.size(), batches.size(), adaptiveTimeout
                     );
@@ -82,10 +98,10 @@ public abstract class FallingBlockParallelMixin {
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                org.virgil.akiasync.mixin.bridge.Bridge errorBridge =
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-FallingBlock] Timeout/Error: " + t.getMessage());
+                if (errorBridge != null) {
+                    errorBridge.debugLog("[AkiAsync-FallingBlock] Timeout/Error: " + t.getMessage());
                 }
             }
         }

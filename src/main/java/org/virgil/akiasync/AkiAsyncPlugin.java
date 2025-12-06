@@ -46,7 +46,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             executorManager.getTNTExecutor(),
             executorManager.getChunkTickExecutor(),
             executorManager.getVillagerBreedExecutor(),
-            executorManager.getBrainExecutor()
+            executorManager.getBrainExecutor(),
+            executorManager.getCollisionExecutor()
+        );
+        
+        org.virgil.akiasync.mixin.util.AsyncCollisionProcessor.setExecutor(
+            executorManager.getCollisionExecutor()
         );
         BridgeManager.setBridge(bridge);
 
@@ -97,7 +102,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
 
-
         if (configManager.isSeedEncryptionEnabled()) {
             if (configManager.isQuantumSeedEnabled()) {
 
@@ -111,7 +115,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 getLogger().info("[AkiAsync] QuantumSeed encryption enabled (Level " + configManager.getQuantumSeedEncryptionLevel() + ")");
                 getLogger().info("[AkiAsync] QuantumSeed features: IbRNG full integration + Regional chunk obfuscation + 6-layer encryption");
             } else if (configManager.isSecureSeedEnabled()) {
-
 
                 long worldSeed = getServer().getWorlds().get(0).getSeed();
                 bridge.initializeSecureSeed(worldSeed);
@@ -140,7 +143,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
         
-
         if (configManager.isSeedCommandRestrictionEnabled()) {
             getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.SeedCommandListener(this), this);
             getLogger().info("[AkiAsync] /seed command restriction enabled (OP only)");
@@ -210,7 +212,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             virtualEntityCompatManager.shutdown();
         }
         
-
         try {
             org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.shutdown();
             getLogger().info("[AkiAsync] AsyncSeedEncryptor shutdown completed");
@@ -220,7 +221,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
-
         try {
             org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
             getLogger().info("[AkiAsync] OptimizedStructureLocator shutdown completed");

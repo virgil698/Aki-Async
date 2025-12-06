@@ -67,7 +67,9 @@ public class TNTExplosionMixin {
                         bridge.debugLog("[AkiAsync-TNT] Water explosion completed at " + center);
                     }
                 } catch (Exception ex) {
-                    System.err.println("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
+                    if (bridge != null) {
+                        bridge.errorLog("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
+                    }
                 }
             };
 
@@ -128,6 +130,9 @@ public class TNTExplosionMixin {
                     offsetX * 0.2, offsetY * 0.2, offsetZ * 0.2);
             }
 
+            java.util.List<PrimedTnt> tntToSpawn = new java.util.ArrayList<>();
+            java.util.Set<BlockPos> blocksToUpdate = new java.util.HashSet<>();
+            
             for (BlockPos pos : result.getToDestroy()) {
                 net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
                 if (!state.isAir()) {
@@ -136,7 +141,8 @@ public class TNTExplosionMixin {
                     }
 
                     if (state.is(net.minecraft.world.level.block.Blocks.TNT)) {
-                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 11);
+                        
+                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
 
                         double distance = Math.sqrt(pos.distToCenterSqr(center.x, center.y, center.z));
                         int fuseTime = Math.max(10, (int)(distance * 2.0) + level.getRandom().nextInt(10));
@@ -149,36 +155,64 @@ public class TNTExplosionMixin {
                         double pushZ = (pos.getZ() + 0.5 - center.z) * 0.1 + (level.getRandom().nextDouble() - 0.5) * 0.1;
                         primedTnt.setDeltaMovement(pushX, pushY, pushZ);
 
-                        level.addFreshEntity(primedTnt);
+                        tntToSpawn.add(primedTnt);
 
-                        for (int i = 0; i < 5; i++) {
-                            double offsetX = (level.getRandom().nextDouble() - 0.5) * 0.8;
-                            double offsetY = level.getRandom().nextDouble() * 0.8;
-                            double offsetZ = (level.getRandom().nextDouble() - 0.5) * 0.8;
-                            level.addParticle(net.minecraft.core.particles.ParticleTypes.FLAME,
-                                pos.getX() + 0.5 + offsetX, pos.getY() + 0.5 + offsetY, pos.getZ() + 0.5 + offsetZ,
-                                0.0, 0.1, 0.0);
+                        if (level.getRandom().nextInt(3) == 0) {
+                            for (int i = 0; i < 2; i++) {
+                                double offsetX = (level.getRandom().nextDouble() - 0.5) * 0.8;
+                                double offsetY = level.getRandom().nextDouble() * 0.8;
+                                double offsetZ = (level.getRandom().nextDouble() - 0.5) * 0.8;
+                                level.addParticle(net.minecraft.core.particles.ParticleTypes.FLAME,
+                                    pos.getX() + 0.5 + offsetX, pos.getY() + 0.5 + offsetY, pos.getZ() + 0.5 + offsetZ,
+                                    0.0, 0.1, 0.0);
+                            }
                         }
                     } else {
-                        if (bridge != null && bridge.isTNTUseVanillaBlockDestruction()) {
-                            boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
-                            level.destroyBlock(pos, shouldDrop, tnt);
-                        } else {
-                            boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
-                            level.destroyBlock(pos, shouldDrop, tnt);
+                        boolean shouldDrop = level.getRandom().nextFloat() < 0.3f;
+                        
+                        if (shouldDrop) {
+                            net.minecraft.world.level.block.Block.dropResources(state, level, pos, level.getBlockEntity(pos), tnt, net.minecraft.world.item.ItemStack.EMPTY);
+                        }
+                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                        blocksToUpdate.add(pos);
+                    }
+                }
+            }
+            
+            for (PrimedTnt primedTnt : tntToSpawn) {
+                level.addFreshEntity(primedTnt);
+            }
+            
+            if (!blocksToUpdate.isEmpty()) {
+                java.util.Set<BlockPos> boundaryBlocks = new java.util.HashSet<>();
+                for (BlockPos pos : blocksToUpdate) {
+                    
+                    for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
+                        BlockPos neighbor = pos.relative(direction);
+                        if (!blocksToUpdate.contains(neighbor)) {
+                            boundaryBlocks.add(neighbor);
                         }
                     }
+                }
+                
+                for (BlockPos pos : boundaryBlocks) {
+                    level.updateNeighborsAt(pos, net.minecraft.world.level.block.Blocks.AIR);
                 }
             }
 
             if (result.isFire()) {
+                java.util.List<BlockPos> firePositions = new java.util.ArrayList<>();
                 for (BlockPos pos : result.getToDestroy()) {
                     if (level.getRandom().nextInt(3) == 0 && level.getBlockState(pos).isAir()) {
                         net.minecraft.world.level.block.state.BlockState belowState = level.getBlockState(pos.below());
                         if (belowState.isSolidRender()) {
-                            level.setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.FIRE.defaultBlockState());
+                            firePositions.add(pos);
                         }
                     }
+                }
+                
+                for (BlockPos pos : firePositions) {
+                    level.setBlock(pos, net.minecraft.world.level.block.Blocks.FIRE.defaultBlockState(), 2);
                 }
             }
 
@@ -239,7 +273,10 @@ public class TNTExplosionMixin {
             }
 
         } catch (Exception ex) {
-            System.err.println("[AkiAsync-TNT] Error in applyExplosionResults: " + ex.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[AkiAsync-TNT] Error in applyExplosionResults: " + ex.getMessage());
+            }
         }
     }
 
@@ -303,7 +340,10 @@ public class TNTExplosionMixin {
             );
             explosion.explode();
         } catch (Exception fallbackEx) {
-            System.err.println("[AkiAsync-TNT] Fallback explosion also failed: " + fallbackEx.getMessage());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                bridge.errorLog("[AkiAsync-TNT] Fallback explosion also failed: " + fallbackEx.getMessage());
+            }
         }
     }
 
@@ -338,6 +378,8 @@ public class TNTExplosionMixin {
                             );
 
                             applyExplosionResults(sl, explosion, result, tnt, center, inWater);
+                            
+                            org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator.releaseResult(result);
 
                             if (bridge != null && bridge.isTNTDebugEnabled()) {
                                 bridge.debugLog("[AkiAsync-TNT] Safe async explosion completed at " + center);
@@ -388,6 +430,8 @@ public class TNTExplosionMixin {
             );
 
             applyExplosionResults(sl, explosion, result, tnt, center, false);
+            
+            org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator.releaseResult(result);
 
             if (bridge != null && bridge.isTNTDebugEnabled()) {
                 bridge.debugLog("[AkiAsync-TNT] Sync explosion completed at " + center);

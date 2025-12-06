@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public class RedstoneNetworkCache {
     
     private static final Map<ServerLevel, RedstoneNetworkCache> LEVEL_CACHES = new ConcurrentHashMap<>();
@@ -27,7 +26,6 @@ public class RedstoneNetworkCache {
         return LEVEL_CACHES.computeIfAbsent(level, RedstoneNetworkCache::new);
     }
     
-    
     public CachedNetwork getNetwork(BlockPos pos) {
         CachedNetwork network = networkCache.get(pos);
         if (network != null && !network.isInvalidated()) {
@@ -37,18 +35,15 @@ public class RedstoneNetworkCache {
         return null;
     }
     
-    
     public void cacheNetwork(BlockPos sourcePos, List<BlockPos> affectedWires, 
                             Map<BlockPos, Integer> powerChanges) {
         CachedNetwork network = new CachedNetwork(sourcePos, affectedWires, powerChanges);
         
-
         for (BlockPos pos : affectedWires) {
             networkCache.put(pos, network);
             lastAccessTime.put(pos, level.getGameTime());
         }
     }
-    
     
     public void invalidate(BlockPos pos) {
         CachedNetwork network = networkCache.remove(pos);
@@ -62,7 +57,6 @@ public class RedstoneNetworkCache {
         }
     }
     
-    
     public void invalidateNearby(BlockPos pos, int radius) {
         List<BlockPos> toRemove = new ArrayList<>();
         for (BlockPos cachedPos : networkCache.keySet()) {
@@ -72,7 +66,6 @@ public class RedstoneNetworkCache {
         }
         toRemove.forEach(this::invalidate);
     }
-    
     
     public void expire(long currentTime) {
         if (currentTime - lastCleanupTime < CLEANUP_INTERVAL) {
@@ -102,12 +95,10 @@ public class RedstoneNetworkCache {
         }
     }
     
-    
     public void clear() {
         networkCache.clear();
         lastAccessTime.clear();
     }
-    
     
     public String getStats() {
         return String.format("Networks: %d, Positions: %d", 
@@ -115,14 +106,12 @@ public class RedstoneNetworkCache {
             networkCache.size());
     }
     
-    
     public static void clearAllCaches() {
         for (RedstoneNetworkCache cache : LEVEL_CACHES.values()) {
             cache.clear();
         }
         LEVEL_CACHES.clear();
     }
-    
     
     public static class CachedNetwork {
         public final BlockPos sourcePos;
@@ -145,16 +134,13 @@ public class RedstoneNetworkCache {
             return invalidated;
         }
         
-        
         public boolean isApplicable(ServerLevel level, BlockPos triggerPos) {
             if (invalidated) return false;
             
-
             if (!affectedWires.contains(triggerPos) && !triggerPos.equals(sourcePos)) {
                 return false;
             }
             
-
             for (BlockPos pos : affectedWires) {
                 BlockState state = level.getBlockState(pos);
                 if (!(state.getBlock() instanceof net.minecraft.world.level.block.RedStoneWireBlock)) {

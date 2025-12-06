@@ -31,7 +31,7 @@ public abstract class ServerLevelTickBlockMixin {
     
     @Unique private static final ConcurrentHashMap<Block, BlockTickCategory> BLOCK_CATEGORY_CACHE = new ConcurrentHashMap<>();
     
-    @Unique private final ThreadLocal<List<BlockTickTask>> asyncTasks = ThreadLocal.withInitial(ArrayList::new);
+    @Unique private static final ThreadLocal<List<BlockTickTask>> asyncTasks = ThreadLocal.withInitial(ArrayList::new);
     
     @Unique private static final java.util.concurrent.atomic.AtomicLong asyncExecutionCount = new java.util.concurrent.atomic.AtomicLong(0);
     @Unique private static final java.util.concurrent.atomic.AtomicLong mainThreadExecutionCount = new java.util.concurrent.atomic.AtomicLong(0);
@@ -89,7 +89,6 @@ public abstract class ServerLevelTickBlockMixin {
             return;
         }
         
-
         if (smoothingScheduler != null) {
             var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -139,7 +138,6 @@ public abstract class ServerLevelTickBlockMixin {
         if (bridge != null) {
             ASYNC_BLOCK_TICK_EXECUTOR = bridge.getGeneralExecutor();
             
-
             if (smoothingScheduler == null && cached_enabled && !isFoliaEnvironment) {
                 smoothingScheduler = bridge.getBlockTickSmoothingScheduler();
                 if (smoothingScheduler != null) {
@@ -237,7 +235,6 @@ public abstract class ServerLevelTickBlockMixin {
         List<BlockTickTask> batch = new ArrayList<>(tasks);
         tasks.clear();
         
-
         if (smoothingScheduler != null && !isFoliaEnvironment) {
             var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
@@ -261,13 +258,19 @@ public abstract class ServerLevelTickBlockMixin {
                                         if (state.is(task.block)) {
                                             state.tick(level, task.pos, level.random);
                                         }
-                                    } catch (Throwable ignored) {}
+                                    } catch (Throwable e) {
+                                        
+                                        var errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                                        if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
+                                            errorBridge.errorLog("[BlockTick-Scheduled] Error in scheduled tick at %s: %s", 
+                                                task.pos, e.getMessage());
+                                        }
+                                    }
                                 });
                             }
                         });
                 }
                 
-
                 for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
                     bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "BlockTick");
                 }
@@ -278,7 +281,6 @@ public abstract class ServerLevelTickBlockMixin {
             }
         }
         
-
         if (ASYNC_BLOCK_TICK_EXECUTOR == null || ASYNC_BLOCK_TICK_EXECUTOR.isShutdown()) {
             
             for (BlockTickTask task : batch) {
@@ -287,7 +289,14 @@ public abstract class ServerLevelTickBlockMixin {
                     if (state.is(task.block)) {
                         state.tick(level, task.pos, level.random);
                     }
-                } catch (Throwable ignored) {}
+                } catch (Throwable e) {
+                    
+                    var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.errorLog("[BlockTick-Sync] Error in sync fallback at %s: %s", 
+                            task.pos, e.getMessage());
+                    }
+                }
             }
             syncFallbackCount.addAndGet(batch.size());
             return;
@@ -317,7 +326,14 @@ public abstract class ServerLevelTickBlockMixin {
                             if (state.is(task.block)) {
                                 state.tick(level, task.pos, level.random);
                             }
-                        } catch (Throwable ignored) {}
+                        } catch (Throwable e) {
+                            
+                            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                                bridge.errorLog("[BlockTick-AsyncFallback] Error in async fallback at %s: %s", 
+                                    task.pos, e.getMessage());
+                            }
+                        }
                     });
                 }
             }

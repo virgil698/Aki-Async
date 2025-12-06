@@ -16,8 +16,6 @@ public abstract class PushEntitiesOptimizationMixin {
         if (!enabled) return;
         LivingEntity self = (LivingEntity) (Object) this;
         
-
-
         if (self instanceof net.minecraft.world.entity.monster.Shulker) {
 
             return;

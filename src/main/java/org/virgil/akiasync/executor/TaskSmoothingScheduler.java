@@ -4,10 +4,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-
 public class TaskSmoothingScheduler {
     
-
     public enum Priority {
         CRITICAL(0),
         HIGH(1),
@@ -19,7 +17,6 @@ public class TaskSmoothingScheduler {
         public int getLevel() { return level; }
     }
     
-
     private static class SmoothTask implements Comparable<SmoothTask> {
         final Runnable task;
         final Priority priority;
@@ -61,29 +58,23 @@ public class TaskSmoothingScheduler {
         }
     }
     
-
     private final int maxQueueSize;
     private final int maxTasksPerTick;
     private final int smoothingWindowTicks;
     private final ExecutorService executor;
     
-
     private final PriorityBlockingQueue<SmoothTask> taskQueue;
     
-
     private final AtomicLong totalSubmitted = new AtomicLong(0);
     private final AtomicLong totalExecuted = new AtomicLong(0);
     private final AtomicLong totalDropped = new AtomicLong(0);
     private final AtomicInteger currentQueueSize = new AtomicInteger(0);
     
-
     private final AtomicInteger tasksThisTick = new AtomicInteger(0);
     
-
     private volatile double currentTPS = 20.0;
     private volatile double currentMSPT = 50.0;
     
-
     private final ConcurrentHashMap<String, AtomicLong> categoryStats = new ConcurrentHashMap<>();
     
     public TaskSmoothingScheduler(ExecutorService executor, int maxQueueSize, 
@@ -94,29 +85,24 @@ public class TaskSmoothingScheduler {
         this.smoothingWindowTicks = smoothingWindowTicks;
         this.taskQueue = new PriorityBlockingQueue<>(maxQueueSize);
         
-
         startSchedulerThread();
     }
-    
     
     public boolean submit(Runnable task, Priority priority, String category) {
         if (task == null) return false;
         
         totalSubmitted.incrementAndGet();
         
-
         if (priority == Priority.LOW && AdaptiveLoadBalancer.shouldSkipLowPriority()) {
             totalDropped.incrementAndGet();
             return false;
         }
         
-
         if (priority != Priority.CRITICAL && !AdaptiveLoadBalancer.shouldSubmitTask()) {
             totalDropped.incrementAndGet();
             return false;
         }
         
-
         if (currentQueueSize.get() >= maxQueueSize) {
             if (priority == Priority.CRITICAL) {
 
@@ -144,25 +130,20 @@ public class TaskSmoothingScheduler {
         return added;
     }
     
-    
     public boolean submit(Runnable task, String category) {
         return submit(task, Priority.NORMAL, category);
     }
-    
     
     public void updatePerformanceMetrics(double tps, double mspt) {
         this.currentTPS = tps;
         this.currentMSPT = mspt;
         
-
         AdaptiveLoadBalancer.updateMspt(mspt);
     }
-    
     
     public void onTick() {
         tasksThisTick.set(0);
     }
-    
     
     private void startSchedulerThread() {
         Thread schedulerThread = new Thread(() -> {
@@ -175,7 +156,6 @@ public class TaskSmoothingScheduler {
                         if (task != null) {
                             currentQueueSize.decrementAndGet();
                             
-
                             executor.execute(() -> {
                                 try {
                                     task.task.run();
@@ -205,21 +185,18 @@ public class TaskSmoothingScheduler {
         schedulerThread.start();
     }
     
-    
     private boolean canSubmitMoreTasks() {
 
         if (tasksThisTick.get() >= getAdaptiveMaxTasksPerTick()) {
             return false;
         }
         
-
         if (taskQueue.isEmpty()) {
             return false;
         }
         
         return true;
     }
-    
     
     private int getAdaptiveMaxTasksPerTick() {
 
@@ -238,7 +215,6 @@ public class TaskSmoothingScheduler {
         }
     }
     
-    
     private SmoothTask removeLowestPriorityTask() {
 
         SmoothTask lowest = null;
@@ -252,7 +228,6 @@ public class TaskSmoothingScheduler {
         }
         return null;
     }
-    
     
     public String getStatistics() {
         return String.format(
@@ -269,7 +244,6 @@ public class TaskSmoothingScheduler {
         );
     }
     
-    
     public String getCategoryStatistics() {
         StringBuilder sb = new StringBuilder("Category Stats:\n");
         categoryStats.forEach((category, count) -> {
@@ -278,7 +252,6 @@ public class TaskSmoothingScheduler {
         return sb.toString();
     }
     
-    
     public void resetStatistics() {
         totalSubmitted.set(0);
         totalExecuted.set(0);
@@ -286,16 +259,13 @@ public class TaskSmoothingScheduler {
         categoryStats.clear();
     }
     
-    
     public int getQueueSize() {
         return currentQueueSize.get();
     }
     
-    
     public double getQueueUsagePercent() {
         return (currentQueueSize.get() * 100.0) / maxQueueSize;
     }
-    
     
     public void clearQueue() {
         taskQueue.clear();

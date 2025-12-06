@@ -117,43 +117,14 @@ public class AsyncBrainExecutor {
     public static void restartSmooth() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync-Debug] Starting AsyncBrainExecutor smooth restart...");
+            bridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor restart - resetting statistics");
         }
 
-        if (executorService != null) {
-            ExecutorService oldExecutor = executorService;
-
-            executorService = Executors.newSingleThreadExecutor(r -> {
-                Thread t = new Thread(r, "AkiAsync-Brain-Smooth");
-                t.setDaemon(true);
-                t.setPriority(Thread.NORM_PRIORITY - 1);
-                return t;
-            });
-
-            oldExecutor.shutdown();
-            try {
-                if (!oldExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                    org.virgil.akiasync.mixin.bridge.Bridge brainForceShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (brainForceShutdownBridge != null) {
-                        brainForceShutdownBridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor force shutdown");
-                    }
-                    oldExecutor.shutdownNow();
-                } else {
-                    org.virgil.akiasync.mixin.bridge.Bridge brainGracefulShutdownBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (brainGracefulShutdownBridge != null) {
-                        brainGracefulShutdownBridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor gracefully shutdown");
-                    }
-                }
-            } catch (InterruptedException e) {
-                oldExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-
-            resetStatistics();
-            org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge2 != null) {
-            bridge2.debugLog("[AkiAsync-Debug] AsyncBrainExecutor restart completed");
-        }
+        resetStatistics();
+        
+        if (bridge != null) {
+            executorService = bridge.getBrainExecutor();
+            bridge.debugLog("[AkiAsync-Debug] AsyncBrainExecutor restart completed");
         }
     }
 }

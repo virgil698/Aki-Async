@@ -115,7 +115,6 @@ gradle-app.setting
 run/
 runs/
 
-# Temporarily allow look/ for analysis
 look/
 docs/
 src/mixin/java/org/virgil/akiasync/mixin/crypto/quantum/

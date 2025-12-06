@@ -36,7 +36,13 @@ public abstract class BlazeTickMixin {
                 BlazeCpuCalculator.runCpuOnly(blaze, aki$snap), timeout, TimeUnit.MICROSECONDS);
             BlazeDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new BlazeDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(blaze, level);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.errorLog("[Blaze] Error in async brain tick: %s", e.getMessage());
+            }
+        }
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;

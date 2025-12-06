@@ -33,7 +33,13 @@ public abstract class WitchTickMixin {
                 WitchCpuCalculator.runCpuOnly(witch, aki$snap), timeout, TimeUnit.MICROSECONDS);
             WitchDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new WitchDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(witch, level);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.errorLog("[Witch] Error in async brain tick: %s", e.getMessage());
+            }
+        }
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;

@@ -23,22 +23,22 @@ public class StructureLocatorBridge {
 
     private static ExecutorService executorService;
     private static final AtomicInteger ACTIVE_TASKS = new AtomicInteger(0);
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
-    public static void initialize() {
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null && bridge.isStructureLocationAsyncEnabled()) {
-            int threads = bridge.getStructureLocationThreads();
-            executorService = Executors.newFixedThreadPool(threads, r -> {
-                Thread t = new Thread(r, "AkiAsync-StructureLocator-" + System.currentTimeMillis());
-                t.setDaemon(true);
-                return t;
-            });
+            
+            executorService = bridge.getGeneralExecutor();
             initialized = true;
 
             if (bridge.isStructureLocationDebugEnabled()) {
-                bridge.debugLog("[AkiAsync] StructureLocatorBridge initialized with " + threads + " threads");
+                bridge.debugLog("[AkiAsync] StructureLocatorBridge using shared General Executor");
             }
         }
     }
@@ -46,7 +46,10 @@ public class StructureLocatorBridge {
     public static void shutdown() {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
-            System.out.println("[AkiAsync] StructureLocatorBridge shutdown. Active tasks: " + ACTIVE_TASKS.get());
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync] StructureLocatorBridge shutdown. Active tasks: " + ACTIVE_TASKS.get());
+            }
         }
         initialized = false;
     }

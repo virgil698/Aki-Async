@@ -223,6 +223,14 @@ public abstract class LightEngineAsyncMixin {
         }
     }
     private double getApproximateTPS() {
+        try {
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null) {
+                return bridge.getCurrentTPS();
+            }
+        } catch (Exception e) {
+            
+        }
         return 20.0;
     }
     private int getTotalQueueSize() {
@@ -267,8 +275,12 @@ public abstract class LightEngineAsyncMixin {
     private int getLightLevel(BlockPos pos) {
         try {
             LightEngine lightEngine = (LightEngine) (Object) this;
-            return 15;
+            
+            int level = lightEngine.getLightValue(pos);
+            
+            return Math.max(0, Math.min(15, level));
         } catch (Exception e) {
+            
             return 15;
         }
     }

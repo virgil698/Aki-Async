@@ -16,11 +16,9 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
-
 @Mixin(HopperBlockEntity.class)
 public class HopperOptimizeMixin {
     
-
     @Unique
     private static final ConcurrentHashMap<BlockPos, Object[]> containerCache = new ConcurrentHashMap<>();
     
@@ -33,7 +31,6 @@ public class HopperOptimizeMixin {
     @Unique
     private static volatile int cached_cacheExpireTime = 100;
     
-    
     @Inject(method = "getContainerAt(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/Container;",
             at = @At("HEAD"), cancellable = true, require = 0)
     private static void cacheGetContainerAt(Level level, BlockPos pos, CallbackInfoReturnable<Container> cir) {
@@ -45,7 +42,6 @@ public class HopperOptimizeMixin {
             return;
         }
         
-
         Object[] cache = containerCache.get(pos);
         if (cache != null) {
             long cacheTime = (Long) cache[1];
@@ -55,10 +51,7 @@ public class HopperOptimizeMixin {
             }
         }
         
-
-
     }
-    
     
     @Inject(method = "getContainerAt(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/Container;",
             at = @At("RETURN"), require = 0)
@@ -73,13 +66,11 @@ public class HopperOptimizeMixin {
             Object[] cacheEntry = new Object[]{result, System.currentTimeMillis()};
             containerCache.put(pos.immutable(), cacheEntry);
             
-
             if (containerCache.size() > 1000) {
                 aki$cleanExpiredCache();
             }
         }
     }
-    
     
     @Unique
     private static void aki$cleanExpiredCache() {
@@ -90,12 +81,10 @@ public class HopperOptimizeMixin {
         });
     }
     
-    
     @Unique
     private static void aki$invalidateCache(BlockPos pos) {
         containerCache.remove(pos);
     }
-    
     
     @Unique
     private static void aki$clearCache() {

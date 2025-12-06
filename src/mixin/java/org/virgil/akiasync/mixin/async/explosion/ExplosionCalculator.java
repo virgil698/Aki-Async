@@ -8,6 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache;
 import org.virgil.akiasync.mixin.optimization.OptimizationManager;
 import org.virgil.akiasync.mixin.optimization.scheduler.WorkStealingTaskScheduler;
+import org.virgil.akiasync.mixin.util.ObjectPool;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -17,12 +18,20 @@ import net.minecraft.world.phys.Vec3;
 
 public class ExplosionCalculator {
     private static final int RAYCAST_SAMPLES = 16;
+    
+    private static final ObjectPool<ExplosionResult> RESULT_POOL = new ObjectPool<>(
+        ExplosionResult::new,
+        16 
+    );
+    
     private final ExplosionSnapshot snapshot;
     private final LinkedBlockingQueue<BlockPos> toDestroy = new LinkedBlockingQueue<>(10000);
     private final ConcurrentHashMap<BlockPos, Boolean> destroyedBlocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
     private final boolean useFullRaycast;
     private final SakuraBlockDensityCache densityCache;
+    private final OptimizedExplosionCache optimizedCache;
+    private final DDACollisionDetector ddaDetector;
     
     @SuppressWarnings("unused")
     private final WorkStealingTaskScheduler scheduler;
@@ -35,11 +44,13 @@ public class ExplosionCalculator {
             bridge.isTNTVanillaCompatibilityEnabled() &&
             bridge.isTNTUseFullRaycast();
 
-
         this.densityCache = SakuraBlockDensityCache.getOrCreate(snapshot.getLevel());
         
-
         this.densityCache.expire(snapshot.getLevel().getGameTime());
+        
+        this.optimizedCache = new OptimizedExplosionCache(snapshot.getLevel());
+        
+        this.ddaDetector = new DDACollisionDetector();
 
         WorkStealingTaskScheduler tempScheduler = null;
         if (!isFoliaEnvironment()) {
@@ -55,7 +66,22 @@ public class ExplosionCalculator {
     public ExplosionResult calculate() {
         calculateAffectedBlocks();
         calculateEntityDamage();
-        return new ExplosionResult(new ArrayList<>(toDestroy), new HashMap<>(toHurt), snapshot.isFire());
+        
+        ExplosionResult result = RESULT_POOL.acquire();
+        result.set(new ArrayList<>(toDestroy), new HashMap<>(toHurt), snapshot.isFire());
+        
+        return result;
+    }
+    
+    public static void releaseResult(ExplosionResult result) {
+        if (result != null) {
+            result.clear();
+            RESULT_POOL.release(result);
+        }
+    }
+    
+    public static String getPoolStats() {
+        return RESULT_POOL.getStats();
     }
 
     private void calculateAffectedBlocks() {
@@ -64,40 +90,34 @@ public class ExplosionCalculator {
             return;
         }
         
-
         if (snapshot.isInFluid()) {
             return;
         }
         
         float power = snapshot.getPower();
-        for (int rayX = 0; rayX < RAYCAST_SAMPLES; rayX++) {
-            for (int rayY = 0; rayY < RAYCAST_SAMPLES; rayY++) {
-                for (int rayZ = 0; rayZ < RAYCAST_SAMPLES; rayZ++) {
-                    if (!useFullRaycast &&
-                        rayX != 0 && rayX != RAYCAST_SAMPLES - 1 &&
-                        rayY != 0 && rayY != RAYCAST_SAMPLES - 1 &&
-                        rayZ != 0 && rayZ != RAYCAST_SAMPLES - 1) {
-                        continue;
-                    }
-                    double dirX = (double) rayX / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
-                    double dirY = (double) rayY / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
-                    double dirZ = (double) rayZ / (RAYCAST_SAMPLES - 1) * 2.0 - 1.0;
-                    double length = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-                    dirX /= length;
-                    dirY /= length;
-                    dirZ /= length;
-                    float rayPower = power * (0.7f + snapshot.getLevel().getRandom().nextFloat() * 0.6f);
-                    double x = center.x;
-                    double y = center.y;
-                    double z = center.z;
+        
+        Vec3[] precomputedRays = PrecomputedExplosionShape.getPrecomputedRays();
+        int totalRays = precomputedRays.length;
+        
+        for (int rayIndex = 0; rayIndex < totalRays; rayIndex++) {
+            
+            Vec3 rayDir = precomputedRays[rayIndex];
+            double dirX = rayDir.x * 0.3;
+            double dirY = rayDir.y * 0.3;
+            double dirZ = rayDir.z * 0.3;
+            
+            float rayPower = power * (0.7f + snapshot.getLevel().getRandom().nextFloat() * 0.6f);
+            double x = center.x;
+            double y = center.y;
+            double z = center.z;
                     while (rayPower > 0.0f) {
                         BlockPos pos = new BlockPos((int)x, (int)y, (int)z);
-                        BlockState state = snapshot.getBlockState(pos);
+                        
+                        BlockState state = optimizedCache.getBlockState(pos);
                         if (!state.isAir()) {
-                            float resistance = Math.max(0.0f, state.getBlock().getExplosionResistance());
+                            float resistance = Math.max(0.0f, optimizedCache.getResistance(pos));
                             
-
-                            if (!state.getFluidState().isEmpty()) {
+                            if (!optimizedCache.getFluidState(pos).isEmpty()) {
 
                                 rayPower -= (resistance + 0.3f) * 0.3f;
                                 continue;
@@ -142,13 +162,12 @@ public class ExplosionCalculator {
                                 }
                             }
                         }
-                        x += dirX * 0.3;
-                        y += dirY * 0.3;
-                        z += dirZ * 0.3;
+                        
+                        x += dirX;
+                        y += dirY;
+                        z += dirZ;
                         rayPower -= 0.22500001f;
                     }
-                }
-            }
         }
     }
     private void calculateEntityDamage() {
@@ -200,7 +219,6 @@ public class ExplosionCalculator {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
-
         Entity realEntity = snapshot.getLevel().getEntity(entity.getUuid());
         if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
             float cachedDensity = densityCache.getBlockDensity(explosionCenter, realEntity);
@@ -247,7 +265,6 @@ public class ExplosionCalculator {
 
         double exposure = (double) visibleRays / totalRays;
 
-
         if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
             densityCache.putBlockDensity(explosionCenter, realEntity, (float) exposure);
         }
@@ -266,42 +283,7 @@ public class ExplosionCalculator {
             return false;
         }
         
-        Vec3 dir = end.subtract(start);
-        if (dir == null) {
-            return false;
-        }
-        
-        double dist = dir.length();
-        if (dist < 0.01) return false;
-
-        dir = dir.normalize();
-        if (dir == null) {
-            return false;
-        }
-
-        double stepSize = 0.2;
-        for (double step = 0; step < dist; step += stepSize) {
-            Vec3 pos = start.add(dir.scale(step));
-            BlockPos blockPos = new BlockPos((int)Math.floor(pos.x), (int)Math.floor(pos.y), (int)Math.floor(pos.z));
-            BlockState state = snapshot.getBlockState(blockPos);
-
-
-            if (!state.isAir()) {
-                float resistance = state.getBlock().getExplosionResistance();
-                
-
-                if (!state.getFluidState().isEmpty()) {
-
-                    if (resistance > 0.5f) {
-                        return true;
-                    }
-                } else if (resistance > 0.5f) {
-
-                    return true;
-                }
-            }
-        }
-        return false;
+        return ddaDetector.hasCollision(optimizedCache, start, end);
     }
 
     private static volatile Boolean isFolia = null;

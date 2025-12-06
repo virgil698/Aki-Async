@@ -7,10 +7,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-
 @Mixin(WorldgenRandom.class)
 public class SlimeChunkMixin {
-    
     
     @ModifyVariable(
         method = "seedSlimeChunk",
@@ -24,12 +22,10 @@ public class SlimeChunkMixin {
             return worldSeed;
         }
         
-
         if (!bridge.isSeedProtectionEnabled()) {
             return worldSeed;
         }
         
-
         if (!bridge.isSeedEncryptionProtectSlimes()) {
             return worldSeed;
         }
@@ -40,7 +36,6 @@ public class SlimeChunkMixin {
                 return aki$encryptSlimeWithQuantumSeed(bridge, worldSeed, x, z);
             }
             
-
             if (bridge.isSecureSeedEnabled()) {
                 return aki$encryptSlimeWithSecureSeed(bridge, worldSeed, x, z);
             }
@@ -50,7 +45,6 @@ public class SlimeChunkMixin {
         
         return worldSeed;
     }
-    
     
     private static long aki$encryptSlimeWithQuantumSeed(Bridge bridge, long worldSeed, int x, int z) {
         String dimension = "minecraft:overworld";
@@ -66,27 +60,22 @@ public class SlimeChunkMixin {
         );
     }
     
-    
     private static long aki$encryptSlimeWithSecureSeed(Bridge bridge, long worldSeed, int x, int z) {
         long[] secureSeed = bridge.getSecureSeedWorldSeed();
         if (secureSeed == null || secureSeed.length == 0) {
             return worldSeed;
         }
         
-
         long mixed = worldSeed;
         
-
         for (int i = 0; i < 4; i++) {
             mixed ^= secureSeed[i];
             mixed = Long.rotateLeft(mixed, 13 + i * 3);
         }
         
-
         mixed ^= ((long) x << 32) | (z & 0xFFFFFFFFL);
         mixed = Long.rotateLeft(mixed, 23);
         
-
         for (int i = secureSeed.length - 4; i < secureSeed.length; i++) {
             mixed ^= secureSeed[i];
             mixed = Long.rotateLeft(mixed, 19);

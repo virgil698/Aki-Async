@@ -19,10 +19,14 @@ public final class AtomicBridge {
         Bridge oldBridge = BRIDGE_REF.getAndSet(bridge);
         
         if (oldBridge == null) {
-            System.out.println("[AkiAsync] Bridge implementation registered: " + bridge.getClass().getName());
+            if (bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync] Bridge implementation registered: " + bridge.getClass().getName());
+            }
             return true;
         } else if (oldBridge != bridge) {
-            System.out.println("[AkiAsync] Bridge implementation replaced: " + bridge.getClass().getName());
+            if (bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync] Bridge implementation replaced: " + bridge.getClass().getName());
+            }
             return true;
         }
         
@@ -35,8 +39,8 @@ public final class AtomicBridge {
 
     public static void clearBridge() {
         Bridge oldBridge = BRIDGE_REF.getAndSet(null);
-        if (oldBridge != null) {
-            System.out.println("[AkiAsync] Bridge cleared");
+        if (oldBridge != null && oldBridge.isDebugLoggingEnabled()) {
+            oldBridge.debugLog("[AkiAsync] Bridge cleared");
         }
     }
 

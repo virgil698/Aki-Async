@@ -31,7 +31,6 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             return;
         }
 
-
         boolean inFluid = entity.isInWater() || entity.isInLava();
         if (!inFluid) {
             net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos((int)cur.x, (int)cur.y, (int)cur.z);
@@ -44,7 +43,6 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
         double dz = cur.z - akiasync$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
         
-
         if (!inFluid && entity.onGround() && dist2 < 1.0E-4) {
             akiasync$stillTicks++;
             if (akiasync$stillTicks >= cached_interval) {

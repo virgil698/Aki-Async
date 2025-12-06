@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 
-
 @Mixin(Mob.class)
 public class MobDespawnOptimizeMixin {
     
@@ -26,7 +25,6 @@ public class MobDespawnOptimizeMixin {
     @Unique
     private int aki$despawnCheckCounter = 0;
     
-    
     @Inject(method = "checkDespawn", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizeCheckDespawn(CallbackInfo ci) {
         if (!initialized) {
@@ -39,24 +37,20 @@ public class MobDespawnOptimizeMixin {
         
         Mob mob = (Mob) (Object) this;
         
-
         if (mob.isPersistenceRequired() || mob.requiresCustomPersistence()) {
             return;
         }
         
-
         if (mob.hasCustomName()) {
             return;
         }
         
-
         aki$despawnCheckCounter++;
         if (aki$despawnCheckCounter % cached_checkInterval != 0) {
             ci.cancel();
             return;
         }
         
-
         ServerLevel level = (ServerLevel) mob.level();
         Player nearestPlayer = level.getNearestPlayer(mob, 32.0);
         if (nearestPlayer != null) {

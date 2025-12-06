@@ -13,39 +13,58 @@ public final class PiglinCpuCalculator {
             PiglinSnapshot snapshot
     ) {
         try {
-            List<PiglinSnapshot.PlayerGoldInfo> holdingGoldPlayers = snapshot.getNearbyPlayers().stream()
-                .filter(PiglinSnapshot.PlayerGoldInfo::holdingGold)
-                .sorted(Comparator.comparingDouble((PiglinSnapshot.PlayerGoldInfo playerInfo) ->
-                    scoreBarterTarget(playerInfo.pos(), snapshot.getInventoryItems(), piglin.blockPosition())
-                ).reversed())
-                .collect(Collectors.toList());
-            Vec3 avoidVec = Vec3.ZERO;
+            
+            List<PiglinSnapshot.PlayerGoldInfo> holdingGoldPlayers = new java.util.ArrayList<>();
             BlockPos piglinPos = piglin.blockPosition();
-            for (BlockPos threat : snapshot.getNearbyThreats()) {
-                double dx = piglinPos.getX() - threat.getX();
-                double dy = piglinPos.getY() - threat.getY();
-                double dz = piglinPos.getZ() - threat.getZ();
-                double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                if (dist < 12.0) {
-                    double weight = 1.0 / (dist + 0.1);
-                    avoidVec = avoidVec.add(dx * weight, dy * weight, dz * weight);
+            
+            for (PiglinSnapshot.PlayerGoldInfo playerInfo : snapshot.getNearbyPlayers()) {
+                if (playerInfo.holdingGold()) {
+                    holdingGoldPlayers.add(playerInfo);
                 }
             }
-            int newTimer = !snapshot.getNearbyThreats().isEmpty() ? 1 : 0;
+            
+            if (holdingGoldPlayers.size() > 1) {
+                holdingGoldPlayers.sort(Comparator.comparingDouble((PiglinSnapshot.PlayerGoldInfo playerInfo) ->
+                    scoreBarterTarget(playerInfo.pos(), snapshot.getInventoryItems(), piglinPos)
+                ).reversed());
+            }
+            
+            Vec3 avoidVec = Vec3.ZERO;
+            List<BlockPos> threats = snapshot.getNearbyThreats();
+            
+            if (!threats.isEmpty()) {
+                for (BlockPos threat : threats) {
+                    int dx = piglinPos.getX() - threat.getX();
+                    int dy = piglinPos.getY() - threat.getY();
+                    int dz = piglinPos.getZ() - threat.getZ();
+                    int distSqr = dx * dx + dy * dy + dz * dz;
+                    
+                    if (distSqr < 144) { 
+                        double dist = Math.sqrt(distSqr);
+                        double weight = 1.0 / (dist + 0.1);
+                        avoidVec = avoidVec.add(dx * weight, dy * weight, dz * weight);
+                    }
+                }
+            }
+            
+            int newTimer = !threats.isEmpty() ? 1 : 0;
             PiglinDiff diff = new PiglinDiff();
+            
             if (!holdingGoldPlayers.isEmpty()) {
                 PiglinSnapshot.PlayerGoldInfo topPlayer = holdingGoldPlayers.get(0);
                 diff.setBarterTarget(topPlayer.playerId());
                 diff.setLookTarget(topPlayer.playerId(), topPlayer.pos());
             }
-            if (avoidVec.length() > 0.1) {
+            
+            if (avoidVec.lengthSqr() > 0.01) { 
                 BlockPos avoidPos = piglinPos.offset(
-                    (int) avoidVec.x * 8,
-                    (int) avoidVec.y * 8,
-                    (int) avoidVec.z * 8
+                    (int) (avoidVec.x * 8),
+                    (int) (avoidVec.y * 8),
+                    (int) (avoidVec.z * 8)
                 );
                 diff.setWalkTarget(avoidPos);
             }
+            
             diff.setHuntedTimer(newTimer);
             return diff;
         } catch (Exception e) {

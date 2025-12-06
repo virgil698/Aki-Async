@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import java.util.Objects;
 
-
 public final class BlockDensityCacheKey {
     private final Vec3 explosionPos;
     private final BlockPos entityPos;
@@ -16,7 +15,6 @@ public final class BlockDensityCacheKey {
         this.hashCode = Objects.hash(explosionPos, entityPos);
     }
 
-    
     public static int getLenientKey(Vec3 explosionPos, BlockPos entityPos) {
         int expX = (int) Math.floor(explosionPos.x);
         int expY = (int) Math.floor(explosionPos.y);

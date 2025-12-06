@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.phys.Vec3;
 
-
 @Mixin(AbstractMinecart.class)
 public class MinecartTickOptimizeMixin {
     
@@ -31,7 +30,6 @@ public class MinecartTickOptimizeMixin {
     @Unique
     private int aki$tickCounter = 0;
     
-    
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizeMinecartTick(CallbackInfo ci) {
         if (!initialized) {
@@ -46,7 +44,6 @@ public class MinecartTickOptimizeMixin {
         Vec3 currentPos = minecart.position();
         Vec3 deltaMovement = minecart.getDeltaMovement();
         
-
         boolean isStatic = false;
         if (aki$lastPosition != null) {
             double movement = currentPos.distanceTo(aki$lastPosition);
@@ -62,18 +59,15 @@ public class MinecartTickOptimizeMixin {
         
         aki$lastPosition = currentPos;
         
-
         if (isStatic && aki$staticTicks > 20) {
             aki$tickCounter++;
             
-
             if (aki$tickCounter % 5 != 0) {
                 ci.cancel();
                 return;
             }
         }
         
-
         if (minecart.getPassengers().isEmpty() && isStatic && aki$staticTicks > 100) {
 
             if (aki$tickCounter % 10 != 0) {

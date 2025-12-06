@@ -6,7 +6,7 @@ import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 16;
+    private static final int CURRENT_CONFIG_VERSION = 17;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -54,6 +54,42 @@ public class ConfigManager {
     private int asyncPathfindingKeepAliveSeconds;
     private int asyncPathfindingMaxQueueSize;
     private int asyncPathfindingTimeoutMs;
+    private boolean asyncPathfindingCacheEnabled;
+    private int asyncPathfindingCacheMaxSize;
+    private int asyncPathfindingCacheExpireSeconds;
+    private int asyncPathfindingCacheReuseTolerance;
+    private int asyncPathfindingCacheCleanupIntervalSeconds;
+    private boolean collisionOptimizationEnabled;
+    private boolean collisionAggressiveMode;
+    private boolean collisionCacheEnabled;
+    private int collisionCacheLifetimeMs;
+    private double collisionCacheMovementThreshold;
+    private boolean collisionSpatialPartitionEnabled;
+    private int collisionSpatialGridSize;
+    private int collisionSpatialDensityThreshold;
+    private int collisionSpatialUpdateIntervalMs;
+    private double collisionSkipMinMovement;
+    private int collisionSkipCheckIntervalMs;
+    private boolean pushOptimizationEnabled;
+    private double pushMaxPushPerTick;
+    private double pushDampingFactor;
+    private int pushHighDensityThreshold;
+    private double pushHighDensityMultiplier;
+    private boolean advancedCollisionOptimizationEnabled;
+    private int collisionThreshold;
+    private float suffocationDamage;
+    private int maxPushIterations;
+    private boolean useSectionGrid;
+    private boolean sectionGridWarmup;
+    private boolean tntCacheEnabled;
+    private boolean tntUseOptimizedCache;
+    private int tntCacheExpiryTicks;
+    private boolean tntCacheWarmupEnabled;
+    private boolean tntPrecomputedShapeEnabled;
+    private boolean tntUseOcclusionDetection;
+    private double tntOcclusionThreshold;
+    private boolean tntBatchCollisionEnabled;
+    private int tntBatchUnrollFactor;
     private boolean entityThrottlingEnabled;
     private String entityThrottlingConfigFile;
     private int entityThrottlingCheckInterval;
@@ -98,7 +134,6 @@ public class ConfigManager {
     private boolean redstoneCacheEnabled;
     private int redstoneCacheDurationMs;
     
-
     private boolean usePandaWireAlgorithm;
     private boolean redstoneNetworkCacheEnabled;
     private int redstoneNetworkCacheExpireTicks;
@@ -114,13 +149,14 @@ public class ConfigManager {
     private boolean tntUseVanillaFireLogic;
     private boolean tntUseVanillaDamageCalculation;
     private boolean beeFixEnabled;
+    private boolean endIslandDensityFixEnabled;
+    
     private boolean tntUseFullRaycast;
     private boolean tntUseVanillaBlockDestruction;
     private boolean tntUseVanillaDrops;
     private boolean tntLandProtectionEnabled;
     private boolean blockLockerProtectionEnabled;
     
-
     private boolean tntUseSakuraDensityCache;
     private boolean tntMergeEnabled;
     private double tntMergeRadius;
@@ -177,7 +213,6 @@ public class ConfigManager {
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
 
-
     private String seedEncryptionScheme;
     private boolean seedEncryptionEnabled;
     private boolean seedEncryptionProtectStructures;
@@ -185,10 +220,8 @@ public class ConfigManager {
     private boolean seedEncryptionProtectSlimes;
     private boolean seedEncryptionProtectBiomes;
     
-
     private int secureSeedBits;
     
-
     private int quantumSeedEncryptionLevel;
     private String quantumSeedPrivateKeyFile;
     private boolean quantumSeedEnableTimeDecay;
@@ -369,6 +402,7 @@ public class ConfigManager {
         asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
         asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
         asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 50);
+        loadPathfindingAndCollisionConfigs();
         entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
         entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
         entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
@@ -413,7 +447,6 @@ public class ConfigManager {
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
         
-
         usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.pandawire.enabled", false);
         redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.network-cache.enabled", false);
         redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.network-cache.expire-ticks", 600);
@@ -446,7 +479,6 @@ public class ConfigManager {
         tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", true);
         blockLockerProtectionEnabled = config.getBoolean("tnt-explosion-optimization.blocklocker-protection.enabled", true);
         
-
         tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
         tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", false);
         tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
@@ -454,6 +486,8 @@ public class ConfigManager {
         tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.entity-merge.power-multiplier", 0.5);
         
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
+        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
@@ -505,8 +539,6 @@ public class ConfigManager {
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
 
-
-
         if (config.contains("seed-encryption.scheme")) {
 
             seedEncryptionScheme = config.getString("seed-encryption.scheme", "quantum");
@@ -516,10 +548,8 @@ public class ConfigManager {
             seedEncryptionProtectSlimes = config.getBoolean("seed-encryption.protect-slimes", true);
             seedEncryptionProtectBiomes = config.getBoolean("seed-encryption.protect-biomes", true);
             
-
             secureSeedBits = config.getInt("seed-encryption.legacy.seed-bits", 1024);
             
-
             quantumSeedEncryptionLevel = config.getInt("seed-encryption.quantum.encryption-level", 2);
             quantumSeedPrivateKeyFile = config.getString("seed-encryption.quantum.private-key-file", "quantum-seed.key");
             quantumSeedEnableTimeDecay = config.getBoolean("seed-encryption.quantum.enable-time-decay", false);
@@ -534,7 +564,6 @@ public class ConfigManager {
             seedEncryptionProtectBiomes = false;
             secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
             
-
             quantumSeedEncryptionLevel = 2;
             quantumSeedPrivateKeyFile = "quantum-seed.key";
             quantumSeedEnableTimeDecay = false;
@@ -843,7 +872,8 @@ public class ConfigManager {
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
 
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
-
+        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
@@ -1123,6 +1153,42 @@ public class ConfigManager {
     public int getAsyncPathfindingKeepAliveSeconds() { return asyncPathfindingKeepAliveSeconds; }
     public int getAsyncPathfindingMaxQueueSize() { return asyncPathfindingMaxQueueSize; }
     public int getAsyncPathfindingTimeoutMs() { return asyncPathfindingTimeoutMs; }
+    public boolean isAsyncPathfindingCacheEnabled() { return asyncPathfindingCacheEnabled; }
+    public int getAsyncPathfindingCacheMaxSize() { return asyncPathfindingCacheMaxSize; }
+    public int getAsyncPathfindingCacheExpireSeconds() { return asyncPathfindingCacheExpireSeconds; }
+    public int getAsyncPathfindingCacheReuseTolerance() { return asyncPathfindingCacheReuseTolerance; }
+    public int getAsyncPathfindingCacheCleanupIntervalSeconds() { return asyncPathfindingCacheCleanupIntervalSeconds; }
+    public boolean isCollisionOptimizationEnabled() { return collisionOptimizationEnabled; }
+    public boolean isCollisionAggressiveMode() { return collisionAggressiveMode; }
+    public boolean isCollisionCacheEnabled() { return collisionCacheEnabled; }
+    public int getCollisionCacheLifetimeMs() { return collisionCacheLifetimeMs; }
+    public double getCollisionCacheMovementThreshold() { return collisionCacheMovementThreshold; }
+    public boolean isCollisionSpatialPartitionEnabled() { return collisionSpatialPartitionEnabled; }
+    public int getCollisionSpatialGridSize() { return collisionSpatialGridSize; }
+    public int getCollisionSpatialDensityThreshold() { return collisionSpatialDensityThreshold; }
+    public int getCollisionSpatialUpdateIntervalMs() { return collisionSpatialUpdateIntervalMs; }
+    public double getCollisionSkipMinMovement() { return collisionSkipMinMovement; }
+    public int getCollisionSkipCheckIntervalMs() { return collisionSkipCheckIntervalMs; }
+    public boolean isPushOptimizationEnabled() { return pushOptimizationEnabled; }
+    public double getPushMaxPushPerTick() { return pushMaxPushPerTick; }
+    public double getPushDampingFactor() { return pushDampingFactor; }
+    public int getPushHighDensityThreshold() { return pushHighDensityThreshold; }
+    public double getPushHighDensityMultiplier() { return pushHighDensityMultiplier; }
+    public boolean isAdvancedCollisionOptimizationEnabled() { return advancedCollisionOptimizationEnabled; }
+    public int getCollisionThreshold() { return collisionThreshold; }
+    public float getSuffocationDamage() { return suffocationDamage; }
+    public int getMaxPushIterations() { return maxPushIterations; }
+    public boolean isUseSectionGrid() { return useSectionGrid; }
+    public boolean isSectionGridWarmup() { return sectionGridWarmup; }
+    public boolean isTntCacheEnabled() { return tntCacheEnabled; }
+    public boolean isTntUseOptimizedCache() { return tntUseOptimizedCache; }
+    public int getTntCacheExpiryTicks() { return tntCacheExpiryTicks; }
+    public boolean isTntCacheWarmupEnabled() { return tntCacheWarmupEnabled; }
+    public boolean isTntPrecomputedShapeEnabled() { return tntPrecomputedShapeEnabled; }
+    public boolean isTntUseOcclusionDetection() { return tntUseOcclusionDetection; }
+    public double getTntOcclusionThreshold() { return tntOcclusionThreshold; }
+    public boolean isTntBatchCollisionEnabled() { return tntBatchCollisionEnabled; }
+    public int getTntBatchUnrollFactor() { return tntBatchUnrollFactor; }
     public boolean isEntityThrottlingEnabled() { return entityThrottlingEnabled; }
     public String getEntityThrottlingConfigFile() { return entityThrottlingConfigFile; }
     public int getEntityThrottlingCheckInterval() { return entityThrottlingCheckInterval; }
@@ -1166,7 +1232,6 @@ public class ConfigManager {
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
     
-
     public boolean isUsePandaWireAlgorithm() { return usePandaWireAlgorithm; }
     public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
     public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
@@ -1193,6 +1258,8 @@ public class ConfigManager {
     public boolean isTNTUseVanillaDamageCalculation() { return tntUseVanillaDamageCalculation; }
     public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
     public boolean isBeeFixEnabled() { return beeFixEnabled; }
+    public boolean isEndIslandDensityFixEnabled() { return endIslandDensityFixEnabled; }
+    
     public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
     public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
     public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
@@ -1244,7 +1311,6 @@ public class ConfigManager {
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
 
-
     public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
     public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
     public boolean isSeedEncryptionProtectStructures() { return seedEncryptionProtectStructures; }
@@ -1252,7 +1318,6 @@ public class ConfigManager {
     public boolean isSeedEncryptionProtectSlimes() { return seedEncryptionProtectSlimes; }
     public boolean isSeedEncryptionProtectBiomes() { return seedEncryptionProtectBiomes; }
     
-
     public boolean isSecureSeedEnabled() { return seedEncryptionEnabled; }
     public boolean isSecureSeedProtectStructures() { return seedEncryptionProtectStructures; }
     public boolean isSecureSeedProtectOres() { return seedEncryptionProtectOres; }
@@ -1260,7 +1325,6 @@ public class ConfigManager {
     public int getSecureSeedBits() { return secureSeedBits; }
     public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
     
-
     public boolean isQuantumSeedEnabled() { return seedEncryptionEnabled && "quantum".equalsIgnoreCase(seedEncryptionScheme); }
     public int getQuantumSeedEncryptionLevel() { return quantumSeedEncryptionLevel; }
     public String getQuantumSeedPrivateKeyFile() { return quantumSeedPrivateKeyFile; }
@@ -1268,12 +1332,10 @@ public class ConfigManager {
     public int getQuantumSeedCacheSize() { return quantumSeedCacheSize; }
     public boolean isQuantumSeedDebugLogging() { return enableDebugLogging; }
     
-
     public boolean isSeedCommandRestrictionEnabled() {
         return config.getBoolean("seed-encryption.restrict-seed-command", true);
     }
     
-
     public boolean isSeedProtectionEnabled() {
         return config.getBoolean("seed-encryption.anti-plugin-theft.enabled", true);
     }
@@ -1392,4 +1454,43 @@ public class ConfigManager {
     public int getZnpcsplusPriority() { return znpcsplusPriority; }
     
     public java.util.List<String> getVirtualEntityDetectionOrder() { return virtualEntityDetectionOrder; }
+
+    private void loadPathfindingAndCollisionConfigs() {
+        asyncPathfindingCacheEnabled = config.getBoolean("async-ai.async-pathfinding.cache.enabled", true);
+        asyncPathfindingCacheMaxSize = config.getInt("async-ai.async-pathfinding.cache.max-size", 1000);
+        asyncPathfindingCacheExpireSeconds = config.getInt("async-ai.async-pathfinding.cache.expire-seconds", 30);
+        asyncPathfindingCacheReuseTolerance = config.getInt("async-ai.async-pathfinding.cache.reuse-tolerance", 3);
+        asyncPathfindingCacheCleanupIntervalSeconds = config.getInt("async-ai.async-pathfinding.cache.cleanup-interval-seconds", 5);
+        collisionOptimizationEnabled = config.getBoolean("collision-optimization.enabled", true);
+        collisionAggressiveMode = config.getBoolean("collision-optimization.aggressive-mode", true);
+        collisionCacheEnabled = config.getBoolean("collision-optimization.cache.enabled", true);
+        collisionCacheLifetimeMs = config.getInt("collision-optimization.cache.lifetime-ms", 50);
+        collisionCacheMovementThreshold = config.getDouble("collision-optimization.cache.movement-threshold", 0.01);
+        collisionSpatialPartitionEnabled = config.getBoolean("collision-optimization.spatial-partition.enabled", true);
+        collisionSpatialGridSize = config.getInt("collision-optimization.spatial-partition.grid-size", 4);
+        collisionSpatialDensityThreshold = config.getInt("collision-optimization.spatial-partition.density-threshold", 50);
+        collisionSpatialUpdateIntervalMs = config.getInt("collision-optimization.spatial-partition.update-interval-ms", 100);
+        collisionSkipMinMovement = config.getDouble("collision-optimization.skip-checks.min-movement", 0.001);
+        collisionSkipCheckIntervalMs = config.getInt("collision-optimization.skip-checks.check-interval-ms", 50);
+        pushOptimizationEnabled = config.getBoolean("collision-optimization.push-optimization.enabled", true);
+        pushMaxPushPerTick = config.getDouble("collision-optimization.push-optimization.max-push-per-tick", 0.5);
+        pushDampingFactor = config.getDouble("collision-optimization.push-optimization.damping-factor", 0.7);
+        pushHighDensityThreshold = config.getInt("collision-optimization.push-optimization.high-density-threshold", 10);
+        pushHighDensityMultiplier = config.getDouble("collision-optimization.push-optimization.high-density-multiplier", 0.3);
+        advancedCollisionOptimizationEnabled = config.getBoolean("collision-optimization.advanced.enabled", true);
+        collisionThreshold = config.getInt("collision-optimization.advanced.collision-threshold", 8);
+        suffocationDamage = (float) config.getDouble("collision-optimization.advanced.suffocation-damage", 0.5);
+        maxPushIterations = config.getInt("collision-optimization.advanced.max-push-iterations", 8);
+        useSectionGrid = config.getBoolean("collision-optimization.advanced.use-section-grid", true);
+        sectionGridWarmup = config.getBoolean("collision-optimization.advanced.section-grid-warmup", false);
+        tntCacheEnabled = config.getBoolean("tnt-explosion-optimization.cache.enabled", true);
+        tntUseOptimizedCache = config.getBoolean("tnt-explosion-optimization.cache.use-optimized-cache", true);
+        tntCacheExpiryTicks = config.getInt("tnt-explosion-optimization.cache.cache-expiry-ticks", 600);
+        tntCacheWarmupEnabled = config.getBoolean("tnt-explosion-optimization.cache.warmup-enabled", false);
+        tntPrecomputedShapeEnabled = config.getBoolean("tnt-explosion-optimization.precomputed-shape.enabled", true);
+        tntUseOcclusionDetection = config.getBoolean("tnt-explosion-optimization.precomputed-shape.use-occlusion-detection", true);
+        tntOcclusionThreshold = config.getDouble("tnt-explosion-optimization.precomputed-shape.occlusion-threshold", 0.5);
+        tntBatchCollisionEnabled = config.getBoolean("tnt-explosion-optimization.batch-collision.enabled", true);
+        tntBatchUnrollFactor = config.getInt("tnt-explosion-optimization.batch-collision.unroll-factor", 4);
+    }
 }

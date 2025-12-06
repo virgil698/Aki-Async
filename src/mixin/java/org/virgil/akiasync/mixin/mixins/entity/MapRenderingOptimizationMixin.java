@@ -24,9 +24,6 @@ public abstract class MapRenderingOptimizationMixin {
     private static volatile ExecutorService aki$mapRenderExecutor;
     
     @Unique
-    private static volatile int threadPoolSize = 2;
-    
-    @Unique
     private byte[] aki$cachedColors;
     
     @Unique
@@ -80,22 +77,19 @@ public abstract class MapRenderingOptimizationMixin {
         
         if (bridge != null) {
             enabled = bridge.isMapRenderingOptimizationEnabled();
-            threadPoolSize = bridge.getMapRenderingThreads();
             
             if (enabled) {
-                aki$mapRenderExecutor = Executors.newFixedThreadPool(
-                    threadPoolSize,
-                    r -> {
-                        Thread t = new Thread(r, "AkiAsync-MapRender");
-                        t.setDaemon(true);
-                        t.setPriority(Thread.NORM_PRIORITY - 1);
-                        return t;
-                    }
-                );
                 
-                bridge.debugLog("[AkiAsync] MapRenderingOptimization initialized");
-                bridge.debugLog("  - Thread pool size: " + threadPoolSize);
-                bridge.debugLog("  - Expected 8x speed improvement");
+                aki$mapRenderExecutor = bridge.getGeneralExecutor();
+                
+                if (aki$mapRenderExecutor != null) {
+                    bridge.debugLog("[AkiAsync] MapRenderingOptimization initialized");
+                    bridge.debugLog("  - Using shared general executor");
+                    bridge.debugLog("  - Expected 8x speed improvement");
+                } else {
+                    enabled = false;
+                    bridge.errorLog("[AkiAsync] MapRenderingOptimization failed: no executor available");
+                }
             }
         }
         

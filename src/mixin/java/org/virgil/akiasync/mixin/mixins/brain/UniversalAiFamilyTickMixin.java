@@ -81,11 +81,28 @@ public abstract class UniversalAiFamilyTickMixin {
                 UniversalAiCpuCalculator.runCpuOnly(mob, aki$snap), timeout, TimeUnit.MICROSECONDS);
             UniversalAiDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new UniversalAiDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(mob, level);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            
+            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                bridge.errorLog("[UniversalAI] Error in async brain tick: %s", e.getMessage());
+            }
+        }
     }
 
     @Unique
     private int aki$calculateDynamicTickInterval(Mob mob, ServerLevel level) {
+        
+        if (mob.isInWater() || mob.isInLava()) {
+            return 1;
+        }
+        
+        net.minecraft.core.BlockPos pos = mob.blockPosition();
+        net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+        if (!state.getFluidState().isEmpty()) {
+            return 1;
+        }
+        
         net.minecraft.world.entity.player.Player nearestPlayer = level.getNearestPlayer(mob, -1.0);
         if (nearestPlayer == null) {
             return dabMaxTickInterval;
@@ -115,7 +132,6 @@ public abstract class UniversalAiFamilyTickMixin {
             return false;
         }
         
-
         if (mob.isInWater() || mob.isInLiquid()) {
             aki$stillTicks = 0;
             aki$lastPos = mob.position();
@@ -134,7 +150,6 @@ public abstract class UniversalAiFamilyTickMixin {
         double dz = cur.z - aki$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
         
-
         if (mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
@@ -204,7 +219,6 @@ public abstract class UniversalAiFamilyTickMixin {
                 return true;
             }
 
-
             net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
             java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles =
                 mob.level().getEntities(mob, vehicleSearchBox, entity ->
@@ -254,7 +268,7 @@ public abstract class UniversalAiFamilyTickMixin {
         }
 
         if (isFolia) {
-            tickInterval = Math.max(1, 3 / 2);
+            tickInterval = 2;
             if (bridge != null) {
                 bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized in Folia mode:");
                 bridge.debugLog("  - Enabled: " + enabled);

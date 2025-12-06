@@ -21,37 +21,53 @@ public final class PiglinSnapshot {
         this.isHunted = hunted;
     }
     public static PiglinSnapshot capture(Piglin piglin, ServerLevel level) {
+        
         SimpleContainer inv = piglin.getInventory();
-        ItemStack[] items = new ItemStack[inv.getContainerSize()];
-        for (int i = 0; i < items.length; i++) {
-            items[i] = inv.getItem(i).copy();
+        int size = inv.getContainerSize();
+        ItemStack[] items = new ItemStack[size];
+        for (int i = 0; i < size; i++) {
+            ItemStack item = inv.getItem(i);
+            items[i] = item.isEmpty() ? ItemStack.EMPTY : item.copy();
         }
-        AABB scanBox = piglin.getBoundingBox().inflate(16.0);
-        java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
+        
+        AABB scanBox = piglin.getBoundingBox().inflate(12.0);
+        java.util.List<PlayerGoldInfo> players = new java.util.ArrayList<>();
+        
+        for (net.minecraft.world.entity.player.Player player : level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
             scanBox
-        ).stream()
-            .map(player -> new PlayerGoldInfo(
+        )) {
+            players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),
                 isHoldingGold(player)
-            ))
-            .collect(java.util.stream.Collectors.toList());
-        java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>();
+            ));
+        }
+        
+        java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>(4);
         net.minecraft.core.BlockPos piglinPos = piglin.blockPosition();
-        for (int x = -12; x <= 12; x++) {
-            for (int y = -12; y <= 12; y++) {
-                for (int z = -12; z <= 12; z++) {
+        
+        for (int x = -8; x <= 8; x += 2) {
+            for (int y = -4; y <= 4; y += 2) {
+                for (int z = -8; z <= 8; z += 2) {
                     net.minecraft.core.BlockPos pos = piglinPos.offset(x, y, z);
                     if (level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) {
                         threats.add(pos);
+                        
+                        if (threats.size() >= 3) {
+                            break;
+                        }
                     }
                 }
+                if (threats.size() >= 3) break;
             }
+            if (threats.size() >= 3) break;
         }
+        
         boolean hunted = piglin.getBrain()
             .getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HUNTED_RECENTLY)
             .orElse(false);
+        
         return new PiglinSnapshot(items, players, threats, hunted);
     }
     public static PiglinSnapshot captureSimple(
@@ -59,32 +75,42 @@ public final class PiglinSnapshot {
             ServerLevel level
     ) {
         ItemStack[] items = new ItemStack[0];
-        AABB scanBox = brute.getBoundingBox().inflate(16.0);
-        java.util.List<PlayerGoldInfo> players = level.getEntitiesOfClass(
+        
+        AABB scanBox = brute.getBoundingBox().inflate(12.0);
+        java.util.List<PlayerGoldInfo> players = new java.util.ArrayList<>();
+        
+        for (net.minecraft.world.entity.player.Player player : level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
             scanBox
-        ).stream()
-            .map(player -> new PlayerGoldInfo(
+        )) {
+            players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),
                 isHoldingGold(player)
-            ))
-            .collect(java.util.stream.Collectors.toList());
-        java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>();
+            ));
+        }
+        
+        java.util.List<net.minecraft.core.BlockPos> threats = new java.util.ArrayList<>(4);
         net.minecraft.core.BlockPos brutePos = brute.blockPosition();
-        for (int x = -12; x <= 12; x++) {
-            for (int y = -12; y <= 12; y++) {
-                for (int z = -12; z <= 12; z++) {
+        
+        for (int x = -8; x <= 8; x += 2) {
+            for (int y = -4; y <= 4; y += 2) {
+                for (int z = -8; z <= 8; z += 2) {
                     net.minecraft.core.BlockPos pos = brutePos.offset(x, y, z);
                     if (level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) {
                         threats.add(pos);
+                        if (threats.size() >= 3) break;
                     }
                 }
+                if (threats.size() >= 3) break;
             }
+            if (threats.size() >= 3) break;
         }
+        
         boolean hunted = brute.getBrain()
             .getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HUNTED_RECENTLY)
             .orElse(false);
+        
         return new PiglinSnapshot(items, players, threats, hunted);
     }
     private static boolean isHoldingGold(net.minecraft.world.entity.player.Player player) {

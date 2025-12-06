@@ -28,7 +28,6 @@ public class EntityThrottlingMixin {
                 return;
             }
 
-
             if (self instanceof net.minecraft.world.entity.decoration.ArmorStand) {
                 return;
             }
@@ -55,7 +54,6 @@ public class EntityThrottlingMixin {
                     return;
                 }
                 
-
                 if (self.isInWater() || self.isInWaterOrRain()) {
                     return;
                 }
@@ -82,7 +80,6 @@ public class EntityThrottlingMixin {
                     return;
                 }
                 
-
                 if (self.isInWater() || self.isInWaterOrRain()) {
                     return;
                 }

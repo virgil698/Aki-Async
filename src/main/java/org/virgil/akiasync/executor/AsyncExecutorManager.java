@@ -20,6 +20,7 @@ public class AsyncExecutorManager {
     private final ExecutorService chunkTickExecutor;
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
+    private final ExecutorService collisionExecutor;
     private final ScheduledExecutorService metricsExecutor;
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -48,6 +49,10 @@ public class AsyncExecutorManager {
             new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain"),
             "AkiAsync-Brain-Executor");
 
+        this.collisionExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, Math.max(2, threadPoolSize / 4), "AkiAsync-Collision"),
+            "AkiAsync-Collision-Executor");
+
         this.metricsExecutor = ResourceTracker.track(
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread thread = new Thread(r, "AkiAsync-Metrics");
@@ -62,6 +67,7 @@ public class AsyncExecutorManager {
         plugin.getLogger().info("ChunkTick executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("Brain executor initialized: " + (threadPoolSize / 2) + " threads (Folia-compatible)");
+        plugin.getLogger().info("Collision executor initialized: " + Math.max(2, threadPoolSize / 4) + " threads (Folia-compatible)");
         plugin.getLogger().info("All executors tracked by ResourceTracker for leak detection");
     }
     public Future<?> submit(Runnable task) {
@@ -106,6 +112,11 @@ public class AsyncExecutorManager {
             plugin.getLogger().warning("Brain executor did not terminate gracefully");
         }
         
+        boolean collisionShutdown = ExecutorLifecycleManager.shutdownGracefully(collisionExecutor, 5, TimeUnit.SECONDS);
+        if (!collisionShutdown) {
+            plugin.getLogger().warning("Collision executor did not terminate gracefully");
+        }
+        
         metricsExecutor.shutdownNow();
         
         java.util.List<String> unclosed = ResourceTracker.getUnclosedResources();
@@ -134,6 +145,10 @@ public class AsyncExecutorManager {
     }
     public ExecutorService getBrainExecutor() {
         return brainExecutor;
+    }
+    
+    public ExecutorService getCollisionExecutor() {
+        return collisionExecutor;
     }
     public String getStatistics() {
         

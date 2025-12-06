@@ -8,13 +8,10 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import com.google.common.collect.ImmutableMap;
 
-
 public class BatchPoiManager {
     
-
     private static final Map<ServerLevel, PoiCache> levelCaches = new ConcurrentHashMap<>();
     
-
     private static class PoiRequest {
         final BlockPos center;
         final int radius;
@@ -40,7 +37,6 @@ public class BatchPoiManager {
         }
     }
     
-
     private static class PoiCache {
         private final Map<PoiRequest, Map<BlockPos, PoiRecord>> cache = new ConcurrentHashMap<>();
         private long lastClearTime = System.currentTimeMillis();
@@ -63,7 +59,6 @@ public class BatchPoiManager {
         }
     }
     
-    
     public static Map<BlockPos, PoiRecord> getPoiInRange(
             ServerLevel level,
             BlockPos center,
@@ -78,13 +73,11 @@ public class BatchPoiManager {
         
         PoiRequest request = new PoiRequest(center, radius);
         
-
         Map<BlockPos, PoiRecord> cached = cache.get(request);
         if (cached != null) {
             return cached;
         }
         
-
         try {
             PoiManager poiManager = level.getPoiManager();
             Map<BlockPos, PoiRecord> result = poiManager.getInRange(
@@ -97,7 +90,6 @@ public class BatchPoiManager {
                 record -> record
             ));
             
-
             cache.put(request, result);
             return result;
             
@@ -106,18 +98,15 @@ public class BatchPoiManager {
         }
     }
     
-    
     public static void clearCache(ServerLevel level) {
         if (level != null) {
             levelCaches.remove(level);
         }
     }
     
-    
     public static void clearAllCaches() {
         levelCaches.clear();
     }
-    
     
     public static String getStatistics() {
         int totalCaches = levelCaches.size();

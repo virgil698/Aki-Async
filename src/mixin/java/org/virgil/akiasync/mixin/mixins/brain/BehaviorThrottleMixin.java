@@ -11,7 +11,6 @@ import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(BehaviorBuilder.Instance.class)
 public class BehaviorThrottleMixin<E extends LivingEntity> {
     
@@ -25,11 +24,7 @@ public class BehaviorThrottleMixin<E extends LivingEntity> {
     private static volatile int cached_throttleInterval = 3;
     
     @Unique
-    private long aki$lastTriggerTime = 0;
-    
-    @Unique
     private int aki$triggerCounter = 0;
-    
     
     @Inject(method = "trigger", at = @At("HEAD"), cancellable = true, require = 0)
     private void throttleTrigger(ServerLevel level, E entity, long gameTime, CallbackInfoReturnable<Boolean> cir) {
@@ -41,15 +36,10 @@ public class BehaviorThrottleMixin<E extends LivingEntity> {
             return;
         }
         
-
         aki$triggerCounter++;
         if (aki$triggerCounter % cached_throttleInterval != 0) {
-
             cir.setReturnValue(false);
-            return;
         }
-        
-        aki$lastTriggerTime = gameTime;
     }
     
     @Unique

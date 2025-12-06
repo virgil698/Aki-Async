@@ -9,7 +9,6 @@ import org.virgil.akiasync.mixin.poi.BatchPoiManager;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(value = ServerLevel.class, priority = 900)
 public class PathBatchFlushMixin {
     
@@ -18,7 +17,6 @@ public class PathBatchFlushMixin {
 
         AsyncPathProcessor.flushPendingPaths();
         
-
         ServerLevel level = (ServerLevel) (Object) this;
         BatchPoiManager.clearCache(level);
     }

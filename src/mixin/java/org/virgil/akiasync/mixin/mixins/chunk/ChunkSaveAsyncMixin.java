@@ -131,7 +131,13 @@ public class ChunkSaveAsyncMixin {
             try {
                 java.lang.reflect.Method getPosMethod = holder.getClass().getMethod("toLong");
                 pos = (long) getPosMethod.invoke(holder);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                
+                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.errorLog("[ChunkSave] Failed to get chunk position via reflection: %s", e.getMessage());
+                }
+            }
 
             final long finalPos = pos;
             final ChunkHolder finalHolder = holder;
@@ -167,7 +173,13 @@ public class ChunkSaveAsyncMixin {
                 if (bridge != null) {
                     bridge.errorLog("[AkiAsync-ChunkSave] CRITICAL: Failed to save chunk - " + e.getMessage());
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e2) {
+                
+                org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge2 != null) {
+                    bridge2.errorLog("[ChunkSave] Failed to log critical error: %s", e2.getMessage());
+                }
+            }
         }
     }
 }

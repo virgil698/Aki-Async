@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator;
 
-
 @Mixin(RedStoneWireBlock.class)
 public class RedstoneWireOptimizationMixin {
     
@@ -31,13 +30,11 @@ public class RedstoneWireOptimizationMixin {
             return;
         }
 
-
         PandaWireEvaluator evaluator = org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getOrCreateEvaluator(
             serverLevel, 
             (RedStoneWireBlock)(Object)this
         );
         
-
         evaluator.evaluateWire(pos, state);
 
         if (bridge.isDebugLoggingEnabled()) {

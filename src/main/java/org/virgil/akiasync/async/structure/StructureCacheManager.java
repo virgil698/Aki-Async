@@ -185,7 +185,6 @@ public class StructureCacheManager {
             return;
         }
 
-
         int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
         
         structureCache.entrySet().stream()
@@ -207,7 +206,6 @@ public class StructureCacheManager {
         if (negativeCache.size() < maxCacheSize) {
             return;
         }
-
 
         int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
         

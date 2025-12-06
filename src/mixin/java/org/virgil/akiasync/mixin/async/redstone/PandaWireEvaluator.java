@@ -12,13 +12,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public class PandaWireEvaluator {
 
     private static final Direction[] FACINGS_VERTICAL = {Direction.DOWN, Direction.UP};
     private static final Direction[] FACINGS_HORIZONTAL = {Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
     private static final Direction[] FACINGS = combineArrays(FACINGS_VERTICAL, FACINGS_HORIZONTAL);
-    
     
     private static Direction[] combineArrays(Direction[] a, Direction[] b) {
         Direction[] result = new Direction[a.length + b.length];
@@ -27,7 +25,6 @@ public class PandaWireEvaluator {
         return result;
     }
     
-
     private static final Vec3i[] SURROUNDING_BLOCKS_OFFSET;
     static {
         final Set<Vec3i> set = Sets.newLinkedHashSet();
@@ -50,14 +47,11 @@ public class PandaWireEvaluator {
     private final ArrayDeque<BlockPos> turnOn = new ArrayDeque<>();
     private final LinkedHashSet<BlockPos> updatedRedstoneWire = new LinkedHashSet<>();
     
-
     private final Map<BlockPos, Integer> powerCache = new HashMap<>();
     
-
     private static final Map<ServerLevel, Set<BlockPos>> pendingUpdates = new ConcurrentHashMap<>();
     private static final int BATCH_THRESHOLD = 50;
     
-
     private final AsyncRedstoneNetworkManager networkManager;
     private final RedstoneNetworkCache networkCache;
 
@@ -68,14 +62,12 @@ public class PandaWireEvaluator {
         this.networkCache = RedstoneNetworkCache.getOrCreate(level);
     }
 
-    
     public void evaluateWire(BlockPos sourcePos, BlockState sourceState) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         powerCache.clear();
         
-
         if (bridge != null && bridge.isRedstoneNetworkCacheEnabled()) {
             RedstoneNetworkCache.CachedNetwork cachedNetwork = networkManager.getOrCalculateAsync(sourcePos);
             if (cachedNetwork != null && cachedNetwork.isApplicable(level, sourcePos)) {
@@ -85,33 +77,27 @@ public class PandaWireEvaluator {
             }
         }
         
-
         calculateCurrentChanges(sourcePos, sourceState);
         
-
         if (bridge != null && bridge.isRedstoneNetworkCacheEnabled() && !updatedRedstoneWire.isEmpty()) {
             List<BlockPos> affectedWires = new ArrayList<>(updatedRedstoneWire);
             Map<BlockPos, Integer> powerChanges = new HashMap<>(powerCache);
             networkManager.cacheNetwork(sourcePos, affectedWires, powerChanges);
         }
         
-
         Set<BlockPos> blocksNeedingUpdate = Sets.newLinkedHashSet();
         for (BlockPos updatedPos : updatedRedstoneWire) {
             addBlocksNeedingUpdate(updatedPos, blocksNeedingUpdate);
         }
         
-
         List<BlockPos> reversed = new ArrayList<>(updatedRedstoneWire);
         Collections.reverse(reversed);
         for (BlockPos updatedPos : reversed) {
             addAllSurroundingBlocks(updatedPos, blocksNeedingUpdate);
         }
         
-
         blocksNeedingUpdate.removeAll(updatedRedstoneWire);
         
-
         if (blocksNeedingUpdate.size() > BATCH_THRESHOLD) {
             batchNeighborUpdates(blocksNeedingUpdate);
         } else {
@@ -124,7 +110,6 @@ public class PandaWireEvaluator {
         updatedRedstoneWire.clear();
         powerCache.clear();
     }
-    
     
     private boolean applyCachedNetwork(RedstoneNetworkCache.CachedNetwork network, BlockPos triggerPos) {
         try {
@@ -156,7 +141,6 @@ public class PandaWireEvaluator {
         }
     }
 
-    
     private void calculateCurrentChanges(BlockPos sourcePos, BlockState sourceState) {
 
         if (sourceState.is(wireBlock)) {
@@ -190,7 +174,6 @@ public class PandaWireEvaluator {
             checkSurroundingWires(pos);
         }
         
-
         while (!turnOn.isEmpty()) {
             BlockPos pos = turnOn.poll();
             BlockState state = level.getBlockState(pos);
@@ -201,7 +184,6 @@ public class PandaWireEvaluator {
             int wirePower = getIncomingWireSignal(pos);
             int newPower = Math.max(blockPower, wirePower);
             
-
             if (oldPower != newPower) {
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = 
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -221,11 +203,9 @@ public class PandaWireEvaluator {
         turnOff.clear();
     }
     
-    
     private int getCachedPower(BlockPos pos, BlockState state) {
         return powerCache.computeIfAbsent(pos, p -> state.getValue(RedStoneWireBlock.POWER));
     }
-    
     
     private int getBlockSignal(BlockPos pos) {
         int maxSignal = 0;
@@ -239,11 +219,9 @@ public class PandaWireEvaluator {
         return maxSignal;
     }
     
-    
     private int getIncomingWireSignal(BlockPos pos) {
         int maxPower = 0;
         
-
         for (Direction dir : FACINGS_HORIZONTAL) {
             BlockPos neighborPos = pos.relative(dir);
             BlockState neighborState = level.getBlockState(neighborPos);
@@ -253,7 +231,6 @@ public class PandaWireEvaluator {
             }
         }
         
-
         for (Direction vertDir : FACINGS_VERTICAL) {
             BlockPos vertPos = pos.relative(vertDir);
             boolean solidBlock = level.getBlockState(vertPos).isRedstoneConductor(level, vertPos);
@@ -263,7 +240,6 @@ public class PandaWireEvaluator {
                 BlockState adjacentState = level.getBlockState(adjacentPos);
                 
                 if (adjacentState.is(wireBlock)) {
-
 
                     boolean canConnect = (vertDir == Direction.UP && !solidBlock) ||
                                        (vertDir == Direction.DOWN && solidBlock && 
@@ -280,7 +256,6 @@ public class PandaWireEvaluator {
         return maxPower;
     }
     
-    
     private void setWireState(BlockPos pos, BlockState state, int power) {
         BlockState newState = state.setValue(RedStoneWireBlock.POWER, power);
         level.setBlock(pos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
@@ -288,17 +263,14 @@ public class PandaWireEvaluator {
         updatedRedstoneWire.add(pos);
     }
     
-    
     private void checkSurroundingWires(BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         int ownPower = state.is(wireBlock) ? getCachedPower(pos, state) : 0;
         
-
         for (Direction dir : FACINGS_HORIZONTAL) {
             addWireToList(pos.relative(dir), ownPower);
         }
         
-
         for (Direction vertDir : FACINGS_VERTICAL) {
             BlockPos vertPos = pos.relative(vertDir);
             boolean solidBlock = level.getBlockState(vertPos).isRedstoneConductor(level, vertPos);
@@ -316,34 +288,28 @@ public class PandaWireEvaluator {
         }
     }
     
-    
     private void addWireToList(BlockPos pos, int otherPower) {
         BlockState state = level.getBlockState(pos);
         if (!state.is(wireBlock)) return;
         
         int power = getCachedPower(pos, state);
         
-
         if (power < otherPower - 1 && !turnOn.contains(pos)) {
             turnOn.add(pos);
         }
         
-
         if (power > otherPower && !turnOff.contains(pos)) {
             turnOff.add(pos);
         }
     }
-    
     
     private void addBlocksNeedingUpdate(BlockPos pos, Set<BlockPos> blocksNeedingUpdate) {
         for (Direction dir : FACINGS) {
             BlockPos neighborPos = pos.relative(dir);
             BlockState neighborState = level.getBlockState(neighborPos);
             
-
             if (neighborState.is(wireBlock)) continue;
             
-
             if (neighborState.isRedstoneConductor(level, neighborPos) || 
                 neighborState.getBlock() instanceof net.minecraft.world.level.block.DiodeBlock) {
                 blocksNeedingUpdate.add(neighborPos);
@@ -351,14 +317,12 @@ public class PandaWireEvaluator {
         }
     }
     
-    
     private void addAllSurroundingBlocks(BlockPos pos, Set<BlockPos> blocksNeedingUpdate) {
         for (Vec3i offset : SURROUNDING_BLOCKS_OFFSET) {
             BlockPos neighborPos = pos.offset(offset);
             blocksNeedingUpdate.add(neighborPos);
         }
     }
-    
     
     private void batchNeighborUpdates(Set<BlockPos> updates) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
@@ -372,10 +336,8 @@ public class PandaWireEvaluator {
             return;
         }
         
-
         pendingUpdates.computeIfAbsent(level, k -> ConcurrentHashMap.newKeySet()).addAll(updates);
         
-
         level.getServer().execute(() -> {
             Set<BlockPos> pending = pendingUpdates.remove(level);
             if (pending != null && !pending.isEmpty()) {

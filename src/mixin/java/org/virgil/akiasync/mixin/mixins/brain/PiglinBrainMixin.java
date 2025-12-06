@@ -20,28 +20,53 @@ public abstract class PiglinBrainMixin {
     @Unique private static volatile int cached_tickInterval;
     @Unique private static volatile int cached_lookDistance;
     @Unique private static volatile int cached_barterDistance;
+    @Unique private static volatile int cached_skipChance;
     @Unique private static volatile boolean initialized = false;
     @Unique private PiglinSnapshot aki$snapshot;
     @Unique private long aki$nextAsyncTick = 0;
     @Unique private static int executionCount = 0;
     @Unique private static int successCount = 0;
     @Unique private static int timeoutCount = 0;
-    @Inject(method = "customServerAiStep", at = @At("HEAD"))
+    @Inject(method = "customServerAiStep", at = @At("HEAD"), cancellable = true)
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initPiglinAsync(); }
         if (!cached_enabled) return;
+        
         net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin =
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
+        
+        if (cached_skipChance > 0 && level.random.nextInt(100) < cached_skipChance) {
+            ci.cancel();
+            return;
+        }
+        
+        if (abstractPiglin.getTarget() == null) {
+            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
+                level.getEntitiesOfClass(
+                    net.minecraft.world.entity.player.Player.class,
+                    abstractPiglin.getBoundingBox().inflate(16.0)
+                );
+            if (nearbyPlayers.isEmpty()) {
+                
+                if (level.getGameTime() % 5 != 0) {
+                    ci.cancel();
+                    return;
+                }
+            }
+        }
+        
         Piglin piglin = abstractPiglin instanceof Piglin ? (Piglin) abstractPiglin : null;
         net.minecraft.world.entity.monster.piglin.PiglinBrute brute =
             abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ?
             (net.minecraft.world.entity.monster.piglin.PiglinBrute) abstractPiglin : null;
+        
         if (level.getGameTime() < this.aki$nextAsyncTick) {
             return;
         }
         this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
+        
         try {
             if (piglin != null) {
                 this.aki$snapshot = PiglinSnapshot.capture(piglin, level);
@@ -111,6 +136,7 @@ public abstract class PiglinBrainMixin {
             cached_tickInterval = 3;
             cached_lookDistance = bridge.getPiglinLookDistance();
             cached_barterDistance = bridge.getPiglinBarterDistance();
+            cached_skipChance = 20; 
             AsyncBrainExecutor.setExecutor(bridge.getGeneralExecutor());
         } else {
             cached_enabled = false;
@@ -118,11 +144,13 @@ public abstract class PiglinBrainMixin {
             cached_tickInterval = 3;
             cached_lookDistance = 16;
             cached_barterDistance = 16;
+            cached_skipChance = 0;
         }
         initialized = true;
         org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge2 != null) {
-            bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + ", timeout=" + cached_timeoutMicros + "μs");
+            bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + 
+                ", timeout=" + cached_timeoutMicros + "μs, skipChance=" + cached_skipChance + "%");
         }
     }
 }

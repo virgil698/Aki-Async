@@ -116,13 +116,9 @@ public interface Bridge {
 
     int getListPreallocCapacity();
 
-    boolean isPushOptimizationEnabled();
-
     boolean isEntityLookupCacheEnabled();
 
     int getEntityLookupCacheDurationMs();
-
-    boolean isCollisionOptimizationEnabled();
 
     ExecutorService getGeneralExecutor();
 
@@ -133,6 +129,8 @@ public interface Bridge {
     ExecutorService getVillagerBreedExecutor();
 
     ExecutorService getBrainExecutor();
+    
+    ExecutorService getCollisionExecutor();
 
     boolean isAsyncLightingEnabled();
 
@@ -198,6 +196,8 @@ public interface Bridge {
 
     boolean isBeeFixEnabled();
 
+    boolean isEndIslandDensityFixEnabled();
+    
     boolean isTNTUseFullRaycast();
 
     boolean isTNTUseVanillaBlockDestruction();
@@ -317,23 +317,19 @@ public interface Bridge {
 
     boolean isVirtualEntity(net.minecraft.world.entity.Entity entity);
 
-
     boolean isSeedProtectionEnabled();
     boolean shouldReturnFakeSeed();
     long getFakeSeedValue();
     
-
     boolean isQuantumSeedEnabled();
     byte[] getQuantumServerKey();
     long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String generationType, long gameTime);
     
-
     boolean isSecureSeedEnabled();
     long[] getSecureSeedWorldSeed();
     void initializeSecureSeed(long originalSeed);
     int getSecureSeedBits();
     
-
     boolean isSeedEncryptionProtectStructures();
     boolean isSeedEncryptionProtectOres();
     boolean isSeedEncryptionProtectSlimes();
@@ -341,6 +337,7 @@ public interface Bridge {
 
     boolean isTNTLandProtectionEnabled();
     boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+    Boolean checkChunkProtection(net.minecraft.server.level.ServerLevel level, int chunkX, int chunkZ);
     
     boolean isBlockLockerProtectionEnabled();
     boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state);
@@ -464,37 +461,54 @@ public interface Bridge {
     
     void runOnMainThread(Runnable task);
     
-
     double getCurrentTPS();
     double getCurrentMSPT();
     
-
     Object getBlockTickSmoothingScheduler();
     Object getEntityTickSmoothingScheduler();
     Object getBlockEntitySmoothingScheduler();
     
     boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category);
     
-
     int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category);
     
-
     boolean isTNTUseSakuraDensityCache();
     boolean isTNTMergeEnabled();
     double getTNTMergeRadius();
     int getTNTMaxFuseDifference();
     float getTNTMergedPowerMultiplier();
     
-
     boolean isUsePandaWireAlgorithm();
     boolean isRedstoneNetworkCacheEnabled();
     int getRedstoneNetworkCacheExpireTicks();
     
-
     void clearSakuraOptimizationCaches();
     java.util.Map<String, Object> getSakuraCacheStatistics();
     void performSakuraCacheCleanup();
     
     void notifySmoothSchedulerTick(Object scheduler);
     void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt);
+    
+    boolean isCollisionOptimizationEnabled();
+    boolean isCollisionAggressiveMode();
+    boolean isCollisionCacheEnabled();
+    int getCollisionCacheLifetimeMs();
+    double getCollisionCacheMovementThreshold();
+    boolean isCollisionSpatialPartitionEnabled();
+    int getCollisionSpatialGridSize();
+    int getCollisionSpatialDensityThreshold();
+    int getCollisionSpatialUpdateIntervalMs();
+    double getCollisionSkipMinMovement();
+    int getCollisionSkipCheckIntervalMs();
+    
+    boolean isPushOptimizationEnabled();
+    double getPushMaxPushPerTick();
+    double getPushDampingFactor();
+    int getPushHighDensityThreshold();
+    double getPushHighDensityMultiplier();
+    
+    boolean isAdvancedCollisionOptimizationEnabled();
+    int getCollisionThreshold();
+    float getSuffocationDamage();
+    int getMaxPushIterations();
 }

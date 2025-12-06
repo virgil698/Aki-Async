@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.AcquirePoi;
 import net.minecraft.world.entity.npc.Villager;
 
-
 @Mixin(value = Villager.class, priority = 1100)
 public class VillagerPoiOptimizeMixin {
     
@@ -28,7 +27,6 @@ public class VillagerPoiOptimizeMixin {
     @Unique
     private long aki$lastPoiSearchTime = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void preloadPoiCache(CallbackInfo ci) {
         if (!initialized) {
@@ -43,14 +41,12 @@ public class VillagerPoiOptimizeMixin {
         ServerLevel level = (ServerLevel) villager.level();
         long currentTime = level.getGameTime();
         
-
         if (currentTime - aki$lastPoiSearchTime < cached_poiSearchInterval) {
             return;
         }
         
         aki$lastPoiSearchTime = currentTime;
         
-
         try {
             BlockPos pos = villager.blockPosition();
 

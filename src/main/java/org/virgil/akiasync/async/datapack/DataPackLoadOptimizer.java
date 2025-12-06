@@ -264,7 +264,6 @@ public class DataPackLoadOptimizer {
         java.util.concurrent.atomic.AtomicInteger removedFiles = new java.util.concurrent.atomic.AtomicInteger(0);
         java.util.concurrent.atomic.AtomicInteger removedFileSystems = new java.util.concurrent.atomic.AtomicInteger(0);
 
-
         fileCache.entrySet().removeIf(entry -> {
             if (entry.getValue().isExpired(cacheExpirationMs)) {
                 removedFiles.incrementAndGet();
@@ -285,7 +284,6 @@ public class DataPackLoadOptimizer {
             }
             return false;
         });
-
 
         if (fileCache.size() > maxFileCacheSize) {
             int toRemove = fileCache.size() - maxFileCacheSize;

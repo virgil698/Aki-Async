@@ -6,19 +6,41 @@ import net.minecraft.server.level.ServerLevel;
 import java.util.*;
 import java.util.concurrent.*;
 
-
 public class AsyncRedstoneNetworkManager {
     
-    private static final ExecutorService CACHE_EXECUTOR = Executors.newFixedThreadPool(
-        2, r -> {
-            Thread t = new Thread(r, "AkiAsync-RedstoneCache");
-            t.setDaemon(true);
-            t.setPriority(Thread.NORM_PRIORITY - 1);
-            return t;
-        }
-    );
+    private static ExecutorService CACHE_EXECUTOR;
+    private static volatile boolean executorInitialized = false;
     
     private static final Map<ServerLevel, AsyncRedstoneNetworkManager> INSTANCES = new ConcurrentHashMap<>();
+    
+    static {
+        initializeExecutor();
+    }
+    
+    private static synchronized void initializeExecutor() {
+        if (executorInitialized) return;
+        
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        if (bridge != null) {
+            
+            CACHE_EXECUTOR = bridge.getGeneralExecutor();
+            if (bridge.isDebugLoggingEnabled()) {
+                bridge.debugLog("[AkiAsync] AsyncRedstoneNetworkManager using shared General Executor");
+            }
+        } else {
+            
+            CACHE_EXECUTOR = Executors.newFixedThreadPool(2, r -> {
+                Thread t = new Thread(r, "AkiAsync-RedstoneCache-Fallback");
+                t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY - 1);
+                return t;
+            });
+        }
+        
+        executorInitialized = true;
+    }
     
     private final ServerLevel level;
     private final RedstoneNetworkCache cache;
@@ -34,7 +56,6 @@ public class AsyncRedstoneNetworkManager {
         return INSTANCES.computeIfAbsent(level, AsyncRedstoneNetworkManager::new);
     }
     
-    
     public RedstoneNetworkCache.CachedNetwork getOrCalculateAsync(BlockPos pos) {
 
         RedstoneNetworkCache.CachedNetwork cached = cache.getNetwork(pos);
@@ -42,7 +63,6 @@ public class AsyncRedstoneNetworkManager {
             return cached;
         }
         
-
         String key = generateKey(pos);
         CompletableFuture<RedstoneNetworkCache.CachedNetwork> pending = pendingCalculations.get(key);
         if (pending != null && pending.isDone()) {
@@ -58,7 +78,6 @@ public class AsyncRedstoneNetworkManager {
         return null;
     }
     
-    
     public void preCalculateNetwork(BlockPos sourcePos, List<BlockPos> nearbyWires) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -69,7 +88,6 @@ public class AsyncRedstoneNetworkManager {
         
         String key = generateKey(sourcePos);
         
-
         if (cache.getNetwork(sourcePos) != null) {
             return;
         }
@@ -77,7 +95,6 @@ public class AsyncRedstoneNetworkManager {
             return;
         }
         
-
         CompletableFuture<RedstoneNetworkCache.CachedNetwork> future = CompletableFuture.supplyAsync(() -> {
             return calculateNetworkSync(sourcePos, nearbyWires);
         }, CACHE_EXECUTOR);
@@ -85,14 +102,12 @@ public class AsyncRedstoneNetworkManager {
         pendingCalculations.put(key, future);
     }
     
-    
     private RedstoneNetworkCache.CachedNetwork calculateNetworkSync(BlockPos sourcePos, 
                                                                      List<BlockPos> nearbyWires) {
 
         List<BlockPos> affectedWires = new ArrayList<>();
         Map<BlockPos, Integer> powerChanges = new HashMap<>();
         
-
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> queue = new LinkedList<>();
         queue.add(sourcePos);
@@ -102,7 +117,6 @@ public class AsyncRedstoneNetworkManager {
             BlockPos current = queue.poll();
             affectedWires.add(current);
             
-
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dz = -1; dz <= 1; dz++) {
@@ -121,37 +135,30 @@ public class AsyncRedstoneNetworkManager {
         return new RedstoneNetworkCache.CachedNetwork(sourcePos, affectedWires, powerChanges);
     }
     
-    
     public void cacheNetwork(BlockPos sourcePos, List<BlockPos> affectedWires, 
                             Map<BlockPos, Integer> powerChanges) {
         cache.cacheNetwork(sourcePos, affectedWires, powerChanges);
     }
-    
     
     public void invalidate(BlockPos pos) {
         cache.invalidate(pos);
         pendingCalculations.remove(generateKey(pos));
     }
     
-    
     public void invalidateNearby(BlockPos pos, int radius) {
         cache.invalidateNearby(pos, radius);
     }
     
-    
     public void expire(long currentTime) {
         cache.expire(currentTime);
         
-
         pendingCalculations.entrySet().removeIf(entry -> entry.getValue().isDone());
     }
-    
     
     public void clear() {
         cache.clear();
         pendingCalculations.clear();
     }
-    
     
     public String getStats() {
         return String.format("%s, Pending: %d", cache.getStats(), pendingCalculations.size());
@@ -161,9 +168,8 @@ public class AsyncRedstoneNetworkManager {
         return String.format("%d_%d_%d", pos.getX(), pos.getY(), pos.getZ());
     }
     
-    
     public static void shutdown() {
-        CACHE_EXECUTOR.shutdown();
+        
         INSTANCES.clear();
     }
 }

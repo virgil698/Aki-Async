@@ -12,15 +12,11 @@ import org.virgil.akiasync.mixin.async.explosion.merge.TNTMergeHandler;
 
 import java.util.List;
 
-
 @Mixin(PrimedTnt.class)
 public abstract class PrimedTntMergeMixin implements MergeableTNT {
     
     @Unique
     private int aki$mergeCount = 1;
-
-    @Unique
-    private boolean aki$hasMerged = false;
 
     @Override
     public int aki$getMergeCount() {
@@ -36,7 +32,6 @@ public abstract class PrimedTntMergeMixin implements MergeableTNT {
     public void aki$mergeWith(PrimedTnt other) {
         if (other instanceof MergeableTNT mergeable) {
             this.aki$mergeCount += mergeable.aki$getMergeCount();
-            this.aki$hasMerged = true;
         }
     }
 
@@ -45,7 +40,6 @@ public abstract class PrimedTntMergeMixin implements MergeableTNT {
         return TNTMergeHandler.canMerge((PrimedTnt)(Object)this, other);
     }
 
-    
     @Inject(method = "explode", at = @At("HEAD"))
     private void aki$mergeBeforeExplode(CallbackInfo ci) {
         PrimedTnt self = (PrimedTnt)(Object)this;
@@ -61,10 +55,8 @@ public abstract class PrimedTntMergeMixin implements MergeableTNT {
             return;
         }
 
-
         List<PrimedTnt> merged = TNTMergeHandler.mergeNearbyTNT(serverLevel, self);
         
-
         for (PrimedTnt tnt : merged) {
             tnt.discard();
         }
@@ -75,7 +67,6 @@ public abstract class PrimedTntMergeMixin implements MergeableTNT {
         }
     }
 
-    
     @Unique
     public float aki$getMergedPower() {
         return TNTMergeHandler.calculateMergedPower(aki$mergeCount);

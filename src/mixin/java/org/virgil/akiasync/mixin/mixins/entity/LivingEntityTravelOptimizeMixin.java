@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-
 @Mixin(LivingEntity.class)
 public class LivingEntityTravelOptimizeMixin {
     
@@ -28,7 +27,6 @@ public class LivingEntityTravelOptimizeMixin {
     @Unique
     private int aki$staticTicks = 0;
     
-    
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizeTravel(Vec3 travelVector, CallbackInfo ci) {
         if (!initialized) {
@@ -41,21 +39,23 @@ public class LivingEntityTravelOptimizeMixin {
         
         LivingEntity entity = (LivingEntity) (Object) this;
         
-
         if (entity instanceof net.minecraft.world.entity.player.Player) {
+            return;
+        }
+        
+        if (entity.isInWater() || entity.isInLava()) {
+            aki$staticTicks = 0; 
             return;
         }
         
         Vec3 currentPos = entity.position();
         
-
         if (aki$lastPosition != null) {
             double movement = currentPos.distanceTo(aki$lastPosition);
             
             if (movement < cached_minMovementThreshold) {
                 aki$staticTicks++;
                 
-
                 if (aki$staticTicks > 10 && travelVector.lengthSqr() < 0.0001) {
                     ci.cancel();
                     return;

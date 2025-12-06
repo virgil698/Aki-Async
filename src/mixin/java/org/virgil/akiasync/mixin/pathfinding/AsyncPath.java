@@ -27,6 +27,14 @@ public class AsyncPath {
     AsyncPathProcessor.queue(this);
   }
 
+  public Set<BlockPos> getPositions() {
+    return positions;
+  }
+
+  public Supplier<Path> getPathSupplier() {
+    return pathSupplier;
+  }
+
   public boolean isProcessed() {
     return this.processState == PathState.COMPLETED;
   }
@@ -54,7 +62,20 @@ public class AsyncPath {
     processState = PathState.PROCESSING;
 
     try {
-      final Path bestPath = this.pathSupplier.get();
+      
+      Path cachedPath = tryGetCachedPath();
+      
+      final Path bestPath;
+      if (cachedPath != null) {
+        bestPath = cachedPath;
+      } else {
+        
+        bestPath = this.pathSupplier.get();
+        
+        if (bestPath != null && bestPath.canReach()) {
+          cacheComputedPath(bestPath);
+        }
+      }
 
       if (bestPath != null) {
         this.delegatedPath = bestPath;
@@ -74,8 +95,45 @@ public class AsyncPath {
     }
   }
 
-  private void checkProcessed() {
+  private Path tryGetCachedPath() {
+    if (positions == null || positions.isEmpty()) {
+      return null;
+    }
+    
+    BlockPos start = positions.iterator().next();
+    BlockPos target = null;
+    for (BlockPos pos : positions) {
+      target = pos;
+    }
+    
+    if (start != null && target != null && !start.equals(target)) {
+      Path cached = SharedPathCache.getCachedPath(start, target);
+      if (cached != null) {
+        AsyncPathProcessor.recordCacheHit();
+      }
+      return cached;
+    }
+    
+    return null;
+  }
 
+  private void cacheComputedPath(Path path) {
+    if (positions == null || positions.isEmpty()) {
+      return;
+    }
+    
+    BlockPos start = positions.iterator().next();
+    BlockPos target = null;
+    for (BlockPos pos : positions) {
+      target = pos;
+    }
+    
+    if (start != null && target != null && !start.equals(target)) {
+      SharedPathCache.cachePath(start, target, path);
+    }
+  }
+
+  private void checkProcessed() {
 
     if (this.processState == PathState.WAITING) {
 

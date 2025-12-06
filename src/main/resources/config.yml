@@ -3,7 +3,7 @@
 # ==========================================
 
 # 配置版本 / Configuration version (需要更新时会自动提示 / Auto-prompt when update needed)
-version: 16
+version: 17
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -52,6 +52,54 @@ virtual-entity-compatibility:
       enabled: true  # ZNPCsPlus NPC识别为虚拟实体 / Identify as virtual entities
       use-api: false  # 主要通过名称前缀检测 / Primarily name prefix detection
       priority: 90
+
+# 实体碰撞优化 / Entity Collision Optimization
+# 针对密集实体环境的高性能碰撞检测优化
+# High-performance collision detection for dense entity scenarios
+collision-optimization:
+  enabled: true  # 总开关 / Master switch
+  
+  # 激进模式 / Aggressive Mode
+  # 启用后性能提升最大，但极端情况下可能有轻微物理不准确
+  # Maximum performance boost, but may have slight physics inaccuracy in extreme cases
+  aggressive-mode: true
+  
+  # 碰撞缓存 / Collision Cache
+  cache:
+    enabled: true
+    lifetime-ms: 50  # 缓存有效期（毫秒） / Cache lifetime in milliseconds
+    movement-threshold: 0.01  # 移动阈值，低于此值视为静止 / Movement threshold, below = stationary
+  
+  # 空间分区 / Spatial Partition
+  spatial-partition:
+    enabled: true
+    grid-size: 4  # 网格大小（方块） / Grid size in blocks (推荐: 2-8 / Recommended: 2-8)
+    density-threshold: 50  # 触发阈值（实体数） / Trigger threshold (entity count)
+    update-interval-ms: 100  # 网格更新频率（毫秒） / Grid update interval in milliseconds
+  
+  # 碰撞跳过 / Collision Skip
+  skip-checks:
+    min-movement: 0.001  # 最小移动阈值 / Minimum movement threshold
+    check-interval-ms: 50  # 检测间隔（毫秒） / Check interval in milliseconds
+  
+  # 实体推挤优化 / Entity Push Optimization
+  push-optimization:
+    enabled: true
+    max-push-per-tick: 0.5  # 单tick最大推力 / Max push force per tick (推荐: 0.3-0.8 / Recommended: 0.3-0.8)
+    damping-factor: 0.7  # 推力衰减系数 / Push damping factor (推荐: 0.5-0.9 / Recommended: 0.5-0.9)
+    high-density-threshold: 10  # 高密度阈值（实体数） / High density threshold (entity count)
+    high-density-multiplier: 0.3  # 高密度区域推力倍数 / Push multiplier in high density (推荐: 0.2-0.5 / Recommended: 0.2-0.5)
+  
+  # 高级碰撞优化 / Advanced Collision Optimization
+  advanced:
+    enabled: true  # 启用高级优化 / Enable advanced optimization
+    collision-threshold: 8  # 碰撞阈值，超过此数量直接造成窒息伤害而不推挤 / Collision threshold, apply suffocation damage instead of push
+    suffocation-damage: 0.5  # 窒息伤害（每秒） / Suffocation damage per second
+    max-push-iterations: 8  # 最大推挤迭代次数，防止密集区无限循环 / Max push iterations to prevent infinite loops
+    
+    # Section 实体网格优化 / Section Entity Grid Optimization
+    use-section-grid: true  # 使用 Section 网格（推荐） / Use Section grid (recommended)
+    section-grid-warmup: false  # 预热网格（可选，增加内存占用） / Warmup grid (optional, increases memory usage)
 
 # 实体移动优化 / Living Entity Travel Optimization
 living-entity-travel-optimization:
@@ -146,6 +194,14 @@ async-ai:
     keep-alive-seconds: 60
     max-queue-size: 500
     timeout-ms: 50
+    
+    # 路径缓存 / Path Cache (路径重用优化 / Path reuse optimization)
+    cache:
+      enabled: true
+      max-size: 1000  # 最大缓存路径数 / Max cached paths
+      expire-seconds: 30  # 路径过期时间 / Path expiration time
+      reuse-tolerance: 3  # 路径重用容差（方块） / Path reuse tolerance (blocks)
+      cleanup-interval-seconds: 5  # 清理间隔 / Cleanup interval
 
   # 统一AI优化 / Universal AI (所有剩余生物见entities.yml / 统一模板+配置化+DAB)
   universal-ai-optimization:
@@ -283,12 +339,29 @@ tnt-explosion-optimization:
     - "minecraft:wither_skull"
   threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
   
-  # 爆炸密度缓存 / Explosion Density Cache
+  # 爆炸缓存优化 / Explosion Cache Optimization
+  cache:
+    enabled: true  # 启用缓存 / Enable caching
+    use-optimized-cache: true  # 使用优化缓存（long key） / Use optimized cache (long key)
+    cache-expiry-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
+    warmup-enabled: false  # 预热缓存（可选） / Warmup cache (optional)
+  
+  # 爆炸密度缓存 / Explosion Density Cache (Sakura)
   # Advanced density caching for explosion calculations
   density-cache:
     enabled: true  # 启用密度缓存 / Enable density caching
-    cache-expiry-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
     use-lenient-cache: true  # 使用宽松缓存提高命中率 / Use lenient cache for better hit rate
+  
+  # 预计算爆炸形状 / Precomputed Explosion Shape
+  precomputed-shape:
+    enabled: true  # 启用预计算形状 / Enable precomputed shape
+    use-occlusion-detection: true  # 使用三点共线遮挡检测 / Use 3-point collinear occlusion detection
+    occlusion-threshold: 0.5  # 遮挡阈值（方块） / Occlusion threshold (blocks)
+  
+  # 批量碰撞检测优化 / Batch Collision Detection
+  batch-collision:
+    enabled: true  # 启用批量碰撞检测 / Enable batch collision detection
+    unroll-factor: 4  # 循环展开因子 / Loop unroll factor (2/4/8)
   
   # TNT实体合并 / TNT Entity Merging (Cannon server optimization)
   # Based on Sakura project's TntExplosion system
@@ -408,6 +481,11 @@ structure-location-async:
 bee-fix:
   enabled: true
 
+# MC-159283 修复 / MC-159283 Fix (修复 End 维度地形环形缺失 / Fix End terrain ring gaps)
+# 参考 / Reference: https://bugs.mojang.com/browse/MC-159283
+end-island-density-fix:
+  enabled: true  # 启用修复 / Enable fix (推荐开启，即使 Leaves 已修复 / Recommended even if Leaves has fix)
+
 # 数据包加载优化 / DataPack Loading Optimization
 datapack-optimization:
   enabled: true
@@ -419,7 +497,7 @@ datapack-optimization:
   max-filesystem-cache-size: 50  # 文件系统缓存上限 / Max filesystem cache size
   debug-enabled: false
 
-# 高级并发优化 / Advanced Concurrency Optimizations (Nitori-style)
+# 高级并发优化 / Advanced Concurrency Optimizations
 nitori:
   enabled: true  # 总开关 / Master switch
   virtual-threads: true  # Java 21+ Virtual Thread / Auto-fallback on older Java

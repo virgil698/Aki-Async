@@ -49,21 +49,21 @@ public final class AsyncMetrics {
     }
     public static String getPrometheusMetrics() {
         return String.format(
-            "# HELP akiasync_mspt_current Current tick MSPT in milliseconds\n" +
-            "# TYPE akiasync_mspt_current gauge\n" +
-            "akiasync_mspt_current %d\n" +
-            "\n" +
-            "# HELP akiasync_async_cpu_percent CompletableFuture CPU usage percentage\n" +
-            "# TYPE akiasync_async_cpu_percent gauge\n" +
-            "akiasync_async_cpu_percent %.2f\n" +
-            "\n" +
-            "# HELP akiasync_fallback_count Timeout fallback count\n" +
-            "# TYPE akiasync_fallback_count counter\n" +
-            "akiasync_fallback_count %d\n" +
-            "\n" +
-            "# HELP akiasync_success_rate Async success rate percentage\n" +
-            "# TYPE akiasync_success_rate gauge\n" +
-            "akiasync_success_rate %.2f\n",
+            "# HELP akiasync_mspt_current Current tick MSPT in milliseconds%n" +
+            "# TYPE akiasync_mspt_current gauge%n" +
+            "akiasync_mspt_current %d%n" +
+            "%n" +
+            "# HELP akiasync_async_cpu_percent CompletableFuture CPU usage percentage%n" +
+            "# TYPE akiasync_async_cpu_percent gauge%n" +
+            "akiasync_async_cpu_percent %.2f%n" +
+            "%n" +
+            "# HELP akiasync_fallback_count Timeout fallback count%n" +
+            "# TYPE akiasync_fallback_count counter%n" +
+            "akiasync_fallback_count %d%n" +
+            "%n" +
+            "# HELP akiasync_success_rate Async success rate percentage%n" +
+            "# TYPE akiasync_success_rate gauge%n" +
+            "akiasync_success_rate %.2f%n",
             getCurrentMspt(),
             getAsyncCpuPercent(),
             getFallbackCount(),
