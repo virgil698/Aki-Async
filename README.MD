@@ -423,6 +423,7 @@ This project references the following excellent open source projects:
 | [Akarin](https://github.com/Akarin-project/Akarin) | Async design reference and compatibility evaluation |
 | [tt20](https://github.com/snackbag/tt20) | Async design reference and compatibility evaluation |
 | [Sakura](https://github.com/Samsuik/Sakura) | TNT explosion optimization reference |
+| [C3H6N6O6](https://github.com/KenRouKoro/C3H6N6O6) | Entity multithreading computation reference |
 
 > **Note**: The above projects are used for Aki-Async design reference and compatibility evaluation. They are for reference only and their code is not directly packaged or reused.
 

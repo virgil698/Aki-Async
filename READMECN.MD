@@ -423,6 +423,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 | [Akarin](https://github.com/Akarin-project/Akarin) | 异步设计取经与兼容评估 |
 | [tt20](https://github.com/snackbag/tt20) | 异步设计取经与兼容评估 |
 | [Sakura](https://github.com/Samsuik/Sakura) | TNT爆炸优化参考 |
+| [C3H6N6O6](https://github.com/KenRouKoro/C3H6N6O6) | 实体多线程运算参考 |
 
 > **注意**：以上项目用于 Aki-Async 设计取经与兼容评估。仅作参考，不直接打包或复用其代码。
 
