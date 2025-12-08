@@ -170,29 +170,6 @@ public abstract class ServerPlayerFastMovementMixin {
         });
         
         int adjustedMaxLoads = dynamicMaxLoads;
-        java.util.UUID playerId = player.getUUID();
-        int queueSize = bridge.getPlayerPacketQueueSize(playerId);
-        int congestionLevel = bridge.detectPlayerCongestion(playerId);
-        
-        if (congestionLevel >= 3 || queueSize > 500) {
-            adjustedMaxLoads = Math.max(1, dynamicMaxLoads / 4);  
-        } else if (congestionLevel >= 2 || queueSize > 300) {
-            adjustedMaxLoads = Math.max(2, dynamicMaxLoads / 2);  
-        } else if (congestionLevel >= 1 || queueSize > 100) {
-            
-            adjustedMaxLoads = Math.max(3, (int)(dynamicMaxLoads * 0.75));  
-        }
-        
-        if (debugEnabled && adjustedMaxLoads != dynamicMaxLoads) {
-            bridge.debugLog(
-                "[FastChunk-Throttle] Player %s: queue=%d, congestion=%d, loads=%d->%d",
-                player.getScoreboardName(),
-                queueSize,
-                congestionLevel,
-                dynamicMaxLoads,
-                adjustedMaxLoads
-            );
-        }
 
         if (debugEnabled) {
             bridge.debugLog(

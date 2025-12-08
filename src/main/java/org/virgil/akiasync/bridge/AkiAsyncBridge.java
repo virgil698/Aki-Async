@@ -240,6 +240,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getAsyncPathfindingTimeoutMs() { return config.getAsyncPathfindingTimeoutMs(); }
+    
+    @Override
+    public boolean isAsyncPathfindingSyncFallbackEnabled() { 
+        return config.isAsyncPathfindingSyncFallbackEnabled(); 
+    }
 
     @Override
     public boolean shouldThrottleEntity(Object entity) {
@@ -314,6 +319,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getMaxEntitiesPerChunk() {return config.getMaxEntitiesPerChunk();}
+    
+    @Override
+    public int getMobSpawnInterval() {return config.getMobSpawnInterval();}
 
     @Override
     public boolean isSpawnerOptimizationEnabled() {return config.isSpawnerOptimizationEnabled();}
@@ -1369,371 +1377,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public boolean isNetworkOptimizationEnabled() {
-        return config != null && config.isNetworkOptimizationEnabled();
-    }
-
-    @Override
-    public boolean isPacketPriorityEnabled() {
-        return config != null && config.isPacketPriorityEnabled();
-    }
-
-    @Override
-    public boolean isChunkRateControlEnabled() {
-        return config != null && config.isChunkRateControlEnabled();
-    }
-
-    @Override
-    public boolean isChunkSendOptimizationEnabled() {
-        return config != null && config.isChunkRateControlEnabled();
-    }
-
-    @Override
-    public boolean isCongestionDetectionEnabled() {
-        return config != null && config.isCongestionDetectionEnabled();
-    }
-
-    @Override
-    public int getHighPingThreshold() {
-        return config != null ? config.getHighPingThreshold() : 200;
-    }
-
-    @Override
-    public int getCriticalPingThreshold() {
-        return config != null ? config.getCriticalPingThreshold() : 500;
-    }
-
-    @Override
-    public long getHighBandwidthThreshold() {
-        return config != null ? config.getHighBandwidthThreshold() : 1048576L;
-    }
-
-    @Override
-    public int getBaseChunkSendRate() {
-        return config != null ? config.getBaseChunkSendRate() : 10;
-    }
-
-    @Override
-    public int getMaxChunkSendRate() {
-        return config != null ? config.getMaxChunkSendRate() : 20;
-    }
-
-    @Override
-    public int getMinChunkSendRate() {
-        return config != null ? config.getMinChunkSendRate() : 3;
-    }
-
-    @Override
-    public int getPacketSendRateBase() {
-        return config != null ? config.getPacketSendRateBase() : 50;
-    }
-
-    @Override
-    public int getPacketSendRateMedium() {
-        return config != null ? config.getPacketSendRateMedium() : 80;
-    }
-
-    @Override
-    public int getPacketSendRateHeavy() {
-        return config != null ? config.getPacketSendRateHeavy() : 110;
-    }
-
-    @Override
-    public int getPacketSendRateExtreme() {
-        return config != null ? config.getPacketSendRateExtreme() : 130;
-    }
-
-    @Override
-    public int getQueueLimitMaxTotal() {
-        return config != null ? config.getQueueLimitMaxTotal() : 2500;
-    }
-
-    @Override
-    public int getQueueLimitMaxCritical() {
-        return config != null ? config.getQueueLimitMaxCritical() : 1200;
-    }
-
-    @Override
-    public int getQueueLimitMaxHigh() {
-        return config != null ? config.getQueueLimitMaxHigh() : 800;
-    }
-
-    @Override
-    public int getQueueLimitMaxNormal() {
-        return config != null ? config.getQueueLimitMaxNormal() : 600;
-    }
-
-    @Override
-    public int getAccelerationThresholdMedium() {
-        return config != null ? config.getAccelerationThresholdMedium() : 100;
-    }
-
-    @Override
-    public int getAccelerationThresholdHeavy() {
-        return config != null ? config.getAccelerationThresholdHeavy() : 300;
-    }
-
-    @Override
-    public int getAccelerationThresholdExtreme() {
-        return config != null ? config.getAccelerationThresholdExtreme() : 500;
-    }
-
-    @Override
-    public boolean isCleanupEnabled() {
-        return config != null && config.isCleanupEnabled();
-    }
-
-    @Override
-    public int getCleanupStaleThreshold() {
-        return config != null ? config.getCleanupStaleThreshold() : 5;
-    }
-
-    @Override
-    public int getCleanupCriticalCleanup() {
-        return config != null ? config.getCleanupCriticalCleanup() : 100;
-    }
-
-    @Override
-    public int getCleanupNormalCleanup() {
-        return config != null ? config.getCleanupNormalCleanup() : 50;
-    }
-
-    @Override
-    public int getPlayerCongestionLevel(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkCongestionDetector detector = manager.getCongestionDetector();
-        if (detector == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkCongestionDetector.CongestionLevel level =
-            detector.getCongestionLevel(playerId);
-
-        return level != null ? level.getLevel() : 0;
-    }
-
-    @Override
-    public boolean shouldPacketUseQueue(net.minecraft.network.protocol.Packet<?> packet) {
-        if (plugin == null || packet == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.PriorityPacketScheduler scheduler = manager.getPacketScheduler();
-        return scheduler != null && scheduler.shouldUseQueue(packet);
-    }
-
-    @Override
-    public int classifyPacketPriority(net.minecraft.network.protocol.Packet<?> packet) {
-        if (plugin == null || packet == null) {
-            return 1;
-        }
-
-        org.virgil.akiasync.network.PacketPriority priority =
-            org.virgil.akiasync.network.PacketClassifier.classify(packet);
-
-        return priority != null ? priority.ordinal() : 1;
-    }
-
-    @Override
-    public boolean enqueuePacket(net.minecraft.server.level.ServerPlayer player, net.minecraft.network.protocol.Packet<?> packet, int priority) {
-        if (plugin == null || player == null || packet == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.PriorityPacketScheduler scheduler = manager.getPacketScheduler();
-        if (scheduler == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.PacketPriority packetPriority;
-        switch (priority) {
-            case 0 -> packetPriority = org.virgil.akiasync.network.PacketPriority.HIGH;
-            case 2 -> packetPriority = org.virgil.akiasync.network.PacketPriority.LOW;
-            default -> packetPriority = org.virgil.akiasync.network.PacketPriority.NORMAL;
-        }
-
-        return scheduler.enqueuePacket(player, packet, packetPriority);
-    }
-
-    @Override
-    public int getPlayerPacketQueueSize(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.PriorityPacketScheduler scheduler = manager.getPacketScheduler();
-        return scheduler != null ? scheduler.getQueueSize(playerId) : 0;
-    }
-
-    @Override
-    public void recordPacketSent(java.util.UUID playerId, int bytes) {
-        if (plugin == null || playerId == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkCongestionDetector detector = manager.getCongestionDetector();
-        if (detector != null) {
-            detector.recordPacketSent(playerId, bytes);
-        }
-    }
-
-    @Override
-    public void updatePlayerChunkLocation(net.minecraft.server.level.ServerPlayer player) {
-        if (plugin == null || player == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.ChunkSendRateController controller = manager.getChunkRateController();
-        if (controller != null) {
-            org.bukkit.entity.Player bukkitPlayer = player.getBukkitEntity();
-            if (bukkitPlayer != null) {
-                controller.updatePlayerLocation(bukkitPlayer);
-            }
-        }
-    }
-
-    @Override
-    public int calculatePlayerChunkSendRate(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return 10;
-        }
-
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) {
-            return 10;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return 10;
-        }
-
-        org.virgil.akiasync.network.ChunkSendRateController controller = manager.getChunkRateController();
-        return controller != null ? controller.calculateChunkSendRate(player) : 10;
-    }
-
-    @Override
-    public double calculateChunkPriority(java.util.UUID playerId, int chunkX, int chunkZ) {
-        if (plugin == null || playerId == null) {
-            return 0.0;
-        }
-
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) {
-            return 0.0;
-        }
-
-        org.bukkit.Chunk chunk = player.getWorld().getChunkAt(chunkX, chunkZ);
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return 0.0;
-        }
-
-        org.virgil.akiasync.network.ChunkSendRateController controller = manager.getChunkRateController();
-        return controller != null ? controller.calculateChunkPriority(player, chunk) : 0.0;
-    }
-
-    @Override
-    public boolean isChunkInPlayerViewDirection(java.util.UUID playerId, int chunkX, int chunkZ) {
-        if (plugin == null || playerId == null) {
-            return false;
-        }
-
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) {
-            return false;
-        }
-
-        org.bukkit.Chunk chunk = player.getWorld().getChunkAt(chunkX, chunkZ);
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.ChunkSendRateController controller = manager.getChunkRateController();
-        return controller != null && controller.isChunkInViewDirection(player, chunk);
-    }
-
-    @Override
-    public void recordPlayerChunkSent(java.util.UUID playerId, boolean inViewDirection) {
-        if (plugin == null || playerId == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.ChunkSendRateController controller = manager.getChunkRateController();
-        if (controller != null) {
-            controller.recordChunkSent(playerId, inViewDirection);
-        }
-    }
-
-    @Override
-    public int detectPlayerCongestion(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return 0;
-        }
-
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkCongestionDetector detector = manager.getCongestionDetector();
-        if (detector == null) {
-            return 0;
-        }
-
-        org.virgil.akiasync.network.NetworkCongestionDetector.CongestionLevel level =
-            detector.detectCongestion(player);
-
-        return level != null ? level.getLevel() : 0;
-    }
-
-    @Override
     public boolean isFastMovementChunkLoadEnabled() {
         return config != null ? config.isFastMovementChunkLoadEnabled() : false;
     }
@@ -1779,16 +1422,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public int getAsyncLoadingBatchSize() {
-        return config != null ? config.getAsyncLoadingBatchSize() : 2;
-    }
-
-    @Override
-    public long getAsyncLoadingBatchDelayMs() {
-        return config != null ? config.getAsyncLoadingBatchDelayMs() : 20L;
-    }
-
-    @Override
     public void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed) {
         if (plugin == null) {
             return;
@@ -1799,197 +1432,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             scheduler.submitChunkLoad(player, chunkPos, priority, speed);
         }
     }
-    
-    @Override
-    public boolean isPlayerUsingViaVersion(java.util.UUID playerId) {
-        return org.virgil.akiasync.compat.ViaVersionCompat.isPlayerUsingVia(playerId);
-    }
-    
-    @Override
-    public boolean isViaConnectionInPlayState(java.util.UUID playerId) {
-        return org.virgil.akiasync.compat.ViaVersionCompat.isConnectionInPlayState(playerId);
-    }
-    
-    @Override
-    public int getPlayerProtocolVersion(java.util.UUID playerId) {
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player != null) {
-            return org.virgil.akiasync.compat.ViaVersionCompat.getPlayerProtocolVersion(player);
-        }
-        return -1;
-    }
 
-    @Override
-    public boolean isTeleportOptimizationEnabled() {
-        return config != null && config.isTeleportOptimizationEnabled();
-    }
-
-    @Override
-    public boolean isTeleportPacketBypassEnabled() {
-        return config != null && config.isTeleportPacketBypassEnabled();
-    }
-
-    @Override
-    public int getTeleportBoostDurationSeconds() {
-        return config != null ? config.getTeleportBoostDurationSeconds() : 5;
-    }
-
-    @Override
-    public int getTeleportMaxChunkRate() {
-        return config != null ? config.getTeleportMaxChunkRate() : 25;
-    }
-
-    @Override
-    public boolean isTeleportFilterNonEssentialPackets() {
-        return config != null && config.isTeleportFilterNonEssentialPackets();
-    }
-
-    @Override
-    public boolean isTeleportDebugEnabled() {
-        return config != null && config.isDebugLoggingEnabled();
-    }
-
-    @Override
-    public boolean isTeleportPacket(net.minecraft.network.protocol.Packet<?> packet) {
-        return org.virgil.akiasync.network.TeleportPacketDetector.isTeleportPacket(packet);
-    }
-
-    @Override
-    public void markPlayerTeleportStart(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
-        if (tracker != null) {
-            tracker.markTeleportStart(playerId);
-        }
-    }
-
-    @Override
-    public boolean isPlayerTeleporting(java.util.UUID playerId) {
-        if (plugin == null || playerId == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return false;
-        }
-
-        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
-        return tracker != null && tracker.isTeleporting(playerId);
-    }
-
-    @Override
-    public boolean shouldSendPacketDuringTeleport(net.minecraft.network.protocol.Packet<?> packet, java.util.UUID playerId) {
-        if (plugin == null || packet == null || playerId == null) {
-            return true;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return true;
-        }
-
-        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
-        return tracker == null || tracker.shouldSendDuringTeleport(packet);
-    }
-
-    @Override
-    public void recordTeleportBypassedPacket() {
-        if (plugin == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return;
-        }
-
-        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
-        if (tracker != null) {
-            tracker.recordBypassedPacket();
-        }
-    }
-
-    @Override
-    public String getTeleportStatistics() {
-        if (plugin == null) {
-            return "N/A";
-        }
-
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        if (manager == null) {
-            return "N/A";
-        }
-
-        org.virgil.akiasync.network.PlayerTeleportTracker tracker = manager.getTeleportTracker();
-        return tracker != null ? tracker.getDetailedStatistics() : "N/A";
-    }
-
-    @Override
-    public boolean shouldVirtualEntityPacketBypassQueue(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player) {
-        if (plugin == null) {
-            return false;
-        }
-
-        try {
-            
-            java.lang.reflect.Field handlerField = org.virgil.akiasync.network.PacketClassifier.class.getDeclaredField("virtualEntityHandler");
-            handlerField.setAccessible(true);
-            org.virgil.akiasync.compat.VirtualEntityPacketHandler handler = 
-                (org.virgil.akiasync.compat.VirtualEntityPacketHandler) handlerField.get(null);
-            
-            if (handler == null) {
-                return false;
-            }
-
-            return handler.shouldBypassQueue(packet, player);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    @Override
-    public boolean isViewFrustumFilterEnabled() {
-        if (plugin == null) {
-            return false;
-        }
-        
-        org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-        return manager != null && manager.isViewFrustumFilterEnabled();
-    }
-    
-    @Override
-    public boolean shouldFilterPacketByViewFrustum(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player) {
-        if (plugin == null || packet == null || player == null) {
-            return false;
-        }
-        
-        try {
-            org.virgil.akiasync.network.NetworkOptimizationManager manager = plugin.getNetworkOptimizationManager();
-            if (manager == null || !manager.isViewFrustumFilterEnabled()) {
-                return false;
-            }
-            
-            org.virgil.akiasync.network.ViewFrustumPacketFilter filter = manager.getViewFrustumFilter();
-            if (filter == null) {
-                return false;
-            }
-            
-            return filter.shouldFilterPacket(packet, player);
-        } catch (Exception e) {
-            
-            return false;
-        }
-    }
-    
     @Override
     public boolean isSuffocationOptimizationEnabled() {
         return config != null && config.isSuffocationOptimizationEnabled();
@@ -2249,5 +1692,341 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public int getMaxPushIterations() {
         return config != null ? config.getMaxPushIterations() : 8;
+    }
+    
+    @Override
+    public boolean isLightingPrioritySchedulingEnabled() {
+        return config != null && config.isLightingPrioritySchedulingEnabled();
+    }
+    
+    @Override
+    public int getLightingHighPriorityRadius() {
+        return config != null ? config.getLightingHighPriorityRadius() : 32;
+    }
+    
+    @Override
+    public int getLightingMediumPriorityRadius() {
+        return config != null ? config.getLightingMediumPriorityRadius() : 64;
+    }
+    
+    @Override
+    public int getLightingLowPriorityRadius() {
+        return config != null ? config.getLightingLowPriorityRadius() : 128;
+    }
+    
+    @Override
+    public long getLightingMaxLowPriorityDelay() {
+        return config != null ? config.getLightingMaxLowPriorityDelay() : 500;
+    }
+    
+    @Override
+    public boolean isLightingDebouncingEnabled() {
+        return config != null && config.isLightingDebouncingEnabled();
+    }
+    
+    @Override
+    public long getLightingDebounceDelay() {
+        return config != null ? config.getLightingDebounceDelay() : 50;
+    }
+    
+    @Override
+    public int getLightingMaxUpdatesPerSecond() {
+        return config != null ? config.getLightingMaxUpdatesPerSecond() : 20;
+    }
+    
+    @Override
+    public long getLightingResetOnStableMs() {
+        return config != null ? config.getLightingResetOnStableMs() : 200;
+    }
+    
+    @Override
+    public boolean isLightingMergingEnabled() {
+        return config != null && config.isLightingMergingEnabled();
+    }
+    
+    @Override
+    public int getLightingMergeRadius() {
+        return config != null ? config.getLightingMergeRadius() : 2;
+    }
+    
+    @Override
+    public long getLightingMergeDelay() {
+        return config != null ? config.getLightingMergeDelay() : 10;
+    }
+    
+    @Override
+    public int getLightingMaxMergedUpdates() {
+        return config != null ? config.getLightingMaxMergedUpdates() : 64;
+    }
+    
+    @Override
+    public boolean isLightingChunkBorderEnabled() {
+        return config != null && config.isLightingChunkBorderEnabled();
+    }
+    
+    @Override
+    public boolean isLightingBatchBorderUpdates() {
+        return config != null && config.isLightingBatchBorderUpdates();
+    }
+    
+    @Override
+    public long getLightingBorderUpdateDelay() {
+        return config != null ? config.getLightingBorderUpdateDelay() : 20;
+    }
+    
+    @Override
+    public int getLightingCrossChunkBatchSize() {
+        return config != null ? config.getLightingCrossChunkBatchSize() : 32;
+    }
+    
+    @Override
+    public boolean isLightingAdaptiveEnabled() {
+        return config != null && config.isLightingAdaptiveEnabled();
+    }
+    
+    @Override
+    public int getLightingMonitorInterval() {
+        return config != null ? config.getLightingMonitorInterval() : 10;
+    }
+    
+    @Override
+    public boolean isLightingAutoAdjustThreads() {
+        return config != null && config.isLightingAutoAdjustThreads();
+    }
+    
+    @Override
+    public boolean isLightingAutoAdjustBatchSize() {
+        return config != null && config.isLightingAutoAdjustBatchSize();
+    }
+    
+    @Override
+    public int getLightingTargetQueueSize() {
+        return config != null ? config.getLightingTargetQueueSize() : 100;
+    }
+    
+    @Override
+    public int getLightingTargetLatency() {
+        return config != null ? config.getLightingTargetLatency() : 50;
+    }
+    
+    @Override
+    public boolean isLightingChunkUnloadEnabled() {
+        return config != null && config.isLightingChunkUnloadEnabled();
+    }
+    
+    @Override
+    public boolean isLightingAsyncCleanup() {
+        return config != null && config.isLightingAsyncCleanup();
+    }
+    
+    @Override
+    public int getLightingCleanupBatchSize() {
+        return config != null ? config.getLightingCleanupBatchSize() : 16;
+    }
+    
+    @Override
+    public long getLightingCleanupDelay() {
+        return config != null ? config.getLightingCleanupDelay() : 100;
+    }
+    
+    @Override
+    public String getLightingThreadPoolMode() {
+        return config != null ? config.getLightingThreadPoolMode() : "auto";
+    }
+    
+    @Override
+    public String getLightingThreadPoolCalculation() {
+        return config != null ? config.getLightingThreadPoolCalculation() : "cores/3";
+    }
+    
+    @Override
+    public int getLightingMinThreads() {
+        return config != null ? config.getLightingMinThreads() : 1;
+    }
+    
+    @Override
+    public int getLightingMaxThreads() {
+        return config != null ? config.getLightingMaxThreads() : 8;
+    }
+    
+    @Override
+    public int getLightingBatchThresholdMax() {
+        return config != null ? config.getLightingBatchThresholdMax() : 64;
+    }
+    
+    @Override
+    public boolean isLightingAggressiveBatching() {
+        return config != null && config.isLightingAggressiveBatching();
+    }
+
+    @Override
+    public boolean isNoiseOptimizationEnabled() {
+        return config != null && config.isNoiseOptimizationEnabled();
+    }
+
+    @Override
+    public boolean isJigsawOptimizationEnabled() {
+        return config != null && config.isJigsawOptimizationEnabled();
+    }
+
+    @Override
+    public void initializeJigsawOctree(net.minecraft.world.phys.AABB bounds) {
+        if (config != null) {
+            org.virgil.akiasync.util.worldgen.OctreeHolder.set(
+                new org.virgil.akiasync.util.worldgen.BoxOctree(bounds)
+            );
+        }
+    }
+
+    @Override
+    public boolean hasJigsawOctree() {
+        return org.virgil.akiasync.util.worldgen.OctreeHolder.isSet();
+    }
+
+    @Override
+    public void insertIntoJigsawOctree(net.minecraft.world.phys.AABB box) {
+        org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+            org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+        if (octree != null) {
+            octree.insert(box);
+        }
+    }
+
+    @Override
+    public boolean jigsawOctreeIntersects(net.minecraft.world.phys.AABB box) {
+        org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+            org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+        return octree != null && octree.intersects(box);
+    }
+
+    @Override
+    public void clearJigsawOctree() {
+        org.virgil.akiasync.util.worldgen.OctreeHolder.clear();
+    }
+
+    @Override
+    public String getJigsawOctreeStats() {
+        org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+            org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+        if (octree != null) {
+            return octree.getStats().toString();
+        }
+        return null;
+    }
+    
+    @Override
+    public boolean isEntityPacketThrottleEnabled() {
+        return config != null && config.isEntityPacketThrottleEnabled();
+    }
+    
+    @Override
+    public boolean shouldSendEntityUpdate(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity) {
+        if (!isEntityPacketThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        
+        try {
+            if (!org.virgil.akiasync.network.EntityPacketThrottler.isInitialized()) {
+                return true;
+            }
+            
+            return org.virgil.akiasync.network.EntityPacketThrottler.shouldSendUpdateSimple(player, entity);
+        } catch (Exception e) {
+            
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickEntityPacketThrottler() {
+        if (!isEntityPacketThrottleEnabled()) {
+            return;
+        }
+        
+        try {
+            if (org.virgil.akiasync.network.EntityPacketThrottler.isInitialized()) {
+                org.virgil.akiasync.network.EntityPacketThrottler.tick();
+            }
+        } catch (Exception e) {
+            
+        }
+    }
+    
+    @Override
+    public boolean isEntityDataThrottleEnabled() {
+        return config != null && config.isEntityDataThrottleEnabled();
+    }
+    
+    @Override
+    public boolean shouldSendMetadata(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, int metadataHash) {
+        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        
+        try {
+            return org.virgil.akiasync.network.EntityDataThrottler.shouldSendMetadata(player, entity, metadataHash);
+        } catch (Exception e) {
+            
+            return true;
+        }
+    }
+    
+    @Override
+    public boolean shouldSendNBT(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, boolean forceUpdate) {
+        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        
+        try {
+            return org.virgil.akiasync.network.EntityDataThrottler.shouldSendNBT(player, entity, forceUpdate);
+        } catch (Exception e) {
+            
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickEntityDataThrottler() {
+        if (!isEntityDataThrottleEnabled()) {
+            return;
+        }
+        
+        try {
+            org.virgil.akiasync.network.EntityDataThrottler.tick();
+        } catch (Exception e) {
+            
+        }
+    }
+    
+    @Override
+    public boolean isChunkVisibilityFilterEnabled() {
+        return config != null && config.isChunkVisibilityFilterEnabled();
+    }
+    
+    @Override
+    public boolean isChunkVisible(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, net.minecraft.server.level.ServerLevel level) {
+        if (!isChunkVisibilityFilterEnabled() || player == null || chunkPos == null || level == null) {
+            return true;
+        }
+        
+        try {
+            return org.virgil.akiasync.network.ChunkVisibilityFilter.isChunkVisible(player, chunkPos, level);
+        } catch (Exception e) {
+            
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickChunkVisibilityFilter() {
+        if (!isChunkVisibilityFilterEnabled()) {
+            return;
+        }
+        
+        try {
+            org.virgil.akiasync.network.ChunkVisibilityFilter.tick();
+        } catch (Exception e) {
+            
+        }
     }
 }

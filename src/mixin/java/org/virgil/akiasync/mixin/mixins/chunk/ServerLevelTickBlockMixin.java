@@ -18,6 +18,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.virgil.akiasync.mixin.util.BlockTickTask;
 import org.virgil.akiasync.mixin.util.BlockTickCategory;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 @SuppressWarnings("unused")
 @Mixin(value = ServerLevel.class, priority = 1200)
@@ -85,18 +88,27 @@ public abstract class ServerLevelTickBlockMixin {
     
     @Inject(method = "tick(Ljava/util/function/BooleanSupplier;)V", at = @At("RETURN"), require = 0)
     private void aki$flushAsyncTasks(CallbackInfo ci) {
+        
+        Bridge bridge = BridgeManager.getBridge();
+        if (bridge != null) {
+            bridge.tickEntityPacketThrottler();
+        }
+        
         if (!cached_enabled) {
             return;
         }
         
-        if (smoothingScheduler != null) {
-            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.notifySmoothSchedulerTick(smoothingScheduler);
-                double tps = bridge.getCurrentTPS();
-                double mspt = bridge.getCurrentMSPT();
-                bridge.updateSmoothSchedulerMetrics(smoothingScheduler, tps, mspt);
-            }
+        if (smoothingScheduler != null && bridge != null) {
+            bridge.notifySmoothSchedulerTick(smoothingScheduler);
+            double tps = bridge.getCurrentTPS();
+            double mspt = bridge.getCurrentMSPT();
+            bridge.updateSmoothSchedulerMetrics(smoothingScheduler, tps, mspt);
+        }
+        
+        if (bridge != null) {
+            bridge.tickEntityPacketThrottler();
+            bridge.tickEntityDataThrottler();
+            bridge.tickChunkVisibilityFilter();
         }
         
         ServerLevel level = (ServerLevel) (Object) this;
@@ -129,10 +141,8 @@ public abstract class ServerLevelTickBlockMixin {
         
         if (isFoliaEnvironment && cached_enabled) {
             cached_enabled = false;
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-BlockTick] ⚠️ Folia environment detected - disabling chunk tick async");
-                bridge.errorLog("[AkiAsync-BlockTick] ⚠️ Folia's region threading already provides parallelism");
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-BlockTick] ⚠️ Folia environment detected - disabling chunk tick async");
+            BridgeConfigCache.errorLog("[AkiAsync-BlockTick] ⚠️ Folia's region threading already provides parallelism");
         }
 
         if (bridge != null) {
@@ -141,33 +151,31 @@ public abstract class ServerLevelTickBlockMixin {
             if (smoothingScheduler == null && cached_enabled && !isFoliaEnvironment) {
                 smoothingScheduler = bridge.getBlockTickSmoothingScheduler();
                 if (smoothingScheduler != null) {
-                    bridge.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler obtained from Bridge");
+                    BridgeConfigCache.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler obtained from Bridge");
                 }
             }
         }
 
         initialized = true;
         
-        if (bridge != null) {
-            if (wasInitialized) {
-                bridge.debugLog("[AkiAsync-BlockTick] Reloading...");
-                aki$logMetrics();
-                aki$resetMetrics();
-                BLOCK_CATEGORY_CACHE.clear(); 
-                
-                bridge.debugLog("[AkiAsync-BlockTick] Reloaded: enabled=" + cached_enabled + 
-                    " (was: " + previousEnabled + "), batchSize=" + cached_batchSize + 
-                    (isFoliaEnvironment ? " [Folia]" : ""));
+        if (wasInitialized) {
+            BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Reloading...");
+            aki$logMetrics();
+            aki$resetMetrics();
+            BLOCK_CATEGORY_CACHE.clear(); 
+            
+            BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Reloaded: enabled=" + cached_enabled + 
+                " (was: " + previousEnabled + "), batchSize=" + cached_batchSize + 
+                (isFoliaEnvironment ? " [Folia]" : ""));
+        } else {
+            BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Initialized: enabled=" + cached_enabled);
+            if (isFoliaEnvironment) {
+                BridgeConfigCache.debugLog("[AkiAsync-BlockTick]   Environment: Folia (async disabled - using region threading)");
             } else {
-                bridge.debugLog("[AkiAsync-BlockTick] Initialized: enabled=" + cached_enabled);
-                if (isFoliaEnvironment) {
-                    bridge.debugLog("[AkiAsync-BlockTick]   Environment: Folia (async disabled - using region threading)");
-                } else {
-                    bridge.debugLog("[AkiAsync-BlockTick]   Strategy: Smart classification + batch async execution");
-                    bridge.debugLog("[AkiAsync-BlockTick]   Batch size: " + cached_batchSize);
-                    bridge.debugLog("[AkiAsync-BlockTick]   Categories: CROP_GROWTH, LEAF_DECAY, SAFE_ASYNC (async)");
-                    bridge.debugLog("[AkiAsync-BlockTick]   Protected: REDSTONE, ENTITY_INTERACTION (main thread)");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-BlockTick]   Strategy: Smart classification + batch async execution");
+                BridgeConfigCache.debugLog("[AkiAsync-BlockTick]   Batch size: " + cached_batchSize);
+                BridgeConfigCache.debugLog("[AkiAsync-BlockTick]   Categories: CROP_GROWTH, LEAF_DECAY, SAFE_ASYNC (async)");
+                BridgeConfigCache.debugLog("[AkiAsync-BlockTick]   Protected: REDSTONE, ENTITY_INTERACTION (main thread)");
             }
         }
     }
@@ -259,12 +267,8 @@ public abstract class ServerLevelTickBlockMixin {
                                             state.tick(level, task.pos, level.random);
                                         }
                                     } catch (Throwable e) {
-                                        
-                                        var errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                                        if (errorBridge != null && errorBridge.isDebugLoggingEnabled()) {
-                                            errorBridge.errorLog("[BlockTick-Scheduled] Error in scheduled tick at %s: %s", 
-                                                task.pos, e.getMessage());
-                                        }
+                                        BridgeConfigCache.errorLog("[BlockTick-Scheduled] Error in scheduled tick at %s: %s", 
+                                            task.pos, e.getMessage());
                                     }
                                 });
                             }
@@ -290,12 +294,8 @@ public abstract class ServerLevelTickBlockMixin {
                         state.tick(level, task.pos, level.random);
                     }
                 } catch (Throwable e) {
-                    
-                    var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                        bridge.errorLog("[BlockTick-Sync] Error in sync fallback at %s: %s", 
-                            task.pos, e.getMessage());
-                    }
+                    BridgeConfigCache.errorLog("[BlockTick-Sync] Error in sync fallback at %s: %s", 
+                        task.pos, e.getMessage());
                 }
             }
             syncFallbackCount.addAndGet(batch.size());
@@ -327,12 +327,8 @@ public abstract class ServerLevelTickBlockMixin {
                                 state.tick(level, task.pos, level.random);
                             }
                         } catch (Throwable e) {
-                            
-                            var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                                bridge.errorLog("[BlockTick-AsyncFallback] Error in async fallback at %s: %s", 
-                                    task.pos, e.getMessage());
-                            }
+                            BridgeConfigCache.errorLog("[BlockTick-AsyncFallback] Error in async fallback at %s: %s", 
+                                task.pos, e.getMessage());
                         }
                     });
                 }
@@ -373,12 +369,9 @@ public abstract class ServerLevelTickBlockMixin {
     
     @Unique
     private static void aki$logMetrics() {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge == null) return;
-        
         long total = asyncExecutionCount.get() + mainThreadExecutionCount.get();
         if (total == 0) {
-            bridge.debugLog("[AkiAsync-BlockTick] No block ticks processed yet");
+            BridgeConfigCache.debugLog("[AkiAsync-BlockTick] No block ticks processed yet");
             return;
         }
         
@@ -387,22 +380,22 @@ public abstract class ServerLevelTickBlockMixin {
         double fallbackPercent = syncFallbackCount.get() > 0 ? 
             (syncFallbackCount.get() * 100.0) / asyncExecutionCount.get() : 0.0;
         
-        bridge.debugLog("[AkiAsync-BlockTick] ========== Execution Metrics ==========");
-        bridge.debugLog("[AkiAsync-BlockTick] Total ticks: " + total);
-        bridge.debugLog("[AkiAsync-BlockTick] Async executions: " + asyncExecutionCount.get() + 
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] ========== Execution Metrics ==========");
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Total ticks: " + total);
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Async executions: " + asyncExecutionCount.get() + 
             String.format(" (%.2f%%)", asyncPercent));
-        bridge.debugLog("[AkiAsync-BlockTick] Main thread executions: " + mainThreadExecutionCount.get() + 
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Main thread executions: " + mainThreadExecutionCount.get() + 
             String.format(" (%.2f%%)", mainThreadPercent));
-        bridge.debugLog("[AkiAsync-BlockTick] Sync fallbacks: " + syncFallbackCount.get() + 
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Sync fallbacks: " + syncFallbackCount.get() + 
             String.format(" (%.2f%% of async)", fallbackPercent));
-        bridge.debugLog("[AkiAsync-BlockTick] Batch submissions: " + batchSubmissionCount.get());
-        bridge.debugLog("[AkiAsync-BlockTick] --- Category Breakdown ---");
-        bridge.debugLog("[AkiAsync-BlockTick] Crop growth: " + cropGrowthCount.get());
-        bridge.debugLog("[AkiAsync-BlockTick] Leaf decay: " + leafDecayCount.get());
-        bridge.debugLog("[AkiAsync-BlockTick] Redstone: " + redstoneCount.get());
-        bridge.debugLog("[AkiAsync-BlockTick] Entity interaction: " + entityInteractionCount.get());
-        bridge.debugLog("[AkiAsync-BlockTick] Cached categories: " + BLOCK_CATEGORY_CACHE.size());
-        bridge.debugLog("[AkiAsync-BlockTick] ======================================");
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Batch submissions: " + batchSubmissionCount.get());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] --- Category Breakdown ---");
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Crop growth: " + cropGrowthCount.get());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Leaf decay: " + leafDecayCount.get());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Redstone: " + redstoneCount.get());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Entity interaction: " + entityInteractionCount.get());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Cached categories: " + BLOCK_CATEGORY_CACHE.size());
+        BridgeConfigCache.debugLog("[AkiAsync-BlockTick] ======================================");
     }
 
     @Unique
@@ -432,7 +425,7 @@ public abstract class ServerLevelTickBlockMixin {
 
     @Unique
     private static String aki$getBlockId(Block block) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             return bridge.getBlockId(block);
         }
@@ -503,11 +496,7 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique
     private static void aki$logSmoothingStats() {
         if (smoothingScheduler != null) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-
-                bridge.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler statistics logged");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler statistics logged");
         }
     }
 }

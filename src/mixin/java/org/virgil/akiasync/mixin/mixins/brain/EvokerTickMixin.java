@@ -10,6 +10,7 @@ import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.evoker.EvokerCpuCalculator;
 import org.virgil.akiasync.mixin.brain.evoker.EvokerDiff;
 import org.virgil.akiasync.mixin.brain.evoker.EvokerSnapshot;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Evoker;
@@ -37,11 +38,7 @@ public abstract class EvokerTickMixin {
             EvokerDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new EvokerDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(evoker, level);
         } catch (Exception e) {
-            
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.errorLog("[Evoker] Error in async brain tick: %s", e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[Evoker] Error in async brain tick: %s", e.getMessage());
         }
     }
     @Unique private static synchronized void aki$init() {
@@ -51,7 +48,7 @@ public abstract class EvokerTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] EvokerTickMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] EvokerTickMixin initialized: enabled=" + enabled);
         }
     }
 }

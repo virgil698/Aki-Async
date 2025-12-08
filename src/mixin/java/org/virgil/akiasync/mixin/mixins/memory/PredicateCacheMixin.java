@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @SuppressWarnings("unused")
 @Mixin(Level.class)
 public abstract class PredicateCacheMixin {
@@ -46,7 +47,7 @@ public abstract class PredicateCacheMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);
         }
     }
 }

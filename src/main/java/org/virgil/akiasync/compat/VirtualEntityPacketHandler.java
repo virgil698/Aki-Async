@@ -6,7 +6,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import org.virgil.akiasync.config.ConfigManager;
-import org.virgil.akiasync.network.PacketPriority;
 
 import java.lang.reflect.Field;
 import java.util.logging.Logger;
@@ -137,10 +136,6 @@ public class VirtualEntityPacketHandler {
         }
         
         return shouldBypass;
-    }
-    
-    public PacketPriority getVirtualEntityPacketPriority(Packet<?> packet) {
-        return PacketPriority.CRITICAL;
     }
     
     public String getPacketSource(Packet<?> packet, ServerPlayer player) {

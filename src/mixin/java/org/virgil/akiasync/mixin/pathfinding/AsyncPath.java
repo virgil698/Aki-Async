@@ -134,16 +134,37 @@ public class AsyncPath {
   }
 
   private void checkProcessed() {
-
     if (this.processState == PathState.WAITING) {
-
       long startTime = System.nanoTime();
+      long timeoutNanos = getTimeoutNanos();
+      
       while (this.processState == PathState.WAITING && 
-             (System.nanoTime() - startTime) < 50_000) {
-        Thread.yield();
+             (System.nanoTime() - startTime) < timeoutNanos) {
+        
+        java.util.concurrent.locks.LockSupport.parkNanos(100_000); 
+      }
+      
+      if (this.processState == PathState.WAITING && shouldFallbackToSync()) {
+        process(); 
       }
     }
-
+  }
+  
+  private long getTimeoutNanos() {
+    
+    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+    if (bridge != null) {
+      return bridge.getAsyncPathfindingTimeoutMs() * 1_000_000L;
+    }
+    return 5_000_000L; 
+  }
+  
+  private boolean shouldFallbackToSync() {
+    
+    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+    return bridge != null && bridge.isAsyncPathfindingSyncFallbackEnabled();
   }
 
   public Path getPath() {

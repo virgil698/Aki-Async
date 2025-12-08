@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @Mixin(RedStoneWireBlock.class)
 public class RedstoneWireOptimizationMixin {
@@ -37,9 +38,7 @@ public class RedstoneWireOptimizationMixin {
         
         evaluator.evaluateWire(pos, state);
 
-        if (bridge.isDebugLoggingEnabled()) {
-            bridge.debugLog("[AkiAsync-Redstone] Enhanced PandaWire evaluation at %s", pos);
-        }
+        BridgeConfigCache.debugLog("[AkiAsync-Redstone] Enhanced PandaWire evaluation at %s", pos);
 
         ci.cancel();
     }

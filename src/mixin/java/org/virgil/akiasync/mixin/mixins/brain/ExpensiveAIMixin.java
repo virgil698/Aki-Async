@@ -14,6 +14,9 @@ import org.virgil.akiasync.mixin.brain.villager.BrainCpuCalculator;
 import org.virgil.akiasync.mixin.brain.villager.BrainDiff;
 import org.virgil.akiasync.mixin.brain.villager.BrainSnapshot;
 import org.virgil.akiasync.mixin.poi.BatchPoiManager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -112,21 +115,17 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
                 if (executionCount % 1000 == 0) {
                     double successRate = (successCount * 100.0) / executionCount;
                     double timeoutRate = (timeoutCount * 100.0) / executionCount;
-                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                        bridge.debugLog(String.format(
-                            "[AkiAsync-ExpensiveAI] Stats: %d execs | %.1f%% success | %.1f%% timeout | %s",
-                            executionCount, successRate, timeoutRate, AsyncBrainExecutor.getStatistics()
-                        ));
-                    }
+                    BridgeConfigCache.debugLog(String.format(
+                        "[AkiAsync-ExpensiveAI] Stats: %d execs | %.1f%% success | %.1f%% timeout | %s",
+                        executionCount, successRate, timeoutRate, AsyncBrainExecutor.getStatistics()
+                    ));
                 }
             } else {
                 timeoutCount++;
             }
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled() && executionCount <= 3) {
-                bridge.debugLog("[AkiAsync-ExpensiveAI] Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            if (executionCount <= 3) {
+                BridgeConfigCache.debugLog("[AkiAsync-ExpensiveAI] Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         } finally {
             this.aki$poiSnapshot = null;
@@ -136,8 +135,7 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
     @Unique
     private static synchronized void aki$initAsyncAI() {
         if (initialized) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
             cached_villagerEnabled = bridge.isVillagerOptimizationEnabled();
@@ -157,8 +155,6 @@ public abstract class ExpensiveAIMixin<E extends LivingEntity> {
             cached_simpleUsePOI = false;
         }
         initialized = true;
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] ExpensiveAIMixin initialized: timeout=" + cached_timeoutMicros + "μs | villager=" + cached_villagerEnabled + "(POI:" + cached_villagerUsePOI + ") | piglin=" + cached_piglinEnabled + "(POI:" + cached_piglinUsePOI + ") | simple=" + cached_simpleEnabled + "(POI:" + cached_simpleUsePOI + ")");
-        }
+        BridgeConfigCache.debugLog("[AkiAsync] ExpensiveAIMixin initialized: timeout=" + cached_timeoutMicros + "μs | villager=" + cached_villagerEnabled + "(POI:" + cached_villagerUsePOI + ") | piglin=" + cached_piglinEnabled + "(POI:" + cached_piglinUsePOI + ") | simple=" + cached_simpleEnabled + "(POI:" + cached_simpleUsePOI + ")");
     }
 }

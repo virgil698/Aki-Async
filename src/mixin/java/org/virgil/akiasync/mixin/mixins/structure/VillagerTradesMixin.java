@@ -16,6 +16,7 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.util.RandomSource;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
 @Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$TreasureMapForEmeralds")
@@ -71,7 +72,7 @@ public class VillagerTradesMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] VillagerTradesMixin initialized: enabled=" + cached_enabled + ", radius=" + 0 + ", skipKnown=" + false);
+            BridgeConfigCache.debugLog("[AkiAsync] VillagerTradesMixin initialized: enabled=" + cached_enabled + ", radius=" + 0 + ", skipKnown=" + false);
         }
     }
 }

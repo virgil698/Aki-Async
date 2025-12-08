@@ -12,6 +12,7 @@ import org.virgil.akiasync.mixin.brain.universal.UniversalAiCpuCalculator;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiDiff;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiSnapshot;
 import org.virgil.akiasync.mixin.optimization.cache.BlockPosIterationCache;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -82,11 +83,7 @@ public abstract class UniversalAiFamilyTickMixin {
             UniversalAiDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new UniversalAiDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(mob, level);
         } catch (Exception e) {
-            
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.errorLog("[UniversalAI] Error in async brain tick: %s", e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[UniversalAI] Error in async brain tick: %s", e.getMessage());
         }
     }
 
@@ -232,13 +229,10 @@ public abstract class UniversalAiFamilyTickMixin {
 
         if (debugEnabled && totalChecks % 10000 == 0) {
             double protectionRate = (protectionCount * 100.0) / totalChecks;
-            org.virgil.akiasync.mixin.bridge.Bridge debugBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (debugBridge != null) {
-                debugBridge.debugLog(
-                    "[AkiAsync-UniversalAI] Protection stats: %d/%d checks (%.2f%% protected)",
-                    protectionCount, totalChecks, protectionRate
-                );
-            }
+            BridgeConfigCache.debugLog(
+                "[AkiAsync-UniversalAI] Protection stats: %d/%d checks (%.2f%% protected)",
+                protectionCount, totalChecks, protectionRate
+            );
         }
 
         return false;
@@ -258,7 +252,7 @@ public abstract class UniversalAiFamilyTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         enabledEntities = bridge != null ? bridge.getUniversalAiEntities() : java.util.Collections.emptySet();
         respectBrainThrottle = bridge != null && bridge.isBrainThrottleEnabled();
-        debugEnabled = bridge != null && bridge.isDebugLoggingEnabled();
+        debugEnabled = BridgeConfigCache.isDebugLoggingEnabled();
 
         if (bridge != null) {
             dabEnabled = bridge.isDabEnabled();
@@ -270,22 +264,22 @@ public abstract class UniversalAiFamilyTickMixin {
         if (isFolia) {
             tickInterval = 2;
             if (bridge != null) {
-                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized in Folia mode:");
-                bridge.debugLog("  - Enabled: " + enabled);
-                bridge.debugLog("  - Tick interval: " + tickInterval + " (reduced from 3 for region parallelism)");
-                bridge.debugLog("  - Respect brain throttle: " + respectBrainThrottle);
+                BridgeConfigCache.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized in Folia mode:");
+                BridgeConfigCache.debugLog("  - Enabled: " + enabled);
+                BridgeConfigCache.debugLog("  - Tick interval: " + tickInterval + " (reduced from 3 for region parallelism)");
+                BridgeConfigCache.debugLog("  - Respect brain throttle: " + respectBrainThrottle);
             }
         } else {
             tickInterval = 3;
             if (bridge != null) {
-                bridge.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized:");
-                bridge.debugLog("  - Enabled: " + enabled);
-                bridge.debugLog("  - Base tick interval: " + tickInterval);
-                bridge.debugLog("  - DAB enabled: " + dabEnabled);
+                BridgeConfigCache.debugLog("[AkiAsync] UniversalAiFamilyTickMixin initialized:");
+                BridgeConfigCache.debugLog("  - Enabled: " + enabled);
+                BridgeConfigCache.debugLog("  - Base tick interval: " + tickInterval);
+                BridgeConfigCache.debugLog("  - DAB enabled: " + dabEnabled);
                 if (dabEnabled) {
-                    bridge.debugLog("  - DAB start distance: " + dabStartDistance);
-                    bridge.debugLog("  - DAB activation dist mod: " + dabActivationDistMod);
-                    bridge.debugLog("  - DAB max tick interval: " + dabMaxTickInterval);
+                    BridgeConfigCache.debugLog("  - DAB start distance: " + dabStartDistance);
+                    BridgeConfigCache.debugLog("  - DAB activation dist mod: " + dabActivationDistMod);
+                    BridgeConfigCache.debugLog("  - DAB max tick interval: " + dabMaxTickInterval);
                 }
             }
         }

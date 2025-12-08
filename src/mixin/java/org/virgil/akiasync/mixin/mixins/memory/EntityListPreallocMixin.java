@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @SuppressWarnings("unused")
 @Mixin(net.minecraft.world.level.Level.class)
 public abstract class EntityListPreallocMixin {
@@ -49,7 +50,7 @@ public abstract class EntityListPreallocMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] EntityListPreallocMixin initialized: enabled=" + enabled + ", capacity=" + defaultCapacity);
+            BridgeConfigCache.debugLog("[AkiAsync] EntityListPreallocMixin initialized: enabled=" + enabled + ", capacity=" + defaultCapacity);
         }
     }
 }

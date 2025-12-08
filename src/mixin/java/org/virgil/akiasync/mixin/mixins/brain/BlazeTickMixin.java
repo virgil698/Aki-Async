@@ -10,6 +10,7 @@ import org.virgil.akiasync.mixin.brain.blaze.BlazeCpuCalculator;
 import org.virgil.akiasync.mixin.brain.blaze.BlazeDiff;
 import org.virgil.akiasync.mixin.brain.blaze.BlazeSnapshot;
 import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Blaze;
@@ -37,11 +38,7 @@ public abstract class BlazeTickMixin {
             BlazeDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new BlazeDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(blaze, level);
         } catch (Exception e) {
-            
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.errorLog("[Blaze] Error in async brain tick: %s", e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[Blaze] Error in async brain tick: %s", e.getMessage());
         }
     }
     @Unique private static synchronized void aki$init() {
@@ -51,7 +48,7 @@ public abstract class BlazeTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] BlazeTickMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] BlazeTickMixin initialized: enabled=" + enabled);
         }
     }
 }

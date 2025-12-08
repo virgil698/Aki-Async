@@ -8,6 +8,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 @SuppressWarnings("unused")
 @Mixin(value = Villager.class, priority = 1200)
 public class VillagerBreedAsyncMixin {
@@ -47,10 +50,7 @@ public class VillagerBreedAsyncMixin {
         }
 
         if (aki$isInBreedingMode(villager)) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Breed] Villager in breeding mode, skipping optimization");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Breed] Villager in breeding mode, skipping optimization");
             return;
         }
 
@@ -79,11 +79,8 @@ public class VillagerBreedAsyncMixin {
             net.minecraft.world.entity.npc.VillagerData.canLevelUp(vData.level()) &&
             villager.getVillagerXp() >= net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(vData.level())) {
 
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Debug] Force triggering upgrade for villager with XP=" +
+            BridgeConfigCache.debugLog("[AkiAsync-Debug] Force triggering upgrade for villager with XP=" +
                                villager.getVillagerXp() + " Level=" + vData.level());
-            }
             try {
                 java.lang.reflect.Method increaseMethod = villager.getClass().getDeclaredMethod("increaseMerchantCareer");
                 increaseMethod.setAccessible(true);
@@ -92,27 +89,15 @@ public class VillagerBreedAsyncMixin {
                 aki$forceRefreshTrades(villager);
 
             } catch (NoSuchMethodException e) {
-                org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (errorBridge != null) {
-                    errorBridge.errorLog("[AkiAsync-VillagerBreed] Method not found: " + e.getMessage());
-                }
+                BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Method not found: " + e.getMessage());
             } catch (IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
-                org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (errorBridge != null) {
-                    errorBridge.errorLog("[AkiAsync-VillagerBreed] Reflection error: " + e.getMessage());
-                }
+                BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Reflection error: " + e.getMessage());
             } catch (Exception e) {
-                org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (errorBridge != null) {
-                    errorBridge.errorLog("[AkiAsync-VillagerBreed] Unexpected error: " + e.getMessage());
-                }
+                BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Unexpected error: " + e.getMessage());
             }
         }
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Critical error in optimizedVillagerStep: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Critical error in optimizedVillagerStep: " + e.getMessage());
         }
     }
 
@@ -126,17 +111,11 @@ public class VillagerBreedAsyncMixin {
             if (villager == null) return;
 
         if (this.updateMerchantTimer == 0 && this.increaseProfessionLevelOnUpdate) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-VillagerBreed] Async task completed for villager");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-VillagerBreed] Async task completed for villager");
             aki$forceRefreshTrades(villager);
         }
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Error in afterVillagerStep: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Error in afterVillagerStep: " + e.getMessage());
         }
     }
 
@@ -148,18 +127,12 @@ public class VillagerBreedAsyncMixin {
 
             Villager villager = (Villager) (Object) this;
             if (villager == null) return;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync-Debug] Village upgraded! Level=" + villager.getVillagerData().level() +
+        BridgeConfigCache.debugLog("[AkiAsync-Debug] Village upgraded! Level=" + villager.getVillagerData().level() +
                           " XP=" + villager.getVillagerXp());
-        }
 
         aki$forceRefreshTrades(villager);
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Error in afterUpgrade: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Error in afterUpgrade: " + e.getMessage());
         }
     }
 
@@ -203,10 +176,7 @@ public class VillagerBreedAsyncMixin {
         }
 
         if (aki$hasItemsToShare(villager)) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Food] Villager has items to share, preserving AI");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Food] Villager has items to share, preserving AI");
             return true;
         }
 
@@ -214,13 +184,10 @@ public class VillagerBreedAsyncMixin {
         int villagerXp = villager.getVillagerXp();
         if (net.minecraft.world.entity.npc.VillagerData.canLevelUp(currentLevel) &&
             villagerXp >= net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(currentLevel)) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Debug] Villager should upgrade: Level=" + currentLevel +
+            BridgeConfigCache.debugLog("[AkiAsync-Debug] Villager should upgrade: Level=" + currentLevel +
                              " XP=" + villagerXp + " Required=" +
                              net.minecraft.world.entity.npc.VillagerData.getMaxXpPerLevel(currentLevel) +
                              " Timer=" + this.updateMerchantTimer + " Flag=" + this.increaseProfessionLevelOnUpdate);
-            }
             return true;
         }
 
@@ -255,10 +222,7 @@ public class VillagerBreedAsyncMixin {
 
         java.util.Optional<?> breedTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
         if (breedTarget != null && breedTarget.isPresent()) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Breed] Villager has breed target, preserving AI");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Breed] Villager has breed target, preserving AI");
             return true;
         }
 
@@ -288,10 +252,7 @@ public class VillagerBreedAsyncMixin {
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
 
             if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-Panic] Villager in panic state, preserving AI for safety");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Panic] Villager in panic state, preserving AI for safety");
             }
             return true;
         }
@@ -299,33 +260,21 @@ public class VillagerBreedAsyncMixin {
         try {
             java.util.Optional<?> avoidTarget = brain.getMemoryInternal(net.minecraft.world.entity.ai.memory.MemoryModuleType.AVOID_TARGET);
             if (avoidTarget != null && avoidTarget.isPresent()) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-Avoid] Villager has avoid target, preserving AI for safety");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Avoid] Villager has avoid target, preserving AI for safety");
                 return true;
             }
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-Villager] Failed to check avoid target: " + e.getMessage());
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Villager] Failed to check avoid target: " + e.getMessage());
         }
 
         if (villager.canBreed()) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Breed] Villager can breed, preserving AI");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Breed] Villager can breed, preserving AI");
             return true;
         }
 
         return false;
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Error in hasImportantState: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Error in hasImportantState: " + e.getMessage());
             return true;
         }
     }
@@ -357,10 +306,7 @@ public class VillagerBreedAsyncMixin {
                 v -> v != villager && v.canBreed() && !v.isBaby()
             );
             if (!nearbyVillagers.isEmpty()) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-Breed] Villager can breed and has nearby partners (" + nearbyVillagers.size() + ")");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Breed] Villager can breed and has nearby partners (" + nearbyVillagers.size() + ")");
                 return true;
             }
         }
@@ -377,10 +323,7 @@ public class VillagerBreedAsyncMixin {
 
         return false;
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Error in isInBreedingMode: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Error in isInBreedingMode: " + e.getMessage());
             return false;
         }
     }
@@ -416,10 +359,7 @@ public class VillagerBreedAsyncMixin {
 
         return false;
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (errorBridge != null) {
-                errorBridge.errorLog("[AkiAsync-VillagerBreed] Error in hasItemsToShare: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-VillagerBreed] Error in hasItemsToShare: " + e.getMessage());
             return false;
         }
     }
@@ -437,35 +377,20 @@ public class VillagerBreedAsyncMixin {
                 resendMethod.setAccessible(true);
                 resendMethod.invoke(villager);
 
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-Debug] Immediately refreshed trades for trading player");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Debug] Immediately refreshed trades for trading player");
             }
 
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Debug] Trades refreshed immediately after upgrade");
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Debug] Trades refreshed immediately after upgrade");
 
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-Debug] Failed to refresh trades: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-Debug] Failed to refresh trades: " + e.getMessage());
             try {
                 java.lang.reflect.Field offersField = villager.getClass().getSuperclass().getDeclaredField("offers");
                 offersField.setAccessible(true);
                 offersField.set(villager, null);
-                org.virgil.akiasync.mixin.bridge.Bridge fallbackBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (fallbackBridge != null) {
-                    fallbackBridge.debugLog("[AkiAsync-Debug] Used fallback trade refresh method");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Debug] Used fallback trade refresh method");
             } catch (Exception e2) {
-                org.virgil.akiasync.mixin.bridge.Bridge errorBridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (errorBridge2 != null) {
-                    errorBridge2.errorLog("[AkiAsync-Debug] Fallback trade refresh also failed: " + e2.getMessage());
-                }
+                BridgeConfigCache.errorLog("[AkiAsync-Debug] Fallback trade refresh also failed: " + e2.getMessage());
             }
         }
     }
@@ -477,8 +402,7 @@ public class VillagerBreedAsyncMixin {
     private static synchronized void aki$initVillagerOptimization() {
         if (initialized) return;
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isAsyncVillagerBreedEnabled();
             cached_ageThrottle = bridge.isVillagerAgeThrottleEnabled();
@@ -491,17 +415,12 @@ public class VillagerBreedAsyncMixin {
         initialized = true;
         lastInitTime = System.currentTimeMillis();
 
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] VillagerBreedAsyncMixin initialized (upgrade-safe): enabled=" + cached_enabled + " | ageThrottle=" + cached_ageThrottle + " | interval=" + cached_interval);
-        }
+        BridgeConfigCache.debugLog("[AkiAsync] VillagerBreedAsyncMixin initialized (upgrade-safe): enabled=" + cached_enabled + " | ageThrottle=" + cached_ageThrottle + " | interval=" + cached_interval);
     }
 
     @Unique
     private static synchronized void aki$resetInitialization() {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync-Debug] Resetting VillagerBreedAsyncMixin initialization");
-        }
+        BridgeConfigCache.debugLog("[AkiAsync-Debug] Resetting VillagerBreedAsyncMixin initialization");
         initialized = false;
         cached_enabled = false;
         cached_ageThrottle = false;

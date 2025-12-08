@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @Mixin(value = Entity.class, priority = 900)
 public class EntityThrottlingMixin {
@@ -20,31 +20,23 @@ public class EntityThrottlingMixin {
                 return;
             }
 
-            if (self instanceof net.minecraft.world.entity.Mob) {
+            if (self instanceof net.minecraft.world.entity.Mob ||
+                self instanceof net.minecraft.world.entity.player.Player ||
+                self instanceof net.minecraft.world.entity.decoration.ArmorStand ||
+                self instanceof net.minecraft.world.entity.ExperienceOrb) {
                 return;
             }
 
-            if (self instanceof net.minecraft.world.entity.player.Player) {
-                return;
-            }
-
-            if (self instanceof net.minecraft.world.entity.decoration.ArmorStand) {
-                return;
-            }
-
-            Bridge bridge = BridgeManager.getBridge();
+            Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge == null) {
                 return;
             }
 
             if (bridge.isVirtualEntity(self)) {
-                
-                if (bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[EntityThrottling] Excluded virtual entity from throttling: %s, uuid=%s",
-                        self.getClass().getSimpleName(),
-                        self.getUUID().toString()
-                    );
-                }
+                BridgeConfigCache.debugLog("[EntityThrottling] Excluded virtual entity from throttling: %s, uuid=%s",
+                    self.getClass().getSimpleName(),
+                    self.getUUID().toString()
+                );
                 return;
             }
 
@@ -99,15 +91,12 @@ public class EntityThrottlingMixin {
                 }
             }
 
-            if (self instanceof net.minecraft.world.entity.ExperienceOrb) {
-                return; 
-            }
-
             if (bridge.shouldThrottleEntity(self)) {
                 ci.cancel();
             }
 
         } catch (Exception e) {
+            
         }
     }
 }

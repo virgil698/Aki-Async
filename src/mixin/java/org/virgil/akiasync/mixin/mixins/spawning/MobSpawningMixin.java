@@ -1,112 +1,115 @@
 package org.virgil.akiasync.mixin.mixins.spawning;
-import java.util.List;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.StructureManager;
-import net.minecraft.world.level.biome.MobSpawnSettings;
-import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.chunk.LevelChunk;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
-@SuppressWarnings("unused")
-@Mixin(NaturalSpawner.class)
-public abstract class MobSpawningMixin {
-    private static volatile boolean cached_enabled;
-    private static volatile boolean cached_densityControlEnabled;
-    private static volatile int cached_maxPerChunk;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Mixin(value = NaturalSpawner.class, priority = 1100)
+public class MobSpawningMixin {
+    
+    @Unique
     private static volatile boolean initialized = false;
-    private static volatile boolean isFolia = false;
-    @WrapOperation(
-        method = "spawnCategoryForPosition",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/NaturalSpawner;isValidSpawnPostitionForType(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/biome/MobSpawnSettings$SpawnerData;Lnet/minecraft/core/BlockPos$MutableBlockPos;D)Z"
-        ),
-        require = 0
-    )
-    private static boolean wrapSpawn1(ServerLevel level, MobCategory category, StructureManager sm, ChunkGenerator cg, MobSpawnSettings.SpawnerData sd, MutableBlockPos pos, double dist, Operation<Boolean> original) {
-        if (!initialized) { akiasync$initMobSpawning(); }
-        boolean ok = original.call(level, category, sm, cg, sd, pos, dist);
-        if (ok && cached_enabled && cached_densityControlEnabled && isChunkOverDensity(level, category, pos)) {
-            ok = false;
-        }
-        return ok;
-    }
-    @WrapOperation(
+    
+    @Unique
+    private static volatile boolean optimizationEnabled = false;
+    
+    @Unique
+    private static volatile boolean cacheEnabled = true;
+    
+    @Unique
+    private static final ConcurrentHashMap<Long, Long> lastSpawnTimeCache = new ConcurrentHashMap<>();
+    
+    @Unique
+    private static volatile int cacheAccessCount = 0;
+    @Unique
+    private static final int CACHE_CLEANUP_INTERVAL = 1000;
+    @Unique
+    private static final int MAX_CACHE_SIZE = 5000;
+    
+    @Inject(
         method = "spawnForChunk",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/NaturalSpawner;isValidSpawnPostitionForType(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/biome/MobSpawnSettings$SpawnerData;Lnet/minecraft/core/BlockPos$MutableBlockPos;D)Z"
-        ),
-        require = 0
+        at = @At("HEAD"),
+        cancellable = false
     )
-    private static boolean wrapSpawn2(ServerLevel level, MobCategory category, StructureManager sm, ChunkGenerator cg, MobSpawnSettings.SpawnerData sd, MutableBlockPos pos, double dist, Operation<Boolean> original) {
-        if (!initialized) { akiasync$initMobSpawning(); }
-        boolean ok = original.call(level, category, sm, cg, sd, pos, dist);
-        if (ok && cached_enabled && cached_densityControlEnabled && isChunkOverDensity(level, category, pos)) {
-            ok = false;
+    private static void onSpawnForChunk(
+        ServerLevel level,
+        LevelChunk chunk,
+        NaturalSpawner.SpawnState spawnState,
+        List<MobCategory> categories,
+        CallbackInfo ci
+    ) {
+        if (!initialized) {
+            akiasync$init();
         }
-        return ok;
-    }
-    private static boolean isChunkOverDensity(ServerLevel level, MobCategory category, BlockPos pos) {
-        if (isFolia) {
-            try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeManager.getBridge();
-                if (bridge == null || !bridge.canAccessBlockPosDirectly(level, pos)) {
-                    return false;
-                }
-            } catch (Throwable t) {
-                return false;
-            }
+        
+        if (!optimizationEnabled) {
+            return;
         }
-
-        try {
-            int cx = (pos.getX() >> 4) << 4;
-            int cz = (pos.getZ() >> 4) << 4;
-            int minY = level.dimensionType().minY();
-            int maxY = minY + level.dimensionType().height();
-            AABB box = new AABB(cx, minY, cz, cx + 16, maxY, cz + 16);
-
-            int mobCount = level.getEntitiesOfClass(Mob.class, box, m -> m.getType().getCategory() == category).size();
-            return cached_maxPerChunk > 0 && mobCount >= cached_maxPerChunk;
-        } catch (Throwable ignored) {
-            return false;
+        
+        if (cacheEnabled && ++cacheAccessCount >= CACHE_CLEANUP_INTERVAL) {
+            cacheAccessCount = 0;
+            akiasync$cleanupCache();
+        }
+        
+        if (cacheEnabled) {
+            long chunkPos = chunk.getPos().toLong();
+            lastSpawnTimeCache.put(chunkPos, System.currentTimeMillis());
         }
     }
-    private static synchronized void akiasync$initMobSpawning() {
+    
+    @Unique
+    private static void akiasync$cleanupCache() {
+        if (lastSpawnTimeCache.size() > MAX_CACHE_SIZE) {
+            long currentTime = System.currentTimeMillis();
+            long expirationTime = 60000; 
+            
+            lastSpawnTimeCache.entrySet().removeIf(entry -> 
+                currentTime - entry.getValue() > expirationTime
+            );
+            
+            BridgeConfigCache.debugLog("[MobSpawn] Cache cleaned, size: " + lastSpawnTimeCache.size());
+        }
+    }
+    
+    @Unique
+    private static synchronized void akiasync$init() {
         if (initialized) return;
-
-        try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-            isFolia = true;
-        } catch (ClassNotFoundException e) {
-            isFolia = false;
-        }
-
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
-            cached_enabled = bridge.isMobSpawningEnabled();
-            cached_densityControlEnabled = bridge.isDensityControlEnabled();
-            cached_maxPerChunk = bridge.getMaxEntitiesPerChunk();
-
-            if (isFolia) {
-                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized in Folia mode: enabled=" + cached_enabled +
-                    ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk + " (with region safety checks)");
-            } else {
-                bridge.debugLog("[AkiAsync] MobSpawningMixin initialized: enabled=" + cached_enabled + ", densityControl=" + cached_densityControlEnabled + ", maxPerChunk=" + cached_maxPerChunk);
-            }
-        } else {
-            cached_enabled = false;
-            cached_densityControlEnabled = true;
-            cached_maxPerChunk = 80;
+            optimizationEnabled = bridge.isMobSpawningEnabled();
+            
+            BridgeConfigCache.debugLog("[AkiAsync-MobSpawn] Synchronous mob spawning optimization initialized");
+            BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Optimization enabled: " + optimizationEnabled);
+            BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Cache enabled: " + cacheEnabled);
+            BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Strategy: Sync with caching and pre-checks");
+            BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Reference: Luminol (avoid chunk loading)");
         }
+        
         initialized = true;
+    }
+    
+    @Unique
+    private static String akiasync$getCacheStats() {
+        return String.format("MobSpawnCache: size=%d/%d", 
+            lastSpawnTimeCache.size(), MAX_CACHE_SIZE);
+    }
+    
+    @Unique
+    private static void akiasync$clearCache() {
+        lastSpawnTimeCache.clear();
+        BridgeConfigCache.debugLog("[MobSpawn] All caches cleared");
     }
 }

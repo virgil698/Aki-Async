@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.lighting.SkyLightEngine;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @SuppressWarnings("unused")
 @Mixin(value = SkyLightEngine.class, priority = 1100)
 public abstract class SkylightCacheMixin {
@@ -59,7 +60,7 @@ public abstract class SkylightCacheMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] SkylightCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDurationMs + "ms");
+            BridgeConfigCache.debugLog("[AkiAsync] SkylightCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDurationMs + "ms");
         }
     }
     private static class CachedSkylightValue {

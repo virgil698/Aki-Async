@@ -25,7 +25,7 @@ public class AsyncExecutorManager {
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
-        int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
+        int lightingThreads = calculateLightingThreads(plugin);
         int tntThreads = plugin.getConfigManager().getTNTThreads();
 
         this.executorService = (ForkJoinPool) ResourceTracker.track(
@@ -169,11 +169,64 @@ public class AsyncExecutorManager {
         plugin.getLogger().info("[AkiAsync] Starting smooth restart of async executors...");
         
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
-        int lightingThreads = plugin.getConfigManager().getLightingThreadPoolSize();
+        int lightingThreads = calculateLightingThreads(plugin);
         
         plugin.getLogger().warning("[AkiAsync] Smooth restart requires plugin reload to take effect");
         plugin.getLogger().warning("  - Desired general executor threads: " + threadPoolSize);
         plugin.getLogger().warning("  - Desired lighting executor threads: " + lightingThreads);
         plugin.getLogger().warning("  - Please use /reload or restart the server to apply new thread pool sizes");
+    }
+    
+    private static int calculateLightingThreads(AkiAsyncPlugin plugin) {
+        String mode = plugin.getConfigManager().getLightingThreadPoolMode();
+        
+        if ("auto".equalsIgnoreCase(mode)) {
+            int cores = Runtime.getRuntime().availableProcessors();
+            String formula = plugin.getConfigManager().getLightingThreadPoolCalculation();
+            int minThreads = plugin.getConfigManager().getLightingMinThreads();
+            int maxThreads = plugin.getConfigManager().getLightingMaxThreads();
+            
+            int calculated;
+            
+            switch (formula.toLowerCase()) {
+                case "cores/3":
+                    
+                    calculated = Math.max(1, cores / 3);
+                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/3 = " + cores + "/3 = " + calculated);
+                    break;
+                    
+                case "cores/2":
+                    
+                    calculated = Math.max(1, cores / 2);
+                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/2 = " + cores + "/2 = " + calculated);
+                    break;
+                    
+                case "cores/4":
+                    
+                    calculated = Math.max(1, cores / 4);
+                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/4 = " + cores + "/4 = " + calculated);
+                    break;
+                    
+                default:
+                    
+                    calculated = 2;
+                    plugin.getLogger().warning("[AkiAsync] Unknown lighting thread formula '" + formula + "', using default: 2");
+                    break;
+            }
+            
+            int finalThreads = Math.max(minThreads, Math.min(maxThreads, calculated));
+            
+            if (finalThreads != calculated) {
+                plugin.getLogger().info("[AkiAsync] Lighting threads adjusted by limits: " + calculated + " -> " + finalThreads + 
+                    " (min=" + minThreads + ", max=" + maxThreads + ")");
+            }
+            
+            return finalThreads;
+        } else {
+            
+            int manualThreads = plugin.getConfigManager().getLightingThreadPoolSize();
+            plugin.getLogger().info("[AkiAsync] Lighting threads (manual): " + manualThreads);
+            return manualThreads;
+        }
     }
 }

@@ -80,13 +80,12 @@ public abstract class EntityPushOptimizationMixin {
             return;
         }
         
-        double dist = Math.sqrt(distSqr);
-        double pushStrength = fixedPushStrength / dist;
+        double invDistSqr = fixedPushStrength / distSqr;
         
-        dx /= dist;
-        dz /= dist;
+        dx *= invDistSqr;
+        dz *= invDistSqr;
         
-        Vec3 push = new Vec3(dx * pushStrength, 0, dz * pushStrength);
+        Vec3 push = new Vec3(dx, 0, dz);
         
         if (!akiasync$accumulatePush(self.getId(), push)) {
             
@@ -131,9 +130,11 @@ public abstract class EntityPushOptimizationMixin {
         
         double newTotalX = accumulator.totalX + Math.abs(push.x);
         double newTotalZ = accumulator.totalZ + Math.abs(push.z);
-        double newTotal = Math.sqrt(newTotalX * newTotalX + newTotalZ * newTotalZ);
         
-        if (newTotal > maxPushPerTick) {
+        double newTotalSqr = newTotalX * newTotalX + newTotalZ * newTotalZ;
+        double maxPushSqr = maxPushPerTick * maxPushPerTick;
+        
+        if (newTotalSqr > maxPushSqr) {
             return false;
         }
         
@@ -153,9 +154,10 @@ public abstract class EntityPushOptimizationMixin {
             }
             
             Vec3 delta = entity.getDeltaMovement();
-            double horizontalSpeed = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
             
-            return horizontalSpeed > 0.02;
+            double horizontalSpeedSqr = delta.x * delta.x + delta.z * delta.z;
+            
+            return horizontalSpeedSqr > 0.0004; 
         } catch (Exception e) {
             
             return false;

@@ -2,12 +2,17 @@ package org.virgil.akiasync.mixin.async.explosion.density;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SakuraBlockDensityCache {
@@ -16,6 +21,8 @@ public class SakuraBlockDensityCache {
     private final Object2FloatOpenHashMap<BlockDensityCacheKey> exactCache = new Object2FloatOpenHashMap<>();
     
     private final Int2ObjectOpenHashMap<CachedBlockDensity> lenientCache = new Int2ObjectOpenHashMap<>();
+    
+    private final Object2ObjectOpenHashMap<IdBlockPos, Float> spatialIndex = new Object2ObjectOpenHashMap<>();
     
     private static final Map<ServerLevel, SakuraBlockDensityCache> LEVEL_CACHES = new ConcurrentHashMap<>();
     
@@ -84,10 +91,12 @@ public class SakuraBlockDensityCache {
     public void clear() {
         exactCache.clear();
         lenientCache.clear();
+        spatialIndex.clear();
     }
 
     public String getStats() {
-        return String.format("Exact: %d, Lenient: %d", exactCache.size(), lenientCache.size());
+        return String.format("Exact: %d, Lenient: %d, SpatialIndex: %d", 
+            exactCache.size(), lenientCache.size(), spatialIndex.size());
     }
     
     public static void clearAllCaches() {
@@ -95,5 +104,99 @@ public class SakuraBlockDensityCache {
             cache.clear();
         }
         LEVEL_CACHES.clear();
+    }
+    
+    public void putSpatialIndex(Vec3 explosionPos, Vec3 entityPos, UUID entityId, float density) {
+        
+        int x = ((int) Math.floor(entityPos.x)) & 15;
+        int y = ((int) Math.floor(entityPos.y)) & 15;
+        int z = ((int) Math.floor(entityPos.z)) & 15;
+        
+        IdBlockPos idPos = new IdBlockPos(x, y, z, entityId, density);
+        spatialIndex.put(idPos, density);
+    }
+    
+    public List<IdBlockPos> querySpatialIndex(AABB explosionAABB) {
+        List<IdBlockPos> result = new ArrayList<>();
+        
+        int minX = Math.max(0, ((int) Math.floor(explosionAABB.minX)) & 15);
+        int minY = Math.max(0, ((int) Math.floor(explosionAABB.minY)) & 15);
+        int minZ = Math.max(0, ((int) Math.floor(explosionAABB.minZ)) & 15);
+        int maxX = Math.min(15, ((int) Math.ceil(explosionAABB.maxX)) & 15);
+        int maxY = Math.min(15, ((int) Math.ceil(explosionAABB.maxY)) & 15);
+        int maxZ = Math.min(15, ((int) Math.ceil(explosionAABB.maxZ)) & 15);
+        
+        int startKey = minY * 1000000 + minZ * 1000 + minX;
+        int endKey = maxY * 1000000 + maxZ * 1000 + maxX;
+        
+        for (Map.Entry<IdBlockPos, Float> entry : spatialIndex.entrySet()) {
+            IdBlockPos idPos = entry.getKey();
+            int linearKey = idPos.getLinearKey();
+            
+            if (linearKey >= startKey && linearKey <= endKey) {
+                
+                if (idPos.getX() >= minX && idPos.getX() <= maxX &&
+                    idPos.getY() >= minY && idPos.getY() <= maxY &&
+                    idPos.getZ() >= minZ && idPos.getZ() <= maxZ) {
+                    result.add(idPos);
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    public float getDensityByPosition(int x, int y, int z, UUID entityId) {
+        if (entityId == null) return UNKNOWN_DENSITY;
+        
+        IdBlockPos searchKey = new IdBlockPos(x, y, z, entityId, 0.0f);
+        
+        for (Map.Entry<IdBlockPos, Float> entry : spatialIndex.entrySet()) {
+            IdBlockPos idPos = entry.getKey();
+            if (searchKey.strictEquals(idPos)) {
+                return entry.getValue();
+            }
+        }
+        
+        return UNKNOWN_DENSITY;
+    }
+    
+    public float getDensityByUUID(UUID entityId) {
+        if (entityId == null) return UNKNOWN_DENSITY;
+        
+        for (Map.Entry<IdBlockPos, Float> entry : spatialIndex.entrySet()) {
+            IdBlockPos idPos = entry.getKey();
+            if (entityId.equals(idPos.getEntityId())) {
+                return entry.getValue();
+            }
+        }
+        
+        return UNKNOWN_DENSITY;
+    }
+    
+    public boolean containsEntity(UUID entityId) {
+        if (entityId == null) return false;
+        
+        for (IdBlockPos idPos : spatialIndex.keySet()) {
+            if (entityId.equals(idPos.getEntityId())) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public boolean containsEntityAtPosition(int x, int y, int z, UUID entityId) {
+        if (entityId == null) return false;
+        
+        IdBlockPos searchKey = new IdBlockPos(x, y, z, entityId, 0.0f);
+        
+        for (IdBlockPos idPos : spatialIndex.keySet()) {
+            if (searchKey.strictEquals(idPos)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

@@ -15,6 +15,8 @@ public abstract class CollisionOptimizationMixin {
     @Unique
     private static volatile double minMovement = 0.001D;
     @Unique
+    private static volatile double minMovementSqr = 0.001D * 0.001D; 
+    @Unique
     private static volatile boolean initialized = false;
     @Unique
     private static volatile boolean aggressiveMode = true;
@@ -31,9 +33,7 @@ public abstract class CollisionOptimizationMixin {
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
 
-        if (akiasync$isVirtualEntity(self)) {
-            return;
-        }
+        if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(self)) return;
         
         if (aggressiveMode) {
             long currentTime = System.currentTimeMillis();
@@ -53,7 +53,7 @@ public abstract class CollisionOptimizationMixin {
 
         if (self instanceof net.minecraft.world.entity.item.ItemEntity item) {
             if (!item.isInLava() && !item.isOnFire() && item.getRemainingFireTicks() <= 0) {
-                if (self.getDeltaMovement().lengthSqr() < minMovement) {
+                if (self.getDeltaMovement().lengthSqr() < minMovementSqr) {
                     ci.cancel();
                 }
             }
@@ -95,7 +95,7 @@ public abstract class CollisionOptimizationMixin {
             }
         }
 
-        if (self.getDeltaMovement().lengthSqr() < minMovement) {
+        if (self.getDeltaMovement().lengthSqr() < minMovementSqr) {
             ci.cancel();
         }
     }
@@ -104,14 +104,12 @@ public abstract class CollisionOptimizationMixin {
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
 
-        if (akiasync$isVirtualEntity(self) || akiasync$isVirtualEntity(other)) {
-            return;
-        }
+        if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.isAny(self, other)) return;
         
         double selfMovementSqr = self.getDeltaMovement().lengthSqr();
         double otherMovementSqr = other.getDeltaMovement().lengthSqr();
         
-        if (selfMovementSqr < minMovement && otherMovementSqr < minMovement) {
+        if (selfMovementSqr < minMovementSqr && otherMovementSqr < minMovementSqr) {
             ci.cancel();
             return;
         }
@@ -123,14 +121,6 @@ public abstract class CollisionOptimizationMixin {
                 ci.cancel();
             }
         }
-    }
-
-    private boolean akiasync$isVirtualEntity(Entity entity) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge != null) {
-            return bridge.isVirtualEntity(entity);
-        }
-        return false;
     }
 
     private static synchronized void akiasync$initCollisionOptimization() {

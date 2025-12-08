@@ -64,11 +64,31 @@ public class ExplosionCalculator {
     }
 
     public ExplosionResult calculate() {
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] ExplosionCalculator.calculate() started");
+        }
+        
         calculateAffectedBlocks();
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] Blocks to destroy: %d", toDestroy.size());
+        }
+        
         calculateEntityDamage();
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] Entities to hurt: %d", toHurt.size());
+        }
         
         ExplosionResult result = RESULT_POOL.acquire();
         result.set(new ArrayList<>(toDestroy), new HashMap<>(toHurt), snapshot.isFire());
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] ExplosionCalculator.calculate() completed");
+        }
         
         return result;
     }
@@ -176,7 +196,35 @@ public class ExplosionCalculator {
             return;
         }
         double radius = 8.0;
-        for (ExplosionSnapshot.EntitySnapshot entity : snapshot.getEntities()) {
+        
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
+            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        
+        java.util.List<ExplosionSnapshot.EntitySnapshot> entitiesToProcess = snapshot.getEntities();
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] calculateEntityDamage: Processing %d entities", entitiesToProcess.size());
+            bridge.debugLog("[AkiAsync-TNT] Explosion center: %s", center);
+            bridge.debugLog("[AkiAsync-TNT] Explosion radius: %.1f", radius);
+        }
+        
+        if (bridge != null && bridge.isTNTUseSakuraDensityCache()) {
+            
+            net.minecraft.world.phys.AABB explosionAABB = new net.minecraft.world.phys.AABB(
+                center.x - radius, center.y - radius, center.z - radius,
+                center.x + radius, center.y + radius, center.z + radius
+            );
+            
+            java.util.List<org.virgil.akiasync.mixin.async.explosion.density.IdBlockPos> filteredEntities = 
+                densityCache.querySpatialIndex(explosionAABB);
+            
+            if (bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Spatial index filtered: " + 
+                    filteredEntities.size() + " / " + entitiesToProcess.size() + " entities");
+            }
+        }
+        
+        for (ExplosionSnapshot.EntitySnapshot entity : entitiesToProcess) {
             double dx = entity.getPosition().x - center.x;
             double dy = entity.getPosition().y - center.y;
             double dz = entity.getPosition().z - center.z;
@@ -188,8 +236,6 @@ public class ExplosionCalculator {
 
             double impact = (1.0 - dist / radius) * exposure;
 
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isTNTDebugEnabled()) {
                 bridge.debugLog("[AkiAsync-TNT] Entity damage calculation: " +
                     entity.getUuid() + " dist=" + String.format("%.2f", dist) +
@@ -197,7 +243,12 @@ public class ExplosionCalculator {
                     " impact=" + String.format("%.3f", impact));
             }
 
-            if (impact <= 0.0) continue;
+            if (impact <= 0.0) {
+                if (bridge != null && bridge.isTNTDebugEnabled()) {
+                    bridge.debugLog("[AkiAsync-TNT] Entity %s impact <= 0, skipping", entity.getUuid());
+                }
+                continue;
+            }
 
             double knockbackX = dx / dist * impact;
             double knockbackY = Math.max(dy / dist * impact, impact * 0.3);
@@ -212,19 +263,29 @@ public class ExplosionCalculator {
                 knockbackZ *= scale;
             }
 
-            toHurt.put(entity.getUuid(), new Vec3(knockbackX, knockbackY, knockbackZ));
+            Vec3 knockbackVec = new Vec3(knockbackX, knockbackY, knockbackZ);
+            
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Adding entity %s to hurt list", entity.getUuid());
+                bridge.debugLog("[AkiAsync-TNT]   Knockback: %s", knockbackVec);
+            }
+            
+            toHurt.put(entity.getUuid(), knockbackVec);
+        }
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] calculateEntityDamage completed, total entities to hurt: %d", toHurt.size());
         }
     }
     private double calculateExposure(Vec3 explosionCenter, ExplosionSnapshot.EntitySnapshot entity) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
-        Entity realEntity = snapshot.getLevel().getEntity(entity.getUuid());
-        if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
-            float cachedDensity = densityCache.getBlockDensity(explosionCenter, realEntity);
+        if (bridge != null && bridge.isTNTUseSakuraDensityCache()) {
+            float cachedDensity = densityCache.getDensityByUUID(entity.getUuid());
             if (cachedDensity != SakuraBlockDensityCache.UNKNOWN_DENSITY) {
                 if (bridge.isTNTDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-TNT] Using cached density: " + 
+                    bridge.debugLog("[AkiAsync-TNT] Using cached density from spatial index: " + 
                         entity.getUuid() + " density=" + String.format("%.3f", cachedDensity));
                 }
                 return cachedDensity;
@@ -265,8 +326,8 @@ public class ExplosionCalculator {
 
         double exposure = (double) visibleRays / totalRays;
 
-        if (realEntity != null && bridge != null && bridge.isTNTUseSakuraDensityCache()) {
-            densityCache.putBlockDensity(explosionCenter, realEntity, (float) exposure);
+        if (bridge != null && bridge.isTNTUseSakuraDensityCache()) {
+            densityCache.putSpatialIndex(explosionCenter, entity.getPosition(), entity.getUuid(), (float) exposure);
         }
 
         if (bridge != null && bridge.isTNTDebugEnabled()) {

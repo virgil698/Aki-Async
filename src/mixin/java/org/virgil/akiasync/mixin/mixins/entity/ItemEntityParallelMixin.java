@@ -6,6 +6,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +61,7 @@ public abstract class ItemEntityParallelMixin {
 
         try {
             
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            Bridge bridge = BridgeManager.getBridge();
             java.util.concurrent.ExecutorService executor = dedicatedPool != null ? dedicatedPool : 
                 (bridge != null ? bridge.getGeneralExecutor() : null);
             
@@ -88,22 +91,14 @@ public abstract class ItemEntityParallelMixin {
                 .get(adaptiveTimeout, TimeUnit.MILLISECONDS);
 
             if (executionCount % 100 == 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge logBridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (logBridge != null) {
-                    logBridge.debugLog(
-                        "[AkiAsync-ItemEntity] Processed %d item entities in %d batches (timeout: %dms)",
-                        itemEntities.size(), batches.size(), adaptiveTimeout
-                    );
-                }
+                BridgeConfigCache.debugLog(
+                    "[AkiAsync-ItemEntity] Processed %d item entities in %d batches (timeout: %dms)",
+                    itemEntities.size(), batches.size(), adaptiveTimeout
+                );
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
-                org.virgil.akiasync.mixin.bridge.Bridge errorBridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (errorBridge != null) {
-                    errorBridge.debugLog("[AkiAsync-ItemEntity] Timeout/Error: " + t.getMessage());
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-ItemEntity] Timeout/Error: " + t.getMessage());
             }
         }
     }
@@ -144,8 +139,7 @@ public abstract class ItemEntityParallelMixin {
         if (entity == null) return false;
 
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
                 return bridge.isVirtualEntity(entity);
             }
@@ -166,13 +160,12 @@ public abstract class ItemEntityParallelMixin {
             isFolia = false;
         }
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
 
         if (bridge != null) {
             if (isFolia) {
                 enabled = false;
-                bridge.debugLog("[AkiAsync] ItemEntityParallelMixin disabled in Folia mode");
+                BridgeConfigCache.debugLog("[AkiAsync] ItemEntityParallelMixin disabled in Folia mode");
             } else {
                 enabled = bridge.isItemEntityParallelEnabled();
             }
@@ -188,11 +181,9 @@ public abstract class ItemEntityParallelMixin {
 
         initialized = true;
 
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] ItemEntityParallelMixin initialized: enabled=" + enabled +
-                ", isFolia=" + isFolia + ", batchSize=" + batchSize +
-                ", minItemEntities=" + minItemEntities +
-                ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
-        }
+        BridgeConfigCache.debugLog("[AkiAsync] ItemEntityParallelMixin initialized: enabled=" + enabled +
+            ", isFolia=" + isFolia + ", batchSize=" + batchSize +
+            ", minItemEntities=" + minItemEntities +
+            ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
     }
 }

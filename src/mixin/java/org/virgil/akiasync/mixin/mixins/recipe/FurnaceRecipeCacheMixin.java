@@ -18,6 +18,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 import java.util.Optional;
 
@@ -186,18 +189,13 @@ public abstract class FurnaceRecipeCacheMixin {
     @Unique
     private static void akiasync$logCacheStatsStatic() {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            double hitRate = totalLookups > 0 ?
+                (double) cacheHits / totalLookups * 100 : 0;
 
-            if (bridge != null) {
-                double hitRate = totalLookups > 0 ?
-                    (double) cacheHits / totalLookups * 100 : 0;
-
-                bridge.debugLog(
-                    "[AkiAsync-FurnaceCache] Stats: Lookups=%d, Hits=%d, Misses=%d, HitRate=%.2f%%",
-                    totalLookups, cacheHits, cacheMisses, hitRate
-                );
-            }
+            BridgeConfigCache.debugLog(
+                "[AkiAsync-FurnaceCache] Stats: Lookups=%d, Hits=%d, Misses=%d, HitRate=%.2f%%",
+                totalLookups, cacheHits, cacheMisses, hitRate
+            );
         } catch (Throwable t) {
         }
     }
@@ -206,8 +204,7 @@ public abstract class FurnaceRecipeCacheMixin {
     private static synchronized void akiasync$initFurnaceCache() {
         if (initialized) return;
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
 
         if (bridge != null) {
             enabled = bridge.isFurnaceRecipeCacheEnabled();
@@ -216,12 +213,12 @@ public abstract class FurnaceRecipeCacheMixin {
             applyToSmoker = bridge.isFurnaceCacheApplyToSmoker();
             fixBurnTimeBug = bridge.isFurnaceFixBurnTimeBug();
 
-            bridge.debugLog("[AkiAsync] FurnaceRecipeCache initialized:");
-            bridge.debugLog("  - Enabled: " + enabled);
-            bridge.debugLog("  - Cache size: " + cacheSize);
-            bridge.debugLog("  - Apply to blast furnace: " + applyToBlastFurnace);
-            bridge.debugLog("  - Apply to smoker: " + applyToSmoker);
-            bridge.debugLog("  - Fix burn time bug: " + fixBurnTimeBug);
+            BridgeConfigCache.debugLog("[AkiAsync] FurnaceRecipeCache initialized:");
+            BridgeConfigCache.debugLog("  - Enabled: " + enabled);
+            BridgeConfigCache.debugLog("  - Cache size: " + cacheSize);
+            BridgeConfigCache.debugLog("  - Apply to blast furnace: " + applyToBlastFurnace);
+            BridgeConfigCache.debugLog("  - Apply to smoker: " + applyToSmoker);
+            BridgeConfigCache.debugLog("  - Fix burn time bug: " + fixBurnTimeBug);
         } else {
             enabled = false;
         }

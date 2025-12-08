@@ -206,7 +206,6 @@ public class VirtualEntityCompatManager {
         
         if (enabled) {
             org.virgil.akiasync.util.VirtualEntityDetector.setDetectorRegistry(detectorRegistry);
-            org.virgil.akiasync.network.PacketClassifier.setVirtualEntityHandler(packetHandler);
         }
         
         logger.info("[VirtualEntity] Virtual entity compatibility configuration reloaded successfully");

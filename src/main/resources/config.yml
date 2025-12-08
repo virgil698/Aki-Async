@@ -19,6 +19,7 @@ entity-tracker:
 mob-spawning:
   enabled: true  # 启用异步生成 / Enable async spawning
   spawner-optimization: true  # 优化刷怪笼性能 / Optimize spawner performance
+  spawn-interval: 1  # 生成频率 / Spawn frequency (1=每tick, 2=每2tick, 3=每3tick / 1=every tick, 2=every 2 ticks, 3=every 3 ticks)
 
 # 实体密度控制 / Entity Density Control (限制单区块实体数 / Limit per chunk)
 density:
@@ -28,7 +29,7 @@ density:
 # AI降频 / Brain Throttle (静止实体降低更新频率 / Reduce updates for stationary mobs)
 # Note: UniversalAI自动感知降频状态 / UniversalAI auto-respects throttle state
 brain:
-  throttle: true  # 启用AI降频 / Enable brain throttling
+  enabled: true  # 启用AI降频 / Enable brain throttling
   throttle-interval: 10  # 降频间隔(tick)，静止实体每N tick更新一次 / Throttle interval in ticks, stationary mobs update every N ticks
 
 # 窒息优化 / Suffocation Optimization (仅在实体能受伤时检测窒息 / Only check when entity can take damage)
@@ -100,6 +101,13 @@ collision-optimization:
     # Section 实体网格优化 / Section Entity Grid Optimization
     use-section-grid: true  # 使用 Section 网格（推荐） / Use Section grid (recommended)
     section-grid-warmup: false  # 预热网格（可选，增加内存占用） / Warmup grid (optional, increases memory usage)
+  
+  # 形状优化 / Shape Optimization
+  shape-optimization:
+    enabled: true  # 启用形状优化 / Enable shape optimization
+    precompute-arrays: true  # 预计算形状数组 / Precompute shape arrays (减少对象分配 / Reduces object allocation)
+    block-shape-cache: true  # 方块形状缓存 / Block shape cache (2-3x更快 / 2-3x faster)
+    cache-size: 512  # 缓存大小 / Cache size (推荐512-2048 / Recommended: 512-2048)
 
 # 实体移动优化 / Living Entity Travel Optimization
 living-entity-travel-optimization:
@@ -187,20 +195,19 @@ async-ai:
   witch-optimization:
     enabled: false
   
-  # 异步寻路 / Async Pathfinding (Pufferfish技术: A*算法异步化 / A* algorithm offload)
+  # 异步寻路 / Async Pathfinding
   async-pathfinding:
-    enabled: true
-    max-threads: 8  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
-    keep-alive-seconds: 60
-    max-queue-size: 500
-    timeout-ms: 50
+    enabled: true  # 启用异步寻路 / Enable async pathfinding
+    max-threads: 8  # 线程池大小 / Thread pool size (推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5)
+    keep-alive-seconds: 60  # 线程存活时间 / Thread keep-alive time
+    max-queue-size: 500  # 最大队列大小 / Max queue size (推荐500-1000 / Recommended: 500-1000)
     
     # 路径缓存 / Path Cache (路径重用优化 / Path reuse optimization)
     cache:
-      enabled: true
-      max-size: 1000  # 最大缓存路径数 / Max cached paths
-      expire-seconds: 30  # 路径过期时间 / Path expiration time
-      reuse-tolerance: 3  # 路径重用容差（方块） / Path reuse tolerance (blocks)
+      enabled: true  # 启用缓存 / Enable cache
+      max-size: 1000  # 最大缓存路径数 / Max cached paths (推荐1000-2000 / Recommended: 1000-2000)
+      expire-seconds: 30  # 路径过期时间 / Path expiration time (推荐20-60秒 / Recommended: 20-60s)
+      reuse-tolerance: 3  # 路径重用容差（方块） / Path reuse tolerance in blocks
       cleanup-interval-seconds: 5  # 清理间隔 / Cleanup interval
 
   # 统一AI优化 / Universal AI (所有剩余生物见entities.yml / 统一模板+配置化+DAB)
@@ -302,6 +309,15 @@ block-entity-optimizations:
   hopper-optimization:
     enabled: true
     cache-expire-time: 100  # 缓存过期时间（毫秒） / Cache expiration time (ms)
+    container-cache: true  # 容器缓存 / Container cache
+    skip-failed-transfers: true  # 跳过失败的传输尝试 / Skip failed transfer attempts
+    fast-empty-full-check: true  # 快速空满检测 / Fast empty/full check
+  
+  # 流体流动优化 / Fluid Flow Optimization (基于 Lithium / Based on Lithium)
+  fluid-flow-optimization:
+    enabled: true  # 启用流体优化 / Enable fluid optimization
+    optimize-sign-check: true  # 优化告示牌检查 / Optimize sign check (避免标签查找 / Avoid tag lookup)
+    reduce-state-queries: true  # 减少方块状态查询 / Reduce block state queries
   
   # 矿车tick优化 / Minecart Tick Optimization (降低矿车tick频率 / Reduce minecart tick frequency)
   minecart-optimization:
@@ -325,7 +341,7 @@ recipe-optimization:
     optimize-batch-crafting: true  # Shift+点击优化O(i×s)→1 / Shift+click O(i×s)→1
     reduce-network-traffic: true  # 减少配方同步网络流量 / Reduce recipe sync network traffic
 
-servercore-optimizations:
+misc-optimizations:
   # 矿车炼药锅销毁 / Minecart Cauldron (支持漏斗/箱子矿车 / Hopper/Chest minecarts)
   minecart-cauldron-destruction:
     enabled: true
@@ -338,6 +354,16 @@ tnt-explosion-optimization:
     - "minecraft:tnt_minecart"
     - "minecraft:wither_skull"
   threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
+  
+  # 原版兼容性 / Vanilla Compatibility
+  vanilla-compatibility:
+    enabled: true  # 启用原版兼容模式 / Enable vanilla compatibility mode
+    use-vanilla-power: true  # 使用原版爆炸威力 / Use vanilla explosion power
+    use-vanilla-fire-logic: true  # 使用原版火焰逻辑 / Use vanilla fire logic
+    use-vanilla-damage-calculation: true  # 使用原版伤害计算 / Use vanilla damage calculation (重要：确保对生物造成伤害 / IMPORTANT: Ensures damage to entities)
+    use-full-raycast: false  # 使用完整射线追踪 / Use full raycast (更精确但性能开销大 / More accurate but higher performance cost)
+    use-vanilla-block-destruction: true  # 使用原版方块破坏 / Use vanilla block destruction
+    use-vanilla-drops: true  # 使用原版掉落物 / Use vanilla drops
   
   # 爆炸缓存优化 / Explosion Cache Optimization
   cache:
@@ -394,8 +420,80 @@ lighting-optimizations:
   # 异步光照计算 / Async Lighting Calculation
   async-lighting:
     enabled: true
-    thread-pool-size: 2  # 光照计算线程数，建议2-4 / Lighting threads, recommend 2-4
-    batch-threshold: 16  # 批量处理阈值，越大延迟越低但吞吐量越高 / Batch size, higher = lower latency but better throughput
+    
+    # 线程池配置 / Thread Pool Configuration
+    # auto模式根据CPU核心数自动调整，manual模式使用固定线程数
+    # auto mode adjusts based on CPU cores, manual mode uses fixed thread count
+    thread-pool-mode: auto  # auto=自动 / manual=手动
+    thread-pool-size-manual: 2  # 手动模式下的线程数 / Threads in manual mode (推荐2-4 / Recommended: 2-4)
+    thread-pool-calculation: "cores/3"  # 计算公式 / Calculation formula (cores/3=ScalableLux, cores/2=激进 / aggressive, cores/4=保守 / conservative)
+    min-threads: 1  # 最小线程数 / Minimum threads
+    max-threads: 8  # 最大线程数 / Maximum threads (防止过度并行 / Prevent over-parallelization)
+    
+    # 批量处理 / Batch Processing
+    batch-threshold: 16  # 基础批量阈值 / Base batch threshold (越大延迟越低但吞吐量越高 / Higher = lower latency but better throughput)
+    batch-threshold-max: 64  # 最大批量阈值 / Max batch threshold
+    aggressive-batching: false  # 激进批量模式（高端服务器推荐） / Aggressive mode (recommended for high-end servers)
+    
+    # 优先级调度 / Priority Scheduling (ScalableLux核心特性 / ScalableLux core feature)
+    # 根据玩家距离和场景重要性调度光照更新，降低玩家感知延迟50-70%
+    # Schedule light updates by player distance and importance, reduce perceived latency by 50-70%
+    priority-scheduling:
+      enabled: true  # 启用优先级调度 / Enable priority scheduling
+      player-radius-high-priority: 32  # 玩家32格内高优先级 / High priority within 32 blocks
+      player-radius-medium-priority: 64  # 玩家64格内中优先级 / Medium priority within 64 blocks
+      player-radius-low-priority: 128  # 玩家128格内低优先级 / Low priority within 128 blocks
+      chunk-loading-priority: high  # 区块加载优先级 / Chunk loading priority (high/medium/normal)
+      max-low-priority-delay-ms: 500  # 低优先级最大延迟 / Max delay for low priority updates
+    
+    # 光照更新去抖动 / Light Debouncing (防止红石等频繁更新 / Prevent frequent updates from redstone)
+    # 延迟处理频繁变化的光照，减少无效计算
+    # Delay processing frequently changing lights to reduce wasted calculations
+    # 注意：地形生成时建议禁用以提高速度 / Note: Disable for faster terrain generation
+    debouncing:
+      enabled: true  # 启用去抖动 / Enable debouncing (禁用以加快地形生成 / Disabled for faster terrain)
+      debounce-delay-ms: 50  # 去抖动延迟 / Debounce delay (推荐30-100ms / Recommended: 30-100ms)
+      max-updates-per-second: 20  # 单位置每秒最大更新次数 / Max updates per position per second
+      reset-on-stable-ms: 200  # 稳定后重置计数 / Reset counter when stable for this duration
+    
+    # 光照更新合并 / Light Update Merging (合并相邻更新减少计算 / Merge adjacent updates)
+    # 检测并合并相邻方块的光照更新请求
+    # Detect and merge light update requests for adjacent blocks
+    # 注意：地形生成时建议禁用以提高速度 / Note: Disable for faster terrain generation
+    update-merging:
+      enabled: true  # 启用更新合并 / Enable update merging (禁用以加快地形生成 / Disabled for faster terrain)
+      merge-radius: 2  # 合并半径（方块） / Merge radius in blocks (推荐1-3 / Recommended: 1-3)
+      merge-delay-ms: 10  # 合并延迟（毫秒） / Merge delay in ms (等待更多更新 / Wait for more updates)
+      max-merged-updates: 64  # 单次最大合并数 / Max merged updates per batch
+    
+    # 区块边界优化 / Chunk Border Optimization (批量处理跨区块光照 / Batch cross-chunk lighting)
+    # 优化跨区块边界的光照传播，减少区块锁竞争
+    # Optimize light propagation across chunk borders, reduce chunk lock contention
+    chunk-border:
+      enabled: true  # 启用边界优化 / Enable border optimization
+      batch-border-updates: true  # 批量处理边界更新 / Batch border updates
+      border-update-delay-ms: 20  # 边界更新延迟 / Border update delay
+      cross-chunk-batch-size: 32  # 跨区块批量大小 / Cross-chunk batch size
+    
+    # 自适应调整 / Adaptive Tuning (根据负载动态调整参数 / Dynamic parameter adjustment)
+    # 监控队列和延迟，自动调整线程数和批量大小
+    # Monitor queue and latency, auto-adjust thread count and batch size
+    adaptive:
+      enabled: true  # 启用自适应 / Enable adaptive tuning
+      monitor-interval-seconds: 10  # 监控间隔 / Monitor interval
+      auto-adjust-threads: true  # 自动调整线程数 / Auto-adjust thread count
+      auto-adjust-batch-size: true  # 自动调整批量大小 / Auto-adjust batch size
+      target-queue-size: 100  # 目标队列长度 / Target queue size
+      target-latency-ms: 50  # 目标延迟 / Target latency
+    
+    # 区块卸载优化 / Chunk Unload Optimization (异步清理光照缓存 / Async cleanup)
+    # 异步清理卸载区块的光照数据，减少主线程阻塞
+    # Async cleanup of lighting data for unloaded chunks, reduce main thread blocking
+    chunk-unload:
+      enabled: true  # 启用卸载优化 / Enable unload optimization
+      async-cleanup: true  # 异步清理 / Async cleanup
+      cleanup-batch-size: 16  # 清理批量大小 / Cleanup batch size
+      cleanup-delay-ms: 100  # 清理延迟 / Cleanup delay
   
   # 光照传播队列 / Light Propagation Queue
   propagation-queue:
@@ -422,6 +520,16 @@ chunk-tick-async:
   threads: 4  # 线程数 / Thread count
   timeout-us: 200  # 超时(微秒) / Timeout in microseconds
   batch-size: 16  # 批量大小 / Batch size
+
+# 区块生成优化 / Chunk Generation Optimization
+chunk-generation:
+  # 噪声采样优化 / Noise Optimization
+  noise-optimization:
+    enabled: true  # 启用噪声优化 / Enable noise optimization
+  
+  # Jigsaw 结构生成优化 / Jigsaw Structure Optimization
+  jigsaw-optimization:
+    enabled: true  # 启用 Jigsaw 优化 / Enable Jigsaw optimization
 
 # ==========================================
 # 结构查找异步化 / Structure Location Async
@@ -495,7 +603,6 @@ datapack-optimization:
   cache-expiration-minutes: 30  # 缓存过期时间（分钟） / Cache expiration time (minutes)
   max-file-cache-size: 1000  # 文件缓存上限，防止内存泄漏 / Max file cache size, prevent memory leak
   max-filesystem-cache-size: 50  # 文件系统缓存上限 / Max filesystem cache size
-  debug-enabled: false
 
 # 高级并发优化 / Advanced Concurrency Optimizations
 nitori:
@@ -504,6 +611,12 @@ nitori:
   work-stealing: true  # 工作窃取提升多核利用 / Work-stealing for multi-core
   blockpos-cache: true  # 预计算减少开销 / Pre-compute to reduce overhead
   optimized-collections: true  # 高性能集合类 / High-performance collections
+
+# 数学优化 / Math Optimization
+# 优化三角函数计算性能 / Optimize trigonometric function performance
+math-optimization:
+  enabled: true  # 启用数学优化 / Enable math optimization
+  compact-sine-lut: true  # 紧凑型正弦查找表 / Compact sine lookup table (节省75%内存 / Saves 75% memory)
 
 # 安全种子保护 / Secure Seed Protection
 # ⚠️ 重要 / IMPORTANT: 启用后不可关闭 / DO NOT disable after enabling
@@ -547,73 +660,35 @@ seed-encryption:
 
 # ==========================================
 # 网络优化 / Network Optimization
-# 支持场景: PVP/PVE/农场/刷沙机/高密度区块/鞘翅飞行
-# Scenarios: PVP/PVE/Farms/Sand Dupers/High-density/Elytra
 # ==========================================
-network-optimization:
-  enabled: true
+# 实体包节流优化 / Entity Packet Throttle (高密度实体场景优化 / High-density entity optimization)
+entity-packet-throttle:
+  enabled: true  # 启用实体包节流 / Enable entity packet throttling
   
-  # 数据包优先级 / Packet Priority (自动分配改善弱网体验 / Auto-assign for poor network)
-  # 优先级: CRITICAL(移动/战斗) HIGH(实体/方块) NORMAL(区块/容器) LOW(粒子/音效)
-  # 兼容反作弊: 不修改内容只调整顺序 / Anti-cheat compatible: Order only, no content change
-  packet-priority:
-    enabled: true
-    
-    # 发送速率 / Send Rate (packets/tick, 推荐: 默认/低配/高配)
-    send-rate:
-      base: 50  # 正常场景 / Normal (50/40/60)
-      medium: 80  # 队列>100: PVP/鞘翅 / Queue>100: PVP/Elytra (80/60/100)
-      heavy: 110  # 队列>300: 农场/PVE / Queue>300: Farms/PVE (110/80/130)
-      extreme: 130  # 队列>500: 刷沙机/高密度 / Queue>500: Dupers/High-density (130/100/150)
-    
-    # 队列容量 / Queue Limits (推荐: 默认/低配/高配)
-    queue-limits:
-      max-total: 2500  # 单玩家最大队列 / Max per player (2500/1500/3000)
-      max-critical: 1200  # CRITICAL配额: 移动/战斗 / Movement/Combat (1200/800/1500)
-      max-high: 800  # HIGH配额: 实体/方块 / Entity/Block (800/500/1000)
-      max-normal: 600  # NORMAL配额: 区块/容器 / Chunk/Container (600/400/800)
-    
-    # 加速阈值 / Acceleration Thresholds (推荐: 默认/宽松/激进)
-    acceleration-thresholds:
-      medium: 100  # 中度加速触发 / Medium trigger (100/150/50)
-      heavy: 300  # 重度加速触发 / Heavy trigger (300/400/200)
-      extreme: 500  # 极限加速触发 / Extreme trigger (500/600/400)
-    
-    # 智能清理 / Smart Cleanup (队列满时清理低优先级 / Clean low priority when full)
-    cleanup:
-      enabled: true
-      stale-threshold: 5  # 老旧包阈值秒 / Stale seconds (5/10/3: 默认/宽松/激进)
-      critical-cleanup: 100  # CRITICAL/HIGH入队清理数 / Cleanup count (100/50/150)
-      normal-cleanup: 50  # NORMAL入队清理数 / Cleanup count (50/30/80)
+  # 距离分级更新 / Distance-Based Update Rate (远距离实体降低更新频率 / Reduce update rate for distant entities)
+  distance-based:
+    enabled: true  # 启用距离分级 / Enable distance tiers
+    tier-1-distance: 16    # 0-16格: 每tick更新 (100%) / 0-16 blocks: every tick (100%)
+    tier-2-distance: 32    # 16-32格: 每2tick更新 (50%) / 16-32 blocks: every 2 ticks (50%)
+    tier-3-distance: 64    # 32-64格: 每4tick更新 (25%) / 32-64 blocks: every 4 ticks (25%)
+    tier-4-distance: 128   # 64-128格: 每8tick更新 (12.5%) / 64-128 blocks: every 8 ticks (12.5%)
+    tier-5-distance: 256   # 128+格: 每16tick更新 (6.25%) / 128+ blocks: every 16 ticks (6.25%)
   
-  # 区块速率控制 / Chunk Rate (根据网络状态动态调整 / Dynamic by network status)
-  chunk-rate-control:
-    enabled: true
-    base-rate: 10  # 正常速率 chunks/tick / Normal (10/8/12: 默认/低配/高配)
-    max-rate: 20  # 最大速率 / Max (20/15/25)
-    min-rate: 3  # 拥塞最小 / Congestion min (3/2/5: 默认/激进/保守)
+  # 视锥体裁剪 / Frustum Culling (视野外实体进一步降频 / Further reduce rate for out-of-view entities)
+  frustum-culling:
+    enabled: false  # 启用视锥体裁剪 (实验性) / Enable frustum culling (experimental)
+    fov-angle: 90  # 视野角度 / Field of view angle
+    outside-multiplier: 2  # 视野外降频倍数 / Outside FOV throttle multiplier
   
-  # 拥塞检测 / Congestion Detection (监控ping和带宽 / Monitor ping and bandwidth)
-  congestion-detection:
-    enabled: true
-    high-ping-threshold: 200  # 高延迟ms / High latency (200/150/300: 默认/严格/宽松)
-    critical-ping-threshold: 500  # 严重拥塞ms / Critical (500/400/600)
-    high-bandwidth-threshold: 1048576  # 高带宽bytes/s / High bandwidth (1MB/512KB/2MB)
+  # 实体数据节流 / Entity Data Throttle (Metadata & NBT 智能节流 / Smart throttling for Metadata & NBT)
+  data-throttle:
+    enabled: true  # 启用数据节流 / Enable data throttling
 
-  # 传送优化 / Teleport (防止传送被踢 / Prevent disconnect, 适用RTP/登录/命令/跨维度)
-  teleport-optimization:
-    enabled: true
-    bypass-queue: true  # 传送包绕过队列直发 / Bypass queue for teleport packets
-    boost-duration-seconds: 7  # 传送后高速率持续秒 / Boost duration (7/3/7: 优化/低配/高配)
-    max-chunk-rate: 15  # 传送期间区块速率 / Teleport chunk rate (15/20/30, 应>max-rate)
-    filter-non-essential-packets: true  # 暂停装饰性包 / Pause decorative packets
-  
-  # 视野外包过滤 / View Frustum Filter (过滤视野外数据包 / Filter out-of-view packets)
-  view-frustum-filter:
-    enabled: true # 启用视野外包过滤 / Enable view frustum filtering
-    filter-entities: true # 过滤视野外实体更新包 / Filter entity update packets outside view
-    filter-blocks: true # 过滤视野外方块更新包 / Filter block update packets outside view
-    filter-particles: true # 过滤视野外粒子效果包 / Filter particle packets outside view
+# 区块可见性过滤 / Chunk Visibility Filter (遮挡剔除 / Occlusion Culling)
+# 只发送玩家视野内的表层区块，被遮挡的内层区块不发送
+# Only send surface chunks in player's view, skip occluded inner chunks
+chunk-visibility-filter:
+  enabled: true  # 启用区块可见性过滤 / Enable chunk visibility filtering
 
 # 高速移动区块预加载 / Fast Movement Chunk Loading (鞘翅/疾跑/创造飞行)
 fast-movement-chunk-load:
@@ -644,10 +719,25 @@ fast-movement-chunk-load:
     threads: 2  # 渲染线程数 / Rendering threads
 
 # ==========================================
-# 性能监控 / Performance Monitoring
+# 性能监控与调试 / Performance Monitoring & Debug
 # ==========================================
 performance:
-  debug-logging: false  # 统一调试日志 / Unified debug (Warning: 会刷屏 / Console spam!)
+  # Debug 日志配置 / Debug Logging Configuration
+  debug-logging:
+    enabled: false  # 启用 debug 日志 / Enable debug logging (仅用于调试 / For debugging only)
+    modules:
+      tnt: false  # TNT 爆炸 debug / TNT explosion debug
+      collision: false  # 碰撞检测 debug / Collision detection debug
+      lighting: false  # 光照计算 debug / Lighting calculation debug
+      pathfinding: false  # 寻路 debug / Pathfinding debug
+      entity: false  # 实体系统 debug / Entity system debug
+      chunk: false  # 区块系统 debug / Chunk system debug
+      hopper: false  # 漏斗系统 debug / Hopper system debug
+      fluid: false  # 流体系统 debug / Fluid system debug
+      math: false  # 数学优化 debug / Math optimization debug
+      shapes: false  # 形状优化 debug / Shape optimization debug
+  
+  # 性能指标收集 / Performance Metrics
   enable-metrics: true  # 性能指标收集 / Metrics (显示异步任务时间和队列 / Show async times and queues)
 
 # ==========================================

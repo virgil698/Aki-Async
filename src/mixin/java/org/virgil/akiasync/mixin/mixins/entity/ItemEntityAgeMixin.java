@@ -72,12 +72,10 @@ public abstract class ItemEntityAgeMixin {
 
                 aki$ageTickCounter = 0;
 
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-ItemAge] Static item throttled: age=%d, pos=%s",
-                        age, self.blockPosition());
-                }
+                org.virgil.akiasync.mixin.util.BridgeConfigCache.debugLog(
+                    "[AkiAsync-ItemAge] Static item throttled: age=%d, pos=%s",
+                    age, self.blockPosition()
+                );
             }
         }
     }

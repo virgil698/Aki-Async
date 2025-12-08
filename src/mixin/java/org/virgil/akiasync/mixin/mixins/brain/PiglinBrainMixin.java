@@ -37,6 +37,17 @@ public abstract class PiglinBrainMixin {
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
         
+        boolean isTrapped = abstractPiglin.getDeltaMovement().lengthSqr() < 0.01 && 
+                           abstractPiglin.getTarget() == null;
+        
+        if (isTrapped) {
+            
+            if (level.getGameTime() % 20 != 0) {
+                ci.cancel();
+                return;
+            }
+        }
+        
         if (cached_skipChance > 0 && level.random.nextInt(100) < cached_skipChance) {
             ci.cancel();
             return;
@@ -50,7 +61,7 @@ public abstract class PiglinBrainMixin {
                 );
             if (nearbyPlayers.isEmpty()) {
                 
-                if (level.getGameTime() % 5 != 0) {
+                if (level.getGameTime() % 10 != 0) {
                     ci.cancel();
                     return;
                 }
@@ -133,10 +144,10 @@ public abstract class PiglinBrainMixin {
         if (bridge != null) {
             cached_enabled = bridge.isPiglinOptimizationEnabled();
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
-            cached_tickInterval = 3;
+            cached_tickInterval = 5; 
             cached_lookDistance = bridge.getPiglinLookDistance();
             cached_barterDistance = bridge.getPiglinBarterDistance();
-            cached_skipChance = 20; 
+            cached_skipChance = 40; 
             AsyncBrainExecutor.setExecutor(bridge.getGeneralExecutor());
         } else {
             cached_enabled = false;

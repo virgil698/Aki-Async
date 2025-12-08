@@ -25,3 +25,6 @@ accessible method net/minecraft/world/level/Level getEntities (Lnet/minecraft/wo
 # Level isClientSide field access (required for Leaves 1.21.10+)
 accessible field net/minecraft/world/level/Level isClientSide Z
 
+# Math optimization - Sine lookup table access
+accessible field net/minecraft/util/Mth SIN [F
+

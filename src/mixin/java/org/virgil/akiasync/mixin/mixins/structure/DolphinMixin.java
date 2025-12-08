@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.world.entity.animal.Dolphin;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
 @Mixin(targets = "net.minecraft.world.entity.animal.Dolphin$DolphinSwimToTreasureGoal")
@@ -47,7 +48,7 @@ public class DolphinMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] DolphinMixin initialized: enabled=" + cached_enabled + ", skipKnown=" + false);
+            BridgeConfigCache.debugLog("[AkiAsync] DolphinMixin initialized: enabled=" + cached_enabled + ", skipKnown=" + false);
         }
     }
 }

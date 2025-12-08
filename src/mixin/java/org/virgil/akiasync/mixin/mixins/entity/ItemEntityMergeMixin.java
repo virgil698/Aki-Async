@@ -72,20 +72,20 @@ public abstract class ItemEntityMergeMixin {
             aki$lastCacheTick = currentTick;
         }
 
-        if (aki$cachedNearbyItems.size() < minNearbyItems) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-ItemMerge] Skipping merge: nearby items (%d) < threshold (%d)",
-                    aki$cachedNearbyItems.size(), minNearbyItems);
-            }
+        boolean highDensity = aki$cachedNearbyItems.size() >= 10;
+        
+        if (!highDensity && aki$cachedNearbyItems.size() < minNearbyItems) {
             return;
         }
 
+        int mergedCount = 0;
         for (ItemEntity other : aki$cachedNearbyItems) {
             if (other != self && !other.isRemoved()) {
                 try {
                     this.tryToMerge(other);
+                    mergedCount++;
+                    
+                    if (!highDensity && mergedCount >= 5) break;
                 } catch (Throwable t) {
                 }
             }
@@ -166,9 +166,9 @@ public abstract class ItemEntityMergeMixin {
             mergeRange = bridge.getItemEntityMergeRange();
         } else {
             enabled = true;
-            mergeInterval = 5;
-            minNearbyItems = 3;
-            mergeRange = 1.5;
+            mergeInterval = 3; 
+            minNearbyItems = 2; 
+            mergeRange = 2.0; 
         }
 
         initialized = true;

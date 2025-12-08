@@ -253,6 +253,13 @@ public final class AsyncPathProcessor {
     return enabled && executor != null && !executor.isShutdown();
   }
 
+  public static ThreadPoolExecutor getExecutor() {
+    if (!initialized) {
+      initialize();
+    }
+    return executor;
+  }
+
   private static class PathfindingThreadFactory implements ThreadFactory {
     private final AtomicInteger threadNumber = new AtomicInteger(1);
 

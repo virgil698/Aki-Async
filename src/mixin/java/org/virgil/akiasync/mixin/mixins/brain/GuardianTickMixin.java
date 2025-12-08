@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.guardian.*;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Guardian;
@@ -32,11 +33,7 @@ public abstract class GuardianTickMixin {
             GuardianDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new GuardianDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(guardian, level);
         } catch (Exception e) {
-            
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.errorLog("[Guardian] Error in async brain tick: %s", e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[Guardian] Error in async brain tick: %s", e.getMessage());
         }
     }
     @Unique private static synchronized void aki$init() {
@@ -46,7 +43,7 @@ public abstract class GuardianTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] GuardianTickMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] GuardianTickMixin initialized: enabled=" + enabled);
         }
     }
 }

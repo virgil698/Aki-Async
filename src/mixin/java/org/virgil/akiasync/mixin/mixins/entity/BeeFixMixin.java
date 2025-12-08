@@ -37,9 +37,11 @@ public abstract class BeeFixMixin {
                 BlockPos hivePos = bee.getHivePos();
                 if (bee.distanceToSqr(Vec3.atCenterOf(hivePos)) < 64.0) {
                     if (level.getBlockEntity(hivePos) instanceof BeehiveBlockEntity hive) {
-                        if (hive.getOccupantCount() < 3) {
+                        
+                        if (hive.getOccupantCount() >= 3) {
                             cir.setReturnValue(false);
                         }
+                        
                     }
                 }
             }

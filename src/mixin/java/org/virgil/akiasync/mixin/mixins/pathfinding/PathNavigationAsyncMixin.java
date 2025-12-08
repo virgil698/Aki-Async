@@ -1,26 +1,35 @@
 package org.virgil.akiasync.mixin.mixins.pathfinding;
 
-import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.virgil.akiasync.mixin.pathfinding.AsyncPath;
 import org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor;
+import org.virgil.akiasync.mixin.pathfinding.SharedPathCache;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
 
 @Mixin(PathNavigation.class)
-public class PathNavigationAsyncMixin {
+public abstract class PathNavigationAsyncMixin {
 
-    private static java.lang.reflect.Method cachedFindPathMethod;
-    private static boolean reflectionInitialized = false;
+    @Shadow
+    protected Path path;
+    
+    @Shadow
+    protected Mob mob;
+    
+    @Unique
+    private volatile boolean akiasync$isComputingPath = false;
 
     @Redirect(
         method = "tick",
@@ -34,7 +43,7 @@ public class PathNavigationAsyncMixin {
         ),
         require = 0
     )
-    private Path handler$zzi000$asyncFindPath(
+    private Path handler$nonBlockingAsyncFindPath(
             PathFinder finder,
             Object region,
             Mob mob,
@@ -44,65 +53,131 @@ public class PathNavigationAsyncMixin {
             float depth) {
 
         if (mob.level().isClientSide) {
-            return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
+            return akiasync$computePathSync(finder, region, mob, targets, maxRange, accuracy, depth);
         }
 
         if (!AsyncPathProcessor.isEnabled()) {
-            return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
+            return akiasync$computePathSync(finder, region, mob, targets, maxRange, accuracy, depth);
         }
 
-        try {
-            ArrayList<Node> emptyNodes = new ArrayList<>();
-
-            AsyncPath asyncPath = new AsyncPath(emptyNodes, targets, () -> {
-                return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
-            });
-
-            return asyncPath.getPath();
-
-        } catch (Exception e) {
-            return invokeFindPathSafely(finder, region, mob, targets, maxRange, accuracy, depth);
+        Path cachedPath = akiasync$tryGetCachedPath(mob.blockPosition(), targets);
+        if (cachedPath != null) {
+            AsyncPathProcessor.recordCacheHit();
+            return cachedPath;
         }
+
+        Path oldPath = this.path;
+        if (oldPath != null && oldPath.canReach() && !oldPath.isDone()) {
+            
+            akiasync$computePathAsync(finder, region, mob, targets, maxRange, accuracy, depth);
+            return oldPath;
+        }
+
+        if (akiasync$isComputingPath) {
+            
+            return null;
+        }
+
+        return akiasync$computePathSync(finder, region, mob, targets, maxRange, accuracy, depth);
     }
 
-    private Path invokeFindPathSafely(PathFinder finder, Object region, Mob mob,
-                                     Set<BlockPos> targets, float maxRange, int accuracy, float depth) {
-        try {
-            if (!reflectionInitialized) {
-                initializeReflection();
-            }
-
-            if (cachedFindPathMethod != null) {
-                return (Path) cachedFindPathMethod.invoke(finder, region, mob, targets, maxRange, accuracy, depth);
-            }
-        } catch (Exception e) {
-            if (System.currentTimeMillis() % 10000 < 100) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-PathNav] Reflection error: " + e.getMessage());
-                }
-            }
+    @Unique
+    private void akiasync$computePathAsync(
+            PathFinder finder,
+            Object region,
+            Mob mob,
+            Set<BlockPos> targets,
+            float maxRange,
+            int accuracy,
+            float depth) {
+        
+        if (akiasync$isComputingPath) {
+            return;
         }
         
-        return null;
+        akiasync$isComputingPath = true;
+        BlockPos startPos = mob.blockPosition();
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                
+                Path newPath = akiasync$computePathSync(finder, region, mob, targets, maxRange, accuracy, depth);
+                
+                if (newPath != null && newPath.canReach()) {
+                    
+                    akiasync$cacheComputedPath(startPos, targets, newPath);
+                    
+                    MinecraftServer server = mob.getServer();
+                    if (server != null) {
+                        server.execute(() -> {
+                            
+                            if (!mob.isRemoved() && newPath.canReach()) {
+                                this.path = newPath;
+                            }
+                            akiasync$isComputingPath = false;
+                        });
+                    } else {
+                        akiasync$isComputingPath = false;
+                    }
+                } else {
+                    akiasync$isComputingPath = false;
+                }
+            } catch (Exception e) {
+                akiasync$isComputingPath = false;
+                
+                BridgeConfigCache.debugLog("[AkiAsync-PathNav] Async path computation failed: " + e.getMessage());
+            }
+        }, AsyncPathProcessor.getExecutor());
     }
 
-    private static synchronized void initializeReflection() {
-        if (reflectionInitialized) return;
-
+    @Unique
+    private synchronized Path akiasync$computePathSync(
+            PathFinder finder,
+            Object region,
+            Mob mob,
+            Set<BlockPos> targets,
+            float maxRange,
+            int accuracy,
+            float depth) {
         try {
-            cachedFindPathMethod = PathFinder.class.getMethod("findPath",
-                Class.forName("net.minecraft.world.level.pathfinder.PathNavigationRegion"),
-                Mob.class, Set.class, float.class, int.class, float.class);
-            cachedFindPathMethod.setAccessible(true);
+            
+            return finder.findPath(
+                (net.minecraft.world.level.PathNavigationRegion) region,
+                mob,
+                targets,
+                maxRange,
+                accuracy,
+                depth
+            );
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-PathNav] Failed to initialize reflection: " + e.getMessage());
-            }
-            cachedFindPathMethod = null;
+            BridgeConfigCache.debugLog("[AkiAsync-PathNav] Sync path computation failed: " + e.getMessage());
+            return null;
         }
+    }
 
-        reflectionInitialized = true;
+    @Unique
+    private Path akiasync$tryGetCachedPath(BlockPos start, Set<BlockPos> targets) {
+        if (targets == null || targets.isEmpty()) {
+            return null;
+        }
+        
+        BlockPos target = targets.iterator().next();
+        if (target == null || start.equals(target)) {
+            return null;
+        }
+        
+        return SharedPathCache.getCachedPath(start, target);
+    }
+
+    @Unique
+    private void akiasync$cacheComputedPath(BlockPos start, Set<BlockPos> targets, Path path) {
+        if (targets == null || targets.isEmpty() || path == null) {
+            return;
+        }
+        
+        BlockPos target = targets.iterator().next();
+        if (target != null && !start.equals(target)) {
+            SharedPathCache.cachePath(start, target, path);
+        }
     }
 }

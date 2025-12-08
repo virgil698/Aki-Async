@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
 @Mixin(ExplorationMapFunction.class)
@@ -62,7 +63,7 @@ public class ChestLootMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] ChestLootMixin initialized: enabled=" + cached_enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] ChestLootMixin initialized: enabled=" + cached_enabled);
         }
     }
 }

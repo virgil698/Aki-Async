@@ -31,6 +31,12 @@ public class HopperOptimizeMixin {
     @Unique
     private static volatile int cached_cacheExpireTime = 100;
     
+    @Unique
+    private static volatile long cacheHits = 0;
+    
+    @Unique
+    private static volatile long cacheMisses = 0;
+    
     @Inject(method = "getContainerAt(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/Container;",
             at = @At("HEAD"), cancellable = true, require = 0)
     private static void cacheGetContainerAt(Level level, BlockPos pos, CallbackInfoReturnable<Container> cir) {
@@ -46,11 +52,12 @@ public class HopperOptimizeMixin {
         if (cache != null) {
             long cacheTime = (Long) cache[1];
             if (System.currentTimeMillis() - cacheTime <= cached_cacheExpireTime) {
+                cacheHits++;
                 cir.setReturnValue((Container) cache[0]);
                 return;
             }
         }
-        
+        cacheMisses++;
     }
     
     @Inject(method = "getContainerAt(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/Container;",
@@ -112,6 +119,9 @@ public class HopperOptimizeMixin {
     
     @Unique
     private static String aki$getStatistics() {
-        return String.format("HopperCache: Size=%d", containerCache.size());
+        long total = cacheHits + cacheMisses;
+        double hitRate = total > 0 ? (double) cacheHits / total * 100 : 0;
+        return String.format("HopperCache: Size=%d, Hits=%d, Misses=%d, HitRate=%.2f%%", 
+            containerCache.size(), cacheHits, cacheMisses, hitRate);
     }
 }

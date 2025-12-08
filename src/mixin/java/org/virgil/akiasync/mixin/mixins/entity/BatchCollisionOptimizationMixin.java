@@ -8,15 +8,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 950)
 public abstract class BatchCollisionOptimizationMixin {
     
     @Unique
     private static volatile boolean enabled = true;
-    @Unique
-    private static volatile boolean initialized = false;
     
     @Unique
     private static volatile double slowMovementThreshold = 0.01; 
@@ -34,15 +33,17 @@ public abstract class BatchCollisionOptimizationMixin {
     @Unique
     private int ticksSinceLastCollisionCheck = 0;
     
+    static {
+        akiasync$initBatchOptimization();
+    }
+    
     @Inject(
         method = "pushEntities",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        require = 0  
     )
     private void optimizePushEntitiesFrequency(CallbackInfo ci) {
-        if (!initialized) {
-            akiasync$initBatchOptimization();
-        }
         
         if (!enabled) {
             return;
@@ -55,24 +56,34 @@ public abstract class BatchCollisionOptimizationMixin {
             return;
         }
         
-        Vec3 currentPos = self.position();
-        double movementSpeed = akiasync$calculateMovementSpeed(currentPos);
-        
-        int checkInterval = akiasync$getCheckInterval(movementSpeed);
-        
         ticksSinceLastCollisionCheck++;
         
-        if (ticksSinceLastCollisionCheck < checkInterval) {
-            ci.cancel();
-            return;
+        if (ticksSinceLastCollisionCheck < slowMovementInterval) {
+            
+            if (ticksSinceLastCollisionCheck < fastMovementInterval) {
+                return; 
+            }
+            
+            Vec3 currentPos = self.position();
+            double movementSpeedSqr = akiasync$calculateMovementSpeedSqr(currentPos);
+            int checkInterval = akiasync$getCheckInterval(movementSpeedSqr);
+            
+            if (ticksSinceLastCollisionCheck < checkInterval) {
+                ci.cancel();
+                return;
+            }
+            
+            ticksSinceLastCollisionCheck = 0;
+            lastPosition = currentPos;
+        } else {
+            
+            ticksSinceLastCollisionCheck = 0;
+            lastPosition = self.position();
         }
-        
-        ticksSinceLastCollisionCheck = 0;
-        lastPosition = currentPos;
     }
     
     @Unique
-    private double akiasync$calculateMovementSpeed(Vec3 currentPos) {
+    private double akiasync$calculateMovementSpeedSqr(Vec3 currentPos) {
         if (lastPosition == Vec3.ZERO) {
             lastPosition = currentPos;
             return 0;
@@ -82,19 +93,24 @@ public abstract class BatchCollisionOptimizationMixin {
         double dy = currentPos.y - lastPosition.y;
         double dz = currentPos.z - lastPosition.z;
         
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        return dx * dx + dy * dy + dz * dz;
     }
     
     @Unique
-    private int akiasync$getCheckInterval(double movementSpeed) {
-        if (movementSpeed < slowMovementThreshold) {
+    private int akiasync$getCheckInterval(double movementSpeedSqr) {
+        
+        double slowThresholdSqr = slowMovementThreshold * slowMovementThreshold; 
+        double fastThresholdSqr = fastMovementThreshold * fastMovementThreshold; 
+        
+        if (movementSpeedSqr < slowThresholdSqr) {
             
             return slowMovementInterval;
-        } else if (movementSpeed > fastMovementThreshold) {
+        } else if (movementSpeedSqr > fastThresholdSqr) {
             
             return fastMovementInterval;
         } else {
             
+            double movementSpeed = Math.sqrt(movementSpeedSqr);
             return 3 + (int) (movementSpeed * 4);
         }
     }
@@ -119,22 +135,17 @@ public abstract class BatchCollisionOptimizationMixin {
     
     @Unique
     private static synchronized void akiasync$initBatchOptimization() {
-        if (initialized) return;
-        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
             enabled = bridge.isCollisionOptimizationEnabled();
-            
             slowMovementThreshold = bridge.getCollisionSkipMinMovement();
             
-            bridge.debugLog("[AkiAsync] BatchCollisionOptimizationMixin initialized: enabled=" + enabled + 
+            BridgeConfigCache.debugLog("[AkiAsync] BatchCollisionOptimizationMixin initialized: enabled=" + enabled + 
                 ", slowThreshold=" + slowMovementThreshold +
                 ", slowInterval=" + slowMovementInterval +
                 ", fastThreshold=" + fastMovementThreshold);
         }
-        
-        initialized = true;
     }
 }

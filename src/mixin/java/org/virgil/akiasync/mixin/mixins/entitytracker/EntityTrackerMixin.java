@@ -11,7 +11,9 @@ import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @SuppressWarnings("unused")
 @Mixin(ChunkMap.TrackedEntity.class)
 public abstract class EntityTrackerMixin {
@@ -39,6 +41,15 @@ public abstract class EntityTrackerMixin {
         if (akiasync$isVirtualEntity(entity)) {
             return;
         }
+        
+        Bridge bridgeForThrottle = BridgeManager.getBridge();
+        if (bridgeForThrottle != null && bridgeForThrottle.isEntityPacketThrottleEnabled()) {
+            if (!bridgeForThrottle.shouldSendEntityUpdate(player, entity)) {
+                
+                ci.cancel();
+                return;
+            }
+        }
         if (entity.getDeltaMovement().lengthSqr() < 1.0E-7 &&
             !entity.isPassenger() &&
             !entity.hasPassenger(player)) {
@@ -56,9 +67,9 @@ public abstract class EntityTrackerMixin {
 
             Runnable trackingTask = () -> {
                 try {
+                    Bridge bridge = null;
                     if (isFolia) {
-                        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                        bridge = BridgeManager.getBridge();
                         if (bridge == null) return;
 
                         if (!bridge.canAccessEntityDirectly(trackedEntity)) {
@@ -71,10 +82,8 @@ public abstract class EntityTrackerMixin {
                         if (!(playerObj instanceof ServerPlayer)) continue;
                         ServerPlayer p = (ServerPlayer) playerObj;
 
-                        if (isFolia) {
-                            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                            if (bridge != null && !bridge.canAccessEntityDirectly(p)) {
+                        if (isFolia && bridge != null) {
+                            if (!bridge.canAccessEntityDirectly(p)) {
                                 continue;
                             }
                         }
@@ -96,10 +105,7 @@ public abstract class EntityTrackerMixin {
 
             if (!BATCH_QUEUE.offer(trackingTask)) {
                 if (asyncTaskCount <= 5) {
-                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null) {
-                        bridge.errorLog("[AkiAsync-Warning] EntityTracker queue full (" + BATCH_QUEUE.size() + "/" + cached_queueSize + "), executing synchronously");
-                    }
+                    BridgeConfigCache.errorLog("[AkiAsync-Warning] EntityTracker queue full (" + BATCH_QUEUE.size() + "/" + cached_queueSize + "), executing synchronously");
                 }
                 try {
                     trackingTask.run();
@@ -114,10 +120,7 @@ public abstract class EntityTrackerMixin {
             if (shouldSubmitBatch) {
                 asyncTaskCount++;
                 if (asyncTaskCount <= 3) {
-                    org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                    if (bridge != null) {
-                        bridge.debugLog("[AkiAsync-Batch] Submitting batch, queue size: " + queueSize + "/" + cached_queueSize);
-                    }
+                    BridgeConfigCache.debugLog("[AkiAsync-Batch] Submitting batch, queue size: " + queueSize + "/" + cached_queueSize);
                 }
 
                 int dynamicBatchSize = Math.min(Math.max(BATCH_SIZE, queueSize / 2), 200);
@@ -130,23 +133,14 @@ public abstract class EntityTrackerMixin {
                 cached_executor.execute(() -> {
                     try {
                         if (asyncTaskCount <= 2) {
-                            org.virgil.akiasync.mixin.bridge.Bridge debugBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                            if (debugBridge != null) {
-                                debugBridge.debugLog("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
-                            }
+                            BridgeConfigCache.debugLog("[AkiAsync-Batch] Processing " + batchSize + " tasks in thread: " + Thread.currentThread().getName());
                         }
                         batch.parallelStream().forEach(Runnable::run);
                         if (asyncTaskCount <= 3) {
-                            org.virgil.akiasync.mixin.bridge.Bridge completeBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                            if (completeBridge != null) {
-                                completeBridge.debugLog("[AkiAsync-Batch] Completed batch of " + batchSize + " tasks");
-                            }
+                            BridgeConfigCache.debugLog("[AkiAsync-Batch] Completed batch of " + batchSize + " tasks");
                         }
                     } catch (Throwable t) {
-                        org.virgil.akiasync.mixin.bridge.Bridge errorBridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                        if (errorBridge != null) {
-                            errorBridge.errorLog("[AkiAsync-Error] Batch processing failed: " + t.getMessage());
-                        }
+                        BridgeConfigCache.errorLog("[AkiAsync-Error] Batch processing failed: " + t.getMessage());
                     } finally {
                         batchSubmitted.set(false);
                     }
@@ -155,7 +149,7 @@ public abstract class EntityTrackerMixin {
         }
     }
     private boolean akiasync$isVirtualEntity(Entity entity) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             return bridge.isVirtualEntity(entity);
         }
@@ -172,7 +166,7 @@ public abstract class EntityTrackerMixin {
             isFolia = false;
         }
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isEntityTrackerEnabled();
             cached_executor = bridge.getGeneralExecutor();
@@ -181,14 +175,14 @@ public abstract class EntityTrackerMixin {
             BATCH_QUEUE = new java.util.concurrent.LinkedBlockingQueue<>(cached_queueSize);
 
             if (isFolia) {
-                bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized in Folia mode:");
-                bridge.debugLog("  - Enabled: " + cached_enabled + " (async with region safety checks)");
-                bridge.debugLog("  - Executor: " + (cached_executor != null ? "available" : "null"));
-                bridge.debugLog("  - Queue Size: " + cached_queueSize);
-                bridge.debugLog("  - Safety: canAccessEntityDirectly() checks before all entity access");
-                bridge.debugLog("  - Exception handling: IllegalStateException for cross-region access");
+                BridgeConfigCache.debugLog("[AkiAsync] EntityTrackerMixin initialized in Folia mode:");
+                BridgeConfigCache.debugLog("  - Enabled: " + cached_enabled + " (async with region safety checks)");
+                BridgeConfigCache.debugLog("  - Executor: " + (cached_executor != null ? "available" : "null"));
+                BridgeConfigCache.debugLog("  - Queue Size: " + cached_queueSize);
+                BridgeConfigCache.debugLog("  - Safety: canAccessEntityDirectly() checks before all entity access");
+                BridgeConfigCache.debugLog("  - Exception handling: IllegalStateException for cross-region access");
             } else {
-                bridge.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null) + ", queueSize=" + cached_queueSize);
+                BridgeConfigCache.debugLog("[AkiAsync] EntityTrackerMixin initialized: enabled=" + cached_enabled + ", executor=" + (cached_executor != null) + ", queueSize=" + cached_queueSize);
             }
         } else {
             cached_enabled = false;

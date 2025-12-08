@@ -3,6 +3,7 @@ package org.virgil.akiasync.mixin.mixins.entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -67,6 +68,10 @@ public abstract class ExperienceOrbMergeMixin {
 
         ExperienceOrb self = (ExperienceOrb) (Object) this;
 
+        if (self.tickCount % 5 == 0) {
+            aki$tryMergeNearby(self);
+        }
+
         if (self.tickCount % 20 == 0) {
             
             if (count > aki$lastValidCount * 2 && count > 10) {
@@ -90,6 +95,43 @@ public abstract class ExperienceOrbMergeMixin {
             count = maxAllowedCount;
         }
     }
+    
+    @Unique
+    private void aki$tryMergeNearby(ExperienceOrb self) {
+        
+        if (!self.level().isClientSide && !Thread.currentThread().getName().contains("Server thread")) {
+            return;
+        }
+        
+        try {
+            java.util.List<ExperienceOrb> nearby = self.level().getEntitiesOfClass(
+                ExperienceOrb.class,
+                self.getBoundingBox().inflate(1.5),
+                orb -> orb != self && !orb.isRemoved()
+            );
+            
+            if (nearby.size() >= 5) {
+                int mergedCount = 0;
+                for (ExperienceOrb other : nearby) {
+                    if (self.isRemoved()) break;
+                    if (mergedCount >= 3) break; 
+                    
+                    if (other.isRemoved()) continue;
+                    
+                    int selfValue = self.getValue();
+                    int otherValue = other.getValue();
+                    
+                    if (selfValue == otherValue && count + other.count <= maxAllowedCount) {
+                        count += other.count;
+                        other.discard();
+                        mergedCount++;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            
+        }
+    }
 
     @Unique
     private static synchronized void aki$initMergeFix() {
@@ -104,9 +146,7 @@ public abstract class ExperienceOrbMergeMixin {
             
             maxAllowedCount = 100;
 
-            if (bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync] ExperienceOrbMergeMixin initialized: fixEnabled=" + fixEnabled + ", maxAllowedCount=" + maxAllowedCount);
-            }
+            BridgeConfigCache.debugLog("[AkiAsync] ExperienceOrbMergeMixin initialized: fixEnabled=" + fixEnabled + ", maxAllowedCount=" + maxAllowedCount);
         }
 
         initialized = true;
@@ -114,17 +154,11 @@ public abstract class ExperienceOrbMergeMixin {
 
     @Unique
     private boolean aki$isDebugEnabled() {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        return bridge != null && bridge.isDebugLoggingEnabled();
+        return BridgeConfigCache.isDebugLoggingEnabled();
     }
 
     @Unique
     private void aki$debugLog(String message) {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge != null) {
-            bridge.debugLog(message);
-        }
+        BridgeConfigCache.debugLog(message);
     }
 }

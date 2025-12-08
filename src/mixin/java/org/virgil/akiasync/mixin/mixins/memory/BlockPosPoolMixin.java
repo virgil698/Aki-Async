@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @SuppressWarnings("unused")
 @Mixin(PathNavigation.class)
 public abstract class BlockPosPoolMixin {
@@ -37,7 +38,7 @@ public abstract class BlockPosPoolMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);
         }
     }
 }

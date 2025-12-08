@@ -15,6 +15,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 @SuppressWarnings("unused")
 @Mixin(CraftingMenu.class)
@@ -103,18 +106,13 @@ public abstract class CraftingMenuMixin {
     @Unique
     private void akiasync$logCacheStats() {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            double hitRate = totalLookups > 0 ?
+                (double) cacheHits / totalLookups * 100 : 0;
 
-            if (bridge != null) {
-                double hitRate = totalLookups > 0 ?
-                    (double) cacheHits / totalLookups * 100 : 0;
-
-                bridge.debugLog(
-                    "[AkiAsync-CraftingCache] Stats: Lookups=%d, Hits=%d, Misses=%d, HitRate=%.2f%%",
-                    totalLookups, cacheHits, cacheMisses, hitRate
-                );
-            }
+            BridgeConfigCache.debugLog(
+                "[AkiAsync-CraftingCache] Stats: Lookups=%d, Hits=%d, Misses=%d, HitRate=%.2f%%",
+                totalLookups, cacheHits, cacheMisses, hitRate
+            );
         } catch (Throwable t) {
         }
     }
@@ -123,8 +121,7 @@ public abstract class CraftingMenuMixin {
     private static synchronized void akiasync$initCraftingCache() {
         if (initialized) return;
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
 
         if (bridge != null) {
             enabled = bridge.isCraftingRecipeCacheEnabled();
@@ -132,11 +129,11 @@ public abstract class CraftingMenuMixin {
             optimizeBatchCrafting = bridge.isCraftingOptimizeBatchCrafting();
             reduceNetworkTraffic = bridge.isCraftingReduceNetworkTraffic();
 
-            bridge.debugLog("[AkiAsync] CraftingRecipeCache initialized:");
-            bridge.debugLog("  - Enabled: " + enabled);
-            bridge.debugLog("  - Cache size: " + cacheSize);
-            bridge.debugLog("  - Optimize batch crafting: " + optimizeBatchCrafting);
-            bridge.debugLog("  - Reduce network traffic: " + reduceNetworkTraffic);
+            BridgeConfigCache.debugLog("[AkiAsync] CraftingRecipeCache initialized:");
+            BridgeConfigCache.debugLog("  - Enabled: " + enabled);
+            BridgeConfigCache.debugLog("  - Cache size: " + cacheSize);
+            BridgeConfigCache.debugLog("  - Optimize batch crafting: " + optimizeBatchCrafting);
+            BridgeConfigCache.debugLog("  - Reduce network traffic: " + reduceNetworkTraffic);
         } else {
             enabled = false;
         }

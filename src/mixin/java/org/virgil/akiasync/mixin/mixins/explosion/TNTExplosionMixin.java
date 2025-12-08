@@ -8,6 +8,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import java.util.Map;
 import java.util.UUID;
 @SuppressWarnings("unused")
@@ -17,15 +20,59 @@ public class TNTExplosionMixin {
     private void aki$asyncExplosion(CallbackInfo ci) {
         PrimedTnt tnt = (PrimedTnt) (Object) this;
         Level level = tnt.level();
-        if (!(level instanceof ServerLevel sl)) return;
+        
+        if (!(level instanceof ServerLevel sl)) {
+            return;
+        }
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        if (bridge == null || !bridge.isTNTOptimizationEnabled()) return;
+        Bridge bridge = BridgeManager.getBridge();
+        if (bridge == null) {
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Bridge is null!");
+            return;
+        }
+        
+        boolean tntEnabled = bridge.isTNTOptimizationEnabled();
+        
+        if (!tntEnabled) {
+            if (bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] TNT optimization is disabled, using vanilla logic");
+            }
+            return;
+        }
 
         String entityId = tnt.getEncodeId();
-        if (entityId == null || !bridge.getTNTExplosionEntities().contains(entityId)) {
+        
+        if (entityId == null) {
+            if (bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Entity ID is null, using vanilla logic");
+            }
             return;
+        }
+        
+        java.util.Set<String> whitelist = bridge.getTNTExplosionEntities();
+        
+        if (!whitelist.contains(entityId)) {
+            if (bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Entity %s not in whitelist, using vanilla logic", entityId);
+            }
+            return;
+        }
+        
+        if (bridge.isTNTDebugEnabled()) {
+            BridgeConfigCache.debugLog("[AkiAsync-TNT] ===== TNT EXPLOSION START =====");
+            BridgeConfigCache.debugLog("[AkiAsync-TNT] Entity: " + entityId + " at " + tnt.position());
+        }
+
+        Vec3 velocity = tnt.getDeltaMovement();
+        double speed = velocity.lengthSqr();
+        int fuse = tnt.getFuse();
+        
+        if (speed > 0.5 && fuse <= 2) {
+            if (bridge.isTNTDebugEnabled()) {
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] Skipping optimization for potential duplication: speed=" + 
+                    String.format("%.2f", Math.sqrt(speed)) + ", fuse=" + fuse);
+            }
+            return; 
         }
 
         ci.cancel();
@@ -64,12 +111,10 @@ public class TNTExplosionMixin {
                     );
 
                     if (bridge.isTNTDebugEnabled()) {
-                        bridge.debugLog("[AkiAsync-TNT] Water explosion completed at " + center);
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Water explosion completed at " + center);
                     }
                 } catch (Exception ex) {
-                    if (bridge != null) {
-                        bridge.errorLog("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
-                    }
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
                 }
             };
 
@@ -93,41 +138,41 @@ public class TNTExplosionMixin {
                                             org.virgil.akiasync.mixin.async.explosion.ExplosionResult result,
                                             PrimedTnt tnt, Vec3 center, boolean inWater) {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            Bridge bridge = BridgeManager.getBridge();
+            
             level.playSound(null, center.x, center.y, center.z,
                 net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE,
                 net.minecraft.sounds.SoundSource.BLOCKS, 4.0F,
                 (1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F) * 0.7F);
 
-            level.addParticle(net.minecraft.core.particles.ParticleTypes.EXPLOSION_EMITTER,
-                center.x, center.y, center.z, 1.0D, 0.0D, 0.0D);
+            level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION_EMITTER,
+                center.x, center.y, center.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
 
             for (int i = 0; i < 16; i++) {
                 double offsetX = (level.getRandom().nextDouble() - 0.5) * 4.0;
                 double offsetY = (level.getRandom().nextDouble() - 0.5) * 4.0;
                 double offsetZ = (level.getRandom().nextDouble() - 0.5) * 4.0;
-                level.addParticle(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
                     center.x + offsetX, center.y + offsetY, center.z + offsetZ,
-                    offsetX * 0.15, offsetY * 0.15, offsetZ * 0.15);
+                    1, offsetX * 0.15, offsetY * 0.15, offsetZ * 0.15, 0.0D);
             }
 
             for (int i = 0; i < 12; i++) {
                 double offsetX = (level.getRandom().nextDouble() - 0.5) * 6.0;
                 double offsetY = level.getRandom().nextDouble() * 3.0;
                 double offsetZ = (level.getRandom().nextDouble() - 0.5) * 6.0;
-                level.addParticle(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE,
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE,
                     center.x + offsetX, center.y + offsetY, center.z + offsetZ,
-                    offsetX * 0.05, 0.1, offsetZ * 0.05);
+                    1, offsetX * 0.05, 0.1, offsetZ * 0.05, 0.0D);
             }
 
             for (int i = 0; i < 20; i++) {
                 double offsetX = (level.getRandom().nextDouble() - 0.5) * 3.0;
                 double offsetY = (level.getRandom().nextDouble() - 0.5) * 3.0;
                 double offsetZ = (level.getRandom().nextDouble() - 0.5) * 3.0;
-                level.addParticle(net.minecraft.core.particles.ParticleTypes.LAVA,
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.LAVA,
                     center.x + offsetX, center.y + offsetY, center.z + offsetZ,
-                    offsetX * 0.2, offsetY * 0.2, offsetZ * 0.2);
+                    1, offsetX * 0.2, offsetY * 0.2, offsetZ * 0.2, 0.0D);
             }
 
             java.util.List<PrimedTnt> tntToSpawn = new java.util.ArrayList<>();
@@ -137,12 +182,12 @@ public class TNTExplosionMixin {
                 net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
                 if (!state.isAir()) {
                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                        bridge.debugLog("[AkiAsync-TNT] Destroying block at " + pos + ": " + state.getBlock().getDescriptionId());
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Destroying block at " + pos + ": " + state.getBlock().getDescriptionId());
                     }
 
                     if (state.is(net.minecraft.world.level.block.Blocks.TNT)) {
                         
-                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
 
                         double distance = Math.sqrt(pos.distToCenterSqr(center.x, center.y, center.z));
                         int fuseTime = Math.max(10, (int)(distance * 2.0) + level.getRandom().nextInt(10));
@@ -162,9 +207,9 @@ public class TNTExplosionMixin {
                                 double offsetX = (level.getRandom().nextDouble() - 0.5) * 0.8;
                                 double offsetY = level.getRandom().nextDouble() * 0.8;
                                 double offsetZ = (level.getRandom().nextDouble() - 0.5) * 0.8;
-                                level.addParticle(net.minecraft.core.particles.ParticleTypes.FLAME,
+                                level.sendParticles(net.minecraft.core.particles.ParticleTypes.FLAME,
                                     pos.getX() + 0.5 + offsetX, pos.getY() + 0.5 + offsetY, pos.getZ() + 0.5 + offsetZ,
-                                    0.0, 0.1, 0.0);
+                                    1, 0.0, 0.1, 0.0, 0.0D);
                             }
                         }
                     } else {
@@ -173,7 +218,8 @@ public class TNTExplosionMixin {
                         if (shouldDrop) {
                             net.minecraft.world.level.block.Block.dropResources(state, level, pos, level.getBlockEntity(pos), tnt, net.minecraft.world.item.ItemStack.EMPTY);
                         }
-                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                        
+                        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
                         blocksToUpdate.add(pos);
                     }
                 }
@@ -217,14 +263,61 @@ public class TNTExplosionMixin {
             }
 
             if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Processing " + result.getToHurt().size() + " entities for damage");
+                bridge.debugLog("[AkiAsync-TNT] Processing %d entities for damage", result.getToHurt().size());
+                bridge.debugLog("[AkiAsync-TNT] Explosion center: %s", center);
             }
 
+            int entitiesFound = 0;
+            int entitiesNotFound = 0;
+            int entitiesRecovered = 0;
+            
             for (Map.Entry<UUID, Vec3> entry : result.getToHurt().entrySet()) {
                 net.minecraft.world.entity.Entity entity = level.getEntity(entry.getKey());
+                
+                if (entity == null) {
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Entity not found by UUID: " + entry.getKey() + ", trying AABB search");
+                    }
+                    
+                    double searchRadius = 8.0;
+                    java.util.List<net.minecraft.world.entity.Entity> nearbyEntities = level.getEntities(
+                        null,
+                        new net.minecraft.world.phys.AABB(
+                            center.x - searchRadius, center.y - searchRadius, center.z - searchRadius,
+                            center.x + searchRadius, center.y + searchRadius, center.z + searchRadius
+                        )
+                    );
+                    
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] AABB search found " + nearbyEntities.size() + " nearby entities");
+                    }
+                    
+                    for (net.minecraft.world.entity.Entity e : nearbyEntities) {
+                        if (e.getUUID().equals(entry.getKey())) {
+                            entity = e;
+                            entitiesRecovered++;
+                            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                                BridgeConfigCache.debugLog("[AkiAsync-TNT] Recovered entity via AABB search: " + 
+                                    entity.getType().getDescriptionId() + " at " + entity.position());
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (entity == null) {
+                        entitiesNotFound++;
+                        if (bridge != null && bridge.isTNTDebugEnabled()) {
+                            BridgeConfigCache.debugLog("[AkiAsync-TNT] Entity still not found after AABB search: " + entry.getKey());
+                        }
+                        continue;
+                    }
+                }
+                
+                entitiesFound++;
+                
                 if (entity != null) {
                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                        bridge.debugLog("[AkiAsync-TNT] Processing entity: " + entity.getType().getDescriptionId() +
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Processing entity: " + entity.getType().getDescriptionId() +
                             " at " + entity.position());
                     }
                     Vec3 knockback = entry.getValue();
@@ -246,16 +339,26 @@ public class TNTExplosionMixin {
                     if (entityInWater) {
                         finalDamage = baseDamage * 0.6f;
                         if (bridge != null && bridge.isTNTDebugEnabled()) {
-                            bridge.debugLog("[AkiAsync-TNT] Water damage reduction: " + baseDamage + " -> " + finalDamage);
+                            BridgeConfigCache.debugLog("[AkiAsync-TNT] Water damage reduction: " + baseDamage + " -> " + finalDamage);
                         }
                     }
 
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-TNT] Applying damage: %.2f to %s (distance: %.2f, inWater: %s)", 
+                            finalDamage, entity.getType().getDescriptionId(), distance, entityInWater);
+                    }
+                    
                     if (finalDamage > 0) {
                         entity.hurt(level.damageSources().explosion(explosion), finalDamage);
                     }
 
                     Vec3 finalKnockback = entityInWater ? knockback.scale(0.7) : knockback;
                     entity.setDeltaMovement(entity.getDeltaMovement().add(finalKnockback));
+                    
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-TNT] Applied knockback: %s, new velocity: %s", 
+                            finalKnockback, entity.getDeltaMovement());
+                    }
 
                     if (entity instanceof net.minecraft.world.entity.LivingEntity livingEntity) {
                         livingEntity.invulnerableTime = Math.max(livingEntity.invulnerableTime, 10);
@@ -264,29 +367,33 @@ public class TNTExplosionMixin {
                             String entityName = entity instanceof net.minecraft.server.level.ServerPlayer player ?
                                 "Player " + player.getScoreboardName() :
                                 entity.getType().getDescriptionId();
-                            bridge.debugLog("[AkiAsync-TNT] " + entityName +
+                            BridgeConfigCache.debugLog("[AkiAsync-TNT] " + entityName +
                                 " damaged: " + finalDamage + " (distance: " + String.format("%.2f", distance) +
                                 ", inWater: " + entityInWater + ")");
                         }
                     }
                 }
             }
+            
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] Entity damage summary: " + 
+                    entitiesFound + " found directly, " + 
+                    entitiesRecovered + " recovered via AABB, " + 
+                    entitiesNotFound + " not found at all");
+            }
 
         } catch (Exception ex) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-TNT] Error in applyExplosionResults: " + ex.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in applyExplosionResults: " + ex.getMessage());
         }
     }
 
     private static boolean aki$isFoliaEnvironment() {
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
         return bridge != null && bridge.isFoliaEnvironment();
     }
 
     private static void aki$scheduleFoliaExplosion(PrimedTnt tnt, ServerLevel sl, Vec3 center,
-                                                   org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+                                                   Bridge bridge) {
         Runnable explosionTask = () -> bridge.safeExecute(
             () -> aki$executeExplosionInRegion(tnt, sl, center, bridge),
             "Folia scheduled explosion"
@@ -299,7 +406,7 @@ public class TNTExplosionMixin {
     }
 
     private static void aki$executeExplosionInRegion(PrimedTnt tnt, ServerLevel sl, Vec3 center,
-                                                     org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+                                                     Bridge bridge) {
         boolean inWater = tnt.isInWater() || !sl.getFluidState(BlockPos.containing(center)).isEmpty();
 
         if (inWater) {
@@ -321,13 +428,11 @@ public class TNTExplosionMixin {
             aki$executeSyncExplosion(tnt, sl, center, snapshot, bridge);
 
             if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Folia region explosion completed at " + center);
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] Folia region explosion completed at " + center);
             }
 
         } catch (Exception ex) {
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-TNT] Error in Folia region explosion: " + ex.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in Folia region explosion: " + ex.getMessage());
             aki$fallbackSyncExplosion(tnt, sl, center);
         }
     }
@@ -340,16 +445,18 @@ public class TNTExplosionMixin {
             );
             explosion.explode();
         } catch (Exception fallbackEx) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-TNT] Fallback explosion also failed: " + fallbackEx.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Fallback explosion also failed: " + fallbackEx.getMessage());
         }
     }
 
     private static void aki$executeSafeExplosion(PrimedTnt tnt, ServerLevel sl, Vec3 center,
-                                                boolean inWater, org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+                                                boolean inWater, Bridge bridge) {
         try {
+            
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Collecting entities in main thread before async calculation");
+            }
+            
             org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot snapshot =
                 new org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot(sl, center, 4.0F, false);
 
@@ -358,7 +465,7 @@ public class TNTExplosionMixin {
 
             if (healthStatus != null && healthStatus.contains("unhealthy")) {
                 if (bridge != null && bridge.isTNTDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-TNT] Executor unhealthy, using sync calculation: " + healthStatus);
+                    BridgeConfigCache.debugLog("[AkiAsync-TNT] Executor unhealthy, using sync calculation: " + healthStatus);
                 }
                 aki$executeSyncExplosion(tnt, sl, center, snapshot, bridge);
                 return;
@@ -382,10 +489,10 @@ public class TNTExplosionMixin {
                             org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator.releaseResult(result);
 
                             if (bridge != null && bridge.isTNTDebugEnabled()) {
-                                bridge.debugLog("[AkiAsync-TNT] Safe async explosion completed at " + center);
+                                BridgeConfigCache.debugLog("[AkiAsync-TNT] Safe async explosion completed at " + center);
                             }
                         } catch (Exception ex) {
-                            bridge.errorLog("[AkiAsync-TNT] Error applying safe explosion results: " + ex.getMessage());
+                            BridgeConfigCache.errorLog("[AkiAsync-TNT] Error applying safe explosion results: " + ex.getMessage());
                             aki$fallbackSyncExplosion(tnt, sl, center);
                         }
                     };
@@ -397,7 +504,7 @@ public class TNTExplosionMixin {
                         sl.getServer().execute(applyResultsTask);
                     }
                 } catch (Exception ex) {
-                    bridge.errorLog("[AkiAsync-TNT] Error in safe async explosion calculation: " + ex.getMessage());
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in safe async explosion calculation: " + ex.getMessage());
                     Runnable fallbackTask = () -> aki$fallbackSyncExplosion(tnt, sl, center);
                     if (aki$isFoliaEnvironment()) {
                         net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
@@ -409,16 +516,14 @@ public class TNTExplosionMixin {
             });
 
         } catch (Exception e) {
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-TNT] Safe explosion setup failed: " + e.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Safe explosion setup failed: " + e.getMessage());
             aki$fallbackSyncExplosion(tnt, sl, center);
         }
     }
 
     private static void aki$executeSyncExplosion(PrimedTnt tnt, ServerLevel sl, Vec3 center,
                                                org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot snapshot,
-                                               org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+                                               Bridge bridge) {
         try {
             org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator calculator =
                 new org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator(snapshot);
@@ -434,12 +539,10 @@ public class TNTExplosionMixin {
             org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator.releaseResult(result);
 
             if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Sync explosion completed at " + center);
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] Sync explosion completed at " + center);
             }
         } catch (Exception ex) {
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-TNT] Sync explosion calculation failed: " + ex.getMessage());
-            }
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Sync explosion calculation failed: " + ex.getMessage());
             aki$fallbackSyncExplosion(tnt, sl, center);
         }
     }

@@ -18,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.commands.LocateCommand;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
 @Mixin(LocateCommand.class)
@@ -70,7 +71,7 @@ public class LocateCommandMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] LocateCommandMixin initialized: enabled=" + cached_enabled + ", radius=" + searchRadius + ", skipKnown=" + skipKnownStructures);
+            BridgeConfigCache.debugLog("[AkiAsync] LocateCommandMixin initialized: enabled=" + cached_enabled + ", radius=" + searchRadius + ", skipKnown=" + skipKnownStructures);
         }
     }
 }

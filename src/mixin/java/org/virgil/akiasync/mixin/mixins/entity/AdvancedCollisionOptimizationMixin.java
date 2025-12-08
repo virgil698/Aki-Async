@@ -13,11 +13,8 @@ import org.virgil.akiasync.mixin.util.SectionEntityGrid;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 1000)
 public abstract class AdvancedCollisionOptimizationMixin {
-    
-    @Unique
-    private static volatile boolean initialized = false;
     
     @Unique
     private static volatile boolean enabled = true;
@@ -43,10 +40,12 @@ public abstract class AdvancedCollisionOptimizationMixin {
     @Unique
     private int akiasync$cachedCollisionCount = 0;
     
+    static {
+        akiasync$initAdvancedCollision();
+    }
+    
     @Unique
     private static void akiasync$initAdvancedCollision() {
-        if (initialized) return;
-        
         try {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -60,8 +59,6 @@ public abstract class AdvancedCollisionOptimizationMixin {
         } catch (Exception e) {
             
         }
-        
-        initialized = true;
     }
     
     @Unique
@@ -73,15 +70,13 @@ public abstract class AdvancedCollisionOptimizationMixin {
     
     @Inject(method = "tick", at = @At("HEAD"))
     private void updateSectionGrid(CallbackInfo ci) {
-        if (!initialized) {
-            akiasync$initAdvancedCollision();
-        }
         
         if (!enabled) {
             return;
         }
         
         LivingEntity self = (LivingEntity) (Object) this;
+        
         if (!self.isAlive()) {
             return;
         }
@@ -90,11 +85,8 @@ public abstract class AdvancedCollisionOptimizationMixin {
         grid.updateEntity(self);
     }
     
-    @Inject(method = "pushEntities", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "pushEntities", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizePushEntities(CallbackInfo ci) {
-        if (!initialized) {
-            akiasync$initAdvancedCollision();
-        }
         
         if (!enabled) {
             return;
@@ -114,18 +106,9 @@ public abstract class AdvancedCollisionOptimizationMixin {
             if (currentTime % 20 == 0) { 
                 DamageSources damageSources = self.level().damageSources();
                 self.hurt(damageSources.inWall(), suffocationDamage);
-                
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Collision] Entity " + self.getId() + 
-                        " in high-density area (" + akiasync$cachedCollisionCount + 
-                        " collisions), applying suffocation damage");
-                }
             }
             
             akiasync$pushIterationCount = 0;
-            
             ci.cancel();
             return;
         }
@@ -135,12 +118,6 @@ public abstract class AdvancedCollisionOptimizationMixin {
             akiasync$pushIterationCount = 0;
             ci.cancel();
             
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-Collision] Entity " + self.getId() + 
-                    " reached max push iterations (" + maxPushIterations + "), skipping");
-            }
         }
     }
     

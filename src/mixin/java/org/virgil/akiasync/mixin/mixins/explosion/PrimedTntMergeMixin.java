@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.async.explosion.merge.MergeableTNT;
 import org.virgil.akiasync.mixin.async.explosion.merge.TNTMergeHandler;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import java.util.List;
 
@@ -62,7 +63,7 @@ public abstract class PrimedTntMergeMixin implements MergeableTNT {
         }
 
         if (!merged.isEmpty() && bridge.isTNTDebugEnabled()) {
-            bridge.debugLog("[AkiAsync-TNT] Merged " + merged.size() + 
+            BridgeConfigCache.debugLog("[AkiAsync-TNT] Merged " + merged.size() + 
                 " TNT entities. Total merge count: " + aki$mergeCount);
         }
     }

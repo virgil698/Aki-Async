@@ -19,20 +19,33 @@ public class CacheManager {
     }
     
     private void startPeriodicCleanup() {
-
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            try {
-                cleanupExpired();
-                
-                org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
-                
-                if (plugin.getConfigManager().isDebugLoggingEnabled()) {
-                    plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
+        
+        try {
+            java.util.concurrent.ScheduledExecutorService scheduler = 
+                java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "AkiAsync-CacheCleanup");
+                    t.setDaemon(true);
+                    return t;
+                });
+            
+            scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    cleanupExpired();
+                    org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
+                    
+                    if (plugin.getConfigManager().isDebugLoggingEnabled()) {
+                        plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                plugin.getLogger().warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
-            }
-        }, 6000L, 6000L);
+            }, 5, 300, java.util.concurrent.TimeUnit.SECONDS);
+            
+            plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup scheduled using thread pool");
+        } catch (Exception e) {
+            plugin.getLogger().severe("[AkiAsync-Cache] Failed to start periodic cleanup: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void invalidateAll() {

@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LavaCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -51,11 +52,8 @@ public abstract class MinecartCauldronMixin {
             if (!aki$hasBeenInCauldronLava) {
                 aki$hasBeenInCauldronLava = true;
 
-                Bridge bridge = BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Minecart] Minecart entered lava cauldron at " + pos +
-                        ", type: " + self.getClass().getSimpleName());
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Minecart] Minecart entered lava cauldron at " + pos +
+                    ", type: " + self.getClass().getSimpleName());
             }
 
             aki$destroyMinecartAndDropContents(self, pos);
@@ -88,10 +86,8 @@ public abstract class MinecartCauldronMixin {
                     }
                 }
 
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Minecart] MinecartHopper destroyed in lava cauldron, dropped " +
-                        itemCount + " item stacks");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Minecart] MinecartHopper destroyed in lava cauldron, dropped " +
+                    itemCount + " item stacks");
             }
             else if (minecart instanceof MinecartChest chestCart) {
                 int itemCount = 0;
@@ -111,22 +107,16 @@ public abstract class MinecartCauldronMixin {
                     }
                 }
 
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Minecart] MinecartChest destroyed in lava cauldron, dropped " +
-                        itemCount + " item stacks");
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-Minecart] MinecartChest destroyed in lava cauldron, dropped " +
+                    itemCount + " item stacks");
             }
 
             minecart.discard();
 
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-Minecart] Minecart destroyed at " + pos);
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Minecart] Minecart destroyed at " + pos);
 
         } catch (Exception e) {
-            if (bridge != null) {
-                bridge.debugLog("[AkiAsync-Minecart] Error destroying minecart: " + e.getMessage());
-            }
+            BridgeConfigCache.debugLog("[AkiAsync-Minecart] Error destroying minecart: " + e.getMessage());
         }
     }
 
@@ -137,7 +127,7 @@ public abstract class MinecartCauldronMixin {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isMinecartCauldronDestructionEnabled();
-            bridge.debugLog("[AkiAsync] MinecartCauldronMixin initialized: enabled=" + enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] MinecartCauldronMixin initialized: enabled=" + enabled);
         }
 
         initialized = true;

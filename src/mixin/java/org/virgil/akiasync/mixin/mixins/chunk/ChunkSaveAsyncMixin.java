@@ -4,6 +4,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 import net.minecraft.server.level.ChunkHolder;
 
@@ -38,16 +41,12 @@ public class ChunkSaveAsyncMixin {
 
     private static void logFoliaDetection(boolean detected) {
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                if (detected) {
-                    bridge.debugLog("[AkiAsync-ChunkSave] Folia environment detected - async chunk save DISABLED for compatibility");
-                    bridge.debugLog("[AkiAsync-ChunkSave] Using native Folia chunk save mechanism to prevent deadlocks");
-                } else {
-                    bridge.debugLog("[AkiAsync-ChunkSave] Paper environment detected - async chunk save ENABLED");
-                    bridge.debugLog("[AkiAsync-ChunkSave] Using optimized async save executor");
-                }
+            if (detected) {
+                BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Folia environment detected - async chunk save DISABLED for compatibility");
+                BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Using native Folia chunk save mechanism to prevent deadlocks");
+            } else {
+                BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Paper environment detected - async chunk save ENABLED");
+                BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Using optimized async save executor");
             }
         } catch (Exception e) {
         }
@@ -58,20 +57,16 @@ public class ChunkSaveAsyncMixin {
         if (currentTime - lastLogTime > 60000) {
             lastLogTime = currentTime;
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    if (isFolia) {
-                        bridge.debugLog(String.format(
-                            "[AkiAsync-ChunkSave] Folia mode stats - Native saves: %d",
-                            foliaCallCount
-                        ));
-                    } else {
-                        bridge.debugLog(String.format(
-                            "[AkiAsync-ChunkSave] Paper mode stats - Async saves: %d",
-                            asyncCallCount
-                        ));
-                    }
+                if (isFolia) {
+                    BridgeConfigCache.debugLog(String.format(
+                        "[AkiAsync-ChunkSave] Folia mode stats - Native saves: %d",
+                        foliaCallCount
+                    ));
+                } else {
+                    BridgeConfigCache.debugLog(String.format(
+                        "[AkiAsync-ChunkSave] Paper mode stats - Async saves: %d",
+                        asyncCallCount
+                    ));
                 }
             } catch (Exception e) {
             }
@@ -132,11 +127,7 @@ public class ChunkSaveAsyncMixin {
                 java.lang.reflect.Method getPosMethod = holder.getClass().getMethod("toLong");
                 pos = (long) getPosMethod.invoke(holder);
             } catch (Exception e) {
-                
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.errorLog("[ChunkSave] Failed to get chunk position via reflection: %s", e.getMessage());
-                }
+                BridgeConfigCache.errorLog("[ChunkSave] Failed to get chunk position via reflection: %s", e.getMessage());
             }
 
             final long finalPos = pos;
@@ -150,10 +141,8 @@ public class ChunkSaveAsyncMixin {
 
         } catch (Exception e) {
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null && asyncCallCount <= 5) {
-                    bridge.debugLog("[AkiAsync-ChunkSave] Async save failed, fallback to sync: " + e.getMessage());
+                if (asyncCallCount <= 5) {
+                    BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Async save failed, fallback to sync: " + e.getMessage());
                 }
             } catch (Exception ignored) {}
             callUnsafeSave(holder, flush);
@@ -168,17 +157,9 @@ public class ChunkSaveAsyncMixin {
             unsafeSaveMethod.invoke(holder, flush);
         } catch (Exception e) {
             try {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.errorLog("[AkiAsync-ChunkSave] CRITICAL: Failed to save chunk - " + e.getMessage());
-                }
+                BridgeConfigCache.errorLog("[AkiAsync-ChunkSave] CRITICAL: Failed to save chunk - " + e.getMessage());
             } catch (Exception e2) {
-                
-                org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge2 != null) {
-                    bridge2.errorLog("[ChunkSave] Failed to log critical error: %s", e2.getMessage());
-                }
+                BridgeConfigCache.errorLog("[ChunkSave] Failed to log critical error: %s", e2.getMessage());
             }
         }
     }
