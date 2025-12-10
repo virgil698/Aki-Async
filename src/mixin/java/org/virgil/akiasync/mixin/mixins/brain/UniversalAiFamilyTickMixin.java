@@ -34,6 +34,9 @@ public abstract class UniversalAiFamilyTickMixin {
     @Unique private static volatile int dabMaxTickInterval = 20;
     @Unique private static long protectionCount = 0;
     @Unique private static long totalChecks = 0;
+    
+    @Unique private static volatile boolean brainMemoryEnabled = false;
+    @Unique private static volatile boolean poiSnapshotEnabled = false;
     @Unique private UniversalAiSnapshot aki$snap;
     @Unique private long aki$next = 0;
     @Unique private Vec3 aki$lastPos;
@@ -77,7 +80,8 @@ public abstract class UniversalAiFamilyTickMixin {
             return;
         }
         try {
-            aki$snap = UniversalAiSnapshot.capture(mob, level);
+            
+            aki$snap = UniversalAiSnapshot.capture(mob, level, brainMemoryEnabled, poiSnapshotEnabled);
             CompletableFuture<UniversalAiDiff> future = AsyncBrainExecutor.runSync(() ->
                 UniversalAiCpuCalculator.runCpuOnly(mob, aki$snap), timeout, TimeUnit.MICROSECONDS);
             UniversalAiDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new UniversalAiDiff());
@@ -189,10 +193,12 @@ public abstract class UniversalAiFamilyTickMixin {
         }
 
         if (mob.onGround() || mob.isInLiquid() || mob.isPassenger()) {
-            net.minecraft.world.phys.AABB searchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
+            
             java.util.List<net.minecraft.world.entity.Entity> nearbyEntities =
-                mob.level().getEntities(mob, searchBox, entity ->
-                    entity instanceof net.minecraft.world.entity.vehicle.AbstractMinecart);
+                org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyAnyEntities(
+                    mob, 3.0, entity ->
+                        entity instanceof net.minecraft.world.entity.vehicle.AbstractMinecart
+                );
 
             if (!nearbyEntities.isEmpty()) {
                 return true;
@@ -208,19 +214,20 @@ public abstract class UniversalAiFamilyTickMixin {
         }
 
         if (mob instanceof net.minecraft.world.entity.monster.Monster) {
-            net.minecraft.world.phys.AABB playerSearchBox = mob.getBoundingBox().inflate(8.0, 4.0, 8.0);
+            
             java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers =
-                mob.level().getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, playerSearchBox);
+                org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyPlayers(mob, 8.0);
 
             if (!nearbyPlayers.isEmpty()) {
                 return true;
             }
 
-            net.minecraft.world.phys.AABB vehicleSearchBox = mob.getBoundingBox().inflate(3.0, 2.0, 3.0);
             java.util.List<net.minecraft.world.entity.Entity> nearbyVehicles =
-                mob.level().getEntities(mob, vehicleSearchBox, entity ->
-                    entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
-                    entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse);
+                org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyAnyEntities(
+                    mob, 3.0, entity ->
+                        entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat ||
+                        entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse
+                );
 
             if (!nearbyVehicles.isEmpty()) {
                 return true;
@@ -259,6 +266,9 @@ public abstract class UniversalAiFamilyTickMixin {
             dabStartDistance = bridge.getDabStartDistance();
             dabActivationDistMod = bridge.getDabActivationDistMod();
             dabMaxTickInterval = bridge.getDabMaxTickInterval();
+            
+            brainMemoryEnabled = bridge.isBrainMemoryOptimizationEnabled();
+            poiSnapshotEnabled = bridge.isPoiSnapshotEnabled();
         }
 
         if (isFolia) {
@@ -281,6 +291,8 @@ public abstract class UniversalAiFamilyTickMixin {
                     BridgeConfigCache.debugLog("  - DAB activation dist mod: " + dabActivationDistMod);
                     BridgeConfigCache.debugLog("  - DAB max tick interval: " + dabMaxTickInterval);
                 }
+                BridgeConfigCache.debugLog("  - Brain memory optimization: " + brainMemoryEnabled);
+                BridgeConfigCache.debugLog("  - POI snapshot: " + poiSnapshotEnabled);
             }
         }
 

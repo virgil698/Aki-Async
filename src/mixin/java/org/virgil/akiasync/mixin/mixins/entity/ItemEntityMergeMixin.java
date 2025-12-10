@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -20,6 +21,8 @@ public abstract class ItemEntityMergeMixin {
 
     @Unique
     private static volatile boolean enabled;
+    @Unique
+    private static volatile boolean cancelVanillaMerge;
     @Unique
     private static volatile int mergeInterval;
     @Unique
@@ -35,6 +38,19 @@ public abstract class ItemEntityMergeMixin {
     private List<ItemEntity> aki$cachedNearbyItems = null;
     @Unique
     private int aki$lastCacheTick = 0;
+
+    /**
+     * 取消原版的合并逻辑，避免与我们的优化重复
+     */
+    @Inject(method = "mergeWithNeighbours", at = @At("HEAD"), cancellable = true)
+    private void cancelVanillaMerge(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initMergeOptimization();
+        }
+        if (enabled && cancelVanillaMerge) {
+            ci.cancel(); 
+        }
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void optimizeMerge(CallbackInfo ci) {
@@ -99,6 +115,31 @@ public abstract class ItemEntityMergeMixin {
             return java.util.Collections.emptyList();
         }
         
+        try {
+            org.virgil.akiasync.mixin.util.EntitySliceGrid grid = 
+                org.virgil.akiasync.mixin.util.EntitySliceGridManager.getSliceGrid(self.level());
+            
+            if (grid != null) {
+                
+                AABB searchBox = boundingBox.inflate(mergeRange);
+                if (searchBox != null) {
+                    List<net.minecraft.world.entity.Entity> entities = grid.queryRange(searchBox);
+                    
+                    List<ItemEntity> result = new ArrayList<>();
+                    for (net.minecraft.world.entity.Entity entity : entities) {
+                        if (entity instanceof ItemEntity item && 
+                            item != self && 
+                            !item.isRemoved()) {
+                            result.add(item);
+                        }
+                    }
+                    return result;
+                }
+            }
+        } catch (Throwable t) {
+            
+        }
+        
         AABB searchBox = boundingBox.inflate(mergeRange);
         if (searchBox == null) {
             return java.util.Collections.emptyList();
@@ -161,11 +202,13 @@ public abstract class ItemEntityMergeMixin {
 
         if (bridge != null) {
             enabled = bridge.isItemEntityMergeOptimizationEnabled();
+            cancelVanillaMerge = bridge.isItemEntityCancelVanillaMerge();
             mergeInterval = bridge.getItemEntityMergeInterval();
             minNearbyItems = bridge.getItemEntityMinNearbyItems();
             mergeRange = bridge.getItemEntityMergeRange();
         } else {
             enabled = true;
+            cancelVanillaMerge = true;
             mergeInterval = 3; 
             minNearbyItems = 2; 
             mergeRange = 2.0; 
@@ -175,6 +218,7 @@ public abstract class ItemEntityMergeMixin {
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ItemEntityMergeMixin initialized: enabled=" + enabled +
+                ", cancelVanillaMerge=" + cancelVanillaMerge +
                 ", mergeInterval=" + mergeInterval + ", minNearbyItems=" + minNearbyItems +
                 ", mergeRange=" + mergeRange);
         }

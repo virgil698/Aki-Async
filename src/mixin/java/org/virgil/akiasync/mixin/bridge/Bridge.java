@@ -40,6 +40,14 @@ public interface Bridge {
 
     long getAsyncAITimeoutMicros();
 
+    boolean isAiSpatialIndexEnabled();
+    int getAiSpatialIndexGridSize();
+    boolean isAiSpatialIndexAutoUpdate();
+    boolean isAiSpatialIndexPlayerIndexEnabled();
+    boolean isAiSpatialIndexPoiIndexEnabled();
+    boolean isAiSpatialIndexStatisticsEnabled();
+    int getAiSpatialIndexLogIntervalSeconds();
+
     boolean isVillagerOptimizationEnabled();
 
     boolean isVillagerUsePOISnapshot();
@@ -47,6 +55,11 @@ public interface Bridge {
     boolean isVillagerPoiCacheEnabled();
 
     int getVillagerPoiCacheExpireTime();
+    
+    boolean isWanderingTraderOptimizationEnabled();
+    boolean isWardenOptimizationEnabled();
+    boolean isHoglinOptimizationEnabled();
+    boolean isAllayOptimizationEnabled();
 
     boolean isPiglinOptimizationEnabled();
 
@@ -70,12 +83,25 @@ public interface Bridge {
     int getDabStartDistance();
     int getDabActivationDistMod();
     int getDabMaxTickInterval();
+    
+    boolean isBrainMemoryOptimizationEnabled();
+    boolean isPoiSnapshotEnabled();
     boolean isAsyncPathfindingEnabled();
     int getAsyncPathfindingMaxThreads();
     int getAsyncPathfindingKeepAliveSeconds();
     int getAsyncPathfindingMaxQueueSize();
     int getAsyncPathfindingTimeoutMs();
     boolean isAsyncPathfindingSyncFallbackEnabled();
+    
+    boolean isEnhancedPathfindingEnabled();
+    int getEnhancedPathfindingMaxConcurrentRequests();
+    int getEnhancedPathfindingMaxRequestsPerTick();
+    int getEnhancedPathfindingHighPriorityDistance();
+    int getEnhancedPathfindingMediumPriorityDistance();
+    boolean isPathPrewarmEnabled();
+    int getPathPrewarmRadius();
+    int getPathPrewarmMaxMobsPerBatch();
+    int getPathPrewarmMaxPoisPerMob();
     boolean shouldThrottleEntity(Object entity);
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
@@ -312,6 +338,38 @@ public interface Bridge {
     boolean isDataPackDebugEnabled();
 
     boolean isDebugLoggingEnabled();
+    
+    boolean isFluidOptimizationEnabled();
+    boolean isFluidDebugEnabled();
+    boolean isFluidTickThrottleEnabled();
+    int getStaticFluidInterval();
+    int getFlowingFluidInterval();
+    
+    boolean isFluidTickCompensationEnabled();
+    boolean isFluidCompensationEnabledForWater();
+    boolean isFluidCompensationEnabledForLava();
+    double getFluidCompensationTPSThreshold();
+    
+    boolean isSmartLagCompensationEnabled();
+    double getSmartLagTPSThreshold();
+    
+    boolean isSmartLagFluidCompensationEnabled();
+    boolean isSmartLagFluidWaterEnabled();
+    boolean isSmartLagFluidLavaEnabled();
+    
+    boolean isSmartLagItemPickupDelayEnabled();
+    
+    boolean isSmartLagPotionEffectsEnabled();
+    
+    boolean isSmartLagTimeAccelerationEnabled();
+    
+    boolean isSmartLagDebugEnabled();
+    boolean isSmartLagLogMissedTicks();
+    boolean isSmartLagLogCompensation();
+
+    boolean isExperienceOrbInactiveTickEnabled();
+    double getExperienceOrbInactiveRange();
+    int getExperienceOrbInactiveMergeInterval();
 
     void debugLog(String message);
     void debugLog(String format, Object... args);
@@ -362,16 +420,17 @@ public interface Bridge {
     int getMinFallingBlocksForParallel();
     int getFallingBlockBatchSize();
 
-    boolean isItemEntityParallelEnabled();
-    int getMinItemEntitiesForParallel();
-    int getItemEntityBatchSize();
     boolean isItemEntityMergeOptimizationEnabled();
+    boolean isItemEntityCancelVanillaMerge();
     int getItemEntityMergeInterval();
     int getItemEntityMinNearbyItems();
     double getItemEntityMergeRange();
     boolean isItemEntityAgeOptimizationEnabled();
     int getItemEntityAgeInterval();
     double getItemEntityPlayerDetectionRange();
+    boolean isItemEntityInactiveTickEnabled();
+    double getItemEntityInactiveRange();
+    int getItemEntityInactiveMergeInterval();
 
     boolean isSuffocationOptimizationEnabled();
     boolean isFastRayTraceEnabled();
@@ -398,11 +457,27 @@ public interface Bridge {
     float getTNTMergedPowerMultiplier();
     
     boolean isUsePandaWireAlgorithm();
+    
+    boolean isPortalSuffocationCheckDisabled();
+    boolean isShulkerBulletSelfHitFixEnabled();
+    
+    boolean isExecuteCommandInactiveSkipEnabled();
+    int getExecuteCommandSkipLevel();
+    double getExecuteCommandSimulationDistanceMultiplier();
+    long getExecuteCommandCacheDurationMs();
+    java.util.Set<String> getExecuteCommandWhitelistTypes();
+    boolean isExecuteCommandDebugEnabled();
+    
+    boolean isCommandDeduplicationEnabled();
+    boolean isCommandDeduplicationDebugEnabled();
+    
     boolean isRedstoneNetworkCacheEnabled();
     int getRedstoneNetworkCacheExpireTicks();
     
     void clearSakuraOptimizationCaches();
     java.util.Map<String, Object> getSakuraCacheStatistics();
+    
+    void clearEntityThrottleCache(int entityId);
     void performSakuraCacheCleanup();
     
     void notifySmoothSchedulerTick(Object scheduler);
@@ -410,6 +485,7 @@ public interface Bridge {
     
     boolean isCollisionOptimizationEnabled();
     boolean isCollisionAggressiveMode();
+    java.util.Set<String> getCollisionExcludedEntities();
     boolean isCollisionCacheEnabled();
     int getCollisionCacheLifetimeMs();
     double getCollisionCacheMovementThreshold();

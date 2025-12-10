@@ -20,12 +20,13 @@ public final class EvokerSnapshot {
     public static EvokerSnapshot capture(Evoker evoker, ServerLevel level) {
         double health = evoker.getHealth();
         double spellCd = health < 10.0 ? 0.0 : 50.0;
-        AABB box = evoker.getBoundingBox().inflate(32.0);
-        List<PlayerInfo> players = level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player.class, box
-        ).stream()
+        
+        List<PlayerInfo> players = org.virgil.akiasync.mixin.brain.core.AiQueryHelper
+            .getNearbyPlayers(evoker, 32.0)
+            .stream()
             .map(p -> new PlayerInfo(p.getUUID(), p.blockPosition()))
             .collect(Collectors.toList());
+        
         int emptyBlocks = 0;
         BlockPos pos = evoker.blockPosition();
         for (int x = -1; x <= 1; x++) {

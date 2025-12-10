@@ -22,8 +22,17 @@ public class VillagerBreedAsyncMixin {
     @Unique private static volatile int cached_interval;
     @Unique private static volatile boolean initialized = false;
 
-    @Inject(method = "customServerAiStep", at = @At("HEAD"), cancellable = true)
-    private void aki$optimizedVillagerStep(ServerLevel level, CallbackInfo ci) {
+    @Inject(
+        method = "customServerAiStep(Lnet/minecraft/server/level/ServerLevel;Z)V",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/entity/npc/AbstractVillager;customServerAiStep(Lnet/minecraft/server/level/ServerLevel;)V"
+        ),
+        cancellable = true
+    )
+    private void aki$optimizedVillagerStep(ServerLevel level, boolean inactive, CallbackInfo ci) {
+        
+        if (inactive) return;
         try {
             if (!initialized) { aki$initVillagerOptimization(); }
             if (!cached_enabled) return;
@@ -250,10 +259,6 @@ public class VillagerBreedAsyncMixin {
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.REST) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
-
-            if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
-                BridgeConfigCache.debugLog("[AkiAsync-Panic] Villager in panic state, preserving AI for safety");
-            }
             return true;
         }
 

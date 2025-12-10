@@ -54,6 +54,10 @@ public abstract class EntityCollisionCacheMixin {
             return;
         }
         
+        if (predicate == null) {
+            return;
+        }
+        
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastCacheCleanup > CACHE_CLEANUP_INTERVAL) {
             akiasync$cleanupCache(currentTime);
@@ -116,9 +120,20 @@ public abstract class EntityCollisionCacheMixin {
     private long akiasync$generateCacheKey(Entity entity, AABB box) {
         
         long key = entity.getId();
-        key = key * 31 + Double.hashCode(box.minX);
-        key = key * 31 + Double.hashCode(box.minY);
-        key = key * 31 + Double.hashCode(box.minZ);
+        
+        int quantizedX = (int) (box.minX * 2);
+        int quantizedY = (int) (box.minY * 2);
+        int quantizedZ = (int) (box.minZ * 2);
+        
+        int sizeX = (int) ((box.maxX - box.minX) * 10);
+        int sizeY = (int) ((box.maxY - box.minY) * 10);
+        
+        key = (key << 20) ^ quantizedX;
+        key = (key << 20) ^ quantizedY;
+        key = (key << 20) ^ quantizedZ;
+        key = (key << 8) ^ sizeX;
+        key = (key << 8) ^ sizeY;
+        
         return key;
     }
     

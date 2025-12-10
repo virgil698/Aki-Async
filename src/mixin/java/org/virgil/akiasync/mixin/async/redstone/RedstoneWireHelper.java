@@ -21,6 +21,10 @@ public class RedstoneWireHelper {
         evaluatorCache.clear();
     }
     
+    public static void clearLevelCache(ServerLevel level) {
+        clearCache(level);
+    }
+    
     public static int getEvaluatorCount() {
         return evaluatorCache.size();
     }

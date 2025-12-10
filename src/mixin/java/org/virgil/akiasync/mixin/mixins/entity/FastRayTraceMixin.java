@@ -55,6 +55,10 @@ public abstract class FastRayTraceMixin {
             return;
         }
         
+        if (aki$isProjectileContext(context)) {
+            return;
+        }
+        
         Vec3 from = context.getFrom();
         Vec3 to = context.getTo();
         
@@ -72,6 +76,10 @@ public abstract class FastRayTraceMixin {
             at = @At("RETURN"))
     private void aki$cacheRayTrace(ClipContext context, CallbackInfoReturnable<BlockHitResult> cir) {
         if (!enabled) {
+            return;
+        }
+        
+        if (aki$isProjectileContext(context)) {
             return;
         }
         
@@ -96,6 +104,16 @@ public abstract class FastRayTraceMixin {
         hash = hash * 31 + Double.hashCode(Math.floor(to.y * 2) / 2);
         hash = hash * 31 + Double.hashCode(Math.floor(to.z * 2) / 2);
         return hash;
+    }
+    
+    @Unique
+    private boolean aki$isProjectileContext(ClipContext context) {
+        
+        Vec3 from = context.getFrom();
+        Vec3 to = context.getTo();
+        double distanceSq = from.distanceToSqr(to);
+        
+        return distanceSq < 4.0; 
     }
     
     @Unique

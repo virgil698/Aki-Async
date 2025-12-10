@@ -104,6 +104,10 @@ public class BatchPoiManager {
         }
     }
     
+    public static void clearLevelCache(ServerLevel level) {
+        clearCache(level);
+    }
+    
     public static void clearAllCaches() {
         levelCaches.clear();
     }

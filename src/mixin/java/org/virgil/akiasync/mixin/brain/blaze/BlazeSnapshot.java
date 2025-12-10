@@ -15,10 +15,13 @@ public final class BlazeSnapshot {
     }
     public static BlazeSnapshot capture(Blaze blaze, ServerLevel level) {
         double blazeCd = blaze.getHealth() < 10.0 ? 0.0 : 50.0;
-        AABB box = blaze.getBoundingBox().inflate(32.0);
-        List<PlayerInfo> players = level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player.class, box
-        ).stream().map(p -> new PlayerInfo(p.getUUID(), p.blockPosition())).collect(Collectors.toList());
+        
+        List<PlayerInfo> players = org.virgil.akiasync.mixin.brain.core.AiQueryHelper
+            .getNearbyPlayers(blaze, 32.0)
+            .stream()
+            .map(p -> new PlayerInfo(p.getUUID(), p.blockPosition()))
+            .collect(Collectors.toList());
+        
         BlockPos fire = blaze.blockPosition().above(2);
         return new BlazeSnapshot(blazeCd, players, fire);
     }

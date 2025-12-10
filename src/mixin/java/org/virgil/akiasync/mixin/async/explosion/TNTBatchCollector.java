@@ -33,6 +33,14 @@ public class TNTBatchCollector {
             entry.getKey().level == level && entry.getKey().tick < currentTick
         );
     }
+    
+    public static synchronized void clearLevelCache(ServerLevel level) {
+        batches.entrySet().removeIf(entry -> entry.getKey().level == level);
+    }
+    
+    public static synchronized void clearAllCaches() {
+        batches.clear();
+    }
     private static class BatchKey {
         private final ServerLevel level;
         private final long tick;

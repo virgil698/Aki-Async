@@ -22,7 +22,7 @@ public class CollisionDebugCommand implements CommandExecutor {
                            @NotNull String label, @NotNull String[] args) {
         
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "此命令只能由玩家执行");
+            sender.sendMessage(ChatColor.RED + "This command can only be executed by players");
             return true;
         }
         
@@ -31,7 +31,7 @@ public class CollisionDebugCommand implements CommandExecutor {
         if (lastCommandTime.containsKey(playerName)) {
             long timeSinceLastUse = currentTime - lastCommandTime.get(playerName);
             if (timeSinceLastUse < COMMAND_COOLDOWN) {
-                player.sendMessage(ChatColor.RED + "命令冷却中，请稍后再试");
+                player.sendMessage(ChatColor.RED + "Command on cooldown, please try again later");
                 return true;
             }
         }
@@ -54,22 +54,22 @@ public class CollisionDebugCommand implements CommandExecutor {
     }
     
     private void showHelp(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== 碰撞优化调试命令 ===");
-        player.sendMessage(ChatColor.YELLOW + "/collision stats" + ChatColor.WHITE + " - 显示优化统计");
-        player.sendMessage(ChatColor.YELLOW + "/collision nearby [radius]" + ChatColor.WHITE + " - 显示附近实体");
-        player.sendMessage(ChatColor.YELLOW + "/collision density" + ChatColor.WHITE + " - 显示实体密度图");
-        player.sendMessage(ChatColor.YELLOW + "/collision test" + ChatColor.WHITE + " - 运行性能测试");
+        player.sendMessage(ChatColor.GOLD + "=== Collision Optimization Debug Commands ===");
+        player.sendMessage(ChatColor.YELLOW + "/collision stats" + ChatColor.WHITE + " - Show optimization statistics");
+        player.sendMessage(ChatColor.YELLOW + "/collision nearby [radius]" + ChatColor.WHITE + " - Show nearby entities");
+        player.sendMessage(ChatColor.YELLOW + "/collision density" + ChatColor.WHITE + " - Show entity density map");
+        player.sendMessage(ChatColor.YELLOW + "/collision test" + ChatColor.WHITE + " - Run performance test");
     }
     
     private void showStats(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== 碰撞优化统计 ===");
+        player.sendMessage(ChatColor.GOLD + "=== Collision Optimization Statistics ===");
         
         double tps = Bukkit.getTPS()[0];
         String tpsColor = tps >= 19.5 ? ChatColor.GREEN.toString() :
                          tps >= 15.0 ? ChatColor.YELLOW.toString() :
                          ChatColor.RED.toString();
         
-        player.sendMessage(ChatColor.AQUA + "当前TPS: " + tpsColor + String.format("%.2f", tps));
+        player.sendMessage(ChatColor.AQUA + "Current TPS: " + tpsColor + String.format("%.2f", tps));
         
         int totalEntities = 0;
         int livingEntities = 0;
@@ -86,15 +86,15 @@ public class CollisionDebugCommand implements CommandExecutor {
             }
         }
         
-        player.sendMessage(ChatColor.AQUA + "总实体数: " + ChatColor.WHITE + totalEntities);
-        player.sendMessage(ChatColor.AQUA + "生物实体: " + ChatColor.WHITE + livingEntities);
-        player.sendMessage(ChatColor.AQUA + "掉落物: " + ChatColor.WHITE + itemEntities);
+        player.sendMessage(ChatColor.AQUA + "Total Entities: " + ChatColor.WHITE + totalEntities);
+        player.sendMessage(ChatColor.AQUA + "Living Entities: " + ChatColor.WHITE + livingEntities);
+        player.sendMessage(ChatColor.AQUA + "Item Entities: " + ChatColor.WHITE + itemEntities);
         
         Runtime runtime = Runtime.getRuntime();
         long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024;
         long maxMemory = runtime.maxMemory() / 1024 / 1024;
         
-        player.sendMessage(ChatColor.AQUA + "内存使用: " + ChatColor.WHITE + 
+        player.sendMessage(ChatColor.AQUA + "Memory Usage: " + ChatColor.WHITE + 
             usedMemory + "MB / " + maxMemory + "MB");
     }
     
@@ -105,12 +105,12 @@ public class CollisionDebugCommand implements CommandExecutor {
                 radius = Integer.parseInt(args[1]);
                 radius = Math.min(radius, 64); 
             } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "无效的半径值");
+                player.sendMessage(ChatColor.RED + "Invalid radius value");
                 return;
             }
         }
         
-        player.sendMessage(ChatColor.GOLD + "=== 附近实体 (半径: " + radius + ") ===");
+        player.sendMessage(ChatColor.GOLD + "=== Nearby Entities (Radius: " + radius + ") ===");
         
         Map<String, Integer> entityCounts = new HashMap<>();
         int total = 0;
@@ -121,7 +121,7 @@ public class CollisionDebugCommand implements CommandExecutor {
             total++;
         }
         
-        player.sendMessage(ChatColor.AQUA + "总计: " + ChatColor.WHITE + total + " 个实体");
+        player.sendMessage(ChatColor.AQUA + "Total: " + ChatColor.WHITE + total + " entities");
         
         entityCounts.entrySet().stream()
             .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
@@ -132,20 +132,20 @@ public class CollisionDebugCommand implements CommandExecutor {
             });
         
         if (total > 100) {
-            player.sendMessage(ChatColor.RED + "⚠ 警告：实体密度过高！");
-            player.sendMessage(ChatColor.YELLOW + "建议：启用实体限制或清理多余实体");
+            player.sendMessage(ChatColor.RED + "⚠ Warning: Entity density is too high!");
+            player.sendMessage(ChatColor.YELLOW + "Suggestion: Enable entity limits or clear excess entities");
         } else if (total > 50) {
-            player.sendMessage(ChatColor.YELLOW + "⚠ 注意：实体密度较高");
+            player.sendMessage(ChatColor.YELLOW + "⚠ Notice: Entity density is high");
         }
     }
     
     private void showDensityMap(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== 实体密度图 ===");
+        player.sendMessage(ChatColor.GOLD + "=== Entity Density Map ===");
         
         int chunkX = player.getLocation().getChunk().getX();
         int chunkZ = player.getLocation().getChunk().getZ();
         
-        player.sendMessage(ChatColor.AQUA + "当前区块: " + chunkX + ", " + chunkZ);
+        player.sendMessage(ChatColor.AQUA + "Current Chunk: " + chunkX + ", " + chunkZ);
         player.sendMessage("");
         
         for (int dz = -1; dz <= 1; dz++) {
@@ -183,8 +183,8 @@ public class CollisionDebugCommand implements CommandExecutor {
     }
     
     private void runPerformanceTest(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== 性能测试 ===");
-        player.sendMessage(ChatColor.YELLOW + "正在测试碰撞检测性能...");
+        player.sendMessage(ChatColor.GOLD + "=== Performance Test ===");
+        player.sendMessage(ChatColor.YELLOW + "Testing collision detection performance...");
         
         long startTime = System.nanoTime();
         int iterations = 1000;
@@ -197,31 +197,31 @@ public class CollisionDebugCommand implements CommandExecutor {
         long endTime = System.nanoTime();
         double avgTime = (endTime - startTime) / 1000000.0 / iterations;
         
-        player.sendMessage(ChatColor.AQUA + "测试完成！");
-        player.sendMessage(ChatColor.AQUA + "迭代次数: " + ChatColor.WHITE + iterations);
-        player.sendMessage(ChatColor.AQUA + "平均耗时: " + ChatColor.WHITE + 
+        player.sendMessage(ChatColor.AQUA + "Test completed!");
+        player.sendMessage(ChatColor.AQUA + "Iterations: " + ChatColor.WHITE + iterations);
+        player.sendMessage(ChatColor.AQUA + "Average Time: " + ChatColor.WHITE + 
             String.format("%.3f", avgTime) + "ms");
         
         String rating;
         String color;
         if (avgTime < 0.1) {
-            rating = "优秀";
+            rating = "Excellent";
             color = ChatColor.GREEN.toString();
         } else if (avgTime < 0.5) {
-            rating = "良好";
+            rating = "Good";
             color = ChatColor.YELLOW.toString();
         } else if (avgTime < 1.0) {
-            rating = "一般";
+            rating = "Fair";
             color = ChatColor.GOLD.toString();
         } else {
-            rating = "较差";
+            rating = "Poor";
             color = ChatColor.RED.toString();
         }
         
-        player.sendMessage(ChatColor.AQUA + "性能评级: " + color + rating);
+        player.sendMessage(ChatColor.AQUA + "Performance Rating: " + color + rating);
         
         if (avgTime > 0.5) {
-            player.sendMessage(ChatColor.RED + "⚠ 建议：检查实体密度或启用更多优化");
+            player.sendMessage(ChatColor.RED + "⚠ Suggestion: Check entity density or enable more optimizations");
         }
     }
 }

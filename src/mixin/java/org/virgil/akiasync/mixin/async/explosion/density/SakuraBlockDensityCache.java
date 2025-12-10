@@ -106,6 +106,13 @@ public class SakuraBlockDensityCache {
         LEVEL_CACHES.clear();
     }
     
+    public static void clearLevelCache(ServerLevel level) {
+        SakuraBlockDensityCache cache = LEVEL_CACHES.remove(level);
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+    
     public void putSpatialIndex(Vec3 explosionPos, Vec3 entityPos, UUID entityId, float density) {
         
         int x = ((int) Math.floor(entityPos.x)) & 15;

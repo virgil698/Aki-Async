@@ -19,6 +19,7 @@ universal-ai-entities:
   - "minecraft:drowned"
   - "minecraft:hoglin"
   - "minecraft:zoglin"
+  - "minecraft:warden"
   - "minecraft:stray"
   - "minecraft:husk"
   - "minecraft:zombie_villager"
@@ -45,10 +46,12 @@ universal-ai-entities:
   - "minecraft:fox"
   - "minecraft:strider"
   - "minecraft:frog"
+  - "minecraft:tadpole"
   - "minecraft:camel"
   - "minecraft:goat"
   - "minecraft:mushroom_cow"
   - "minecraft:sniffer"
+  - "minecraft:allay"
   
   # 水生生物 / Aquatic Mobs
   - "minecraft:dolphin"
@@ -100,3 +103,30 @@ zero-delay-factory-entities:
   - "minecraft:ender_chest"
   - "minecraft:dropper"
   - "minecraft:dispenser"
+
+# ==========================================
+# 碰撞优化排除列表 / Collision Optimization Exclusion List
+# ==========================================
+# 说明：这些实体将不受碰撞优化影响，保持原版物理行为
+# Description: These entities will not be affected by collision optimization, keeping vanilla physics
+# 
+# 用途：精密红石机器（TNT复制机、下落方块机器等）需要精确的物理时序
+# Purpose: Precision redstone machines (TNT duplicators, falling block machines, etc.) require exact physics timing
+#
+# 注意：排除实体会略微降低性能，但对于精密机器是必需的
+# Note: Excluding entities slightly reduces performance, but is necessary for precision machines
+collision-optimization-excluded-entities:
+  # TNT相关 / TNT Related
+  - "minecraft:tnt"  # TNT实体（TNT复制机必需） / TNT entity (required for TNT duplicators)
+  - "minecraft:tnt_minecart"  # TNT矿车 / TNT minecart
+  
+  # 下落方块 / Falling Blocks
+  # 注意：某些精密机器需要排除下落方块，但会影响性能
+  # Note: Some precision machines need falling blocks excluded, but affects performance
+  # - "minecraft:falling_block"  # 下落方块（可选，默认不排除） / Falling block (optional, not excluded by default)
+  
+  # 其他精密机器实体 / Other Precision Machine Entities
+  # 根据需要添加更多实体 / Add more entities as needed
+  # - "minecraft:minecart"  # 普通矿车（可选） / Regular minecart (optional)
+  # - "minecraft:chest_minecart"  # 箱子矿车（可选） / Chest minecart (optional)
+  # - "minecraft:hopper_minecart"  # 漏斗矿车（可选） / Hopper minecart (optional)

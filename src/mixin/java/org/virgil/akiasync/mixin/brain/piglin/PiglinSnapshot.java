@@ -30,13 +30,10 @@ public final class PiglinSnapshot {
             items[i] = item.isEmpty() ? ItemStack.EMPTY : item.copy();
         }
         
-        AABB scanBox = piglin.getBoundingBox().inflate(12.0);
         java.util.List<PlayerGoldInfo> players = new java.util.ArrayList<>();
         
-        for (net.minecraft.world.entity.player.Player player : level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player.class,
-            scanBox
-        )) {
+        for (net.minecraft.world.entity.player.Player player : 
+            org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyPlayers(piglin, 12.0)) {
             players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),
@@ -76,13 +73,11 @@ public final class PiglinSnapshot {
     ) {
         ItemStack[] items = new ItemStack[0];
         
-        AABB scanBox = brute.getBoundingBox().inflate(12.0);
         java.util.List<PlayerGoldInfo> players = new java.util.ArrayList<>();
         
-        for (net.minecraft.world.entity.player.Player player : level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player.class,
-            scanBox
-        )) {
+        for (net.minecraft.world.entity.player.Player player : 
+            org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyPlayers(
+                (net.minecraft.world.entity.Mob) brute, 12.0)) {
             players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),

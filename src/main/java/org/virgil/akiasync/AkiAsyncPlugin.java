@@ -137,6 +137,8 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         BridgeManager.validateAndDisplayConfigurations();
 
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.WorldUnloadListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.PlayerPathPrewarmListener(this), this);
         
         if (configManager.isSeedCommandRestrictionEnabled()) {
             getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.SeedCommandListener(this), this);
@@ -197,6 +199,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
+        
+        try {
+            org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer.shutdown();
+            getLogger().info("[AkiAsync] EnhancedPathfindingSystem shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("[AkiAsync] Failed to shutdown EnhancedPathfindingSystem: " + e.getMessage());
+        }
 
         if (throttlingManager != null) {
             throttlingManager.shutdown();

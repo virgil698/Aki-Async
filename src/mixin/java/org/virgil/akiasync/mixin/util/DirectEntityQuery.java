@@ -63,28 +63,17 @@ public class DirectEntityQuery {
                 
                 org.virgil.akiasync.mixin.bridge.Bridge bridge = 
                     org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
+                if (bridge != null && bridge.isTNTDebugEnabled()) {
                     bridge.debugLog("[AkiAsync-DirectEntityQuery] Reflection initialized successfully");
                 }
             } else {
                 reflectionFailed = true;
                 
-                org.virgil.akiasync.mixin.bridge.Bridge bridge = 
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.errorLog("[AkiAsync-DirectEntityQuery] Failed to find entity getter field");
-                }
             }
             
         } catch (Exception e) {
             reflectionFailed = true;
             
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-DirectEntityQuery] Reflection initialization failed: " + e.getMessage());
-            }
-            e.printStackTrace();
         }
     }
     
@@ -149,10 +138,9 @@ public class DirectEntityQuery {
             }
             
         } catch (Exception e) {
-            if (bridge != null) {
-                bridge.errorLog("[AkiAsync-DirectEntityQuery] Query failed: " + e.getMessage());
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-DirectEntityQuery] Query failed, using vanilla method: " + e.getMessage());
             }
-            e.printStackTrace();
             
             return level.getEntities((Entity) null, box);
         }

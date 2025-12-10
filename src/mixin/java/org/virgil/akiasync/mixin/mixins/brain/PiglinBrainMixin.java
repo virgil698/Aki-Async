@@ -27,7 +27,7 @@ public abstract class PiglinBrainMixin {
     @Unique private static int executionCount = 0;
     @Unique private static int successCount = 0;
     @Unique private static int timeoutCount = 0;
-    @Inject(method = "customServerAiStep", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initPiglinAsync(); }
         if (!cached_enabled) return;
@@ -37,46 +37,40 @@ public abstract class PiglinBrainMixin {
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
         
+        boolean shouldSkip = false;
+        
         boolean isTrapped = abstractPiglin.getDeltaMovement().lengthSqr() < 0.01 && 
                            abstractPiglin.getTarget() == null;
         
-        if (isTrapped) {
+        if (isTrapped && level.getGameTime() % 20 != 0) {
+            shouldSkip = true;
+        }
+        
+        if (!shouldSkip && cached_skipChance > 0 && level.random.nextInt(100) < cached_skipChance) {
+            shouldSkip = true;
+        }
+        
+        if (!shouldSkip && abstractPiglin.getTarget() == null) {
             
-            if (level.getGameTime() % 20 != 0) {
-                ci.cancel();
-                return;
+            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
+                org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyPlayers(
+                    (net.minecraft.world.entity.Mob) abstractPiglin, 16.0
+                );
+            if (nearbyPlayers.isEmpty() && level.getGameTime() % 10 != 0) {
+                shouldSkip = true;
             }
         }
         
-        if (cached_skipChance > 0 && level.random.nextInt(100) < cached_skipChance) {
-            ci.cancel();
+        if (shouldSkip || level.getGameTime() < this.aki$nextAsyncTick) {
             return;
         }
         
-        if (abstractPiglin.getTarget() == null) {
-            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
-                level.getEntitiesOfClass(
-                    net.minecraft.world.entity.player.Player.class,
-                    abstractPiglin.getBoundingBox().inflate(16.0)
-                );
-            if (nearbyPlayers.isEmpty()) {
-                
-                if (level.getGameTime() % 10 != 0) {
-                    ci.cancel();
-                    return;
-                }
-            }
-        }
+        this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
         
         Piglin piglin = abstractPiglin instanceof Piglin ? (Piglin) abstractPiglin : null;
         net.minecraft.world.entity.monster.piglin.PiglinBrute brute =
             abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ?
             (net.minecraft.world.entity.monster.piglin.PiglinBrute) abstractPiglin : null;
-        
-        if (level.getGameTime() < this.aki$nextAsyncTick) {
-            return;
-        }
-        this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
         
         try {
             if (piglin != null) {

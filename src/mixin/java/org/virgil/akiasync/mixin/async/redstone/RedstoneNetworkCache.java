@@ -113,6 +113,13 @@ public class RedstoneNetworkCache {
         LEVEL_CACHES.clear();
     }
     
+    public static void clearLevelCache(ServerLevel level) {
+        RedstoneNetworkCache cache = LEVEL_CACHES.remove(level);
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+    
     public static class CachedNetwork {
         public final BlockPos sourcePos;
         public final List<BlockPos> affectedWires;

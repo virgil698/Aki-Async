@@ -24,6 +24,10 @@ public class EntitySliceGridManager {
         }
     }
     
+    public static void removeSliceGrid(Level level) {
+        clearSliceGrid(level);
+    }
+    
     public static void clearAllSliceGrids() {
         for (EntitySliceGrid sliceGrid : SLICE_GRIDS.values()) {
             sliceGrid.clear();

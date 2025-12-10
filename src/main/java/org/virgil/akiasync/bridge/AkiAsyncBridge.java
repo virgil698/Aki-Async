@@ -167,6 +167,27 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public long getAsyncAITimeoutMicros() {return config.getAsyncAITimeoutMicros();}
 
     @Override
+    public boolean isAiSpatialIndexEnabled() {return config.isAiSpatialIndexEnabled();}
+    
+    @Override
+    public int getAiSpatialIndexGridSize() {return config.getAiSpatialIndexGridSize();}
+    
+    @Override
+    public boolean isAiSpatialIndexAutoUpdate() {return config.isAiSpatialIndexAutoUpdate();}
+    
+    @Override
+    public boolean isAiSpatialIndexPlayerIndexEnabled() {return config.isAiSpatialIndexPlayerIndexEnabled();}
+    
+    @Override
+    public boolean isAiSpatialIndexPoiIndexEnabled() {return config.isAiSpatialIndexPoiIndexEnabled();}
+    
+    @Override
+    public boolean isAiSpatialIndexStatisticsEnabled() {return config.isAiSpatialIndexStatisticsEnabled();}
+    
+    @Override
+    public int getAiSpatialIndexLogIntervalSeconds() {return config.getAiSpatialIndexLogIntervalSeconds();}
+
+    @Override
     public boolean isVillagerOptimizationEnabled() {return config.isVillagerOptimizationEnabled();}
 
     @Override
@@ -177,6 +198,18 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getVillagerPoiCacheExpireTime() {return config.getVillagerPoiCacheExpireTime();}
+    
+    @Override
+    public boolean isWanderingTraderOptimizationEnabled() {return config.isWanderingTraderOptimizationEnabled();}
+    
+    @Override
+    public boolean isWardenOptimizationEnabled() {return config.isWardenOptimizationEnabled();}
+    
+    @Override
+    public boolean isHoglinOptimizationEnabled() {return config.isHoglinOptimizationEnabled();}
+    
+    @Override
+    public boolean isAllayOptimizationEnabled() {return config.isAllayOptimizationEnabled();}
 
     @Override
     public boolean isPiglinOptimizationEnabled() {return config.isPiglinOptimizationEnabled();}
@@ -225,6 +258,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getDabMaxTickInterval() { return config.getDabMaxTickInterval(); }
+    
+    @Override
+    public boolean isBrainMemoryOptimizationEnabled() { return config.isBrainMemoryOptimizationEnabled(); }
+    
+    @Override
+    public boolean isPoiSnapshotEnabled() { return config.isPoiSnapshotEnabled(); }
 
     @Override
     public boolean isAsyncPathfindingEnabled() { return config.isAsyncPathfindingEnabled(); }
@@ -245,6 +284,41 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isAsyncPathfindingSyncFallbackEnabled() { 
         return config.isAsyncPathfindingSyncFallbackEnabled(); 
     }
+    
+    @Override
+    public boolean isEnhancedPathfindingEnabled() { return config.isEnhancedPathfindingEnabled(); }
+    
+    @Override
+    public int getEnhancedPathfindingMaxConcurrentRequests() { 
+        return config.getEnhancedPathfindingMaxConcurrentRequests(); 
+    }
+    
+    @Override
+    public int getEnhancedPathfindingMaxRequestsPerTick() { 
+        return config.getEnhancedPathfindingMaxRequestsPerTick(); 
+    }
+    
+    @Override
+    public int getEnhancedPathfindingHighPriorityDistance() { 
+        return config.getEnhancedPathfindingHighPriorityDistance(); 
+    }
+    
+    @Override
+    public int getEnhancedPathfindingMediumPriorityDistance() { 
+        return config.getEnhancedPathfindingMediumPriorityDistance(); 
+    }
+    
+    @Override
+    public boolean isPathPrewarmEnabled() { return config.isPathPrewarmEnabled(); }
+    
+    @Override
+    public int getPathPrewarmRadius() { return config.getPathPrewarmRadius(); }
+    
+    @Override
+    public int getPathPrewarmMaxMobsPerBatch() { return config.getPathPrewarmMaxMobsPerBatch(); }
+    
+    @Override
+    public int getPathPrewarmMaxPoisPerMob() { return config.getPathPrewarmMaxPoisPerMob(); }
 
     @Override
     public boolean shouldThrottleEntity(Object entity) {
@@ -492,6 +566,36 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isEndIslandDensityFixEnabled() {return config.isEndIslandDensityFixEnabled();}
     
     @Override
+    public boolean isPortalSuffocationCheckDisabled() {return config.isPortalSuffocationCheckDisabled();}
+    
+    @Override
+    public boolean isShulkerBulletSelfHitFixEnabled() {return config.isShulkerBulletSelfHitFixEnabled();}
+    
+    @Override
+    public boolean isExecuteCommandInactiveSkipEnabled() {return config.isExecuteCommandInactiveSkipEnabled();}
+    
+    @Override
+    public int getExecuteCommandSkipLevel() {return config.getExecuteCommandSkipLevel();}
+    
+    @Override
+    public double getExecuteCommandSimulationDistanceMultiplier() {return config.getExecuteCommandSimulationDistanceMultiplier();}
+    
+    @Override
+    public long getExecuteCommandCacheDurationMs() {return config.getExecuteCommandCacheDurationMs();}
+    
+    @Override
+    public java.util.Set<String> getExecuteCommandWhitelistTypes() {return config.getExecuteCommandWhitelistTypes();}
+    
+    @Override
+    public boolean isExecuteCommandDebugEnabled() {return config.isExecuteCommandDebugEnabled();}
+    
+    @Override
+    public boolean isCommandDeduplicationEnabled() {return config.isCommandDeduplicationEnabled();}
+    
+    @Override
+    public boolean isCommandDeduplicationDebugEnabled() {return config.isCommandDeduplicationDebugEnabled();}
+    
+    @Override
     public boolean isTNTUseFullRaycast() {return config.isTNTUseFullRaycast();}
 
     @Override
@@ -502,6 +606,117 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isDebugLoggingEnabled() {return config.isDebugLoggingEnabled();}
+    
+    @Override
+    public boolean isFluidOptimizationEnabled() {return config.isFluidOptimizationEnabled();}
+    
+    @Override
+    public boolean isFluidDebugEnabled() {return config.isFluidDebugEnabled();}
+    
+    @Override
+    public boolean isFluidTickThrottleEnabled() {
+        return config != null && config.isFluidTickThrottleEnabled();
+    }
+    
+    @Override
+    public int getStaticFluidInterval() {
+        return config != null ? config.getStaticFluidInterval() : 5;
+    }
+    
+    @Override
+    public int getFlowingFluidInterval() {
+        return config != null ? config.getFlowingFluidInterval() : 2;
+    }
+    
+    @Override
+    public boolean isFluidTickCompensationEnabled() {
+        return config != null && config.isFluidTickCompensationEnabled();
+    }
+    
+    @Override
+    public boolean isFluidCompensationEnabledForWater() {
+        return config != null && config.isFluidCompensationEnabledForWater();
+    }
+    
+    @Override
+    public boolean isFluidCompensationEnabledForLava() {
+        return config != null && config.isFluidCompensationEnabledForLava();
+    }
+    
+    @Override
+    public double getFluidCompensationTPSThreshold() {
+        return config != null ? config.getFluidCompensationTPSThreshold() : 18.0;
+    }
+    
+    @Override
+    public boolean isSmartLagCompensationEnabled() {
+        return config != null && config.isSmartLagCompensationEnabled();
+    }
+    
+    @Override
+    public double getSmartLagTPSThreshold() {
+        return config != null ? config.getSmartLagTPSThreshold() : 18.0;
+    }
+    
+    @Override
+    public boolean isSmartLagFluidCompensationEnabled() {
+        return config != null && config.isSmartLagFluidCompensationEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagFluidWaterEnabled() {
+        return config != null && config.isSmartLagFluidWaterEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagFluidLavaEnabled() {
+        return config != null && config.isSmartLagFluidLavaEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagItemPickupDelayEnabled() {
+        return config != null && config.isSmartLagItemPickupDelayEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagPotionEffectsEnabled() {
+        return config != null && config.isSmartLagPotionEffectsEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagTimeAccelerationEnabled() {
+        return config != null && config.isSmartLagTimeAccelerationEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagDebugEnabled() {
+        return config != null && config.isSmartLagDebugEnabled();
+    }
+    
+    @Override
+    public boolean isSmartLagLogMissedTicks() {
+        return config != null && config.isSmartLagLogMissedTicks();
+    }
+    
+    @Override
+    public boolean isSmartLagLogCompensation() {
+        return config != null && config.isSmartLagLogCompensation();
+    }
+    
+    @Override
+    public boolean isExperienceOrbInactiveTickEnabled() {
+        return config != null && config.isExperienceOrbInactiveTickEnabled();
+    }
+    
+    @Override
+    public double getExperienceOrbInactiveRange() {
+        return config != null ? config.getExperienceOrbInactiveRange() : 32.0;
+    }
+    
+    @Override
+    public int getExperienceOrbInactiveMergeInterval() {
+        return config != null ? config.getExperienceOrbInactiveMergeInterval() : 100;
+    }
 
     @Override
     public boolean isFoliaEnvironment() {return org.virgil.akiasync.util.FoliaUtils.isFoliaEnvironment();}
@@ -1025,6 +1240,16 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             errorLog("[AkiAsync] Error clearing Sakura caches: %s", e.getMessage());
         }
     }
+    
+    @Override
+    public void clearEntityThrottleCache(int entityId) {
+        try {
+            org.virgil.akiasync.network.EntityDataThrottler.clearEntity(entityId);
+            org.virgil.akiasync.network.EntityPacketThrottler.clearEntity(entityId);
+        } catch (Exception e) {
+            
+        }
+    }
 
     @Override
     public java.util.Map<String, Object> getSakuraCacheStatistics() {
@@ -1327,23 +1552,13 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
-    public boolean isItemEntityParallelEnabled() {
-        return config != null && config.isItemEntityParallelEnabled();
-    }
-
-    @Override
-    public int getMinItemEntitiesForParallel() {
-        return config != null ? config.getMinItemEntitiesForParallel() : 50;
-    }
-
-    @Override
-    public int getItemEntityBatchSize() {
-        return config != null ? config.getItemEntityBatchSize() : 20;
-    }
-
-    @Override
     public boolean isItemEntityMergeOptimizationEnabled() {
         return config != null && config.isItemEntityMergeOptimizationEnabled();
+    }
+
+    @Override
+    public boolean isItemEntityCancelVanillaMerge() {
+        return config != null && config.isItemEntityCancelVanillaMerge();
     }
 
     @Override
@@ -1374,6 +1589,21 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public double getItemEntityPlayerDetectionRange() {
         return config != null ? config.getItemEntityPlayerDetectionRange() : 8.0;
+    }
+
+    @Override
+    public boolean isItemEntityInactiveTickEnabled() {
+        return config != null && config.isItemEntityInactiveTickEnabled();
+    }
+
+    @Override
+    public double getItemEntityInactiveRange() {
+        return config != null ? config.getItemEntityInactiveRange() : 32.0;
+    }
+
+    @Override
+    public int getItemEntityInactiveMergeInterval() {
+        return config != null ? config.getItemEntityInactiveMergeInterval() : 100;
     }
 
     @Override
@@ -1602,6 +1832,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public boolean isCollisionAggressiveMode() {
         return config != null ? config.isCollisionAggressiveMode() : true;
+    }
+
+    @Override
+    public java.util.Set<String> getCollisionExcludedEntities() {
+        return config != null ? config.getCollisionExcludedEntities() : java.util.Collections.emptySet();
     }
 
     @Override

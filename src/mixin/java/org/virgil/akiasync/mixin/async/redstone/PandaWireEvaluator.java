@@ -72,6 +72,30 @@ public class PandaWireEvaluator {
             RedstoneNetworkCache.CachedNetwork cachedNetwork = networkManager.getOrCalculateAsync(sourcePos);
             if (cachedNetwork != null && cachedNetwork.isApplicable(level, sourcePos)) {
                 if (applyCachedNetwork(cachedNetwork, sourcePos)) {
+                    
+                    Set<BlockPos> blocksNeedingUpdate = Sets.newLinkedHashSet();
+                    for (BlockPos updatedPos : updatedRedstoneWire) {
+                        addBlocksNeedingUpdate(updatedPos, blocksNeedingUpdate);
+                    }
+                    
+                    List<BlockPos> reversed = new ArrayList<>(updatedRedstoneWire);
+                    Collections.reverse(reversed);
+                    for (BlockPos updatedPos : reversed) {
+                        addAllSurroundingBlocks(updatedPos, blocksNeedingUpdate);
+                    }
+                    
+                    blocksNeedingUpdate.removeAll(updatedRedstoneWire);
+                    
+                    if (blocksNeedingUpdate.size() > BATCH_THRESHOLD) {
+                        batchNeighborUpdates(blocksNeedingUpdate);
+                    } else {
+                        for (BlockPos neighborPos : blocksNeedingUpdate) {
+                            level.updateNeighborsAt(neighborPos, wireBlock);
+                        }
+                    }
+                    
+                    updatedRedstoneWire.clear();
+                    powerCache.clear();
                     return;
                 }
             }
@@ -113,7 +137,7 @@ public class PandaWireEvaluator {
     
     private boolean applyCachedNetwork(RedstoneNetworkCache.CachedNetwork network, BlockPos triggerPos) {
         try {
-
+            
             for (Map.Entry<BlockPos, Integer> entry : network.powerChanges.entrySet()) {
                 BlockPos pos = entry.getKey();
                 int power = entry.getValue();
@@ -121,8 +145,10 @@ public class PandaWireEvaluator {
                 BlockState state = level.getBlockState(pos);
                 if (state.getBlock() instanceof RedStoneWireBlock) {
                     BlockState newState = state.setValue(RedStoneWireBlock.POWER, power);
-                    level.setBlock(pos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    
+                    level.setBlock(pos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_NEIGHBORS);
                     updatedRedstoneWire.add(pos);
+                    powerCache.put(pos, power);
                 }
             }
             
@@ -135,7 +161,7 @@ public class PandaWireEvaluator {
             
             return true;
         } catch (Exception e) {
-
+            
             networkManager.invalidate(triggerPos);
             return false;
         }
@@ -258,6 +284,7 @@ public class PandaWireEvaluator {
     
     private void setWireState(BlockPos pos, BlockState state, int power) {
         BlockState newState = state.setValue(RedStoneWireBlock.POWER, power);
+        
         level.setBlock(pos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         powerCache.put(pos, power);
         updatedRedstoneWire.add(pos);
@@ -310,8 +337,7 @@ public class PandaWireEvaluator {
             
             if (neighborState.is(wireBlock)) continue;
             
-            if (neighborState.isRedstoneConductor(level, neighborPos) || 
-                neighborState.getBlock() instanceof net.minecraft.world.level.block.DiodeBlock) {
+            if (!neighborState.isAir()) {
                 blocksNeedingUpdate.add(neighborPos);
             }
         }
@@ -350,5 +376,13 @@ public class PandaWireEvaluator {
                 }
             }
         });
+    }
+    
+    public static void clearLevelCache(ServerLevel level) {
+        pendingUpdates.remove(level);
+    }
+    
+    public static void clearAllCaches() {
+        pendingUpdates.clear();
     }
 }

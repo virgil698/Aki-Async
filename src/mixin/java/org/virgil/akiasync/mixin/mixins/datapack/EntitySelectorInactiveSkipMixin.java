@@ -1,0 +1,259 @@
+package org.virgil.akiasync.mixin.mixins.datapack;
+
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ChunkHolder;
+import net.minecraft.server.level.FullChunkStatus;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+
+/**
+ * Execute 命令跳过不活跃实体优化
+ * Execute Command Inactive Entity Skip Optimization
+ * 
+ * 优化 execute as @e 等命令的性能，跳过不活跃的实体：
+ * - 级别 1：跳过未加载区块中的实体
+ * - 级别 2：跳过模拟距离外的实体
+ * - 级别 3：跳过所有不活跃实体
+ * 
+ * Optimize performance of execute as @e commands by skipping inactive entities:
+ * - Level 1: Skip entities in unloaded chunks
+ * - Level 2: Skip entities outside simulation distance
+ * - Level 3: Skip all inactive entities
+ * 
+ * @author AkiAsync
+ */
+@Mixin(EntitySelector.class)
+public class EntitySelectorInactiveSkipMixin {
+    
+    @Unique
+    private static volatile boolean initialized = false;
+    
+    @Unique
+    private static volatile boolean enabled = false;
+    
+    @Unique
+    private static volatile int skipLevel = 2;
+    
+    @Unique
+    private static volatile double simulationDistanceMultiplier = 1.0;
+    
+    @Unique
+    private static volatile long cacheDurationMs = 1000L;
+    
+    @Unique
+    private static volatile Set<String> whitelistTypes = null;
+    
+    @Unique
+    private static final Map<UUID, Long> activityCache = new ConcurrentHashMap<>();
+    
+    @Unique
+    private static long lastCacheCleanup = 0L;
+    
+    @Unique
+    private static final long CACHE_CLEANUP_INTERVAL_MS = 10000L; 
+    
+    /**
+     * 注入到 getPredicate 方法，增强实体过滤逻辑
+     * Inject into getPredicate method to enhance entity filtering logic
+     */
+    @Inject(method = "getPredicate", at = @At("RETURN"), cancellable = true)
+    private void skipInactiveEntities(Vec3 pos, AABB box, FeatureFlagSet enabledFeatures, 
+                                     CallbackInfoReturnable<Predicate<Entity>> cir) {
+        
+        if (!initialized) {
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null) {
+                enabled = bridge.isExecuteCommandInactiveSkipEnabled();
+                
+                if (enabled) {
+                    skipLevel = bridge.getExecuteCommandSkipLevel();
+                    simulationDistanceMultiplier = bridge.getExecuteCommandSimulationDistanceMultiplier();
+                    cacheDurationMs = bridge.getExecuteCommandCacheDurationMs();
+                    whitelistTypes = bridge.getExecuteCommandWhitelistTypes();
+                    
+                    if (bridge.isDebugLoggingEnabled() && bridge.isExecuteCommandDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync] Execute command inactive skip enabled");
+                        bridge.debugLog("  - Skip level: %d", skipLevel);
+                        bridge.debugLog("  - Simulation distance multiplier: %.2f", simulationDistanceMultiplier);
+                        bridge.debugLog("  - Cache duration: %d ms", cacheDurationMs);
+                        bridge.debugLog("  - Whitelist types: %d", whitelistTypes.size());
+                    }
+                }
+                
+                initialized = true;
+            }
+        }
+        
+        if (!enabled || skipLevel == 0) return;
+        
+        Predicate<Entity> original = cir.getReturnValue();
+        
+        Predicate<Entity> enhanced = entity -> {
+            
+            if (!original.test(entity)) return false;
+            
+            if (isWhitelisted(entity)) return true;
+            
+            long currentTime = System.currentTimeMillis();
+            
+            if (currentTime - lastCacheCleanup > CACHE_CLEANUP_INTERVAL_MS) {
+                cleanExpiredCache(currentTime);
+                lastCacheCleanup = currentTime;
+            }
+            
+            if (isCached(entity, currentTime)) return true;
+            
+            boolean active = isEntityActive(entity, skipLevel, simulationDistanceMultiplier);
+            
+            if (active) {
+                
+                activityCache.put(entity.getUUID(), currentTime);
+            } else {
+                
+                Bridge bridge = BridgeManager.getBridge();
+                if (bridge != null && bridge.isDebugLoggingEnabled() && bridge.isExecuteCommandDebugEnabled()) {
+                    logSkippedEntity(entity);
+                }
+            }
+            
+            return active;
+        };
+        
+        cir.setReturnValue(enhanced);
+    }
+    
+    /**
+     * 检查实体是否在白名单中
+     * Check if entity is whitelisted
+     */
+    @Unique
+    private static boolean isWhitelisted(Entity entity) {
+        if (whitelistTypes == null || whitelistTypes.isEmpty()) return false;
+        
+        String entityType = entity.getType().toString();
+        return whitelistTypes.contains(entityType);
+    }
+    
+    /**
+     * 检查实体是否在缓存中且未过期
+     * Check if entity is cached and not expired
+     */
+    @Unique
+    private static boolean isCached(Entity entity, long currentTime) {
+        Long lastCheck = activityCache.get(entity.getUUID());
+        return lastCheck != null && (currentTime - lastCheck) < cacheDurationMs;
+    }
+    
+    /**
+     * 检查实体是否活跃
+     * Check if entity is active
+     */
+    @Unique
+    private static boolean isEntityActive(Entity entity, int level, double simDistMultiplier) {
+        
+        if (entity.isRemoved()) return false;
+        if (entity instanceof LivingEntity living && !living.isAlive()) return false;
+        
+        if (!(entity.level() instanceof ServerLevel serverLevel)) return false;
+        
+        if (level >= 1) {
+            if (!isChunkEntityTicking(entity, serverLevel)) return false;
+        }
+        
+        if (level >= 2) {
+            if (!isWithinSimulationDistance(entity, serverLevel, simDistMultiplier)) return false;
+        }
+        
+        if (level >= 3) {
+            
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 检查实体所在区块是否处于 ENTITY_TICKING 状态
+     * Check if entity's chunk is in ENTITY_TICKING status
+     */
+    @Unique
+    private static boolean isChunkEntityTicking(Entity entity, ServerLevel serverLevel) {
+        BlockPos blockPos = entity.blockPosition();
+        ChunkPos chunkPos = new ChunkPos(blockPos);
+        
+        LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
+        if (chunk == null) return false;
+        
+        ChunkHolder holder = serverLevel.getChunkSource().chunkMap.getVisibleChunkIfPresent(chunkPos.toLong());
+        if (holder == null) return false;
+        
+        FullChunkStatus status = holder.getFullStatus();
+        return status == FullChunkStatus.ENTITY_TICKING;
+    }
+    
+    /**
+     * 检查实体是否在模拟距离内
+     * Check if entity is within simulation distance
+     */
+    @Unique
+    private static boolean isWithinSimulationDistance(Entity entity, ServerLevel serverLevel, double multiplier) {
+        
+        int simDistance = serverLevel.getServer().getPlayerList().getSimulationDistance();
+        double maxDistanceBlocks = simDistance * 16 * multiplier;
+        double maxDistanceSq = maxDistanceBlocks * maxDistanceBlocks;
+        
+        for (ServerPlayer player : serverLevel.players()) {
+            double distSq = player.distanceToSqr(entity);
+            if (distSq < maxDistanceSq) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 清理过期的缓存条目
+     * Clean expired cache entries
+     */
+    @Unique
+    private static void cleanExpiredCache(long currentTime) {
+        activityCache.entrySet().removeIf(entry -> 
+            (currentTime - entry.getValue()) > cacheDurationMs * 2
+        );
+    }
+    
+    /**
+     * 记录被跳过的实体（调试用）
+     * Log skipped entity (for debugging)
+     */
+    @Unique
+    private static void logSkippedEntity(Entity entity) {
+        Bridge bridge = BridgeManager.getBridge();
+        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+            BlockPos pos = entity.blockPosition();
+            bridge.debugLog("[AkiAsync] Skipped entity: %s at (%d, %d, %d)", 
+                entity.getType().toString(), pos.getX(), pos.getY(), pos.getZ());
+        }
+    }
+}

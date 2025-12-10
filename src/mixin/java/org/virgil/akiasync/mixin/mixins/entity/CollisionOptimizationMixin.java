@@ -35,6 +35,8 @@ public abstract class CollisionOptimizationMixin {
 
         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(self)) return;
         
+        if (akiasync$isExcludedEntity(self)) return;
+        
         if (aggressiveMode) {
             long currentTime = System.currentTimeMillis();
             Vec3 currentPos = self.position();
@@ -106,6 +108,8 @@ public abstract class CollisionOptimizationMixin {
 
         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.isAny(self, other)) return;
         
+        if (akiasync$isExcludedEntity(self) || akiasync$isExcludedEntity(other)) return;
+        
         double selfMovementSqr = self.getDeltaMovement().lengthSqr();
         double otherMovementSqr = other.getDeltaMovement().lengthSqr();
         
@@ -123,6 +127,11 @@ public abstract class CollisionOptimizationMixin {
         }
     }
 
+    @Unique
+    private static boolean akiasync$isExcludedEntity(Entity entity) {
+        return org.virgil.akiasync.mixin.util.CollisionExclusionCache.isExcluded(entity);
+    }
+
     private static synchronized void akiasync$initCollisionOptimization() {
         if (initialized) return;
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -134,6 +143,7 @@ public abstract class CollisionOptimizationMixin {
         initialized = true;
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] CollisionOptimizationMixin initialized: enabled=" + enabled);
+            bridge.debugLog("[AkiAsync] TNT and TNT minecarts are excluded from collision optimization for redstone machines");
         }
     }
 }

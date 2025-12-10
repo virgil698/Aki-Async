@@ -53,9 +53,9 @@ public class VersionCommand implements BasicCommand {
             source.getSender().sendMessage(prefix + "  Seed Encryption: OFF");
         }
         source.getSender().sendMessage(prefix + "  Falling Block Parallel: " + (plugin.getConfigManager().isFallingBlockParallelEnabled() ? "ON" : "OFF"));
-        source.getSender().sendMessage(prefix + "  Item Entity Parallel: " + (plugin.getConfigManager().isItemEntityParallelEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Smart Merge: " + (plugin.getConfigManager().isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Age Optimization: " + (plugin.getConfigManager().isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Item Entity Inactive Tick: " + (plugin.getConfigManager().isItemEntityInactiveTickEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Entity Packet Throttle: " + (plugin.getConfigManager().isEntityPacketThrottleEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Fast Movement Chunk Load: " + (plugin.getConfigManager().isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));

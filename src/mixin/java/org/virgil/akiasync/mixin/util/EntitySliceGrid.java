@@ -72,13 +72,6 @@ public class EntitySliceGrid {
     public List<Entity> queryRange(AABB aabb) {
         List<Entity> result = new ArrayList<>();
         
-        int minX = ((int) Math.floor(aabb.minX)) & 15;
-        int minY = ((int) Math.floor(aabb.minY)) & 15;
-        int minZ = ((int) Math.floor(aabb.minZ)) & 15;
-        int maxX = ((int) Math.floor(aabb.maxX)) & 15;
-        int maxY = ((int) Math.floor(aabb.maxY)) & 15;
-        int maxZ = ((int) Math.floor(aabb.maxZ)) & 15;
-        
         int chunkMinX = ((int) Math.floor(aabb.minX)) >> 4;
         int chunkMaxX = ((int) Math.floor(aabb.maxX)) >> 4;
         int chunkMinZ = ((int) Math.floor(aabb.minZ)) >> 4;
@@ -88,8 +81,15 @@ public class EntitySliceGrid {
         
         if (crossesChunks) {
             
-            return result;
+            return queryRangeCrossChunk(aabb);
         }
+        
+        int minX = ((int) Math.floor(aabb.minX)) & 15;
+        int minY = ((int) Math.floor(aabb.minY)) & 15;
+        int minZ = ((int) Math.floor(aabb.minZ)) & 15;
+        int maxX = ((int) Math.floor(aabb.maxX)) & 15;
+        int maxY = ((int) Math.floor(aabb.maxY)) & 15;
+        int maxZ = ((int) Math.floor(aabb.maxZ)) & 15;
         
         for (int y = minY; y <= maxY; y++) {
             for (int z = minZ; z <= maxZ; z++) {
@@ -99,6 +99,56 @@ public class EntitySliceGrid {
                     
                     if (entities != null && !entities.isEmpty()) {
                         result.addAll(entities);
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 跨区块范围查询（优化版）
+     * 
+     * 策略：遍历所有slice，只检查AABB相交的实体
+     * 虽然比单区块查询慢，但比完全放弃优化要好
+     */
+    private List<Entity> queryRangeCrossChunk(AABB aabb) {
+        List<Entity> result = new ArrayList<>();
+        Set<Entity> deduplicatedEntities = new HashSet<>();
+        
+        int minX = (int) Math.floor(aabb.minX);
+        int minY = (int) Math.floor(aabb.minY);
+        int minZ = (int) Math.floor(aabb.minZ);
+        int maxX = (int) Math.floor(aabb.maxX);
+        int maxY = (int) Math.floor(aabb.maxY);
+        int maxZ = (int) Math.floor(aabb.maxZ);
+        
+        int rangeX = maxX - minX;
+        int rangeY = maxY - minY;
+        int rangeZ = maxZ - minZ;
+        
+        if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
+            return result; 
+        }
+        
+        for (int y = minY; y <= maxY; y++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int x = minX; x <= maxX; x++) {
+                    int localX = x & 15;
+                    int localY = y & 15;
+                    int localZ = z & 15;
+                    int intXYZ = calculateIntXYZ(localX, localY, localZ);
+                    
+                    Set<Entity> entities = entitySlices.get(intXYZ);
+                    if (entities != null && !entities.isEmpty()) {
+                        
+                        for (Entity entity : entities) {
+                            if (entity != null && !entity.isRemoved() && 
+                                deduplicatedEntities.add(entity)) {
+                                result.add(entity);
+                            }
+                        }
                     }
                 }
             }

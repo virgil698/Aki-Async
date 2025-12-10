@@ -293,6 +293,24 @@ public class LightingOptimizationManager {
         return initialized;
     }
     
+    public static void clearLevelCache(ServerLevel level) {
+        
+        DEBOUNCE_MAP.entrySet().removeIf(entry -> {
+            
+            return false;
+        });
+        
+        MERGE_BUFFER.clear();
+        
+        BORDER_BUFFER.clear();
+    }
+    
+    public static void clearAllCaches() {
+        DEBOUNCE_MAP.clear();
+        MERGE_BUFFER.clear();
+        BORDER_BUFFER.clear();
+    }
+    
     private static class DebounceInfo {
         long lastUpdateTime = 0;
         long firstUpdateTime = System.currentTimeMillis();

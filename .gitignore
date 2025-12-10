@@ -117,7 +117,6 @@ runs/
 
 look/
 docs/
-script/
 src/mixin/java/org/virgil/akiasync/mixin/crypto/quantum/
 src/main/java/org/virgil/akiasync/security/
 src/main/java/org/virgil/akiasync/crypto/

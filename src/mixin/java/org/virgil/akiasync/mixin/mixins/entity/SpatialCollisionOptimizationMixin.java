@@ -50,6 +50,14 @@ public abstract class SpatialCollisionOptimizationMixin {
             return;
         }
         
+        double centerX = (box.minX + box.maxX) / 2;
+        double centerZ = (box.minZ + box.maxZ) / 2;
+        
+        if (org.virgil.akiasync.mixin.util.EntityDensityTracker.shouldSkipOptimization(centerX, centerZ)) {
+            
+            return;
+        }
+        
         EntitySliceGrid sliceGrid = EntitySliceGridManager.getSliceGrid(level);
         
         org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeConfigCache.getBridge();
@@ -72,9 +80,19 @@ public abstract class SpatialCollisionOptimizationMixin {
             
             if (candidates.isEmpty()) {
                 
-                if (bridge != null && bridge.isTNTDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-Collision] No candidates (possibly cross-chunk query), falling back to vanilla");
+                double rangeX = box.maxX - box.minX;
+                double rangeY = box.maxY - box.minY;
+                double rangeZ = box.maxZ - box.minZ;
+                
+                if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
+                    
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-Collision] Query range too large, falling back to vanilla");
+                    }
+                    return;
                 }
+                
+                cir.setReturnValue(new ArrayList<>());
                 return;
             }
             
@@ -89,7 +107,17 @@ public abstract class SpatialCollisionOptimizationMixin {
                     continue;
                 }
                 
-                if (!entity.getBoundingBox().intersects(box)) {
+                AABB entityBox = entity.getBoundingBox();
+                
+                if (entityBox.maxY < box.minY || entityBox.minY > box.maxY) {
+                    continue;
+                }
+                
+                if (entityBox.maxX < box.minX || entityBox.minX > box.maxX) {
+                    continue;
+                }
+                
+                if (entityBox.maxZ < box.minZ || entityBox.minZ > box.maxZ) {
                     continue;
                 }
                 

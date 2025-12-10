@@ -5,13 +5,22 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.virgil.akiasync.mixin.poi.BatchPoiManager;
+import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.behavior.AcquirePoi;
+import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.npc.Villager;
 
+import java.util.List;
+
+/**
+ * 村民POI优化 - 升级版
+ * 
+ * 使用AiQueryHelper和空间索引替代BatchPoiManager
+ * 性能提升：POI查询从O(n)降到O(1)
+ * 
+ * @author AkiAsync
+ */
 @Mixin(value = Villager.class, priority = 1100)
 public class VillagerPoiOptimizeMixin {
     
@@ -19,16 +28,16 @@ public class VillagerPoiOptimizeMixin {
     private static volatile boolean cached_enabled = false;
     
     @Unique
+    private static volatile boolean cached_debugEnabled = false;
+    
+    @Unique
     private static volatile boolean initialized = false;
     
     @Unique
-    private static volatile int cached_poiSearchInterval = 20;
-    
-    @Unique
-    private long aki$lastPoiSearchTime = 0;
+    private static long queryCount = 0;
     
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
-    private void preloadPoiCache(CallbackInfo ci) {
+    private void optimizedPoiQuery(CallbackInfo ci) {
         if (!initialized) {
             aki$initPoiOptimization();
         }
@@ -39,35 +48,42 @@ public class VillagerPoiOptimizeMixin {
         
         Villager villager = (Villager) (Object) this;
         ServerLevel level = (ServerLevel) villager.level();
-        long currentTime = level.getGameTime();
-        
-        if (currentTime - aki$lastPoiSearchTime < cached_poiSearchInterval) {
-            return;
-        }
-        
-        aki$lastPoiSearchTime = currentTime;
         
         try {
-            BlockPos pos = villager.blockPosition();
-
-            BatchPoiManager.getPoiInRange(level, pos, 48);
+            
+            List<PoiRecord> nearbyPoi = AiQueryHelper.getNearbyPoi(villager, 48);
+            
+            queryCount++;
+            
+            if (cached_debugEnabled && queryCount % 1000 == 0) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+                if (bridge != null) {
+                    bridge.debugLog(
+                        "[AkiAsync-Villager] POI Query #%d: Found %d POIs using spatial index",
+                        queryCount, nearbyPoi.size()
+                    );
+                }
+            }
         } catch (Exception e) {
-
+            
         }
     }
     
     @Unique
-    private static void aki$initPoiOptimization() {
+    private static synchronized void aki$initPoiOptimization() {
+        if (initialized) return;
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            cached_enabled = bridge.isVillagerOptimizationEnabled();
-
-            cached_poiSearchInterval = 20;
+            cached_enabled = bridge.isVillagerOptimizationEnabled() && 
+                           bridge.isAiSpatialIndexEnabled();
+            cached_debugEnabled = bridge.isDebugLoggingEnabled();
             
-            bridge.debugLog("[AkiAsync] VillagerPoiOptimizeMixin initialized: enabled=" + 
-                cached_enabled + " | interval=" + cached_poiSearchInterval + " ticks");
+            bridge.debugLog("[AkiAsync] VillagerPoiOptimizeMixin (Upgraded) initialized: enabled=" + 
+                cached_enabled + " | Using AI Spatial Index");
         } else {
             cached_enabled = false;
         }

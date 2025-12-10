@@ -172,4 +172,11 @@ public class AsyncRedstoneNetworkManager {
         
         INSTANCES.clear();
     }
+    
+    public static void clearLevelCache(ServerLevel level) {
+        AsyncRedstoneNetworkManager manager = INSTANCES.remove(level);
+        if (manager != null) {
+            manager.clear();
+        }
+    }
 }

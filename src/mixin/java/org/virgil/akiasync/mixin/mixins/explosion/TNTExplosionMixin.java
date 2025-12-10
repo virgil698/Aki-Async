@@ -93,37 +93,27 @@ public class TNTExplosionMixin {
             return;
         }
 
-        boolean inWater = tnt.isInWater() || !sl.getFluidState(BlockPos.containing(center)).isEmpty();
+        boolean inWater = tnt.isInWater() || 
+                          tnt.isUnderWater() || 
+                          !sl.getFluidState(BlockPos.containing(center)).isEmpty();
 
         if (inWater) {
-            Runnable waterExplosionTask = () -> {
-                try {
-                    sl.explode(
-                        tnt,
-                        net.minecraft.world.level.Explosion.getDefaultDamageSource(sl, tnt),
-                        null,
-                        center.x,
-                        center.y,
-                        center.z,
-                        4.0F,
-                        false,
-                        net.minecraft.world.level.Level.ExplosionInteraction.TNT
-                    );
-
-                    if (bridge.isTNTDebugEnabled()) {
-                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Water explosion completed at " + center);
-                    }
-                } catch (Exception ex) {
-                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in water explosion: " + ex.getMessage());
-                }
-            };
-
-            if (aki$isFoliaEnvironment()) {
-                net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
-                bridge.scheduleRegionTask(sl, centerPos, waterExplosionTask);
-            } else {
-                sl.getServer().execute(waterExplosionTask);
+            if (bridge.isTNTDebugEnabled()) {
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] TNT in water at " + center + ", using vanilla explosion (no block damage)");
             }
+            
+            ci.cancel();
+            sl.explode(
+                tnt,
+                net.minecraft.world.level.Explosion.getDefaultDamageSource(sl, tnt),
+                null,
+                center.x,
+                center.y,
+                center.z,
+                4.0F,
+                false,
+                net.minecraft.world.level.Level.ExplosionInteraction.TNT
+            );
             tnt.discard();
             return;
         }
@@ -439,19 +429,48 @@ public class TNTExplosionMixin {
 
     private static void aki$fallbackSyncExplosion(PrimedTnt tnt, ServerLevel sl, Vec3 center) {
         try {
-            net.minecraft.world.level.ServerExplosion explosion = new net.minecraft.world.level.ServerExplosion(
-                sl, tnt, null, null, center, 4.0F, false,
-                net.minecraft.world.level.Explosion.BlockInteraction.DESTROY_WITH_DECAY
+            
+            sl.explode(
+                tnt,
+                net.minecraft.world.level.Explosion.getDefaultDamageSource(sl, tnt),
+                null,
+                center.x, center.y, center.z,
+                4.0F,
+                false,
+                net.minecraft.world.level.Level.ExplosionInteraction.TNT
             );
-            explosion.explode();
+            
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Fallback explosion completed at " + center);
+            }
         } catch (Exception fallbackEx) {
-            BridgeConfigCache.errorLog("[AkiAsync-TNT] Fallback explosion also failed: " + fallbackEx.getMessage());
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Fallback explosion failed: " + fallbackEx.getMessage());
         }
     }
 
     private static void aki$executeSafeExplosion(PrimedTnt tnt, ServerLevel sl, Vec3 center,
                                                 boolean inWater, Bridge bridge) {
         try {
+            
+            if (tnt == null) {
+                BridgeConfigCache.errorLog("[AkiAsync-TNT] TNT entity is null, aborting");
+                return;
+            }
+            if (sl == null) {
+                BridgeConfigCache.errorLog("[AkiAsync-TNT] ServerLevel is null, aborting");
+                return;
+            }
+            if (center == null) {
+                BridgeConfigCache.errorLog("[AkiAsync-TNT] Explosion center is null, aborting");
+                return;
+            }
+            if (tnt.isRemoved()) {
+                if (bridge != null && bridge.isTNTDebugEnabled()) {
+                    bridge.debugLog("[AkiAsync-TNT] TNT entity already removed, skipping");
+                }
+                return;
+            }
             
             if (bridge != null && bridge.isTNTDebugEnabled()) {
                 bridge.debugLog("[AkiAsync-TNT] Collecting entities in main thread before async calculation");
@@ -504,7 +523,25 @@ public class TNTExplosionMixin {
                         sl.getServer().execute(applyResultsTask);
                     }
                 } catch (Exception ex) {
-                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in safe async explosion calculation: " + ex.getMessage());
+                    
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Error in safe async explosion calculation:");
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Exception type: " + ex.getClass().getName());
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT] Message: " + (ex.getMessage() != null ? ex.getMessage() : "null"));
+                    
+                    StackTraceElement[] stackTrace = ex.getStackTrace();
+                    if (stackTrace != null && stackTrace.length > 0) {
+                        BridgeConfigCache.errorLog("[AkiAsync-TNT] Stack trace:");
+                        for (int i = 0; i < Math.min(5, stackTrace.length); i++) {
+                            BridgeConfigCache.errorLog("[AkiAsync-TNT]   at " + stackTrace[i].toString());
+                        }
+                    }
+                    
+                    Throwable cause = ex.getCause();
+                    if (cause != null) {
+                        BridgeConfigCache.errorLog("[AkiAsync-TNT] Caused by: " + cause.getClass().getName() + 
+                            ": " + (cause.getMessage() != null ? cause.getMessage() : "null"));
+                    }
+                    
                     Runnable fallbackTask = () -> aki$fallbackSyncExplosion(tnt, sl, center);
                     if (aki$isFoliaEnvironment()) {
                         net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
@@ -516,7 +553,19 @@ public class TNTExplosionMixin {
             });
 
         } catch (Exception e) {
-            BridgeConfigCache.errorLog("[AkiAsync-TNT] Safe explosion setup failed: " + e.getMessage());
+            
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Safe explosion setup failed:");
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Exception type: " + e.getClass().getName());
+            BridgeConfigCache.errorLog("[AkiAsync-TNT] Message: " + (e.getMessage() != null ? e.getMessage() : "null"));
+            
+            StackTraceElement[] stackTrace = e.getStackTrace();
+            if (stackTrace != null && stackTrace.length > 0) {
+                BridgeConfigCache.errorLog("[AkiAsync-TNT] Stack trace:");
+                for (int i = 0; i < Math.min(5, stackTrace.length); i++) {
+                    BridgeConfigCache.errorLog("[AkiAsync-TNT]   at " + stackTrace[i].toString());
+                }
+            }
+            
             aki$fallbackSyncExplosion(tnt, sl, center);
         }
     }

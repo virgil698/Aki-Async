@@ -34,7 +34,13 @@ public abstract class EntityPushOptimizationMixin {
     private static final ConcurrentHashMap<Integer, PushAccumulator> pushAccumulators = new ConcurrentHashMap<>();
     
     @Unique
-    private static long currentTick = 0;
+    private static volatile long currentTick = 0;
+    
+    @Unique
+    private static volatile long lastCleanupTick = 0;
+    
+    @Unique
+    private static final int CLEANUP_INTERVAL = 5; 
     
     @Unique
     private static volatile double fixedPushStrength = 0.035; 
@@ -54,6 +60,10 @@ public abstract class EntityPushOptimizationMixin {
         }
         
         Entity self = (Entity) (Object) this;
+        
+        if (akiasync$isExcludedEntity(self) || akiasync$isExcludedEntity(other)) {
+            return;
+        }
         
         if (self.isRemoved() || other.isRemoved()) {
             ci.cancel();
@@ -117,7 +127,11 @@ public abstract class EntityPushOptimizationMixin {
         
         if (tick != currentTick) {
             currentTick = tick;
-            pushAccumulators.clear();
+            
+            if (tick - lastCleanupTick >= CLEANUP_INTERVAL) {
+                pushAccumulators.clear();
+                lastCleanupTick = tick;
+            }
         }
     }
     
@@ -165,6 +179,11 @@ public abstract class EntityPushOptimizationMixin {
     }
     
     @Unique
+    private static boolean akiasync$isExcludedEntity(Entity entity) {
+        return org.virgil.akiasync.mixin.util.CollisionExclusionCache.isExcluded(entity);
+    }
+
+    @Unique
     private static synchronized void akiasync$initPushOptimization() {
         if (initialized) return;
         
@@ -185,6 +204,7 @@ public abstract class EntityPushOptimizationMixin {
                 ", maxPushPerTick=" + maxPushPerTick + 
                 ", fixedPushStrength=" + fixedPushStrength +
                 " (density detection disabled for performance)");
+            bridge.debugLog("[AkiAsync] TNT and TNT minecarts are excluded from push optimization for redstone machines");
         }
         
         initialized = true;
