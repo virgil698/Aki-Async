@@ -13,6 +13,9 @@ public class EntitySliceGrid {
     
     private final Int2ObjectOpenHashMap<Set<Entity>> entitySlices = new Int2ObjectOpenHashMap<>();
     
+    private static final double SMALL_AABB_THRESHOLD = 4.0;
+    private static final double MEDIUM_AABB_THRESHOLD = 32.0;
+    
     public static int calculateIntXYZ(int x, int y, int z) {
         return (y << 16) | (z << 8) | x;
     }
@@ -70,6 +73,21 @@ public class EntitySliceGrid {
     }
     
     public List<Entity> queryRange(AABB aabb) {
+        double sizeX = aabb.maxX - aabb.minX;
+        double sizeY = aabb.maxY - aabb.minY;
+        double sizeZ = aabb.maxZ - aabb.minZ;
+        double maxSize = Math.max(Math.max(sizeX, sizeY), sizeZ);
+        
+        if (maxSize <= SMALL_AABB_THRESHOLD) {
+            return queryRangeSmall(aabb);
+        } else if (maxSize <= MEDIUM_AABB_THRESHOLD) {
+            return queryRangeMedium(aabb);
+        } else {
+            return queryRangeLarge(aabb);
+        }
+    }
+    
+    private List<Entity> queryRangeSmall(AABB aabb) {
         List<Entity> result = new ArrayList<>();
         
         int chunkMinX = ((int) Math.floor(aabb.minX)) >> 4;
@@ -80,8 +98,7 @@ public class EntitySliceGrid {
         boolean crossesChunks = (chunkMinX != chunkMaxX) || (chunkMinZ != chunkMaxZ);
         
         if (crossesChunks) {
-            
-            return queryRangeCrossChunk(aabb);
+            return queryRangeMedium(aabb);
         }
         
         int minX = ((int) Math.floor(aabb.minX)) & 15;
@@ -107,7 +124,7 @@ public class EntitySliceGrid {
         return result;
     }
     
-    private List<Entity> queryRangeCrossChunk(AABB aabb) {
+    private List<Entity> queryRangeMedium(AABB aabb) {
         List<Entity> result = new ArrayList<>();
         Set<Entity> deduplicatedEntities = new HashSet<>();
         
@@ -117,14 +134,6 @@ public class EntitySliceGrid {
         int maxX = (int) Math.floor(aabb.maxX);
         int maxY = (int) Math.floor(aabb.maxY);
         int maxZ = (int) Math.floor(aabb.maxZ);
-        
-        int rangeX = maxX - minX;
-        int rangeY = maxY - minY;
-        int rangeZ = maxZ - minZ;
-        
-        if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
-            return result; 
-        }
         
         for (int y = minY; y <= maxY; y++) {
             for (int z = minZ; z <= maxZ; z++) {
@@ -136,12 +145,30 @@ public class EntitySliceGrid {
                     
                     Set<Entity> entities = entitySlices.get(intXYZ);
                     if (entities != null && !entities.isEmpty()) {
-                        
                         for (Entity entity : entities) {
                             if (entity != null && !entity.isRemoved() && 
                                 deduplicatedEntities.add(entity)) {
                                 result.add(entity);
                             }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    private List<Entity> queryRangeLarge(AABB aabb) {
+        List<Entity> result = new ArrayList<>();
+        
+        for (Set<Entity> entities : entitySlices.values()) {
+            if (entities != null && !entities.isEmpty()) {
+                for (Entity entity : entities) {
+                    if (entity != null && !entity.isRemoved()) {
+                        AABB entityBox = entity.getBoundingBox();
+                        if (entityBox != null && entityBox.intersects(aabb)) {
+                            result.add(entity);
                         }
                     }
                 }
@@ -176,7 +203,15 @@ public class EntitySliceGrid {
     }
     
     public String getStats() {
-        return String.format("Slices: %d, Total Entities: %d", 
-            size(), getTotalEntityCount());
+        return String.format("Slices: %d, Total Entities: %d, Thresholds: Small=%.1f, Medium=%.1f", 
+            size(), getTotalEntityCount(), SMALL_AABB_THRESHOLD, MEDIUM_AABB_THRESHOLD);
+    }
+    
+    public static double getSmallThreshold() {
+        return SMALL_AABB_THRESHOLD;
+    }
+    
+    public static double getMediumThreshold() {
+        return MEDIUM_AABB_THRESHOLD;
     }
 }
