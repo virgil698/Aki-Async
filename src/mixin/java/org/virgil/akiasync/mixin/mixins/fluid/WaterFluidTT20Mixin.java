@@ -8,14 +8,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * 水流TT20补偿 - 基于TT20的实现
- * 
- * 通过修改getTickDelay返回值来补偿低TPS
- * 比重定向scheduleTick更简洁且覆盖更全面
- * 
- * 参考：TT20 WaterFluidMixin
- */
 @Mixin(WaterFluid.class)
 public class WaterFluidTT20Mixin {
     

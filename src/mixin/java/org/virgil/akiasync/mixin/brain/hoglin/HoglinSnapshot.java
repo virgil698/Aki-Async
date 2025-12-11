@@ -10,24 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 疣猪兽快照
- * 
- * 捕获疣猪兽的环境信息用于异步AI计算
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() - O(1)查询
- * - 使用AiQueryHelper.getNearbyEntities() - O(1)查询
- * - 减少80-85%查询开销
- * 
- * 疣猪兽特点：
- * - 攻击性生物（攻击玩家和其他生物）
- * - 害怕诡异菌（Warped Fungus）
- * - 可繁殖
- * - 成年后会攻击，幼年不攻击
- * 
- * @author AkiAsync
- */
 public final class HoglinSnapshot {
     
     private final double health;
@@ -56,13 +38,6 @@ public final class HoglinSnapshot {
         this.gameTime = gameTime;
     }
     
-    /**
-     * 捕获疣猪兽快照
-     * 
-     * @param hoglin 疣猪兽
-     * @param level 世界
-     * @return 快照
-     */
     public static HoglinSnapshot capture(Hoglin hoglin, ServerLevel level) {
         double health = hoglin.getHealth();
         BlockPos position = hoglin.blockPosition();
@@ -110,9 +85,6 @@ public final class HoglinSnapshot {
     public boolean isHuntingCooldown() { return isHuntingCooldown; }
     public long getGameTime() { return gameTime; }
     
-    /**
-     * 玩家信息
-     */
     public static class PlayerInfo {
         private final UUID playerId;
         private final BlockPos position;

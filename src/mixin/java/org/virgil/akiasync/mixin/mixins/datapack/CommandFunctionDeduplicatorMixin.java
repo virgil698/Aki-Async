@@ -9,18 +9,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-/**
- * 函数命令去重优化
- * Function Command Deduplication Optimization
- * 
- * 去重数据包函数中的重复命令对象，减少内存使用
- * Deduplicate command objects in datapack functions to reduce memory usage
- * 
- * 灵感来源 / Inspired by: FunctionCommandDeduplicator mod by Myitian
- * https://github.com/Myitian/FunctionCommandDeduplicator
- * 
- * @author AkiAsync
- */
 @Mixin(targets = "net.minecraft.commands.functions.FunctionBuilder", remap = false)
 public abstract class CommandFunctionDeduplicatorMixin {
     
@@ -31,10 +19,6 @@ public abstract class CommandFunctionDeduplicatorMixin {
     private static long savedMemoryBytes = 0L;
     private static long usedMemoryBytes = 0L;
     
-    /**
-     * 注入到 FunctionBuilder.addCommand 方法，对命令对象进行去重
-     * Inject into FunctionBuilder.addCommand method to deduplicate command objects
-     */
     @ModifyVariable(
         method = "addCommand(Lnet/minecraft/commands/execution/UnboundEntryAction;)V",
         at = @At("HEAD"),
@@ -88,19 +72,11 @@ public abstract class CommandFunctionDeduplicatorMixin {
         }
     }
     
-    /**
-     * 估算对象占用的内存大小
-     * Estimate memory size of object
-     */
     private static long estimateObjectSize(String commandString) {
         
         return commandString.length() * 2L + 24L;
     }
     
-    /**
-     * 清理缓存并输出统计信息
-     * Clear cache and log statistics
-     */
     public static void clearCache() {
         synchronized (actionCache) {
             if (totalCommands > 0) {
@@ -115,10 +91,6 @@ public abstract class CommandFunctionDeduplicatorMixin {
         }
     }
     
-    /**
-     * 输出统计信息
-     * Log statistics
-     */
     private static void logStatistics() {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isDebugLoggingEnabled()) {
@@ -138,10 +110,6 @@ public abstract class CommandFunctionDeduplicatorMixin {
         }
     }
     
-    /**
-     * 获取缓存统计信息
-     * Get cache statistics
-     */
     public static String getStatistics() {
         synchronized (actionCache) {
             int uniqueCommands = actionCache.size();

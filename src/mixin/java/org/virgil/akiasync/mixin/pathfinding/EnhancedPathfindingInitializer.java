@@ -5,21 +5,11 @@ import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
-/**
- * 增强寻路系统初始化器
- * 
- * 负责在服务器启动时初始化增强寻路系统
- * 
- * @author AkiAsync
- */
 public class EnhancedPathfindingInitializer {
     
     private static volatile boolean initialized = false;
     private static volatile boolean enabled = false;
     
-    /**
-     * 初始化增强寻路系统
-     */
     public static synchronized void initialize() {
         if (initialized) return;
         
@@ -58,9 +48,6 @@ public class EnhancedPathfindingInitializer {
         initialized = true;
     }
     
-    /**
-     * 每 tick 调用
-     */
     public static void tick() {
         if (!initialized) {
             initialize();
@@ -71,9 +58,6 @@ public class EnhancedPathfindingInitializer {
         }
     }
     
-    /**
-     * 服务器关闭时清理
-     */
     public static void shutdown() {
         if (enabled) {
             EnhancedPathfindingSystem.clear();
@@ -83,9 +67,6 @@ public class EnhancedPathfindingInitializer {
         enabled = false;
     }
     
-    /**
-     * 获取统计信息
-     */
     public static String getStatistics() {
         if (!enabled) {
             return "EnhancedPathfinding: Disabled";
@@ -93,9 +74,6 @@ public class EnhancedPathfindingInitializer {
         return EnhancedPathfindingSystem.getStatistics();
     }
     
-    /**
-     * 检查是否已启用
-     */
     public static boolean isEnabled() {
         return enabled;
     }

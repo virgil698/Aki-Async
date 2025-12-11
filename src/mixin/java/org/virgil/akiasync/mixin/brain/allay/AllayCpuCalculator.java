@@ -5,26 +5,8 @@ import net.minecraft.core.BlockPos;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 悦灵CPU计算器
- * 
- * 在异步线程中分析悦灵的环境并生成决策
- * 
- * 分析内容：
- * - 选择最近的物品进行收集
- * - 选择跟随的玩家
- * - 判断是否应该前往音符盒
- * 
- * @author AkiAsync
- */
 public final class AllayCpuCalculator {
     
-    /**
-     * 异步计算悦灵的决策
-     * 
-     * @param snapshot 快照
-     * @return 差异对象
-     */
     public static AllayDiff compute(AllaySnapshot snapshot) {
         
         if (snapshot.isDancing()) {
@@ -44,9 +26,6 @@ public final class AllayCpuCalculator {
         return new AllayDiff(null, nearestPlayer, null);
     }
     
-    /**
-     * 查找最近的物品
-     */
     private static UUID findNearestItem(AllaySnapshot snapshot) {
         List<AllaySnapshot.ItemEntityInfo> items = snapshot.getNearbyItems();
         
@@ -67,9 +46,6 @@ public final class AllayCpuCalculator {
         return nearest != null ? nearest.getItemEntityId() : null;
     }
     
-    /**
-     * 查找最近的玩家
-     */
     private static UUID findNearestPlayer(AllaySnapshot snapshot) {
         List<AllaySnapshot.PlayerInfo> players = snapshot.getNearbyPlayers();
         

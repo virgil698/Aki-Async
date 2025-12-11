@@ -13,13 +13,6 @@ import org.virgil.akiasync.mixin.util.EntityDensityTracker;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
-/**
- * 实体密度追踪Mixin
- * 
- * 定期统计每个区块的实体数量，用于自适应优化
- * 
- * @author AkiAsync
- */
 @Mixin(ServerLevel.class)
 public abstract class EntityDensityTrackerMixin {
     

@@ -27,22 +27,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
-/**
- * Execute 命令跳过不活跃实体优化
- * Execute Command Inactive Entity Skip Optimization
- * 
- * 优化 execute as @e 等命令的性能，跳过不活跃的实体：
- * - 级别 1：跳过未加载区块中的实体
- * - 级别 2：跳过模拟距离外的实体
- * - 级别 3：跳过所有不活跃实体
- * 
- * Optimize performance of execute as @e commands by skipping inactive entities:
- * - Level 1: Skip entities in unloaded chunks
- * - Level 2: Skip entities outside simulation distance
- * - Level 3: Skip all inactive entities
- * 
- * @author AkiAsync
- */
 @Mixin(EntitySelector.class)
 public class EntitySelectorInactiveSkipMixin {
     
@@ -73,10 +57,6 @@ public class EntitySelectorInactiveSkipMixin {
     @Unique
     private static final long CACHE_CLEANUP_INTERVAL_MS = 10000L; 
     
-    /**
-     * 注入到 getPredicate 方法，增强实体过滤逻辑
-     * Inject into getPredicate method to enhance entity filtering logic
-     */
     @Inject(method = "getPredicate", at = @At("RETURN"), cancellable = true)
     private void skipInactiveEntities(Vec3 pos, AABB box, FeatureFlagSet enabledFeatures, 
                                      CallbackInfoReturnable<Predicate<Entity>> cir) {
@@ -143,10 +123,6 @@ public class EntitySelectorInactiveSkipMixin {
         cir.setReturnValue(enhanced);
     }
     
-    /**
-     * 检查实体是否在白名单中
-     * Check if entity is whitelisted
-     */
     @Unique
     private static boolean isWhitelisted(Entity entity) {
         if (whitelistTypes == null || whitelistTypes.isEmpty()) return false;
@@ -155,20 +131,12 @@ public class EntitySelectorInactiveSkipMixin {
         return whitelistTypes.contains(entityType);
     }
     
-    /**
-     * 检查实体是否在缓存中且未过期
-     * Check if entity is cached and not expired
-     */
     @Unique
     private static boolean isCached(Entity entity, long currentTime) {
         Long lastCheck = activityCache.get(entity.getUUID());
         return lastCheck != null && (currentTime - lastCheck) < cacheDurationMs;
     }
     
-    /**
-     * 检查实体是否活跃
-     * Check if entity is active
-     */
     @Unique
     private static boolean isEntityActive(Entity entity, int level, double simDistMultiplier) {
         
@@ -192,10 +160,6 @@ public class EntitySelectorInactiveSkipMixin {
         return true;
     }
     
-    /**
-     * 检查实体所在区块是否处于 ENTITY_TICKING 状态
-     * Check if entity's chunk is in ENTITY_TICKING status
-     */
     @Unique
     private static boolean isChunkEntityTicking(Entity entity, ServerLevel serverLevel) {
         BlockPos blockPos = entity.blockPosition();
@@ -211,10 +175,6 @@ public class EntitySelectorInactiveSkipMixin {
         return status == FullChunkStatus.ENTITY_TICKING;
     }
     
-    /**
-     * 检查实体是否在模拟距离内
-     * Check if entity is within simulation distance
-     */
     @Unique
     private static boolean isWithinSimulationDistance(Entity entity, ServerLevel serverLevel, double multiplier) {
         
@@ -232,10 +192,6 @@ public class EntitySelectorInactiveSkipMixin {
         return false;
     }
     
-    /**
-     * 清理过期的缓存条目
-     * Clean expired cache entries
-     */
     @Unique
     private static void cleanExpiredCache(long currentTime) {
         activityCache.entrySet().removeIf(entry -> 
@@ -243,10 +199,6 @@ public class EntitySelectorInactiveSkipMixin {
         );
     }
     
-    /**
-     * 记录被跳过的实体（调试用）
-     * Log skipped entity (for debugging)
-     */
     @Unique
     private static void logSkippedEntity(Entity entity) {
         Bridge bridge = BridgeManager.getBridge();

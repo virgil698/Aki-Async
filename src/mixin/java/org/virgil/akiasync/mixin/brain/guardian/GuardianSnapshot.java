@@ -7,15 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Guardian;
 import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
 
-/**
- * Guardian快照 - 使用空间索引优化
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() 替代 level.getEntitiesOfClass()
- * - O(1)查询性能，减少80-85%查询开销
- * 
- * @author AkiAsync
- */
 public final class GuardianSnapshot {
     private final List<PlayerInfo> underwaterPlayers;
     private GuardianSnapshot(List<PlayerInfo> p) { this.underwaterPlayers = p; }

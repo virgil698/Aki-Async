@@ -23,37 +23,13 @@ import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 import java.util.Optional;
 
-/**
- * POI索引更新Mixin
- * 
- * 监听POI的添加和移除，自动更新POI空间索引
- * 
- * 策略：
- * 1. 在 PoiManager.add 之后，从 PoiSection 获取刚添加的 PoiRecord
- * 2. 在 PoiManager.remove 之前，记录要删除的 POI 位置
- * 
- * 注入点分析（PoiManager源码）：
- * - add(BlockPos, Holder<PoiType>): 第197行
- *   调用链: PoiManager.add -> PoiSection.add -> 创建PoiRecord
- * - remove(BlockPos): 第201行
- *   调用链: PoiManager.remove -> PoiSection.remove
- * 
- * @author AkiAsync
- */
 @Mixin(PoiManager.class)
 public abstract class PoiIndexUpdateMixin {
     
-    /**
-     * Shadow字段：PoiManager中的world字段
-     * 来自源码第26行: private final net.minecraft.server.level.ServerLevel world;
-     */
     @Shadow
     @Final
     private ServerLevel world;
     
-    /**
-     * Shadow方法：获取或加载PoiSection
-     */
     @Shadow
     protected abstract Optional<PoiSection> getOrLoad(long pos);
     
@@ -63,17 +39,6 @@ public abstract class PoiIndexUpdateMixin {
     @Unique
     private static volatile boolean enabled = true;
     
-    /**
-     * POI添加时更新索引
-     * 
-     * 注入点：add方法的RETURN（在POI已经添加到PoiSection之后）
-     * 源码第197行: public void add(BlockPos pos, Holder<PoiType> type)
-     * 
-     * 策略：
-     * 1. POI已经添加到PoiSection
-     * 2. 从PoiSection获取刚添加的PoiRecord
-     * 3. 添加到空间索引
-     */
     @Inject(method = "add", at = @At("RETURN"), require = 0)
     private void akiasync$onPoiAdd(BlockPos pos, Holder<PoiType> typeHolder, CallbackInfo ci) {
         if (!initialized) {
@@ -103,12 +68,6 @@ public abstract class PoiIndexUpdateMixin {
         }
     }
     
-    /**
-     * POI移除时更新索引
-     * 
-     * 注入点：remove方法的RETURN
-     * 源码第201行: public void remove(BlockPos pos)
-     */
     @Inject(method = "remove", at = @At("RETURN"), require = 0)
     private void akiasync$onPoiRemove(BlockPos pos, CallbackInfo ci) {
         if (!enabled || this.world == null) return;
@@ -124,12 +83,6 @@ public abstract class PoiIndexUpdateMixin {
         }
     }
     
-    /**
-     * 创建PoiRecord
-     * 
-     * 注意：这里创建的PoiRecord与PoiSection中的不是同一个实例
-     * 但包含相同的位置和类型信息，足够用于空间索引
-     */
     @Unique
     private PoiRecord akiasync$createPoiRecord(BlockPos pos, Holder<PoiType> type) {
         try {
@@ -141,9 +94,6 @@ public abstract class PoiIndexUpdateMixin {
         }
     }
     
-    /**
-     * 初始化配置
-     */
     @Unique
     private static synchronized void akiasync$init() {
         if (initialized) return;

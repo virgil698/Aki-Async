@@ -12,16 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * AI专用空间分区网格
- * 参考EntitySliceGrid的设计，为AI查询优化
- * 
- * 使用16x16区块级别的网格存储实体、POI和玩家
- * 提供O(1)的范围查询性能
- * 
- * @author AkiAsync
- */
 public class AiSliceGrid {
     
     private static final int GRID_SIZE = 16;
@@ -32,32 +24,26 @@ public class AiSliceGrid {
     
     private final ConcurrentHashMap<Long, List<PoiRecord>> poiGrid = new ConcurrentHashMap<>();
     
-    private volatile long entityCount = 0;
-    private volatile long playerCount = 0;
-    private volatile long poiCount = 0;
-    private volatile long queryCount = 0;
-    private volatile long cacheHitCount = 0;
+    private final AtomicLong entityCount = new AtomicLong(0);
+    private final AtomicLong playerCount = new AtomicLong(0);
+    private final AtomicLong poiCount = new AtomicLong(0);
+    private final AtomicLong queryCount = new AtomicLong(0);
+    private final AtomicLong cacheHitCount = new AtomicLong(0);
     
-    /**
-     * 添加实体到网格
-     */
     public void addEntity(LivingEntity entity) {
         if (entity == null || entity.isRemoved()) return;
         
         long gridKey = getGridKey(entity.blockPosition());
         
         entityGrid.computeIfAbsent(gridKey, k -> new ArrayList<>()).add(entity);
-        entityCount++;
+        entityCount.incrementAndGet();
         
         if (entity instanceof Player player) {
             playerGrid.computeIfAbsent(gridKey, k -> new ArrayList<>()).add(player);
-            playerCount++;
+            playerCount.incrementAndGet();
         }
     }
     
-    /**
-     * 从网格移除实体
-     */
     public void removeEntity(LivingEntity entity) {
         if (entity == null) return;
         
@@ -66,7 +52,7 @@ public class AiSliceGrid {
         List<LivingEntity> entities = entityGrid.get(gridKey);
         if (entities != null) {
             if (entities.remove(entity)) {
-                entityCount--;
+                entityCount.decrementAndGet();
                 if (entities.isEmpty()) {
                     entityGrid.remove(gridKey);
                 }
@@ -77,7 +63,7 @@ public class AiSliceGrid {
             List<Player> players = playerGrid.get(gridKey);
             if (players != null) {
                 if (players.remove(player)) {
-                    playerCount--;
+                    playerCount.decrementAndGet();
                     if (players.isEmpty()) {
                         playerGrid.remove(gridKey);
                     }
@@ -86,9 +72,6 @@ public class AiSliceGrid {
         }
     }
     
-    /**
-     * 更新实体位置（从旧网格移到新网格）
-     */
     public void updateEntity(LivingEntity entity, BlockPos oldPos, BlockPos newPos) {
         long oldKey = getGridKey(oldPos);
         long newKey = getGridKey(newPos);
@@ -119,20 +102,14 @@ public class AiSliceGrid {
         }
     }
     
-    /**
-     * 添加POI到网格
-     */
     public void addPoi(PoiRecord poi) {
         if (poi == null) return;
         
         long gridKey = getGridKey(poi.getPos());
         poiGrid.computeIfAbsent(gridKey, k -> new ArrayList<>()).add(poi);
-        poiCount++;
+        poiCount.incrementAndGet();
     }
     
-    /**
-     * 从网格移除POI
-     */
     public void removePoi(BlockPos pos) {
         if (pos == null) return;
         
@@ -140,18 +117,15 @@ public class AiSliceGrid {
         List<PoiRecord> pois = poiGrid.get(gridKey);
         if (pois != null) {
             pois.removeIf(poi -> poi.getPos().equals(pos));
-            poiCount--;
+            poiCount.decrementAndGet();
             if (pois.isEmpty()) {
                 poiGrid.remove(gridKey);
             }
         }
     }
     
-    /**
-     * 查询范围内的实体 - O(1)
-     */
     public List<LivingEntity> queryEntities(BlockPos center, int radius) {
-        queryCount++;
+        queryCount.incrementAndGet();
         
         if (radius <= 0) return Collections.emptyList();
         
@@ -178,17 +152,14 @@ public class AiSliceGrid {
         }
         
         if (!result.isEmpty()) {
-            cacheHitCount++;
+            cacheHitCount.incrementAndGet();
         }
         
         return result;
     }
     
-    /**
-     * 查询范围内的玩家 - O(1)
-     */
     public List<Player> queryPlayers(BlockPos center, int radius) {
-        queryCount++;
+        queryCount.incrementAndGet();
         
         if (radius <= 0) return Collections.emptyList();
         
@@ -215,17 +186,14 @@ public class AiSliceGrid {
         }
         
         if (!result.isEmpty()) {
-            cacheHitCount++;
+            cacheHitCount.incrementAndGet();
         }
         
         return result;
     }
     
-    /**
-     * 查询范围内的POI - O(1)
-     */
     public List<PoiRecord> queryPoi(BlockPos center, int radius) {
-        queryCount++;
+        queryCount.incrementAndGet();
         
         if (radius <= 0) return Collections.emptyList();
         
@@ -250,54 +218,41 @@ public class AiSliceGrid {
         }
         
         if (!result.isEmpty()) {
-            cacheHitCount++;
+            cacheHitCount.incrementAndGet();
         }
         
         return result;
     }
     
-    /**
-     * 清空网格
-     */
     public void clear() {
         entityGrid.clear();
         playerGrid.clear();
         poiGrid.clear();
-        entityCount = 0;
-        playerCount = 0;
-        poiCount = 0;
+        entityCount.set(0);
+        playerCount.set(0);
+        poiCount.set(0);
     }
     
-    /**
-     * 检查网格是否为空
-     */
     public boolean isEmpty() {
         return entityGrid.isEmpty() && playerGrid.isEmpty() && poiGrid.isEmpty();
     }
     
-    /**
-     * 获取统计信息
-     */
     public String getStatistics() {
-        double hitRate = queryCount > 0 ? (cacheHitCount * 100.0 / queryCount) : 0.0;
+        long queries = queryCount.get();
+        long hits = cacheHitCount.get();
+        double hitRate = queries > 0 ? (hits * 100.0 / queries) : 0.0;
         return String.format(
             "Entities: %d | Players: %d | POIs: %d | Queries: %d | Hit Rate: %.2f%%",
-            entityCount, playerCount, poiCount, queryCount, hitRate
+            entityCount.get(), playerCount.get(), poiCount.get(), queries, hitRate
         );
     }
     
-    /**
-     * 计算位置的网格key
-     */
     private long getGridKey(BlockPos pos) {
         int gridX = Math.floorDiv(pos.getX(), GRID_SIZE);
         int gridZ = Math.floorDiv(pos.getZ(), GRID_SIZE);
         return ChunkPos.asLong(gridX, gridZ);
     }
     
-    /**
-     * 获取范围内的所有网格key
-     */
     private List<Long> getGridKeysInRange(BlockPos center, int radius) {
         List<Long> keys = new ArrayList<>();
         
@@ -315,38 +270,23 @@ public class AiSliceGrid {
         return keys;
     }
     
-    /**
-     * 获取实体数量
-     */
     public long getEntityCount() {
-        return entityCount;
+        return entityCount.get();
     }
     
-    /**
-     * 获取玩家数量
-     */
     public long getPlayerCount() {
-        return playerCount;
+        return playerCount.get();
     }
     
-    /**
-     * 获取POI数量
-     */
     public long getPoiCount() {
-        return poiCount;
+        return poiCount.get();
     }
     
-    /**
-     * 获取查询次数
-     */
     public long getQueryCount() {
-        return queryCount;
+        return queryCount.get();
     }
     
-    /**
-     * 获取缓存命中次数
-     */
     public long getCacheHitCount() {
-        return cacheHitCount;
+        return cacheHitCount.get();
     }
 }

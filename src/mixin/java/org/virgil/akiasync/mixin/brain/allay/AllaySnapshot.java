@@ -12,24 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 悦灵快照
- * 
- * 捕获悦灵的环境信息用于异步AI计算
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() - O(1)查询
- * - 使用AiQueryHelper.getNearbyEntities() - O(1)查询
- * - 减少80-85%查询开销
- * 
- * 悦灵特点：
- * - 收集物品（根据手持物品）
- * - 跟随玩家
- * - 被音符盒吸引
- * - 可以跳舞
- * 
- * @author AkiAsync
- */
 public final class AllaySnapshot {
     
     private final double health;
@@ -61,13 +43,6 @@ public final class AllaySnapshot {
         this.gameTime = gameTime;
     }
     
-    /**
-     * 捕获悦灵快照
-     * 
-     * @param allay 悦灵
-     * @param level 世界
-     * @return 快照
-     */
     public static AllaySnapshot capture(Allay allay, ServerLevel level) {
         double health = allay.getHealth();
         BlockPos position = allay.blockPosition();
@@ -94,9 +69,6 @@ public final class AllaySnapshot {
         );
     }
     
-    /**
-     * 查找最近的音符盒
-     */
     private static BlockPos findNearestNoteBlock(Allay allay, ServerLevel level) {
         BlockPos allayPos = allay.blockPosition();
         BlockPos nearest = null;
@@ -129,9 +101,6 @@ public final class AllaySnapshot {
     public boolean isDancing() { return isDancing; }
     public long getGameTime() { return gameTime; }
     
-    /**
-     * 玩家信息
-     */
     public static class PlayerInfo {
         private final UUID playerId;
         private final BlockPos position;
@@ -148,9 +117,6 @@ public final class AllaySnapshot {
         public double getDistanceSq() { return distanceSq; }
     }
     
-    /**
-     * 物品实体信息
-     */
     public static class ItemEntityInfo {
         private final UUID itemEntityId;
         private final BlockPos position;

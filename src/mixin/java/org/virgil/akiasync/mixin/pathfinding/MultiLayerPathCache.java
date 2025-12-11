@@ -7,26 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * 多层路径缓存系统
- * 
- * 三层缓存架构：
- * 1. 热缓存（Hot Cache）- 最近使用，命中率最高，容量小
- * 2. 温缓存（Warm Cache）- 中等使用频率，容量中等
- * 3. 冷缓存（Cold Cache）- 低频使用，容量大，长期保存
- * 
- * 缓存晋升策略：
- * - 冷缓存命中 → 晋升到温缓存
- * - 温缓存命中 → 晋升到热缓存
- * - 热缓存命中 → 刷新时间戳
- * 
- * 缓存降级策略：
- * - 热缓存过期 → 降级到温缓存
- * - 温缓存过期 → 降级到冷缓存
- * - 冷缓存过期 → 删除
- * 
- * @author AkiAsync
- */
 public class MultiLayerPathCache {
     
     private static final int HOT_CACHE_SIZE = 200;      
@@ -53,9 +33,6 @@ public class MultiLayerPathCache {
     private long lastCleanupTime = 0;
     private static final long CLEANUP_INTERVAL_MS = 5000;
     
-    /**
-     * 获取缓存的路径
-     */
     public Path get(BlockPos start, BlockPos target) {
         PathCacheKey key = new PathCacheKey(start, target);
         
@@ -94,9 +71,6 @@ public class MultiLayerPathCache {
         return null;
     }
     
-    /**
-     * 存储路径到缓存
-     */
     public void put(BlockPos start, BlockPos target, Path path) {
         if (path == null || !path.canReach()) {
             return;
@@ -117,9 +91,6 @@ public class MultiLayerPathCache {
         }
     }
     
-    /**
-     * 晋升到热缓存
-     */
     private void promoteToHot(PathCacheKey key, CachedPath path) {
         warmCache.remove(key);
         
@@ -131,9 +102,6 @@ public class MultiLayerPathCache {
         promotions.incrementAndGet();
     }
     
-    /**
-     * 晋升到温缓存
-     */
     private void promoteToWarm(PathCacheKey key, CachedPath path) {
         coldCache.remove(key);
         
@@ -145,9 +113,6 @@ public class MultiLayerPathCache {
         promotions.incrementAndGet();
     }
     
-    /**
-     * 从热缓存驱逐（降级到温缓存）
-     */
     private void evictFromHot() {
         
         Map.Entry<PathCacheKey, CachedPath> lruEntry = null;
@@ -170,9 +135,6 @@ public class MultiLayerPathCache {
         }
     }
     
-    /**
-     * 从温缓存驱逐（降级到冷缓存）
-     */
     private void evictFromWarm() {
         
         Map.Entry<PathCacheKey, CachedPath> lruEntry = null;
@@ -195,9 +157,6 @@ public class MultiLayerPathCache {
         }
     }
     
-    /**
-     * 查找相似路径
-     */
     private Path findSimilarPath(PathCacheKey targetKey) {
         
         for (Map.Entry<PathCacheKey, CachedPath> entry : hotCache.entrySet()) {
@@ -219,9 +178,6 @@ public class MultiLayerPathCache {
         return null;
     }
     
-    /**
-     * 清理过期条目
-     */
     public void cleanupExpired() {
         long now = System.currentTimeMillis();
         
@@ -250,18 +206,12 @@ public class MultiLayerPathCache {
         );
     }
     
-    /**
-     * 清空所有缓存
-     */
     public void clear() {
         hotCache.clear();
         warmCache.clear();
         coldCache.clear();
     }
     
-    /**
-     * 获取统计信息
-     */
     public String getStatistics() {
         long totalHits = hotHits.get() + warmHits.get() + coldHits.get();
         long totalRequests = totalHits + misses.get();
@@ -278,9 +228,6 @@ public class MultiLayerPathCache {
         );
     }
     
-    /**
-     * 缓存的路径
-     */
     private static class CachedPath {
         private final Path path;
         private final long createTime;

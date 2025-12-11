@@ -9,13 +9,6 @@ import net.minecraft.world.entity.monster.warden.Warden;
 
 import java.util.UUID;
 
-/**
- * 监守者差异对象
- * 
- * 存储异步计算的结果，在主线程应用到监守者
- * 
- * @author AkiAsync
- */
 public final class WardenDiff {
     
     private final UUID targetId;
@@ -28,12 +21,6 @@ public final class WardenDiff {
         this.shouldDig = shouldDig;
     }
     
-    /**
-     * 应用差异到监守者
-     * 
-     * @param warden 监守者
-     * @param level 世界
-     */
     public void applyTo(Warden warden, ServerLevel level) {
         Brain<?> brain = warden.getBrain();
         

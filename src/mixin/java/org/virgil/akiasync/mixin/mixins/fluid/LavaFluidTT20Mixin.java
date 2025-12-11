@@ -8,13 +8,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * 岩浆流TT20补偿 - 基于TT20的实现
- * 
- * 通过修改getTickDelay返回值来补偿低TPS
- * 
- * 参考：TT20 LavaFluidMixin
- */
 @Mixin(LavaFluid.class)
 public class LavaFluidTT20Mixin {
     

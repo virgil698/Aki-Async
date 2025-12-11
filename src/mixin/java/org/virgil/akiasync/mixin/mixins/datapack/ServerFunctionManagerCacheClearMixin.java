@@ -9,19 +9,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-/**
- * 数据包重载时清理命令去重缓存
- * Clear command deduplication cache on datapack reload
- * 
- * @author AkiAsync
- */
 @Mixin(ServerFunctionManager.class)
 public class ServerFunctionManagerCacheClearMixin {
     
-    /**
-     * 在数据包重载后清理缓存
-     * Clear cache after datapack reload
-     */
     @Inject(method = "replaceLibrary", at = @At("RETURN"))
     private void clearDeduplicationCache(ServerFunctionLibrary reloader, CallbackInfo ci) {
         Bridge bridge = BridgeManager.getBridge();

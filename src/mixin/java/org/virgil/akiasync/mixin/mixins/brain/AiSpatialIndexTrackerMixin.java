@@ -14,16 +14,6 @@ import org.virgil.akiasync.mixin.brain.core.AiSpatialIndexManager;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-/**
- * AI空间索引追踪器
- * 
- * 自动维护AI空间索引：
- * - 实体添加时加入索引
- * - 实体移除时从索引移除
- * - 实体移动时更新索引
- * 
- * @author AkiAsync
- */
 @Mixin(value = LivingEntity.class, priority = 800)
 public abstract class AiSpatialIndexTrackerMixin {
     
@@ -36,9 +26,6 @@ public abstract class AiSpatialIndexTrackerMixin {
     @Unique
     private BlockPos akiasync$lastIndexedPos = null;
     
-    /**
-     * 实体tick时更新空间索引
-     */
     @Inject(method = "tick", at = @At("HEAD"))
     private void akiasync$updateSpatialIndex(CallbackInfo ci) {
         if (!initialized) {
@@ -71,10 +58,6 @@ public abstract class AiSpatialIndexTrackerMixin {
         }
     }
     
-    /**
-     * 实体移除时从索引移除
-     * 注意：Leaves服务器有额外的EntityRemoveEvent.Cause参数，但我们使用@At("TAIL")来避免签名问题
-     */
     @Inject(method = "remove", at = @At("TAIL"))
     private void akiasync$removeFromSpatialIndex(CallbackInfo ci) {
         akiasync$removeFromSpatialIndexCommon();
@@ -105,9 +88,6 @@ public abstract class AiSpatialIndexTrackerMixin {
         akiasync$lastIndexedPos = null;
     }
     
-    /**
-     * 初始化配置
-     */
     @Unique
     private static synchronized void akiasync$init() {
         if (initialized) return;

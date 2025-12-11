@@ -1,4 +1,5 @@
 package org.virgil.akiasync.executor;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -188,7 +189,7 @@ public class AsyncExecutorManager {
             
             int calculated;
             
-            switch (formula.toLowerCase()) {
+            switch (formula.toLowerCase(Locale.ROOT)) {
                 case "cores/3":
                     
                     calculated = Math.max(1, cores / 3);

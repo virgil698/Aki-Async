@@ -12,19 +12,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * 流体Tick补偿优化 - 基于TT20算法
- * 
- * 参考 Leaf 的实现思路：
- * 1. 根据服务器TPS动态调整流体流速
- * 2. TPS低时启用滞后补偿，保持流体行为一致
- * 3. TPS正常时使用标准流速
- * 
- * 核心算法：
- * - 计算补偿系数 = rawTT20(ticks) / MAX_TPS
- * - 当TPS < 阈值时，启用滞后补偿
- * - 调整流体的 spreadDelay 来补偿性能损失
- */
 @Mixin(FlowingFluid.class)
 public abstract class FluidTickCompensationMixin {
 
@@ -39,12 +26,6 @@ public abstract class FluidTickCompensationMixin {
     @Unique
     private static volatile boolean initialized = false;
 
-    /**
-     * 修改流体扩散延迟以实现TT20补偿
-     * 
-     * 重定向 scheduleTick 调用，修改 delay 参数
-     * 对应源码第504行: level.scheduleTick(pos, newLiquid.getType(), spreadDelay);
-     */
     @org.spongepowered.asm.mixin.injection.Redirect(
         method = "tick",
         at = @At(
@@ -81,9 +62,6 @@ public abstract class FluidTickCompensationMixin {
         level.scheduleTick(pos, fluid, finalDelay);
     }
 
-    /**
-     * 检查是否应该对这种流体启用补偿
-     */
     @Unique
     private boolean akiasync$shouldCompensate(FluidState state) {
         try {
@@ -103,9 +81,6 @@ public abstract class FluidTickCompensationMixin {
         }
     }
 
-    /**
-     * 获取当前服务器TPS
-     */
     @Unique
     @SuppressWarnings("removal") 
     private double akiasync$getCurrentTPS(ServerLevel level) {
@@ -125,22 +100,12 @@ public abstract class FluidTickCompensationMixin {
         return 20.0; 
     }
 
-    /**
-     * 计算TT20补偿后的tick数
-     * 
-     * @param ticks 原始tick数
-     * @param limitZero 是否限制为非零
-     * @return 补偿后的tick数
-     */
     @Unique
     private static int akiasync$tt20(int ticks, boolean limitZero, double currentTPS) {
         int newTicks = (int) Math.ceil(akiasync$rawTT20(ticks, currentTPS));
         return limitZero ? (newTicks > 0 ? newTicks : 1) : newTicks;
     }
 
-    /**
-     * 原始TT20计算
-     */
     @Unique
     private static double akiasync$rawTT20(double ticks, double currentTPS) {
         if (ticks == 0) {
@@ -150,9 +115,6 @@ public abstract class FluidTickCompensationMixin {
         return ticks * currentTPS / 20.0;
     }
 
-    /**
-     * 初始化配置
-     */
     @Unique
     private static synchronized void akiasync$initCompensation() {
         if (initialized) return;

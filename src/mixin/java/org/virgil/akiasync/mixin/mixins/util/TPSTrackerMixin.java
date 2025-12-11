@@ -7,11 +7,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * TPS追踪器Mixin
- * 
- * 在服务器tick时更新TPS追踪器
- */
 @Mixin(MinecraftServer.class)
 public class TPSTrackerMixin {
     

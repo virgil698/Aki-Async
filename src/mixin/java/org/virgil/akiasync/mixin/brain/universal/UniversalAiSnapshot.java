@@ -15,19 +15,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
 
-/**
- * 通用AI快照 - 增强版（合并ExpensiveAI功能）
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() 替代 level.getEntitiesOfClass()
- * - 使用AiQueryHelper.getNearbyEntities() 替代 level.getEntitiesOfClass()
- * - 使用AiQueryHelper.getNearbyPoi() 替代 level.getPoiManager().getInRange()
- * - O(1)查询性能，减少80-85%查询开销
- * - 支持Brain内存状态捕获（从ExpensiveAI合并）
- * - 支持POI快照（从ExpensiveAI合并）
- * 
- * @author AkiAsync
- */
 public final class UniversalAiSnapshot {
     
     private final double health;
@@ -54,14 +41,6 @@ public final class UniversalAiSnapshot {
         this.nearbyPOIs = pois != null ? Collections.unmodifiableMap(pois) : null;
     }
     
-    /**
-     * 捕获快照（增强版）
-     * 
-     * @param mob 目标生物
-     * @param world 世界
-     * @param captureBrainMemory 是否捕获Brain内存状态
-     * @param capturePoiSnapshot 是否捕获POI快照
-     */
     public static UniversalAiSnapshot capture(Mob mob, ServerLevel world, 
                                              boolean captureBrainMemory,
                                              boolean capturePoiSnapshot) {
@@ -96,16 +75,10 @@ public final class UniversalAiSnapshot {
         return new UniversalAiSnapshot(health, yLevel, players, mobs, brainMem, gameTime, pois);
     }
     
-    /**
-     * 向后兼容的capture方法
-     */
     public static UniversalAiSnapshot capture(Mob mob, ServerLevel world) {
         return capture(mob, world, false, false);
     }
     
-    /**
-     * 捕获Brain内存状态（从BrainSnapshot移植）
-     */
     private static Map<MemoryModuleType<?>, MemoryEntry<?>> captureBrainMemories(
         Brain<?> brain, ServerLevel level
     ) {
@@ -160,9 +133,6 @@ public final class UniversalAiSnapshot {
         public BlockPos pos() { return pos; }
     }
     
-    /**
-     * Brain内存条目（从BrainSnapshot移植）
-     */
     public static final class MemoryEntry<U> {
         private final U value;
         private final long ttl;

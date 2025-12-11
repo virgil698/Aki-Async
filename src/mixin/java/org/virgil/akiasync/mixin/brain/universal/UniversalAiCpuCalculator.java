@@ -10,21 +10,8 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 
-/**
- * 通用AI计算器 - 增强版（合并ExpensiveAI功能）
- * 
- * 支持：
- * - 环境分析（原有）
- * - Brain内存优化（从ExpensiveAI合并）
- * - POI优化（从ExpensiveAI合并）
- * 
- * @author AkiAsync
- */
 public final class UniversalAiCpuCalculator {
     
-    /**
-     * CPU密集型计算（增强版）
-     */
     public static UniversalAiDiff runCpuOnly(Mob mob, UniversalAiSnapshot snap) {
         UniversalAiDiff diff = new UniversalAiDiff();
         
@@ -41,9 +28,6 @@ public final class UniversalAiCpuCalculator {
         return diff;
     }
     
-    /**
-     * 环境分析（原有逻辑）
-     */
     private static void analyzeEnvironment(Mob mob, UniversalAiSnapshot snap, UniversalAiDiff diff) {
         if (!snap.players().isEmpty()) {
             UUID target = snap.players().stream()
@@ -54,9 +38,6 @@ public final class UniversalAiCpuCalculator {
         }
     }
     
-    /**
-     * Brain内存优化（从BrainCpuCalculator移植）
-     */
     private static void optimizeBrainMemories(Mob mob, UniversalAiSnapshot snap, UniversalAiDiff diff) {
         try {
             Map<MemoryModuleType<?>, UniversalAiSnapshot.MemoryEntry<?>> memories = snap.getBrainMemories();
@@ -71,9 +52,6 @@ public final class UniversalAiCpuCalculator {
         }
     }
     
-    /**
-     * POI优化（从BrainCpuCalculator移植并增强）
-     */
     private static void optimizePOI(Mob mob, UniversalAiSnapshot snap, UniversalAiDiff diff) {
         try {
             Map<BlockPos, PoiRecord> poiSnapshot = snap.getPOIs();
@@ -101,9 +79,6 @@ public final class UniversalAiCpuCalculator {
         }
     }
     
-    /**
-     * POI评分算法（从BrainCpuCalculator移植）
-     */
     private static double scorePoi(BlockPos poi, BlockPos mobPos, 
                                    Map<MemoryModuleType<?>, UniversalAiSnapshot.MemoryEntry<?>> memories) {
         
@@ -127,9 +102,6 @@ public final class UniversalAiCpuCalculator {
         return (match * 1000 - dist * 10 - price * 100) * noise;
     }
     
-    /**
-     * POI评分结果
-     */
     private static class ScoredPoi {
         final BlockPos pos;
         final double score;

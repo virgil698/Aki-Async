@@ -125,13 +125,19 @@ public class BlockLockerIntegration {
     }
 
     private static boolean isBlockLockerEnabled() {
-        if (blockLockerEnabled == null) {
-            blockLockerEnabled = Bukkit.getPluginManager().isPluginEnabled("BlockLocker");
-            if (blockLockerEnabled) {
-                DebugLogger.debug("[BlockLocker] Plugin detected");
+        Boolean enabled = blockLockerEnabled;
+        if (enabled == null) {
+            synchronized (BlockLockerIntegration.class) {
+                enabled = blockLockerEnabled;
+                if (enabled == null) {
+                    blockLockerEnabled = enabled = Bukkit.getPluginManager().isPluginEnabled("BlockLocker");
+                    if (enabled) {
+                        DebugLogger.debug("[BlockLocker] Plugin detected");
+                    }
+                }
             }
         }
-        return blockLockerEnabled;
+        return enabled;
     }
 
     private static String getCacheKey(ServerLevel level, BlockPos pos) {

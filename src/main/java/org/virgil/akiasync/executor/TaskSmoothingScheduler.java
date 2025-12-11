@@ -245,9 +245,9 @@ public class TaskSmoothingScheduler {
     }
     
     public String getCategoryStatistics() {
-        StringBuilder sb = new StringBuilder("Category Stats:\n");
+        StringBuilder sb = new StringBuilder("Category Stats:%n");
         categoryStats.forEach((category, count) -> {
-            sb.append(String.format("  - %s: %d\n", category, count.get()));
+            sb.append(String.format("  - %s: %d%n", category, count.get()));
         });
         return sb.toString();
     }

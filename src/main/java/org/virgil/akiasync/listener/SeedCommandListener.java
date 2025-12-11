@@ -9,6 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.ChatColor;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
+import java.util.Locale;
+
 public class SeedCommandListener implements Listener {
     
     private final AkiAsyncPlugin plugin;
@@ -20,7 +22,7 @@ public class SeedCommandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
-        String message = event.getMessage().toLowerCase().trim();
+        String message = event.getMessage().toLowerCase(Locale.ROOT).trim();
         
         if (!isSeedCommand(message)) {
             return;

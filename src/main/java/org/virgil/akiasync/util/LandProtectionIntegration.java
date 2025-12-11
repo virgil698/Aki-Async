@@ -81,7 +81,7 @@ public class LandProtectionIntegration {
             if (chunkCached != null && chunkCached.isValid() && chunkCached.allAllowed != null) {
                 
                 boolean allowed = chunkCached.allAllowed;
-                CACHE.put(cacheKey, new CacheEntry(allowed));
+                CACHE.putIfAbsent(cacheKey, new CacheEntry(allowed));
                 return allowed;
             }
 
@@ -163,13 +163,13 @@ public class LandProtectionIntegration {
                 }
             }
 
-            Boolean result = allSame ? firstResult : null;
+            Boolean result = allSame ? firstResult : Boolean.FALSE;
             CHUNK_CACHE.put(chunkKey, new ChunkCacheEntry(result));
             
             return result;
         } catch (Exception e) {
             DebugLogger.error("[LandProtection] Error checking chunk protection: " + e.getMessage());
-            return null;
+            return Boolean.FALSE;
         }
     }
 

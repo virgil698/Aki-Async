@@ -121,7 +121,7 @@ public final class ExecutorHealthChecker {
             String name = entry.getKey();
             HealthStatus status = entry.getValue();
 
-            report.append(String.format("%-20s: %s\n", name, status.toString()));
+            report.append(String.format("%-20s: %s%n", name, status.toString()));
 
             if (status.isHealthy()) {
                 healthy++;
@@ -129,7 +129,7 @@ public final class ExecutorHealthChecker {
             }
         }
 
-        report.append(String.format("\nSummary: %d/%d healthy", healthy, total));
+        report.append(String.format("%nSummary: %d/%d healthy", healthy, total));
         if (healthy > 0) {
             report.append(String.format(", avg response: %.1fms", (double) totalResponseTime / healthy));
         }

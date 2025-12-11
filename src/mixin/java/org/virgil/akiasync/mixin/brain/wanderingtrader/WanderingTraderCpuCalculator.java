@@ -8,26 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 流浪商人CPU计算器
- * 
- * 在异步线程中分析流浪商人的环境并生成决策
- * 
- * 分析内容：
- * - 寻找最近的玩家（潜在顾客）
- * - 寻找最优POI（村庄聚集点）
- * - 评估是否应该消失
- * 
- * @author AkiAsync
- */
 public final class WanderingTraderCpuCalculator {
     
-    /**
-     * 异步计算流浪商人的决策
-     * 
-     * @param snapshot 快照
-     * @return 差异对象
-     */
     public static WanderingTraderDiff compute(WanderingTraderSnapshot snapshot) {
         
         UUID closestPlayer = findClosestPlayer(snapshot);
@@ -39,9 +21,6 @@ public final class WanderingTraderCpuCalculator {
         return new WanderingTraderDiff(closestPlayer, bestPoi, shouldWander);
     }
     
-    /**
-     * 寻找最近的玩家
-     */
     private static UUID findClosestPlayer(WanderingTraderSnapshot snapshot) {
         List<WanderingTraderSnapshot.PlayerInfo> players = snapshot.getNearbyPlayers();
         
@@ -66,9 +45,6 @@ public final class WanderingTraderCpuCalculator {
         return closest != null ? closest.getPlayerId() : null;
     }
     
-    /**
-     * 寻找最优POI（村庄聚集点）
-     */
     private static BlockPos findBestPoi(WanderingTraderSnapshot snapshot) {
         Map<BlockPos, PoiRecord> pois = snapshot.getNearbyPOIs();
         
@@ -105,9 +81,6 @@ public final class WanderingTraderCpuCalculator {
         return bestPoi;
     }
     
-    /**
-     * 评估是否应该游荡
-     */
     private static boolean evaluateShouldWander(WanderingTraderSnapshot snapshot) {
         
         if (snapshot.hasCustomer()) {

@@ -10,14 +10,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem;
 
-/**
- * 玩家路径预热监听器
- * 
- * 当玩家加入服务器时，预热周围生物的路径
- * 防止大量生物同时寻路导致的性能波动
- * 
- * @author AkiAsync
- */
 public class PlayerPathPrewarmListener implements Listener {
     
     private final AkiAsyncPlugin plugin;

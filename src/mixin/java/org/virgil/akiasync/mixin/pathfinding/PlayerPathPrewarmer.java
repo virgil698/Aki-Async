@@ -18,20 +18,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * 玩家路径预热系统
- * 
- * 当玩家加入服务器时，预先计算周围生物到常用目标的路径
- * 防止大量生物同时寻路导致的性能波动
- * 
- * 预热策略：
- * 1. 玩家周围 32 格内的所有生物
- * 2. 计算到最近的 POI（床、工作站、钟等）的路径
- * 3. 分批预热，避免一次性计算过多
- * 4. 使用低优先级，不影响正常游戏
- * 
- * @author AkiAsync
- */
 public class PlayerPathPrewarmer {
     
     private static final int PREWARM_RADIUS = 32;           
@@ -52,9 +38,6 @@ public class PlayerPathPrewarmer {
         this.nearbyPois = nearbyPois;
     }
     
-    /**
-     * 开始预热
-     */
     public void start() {
         if (running) return;
         
@@ -70,9 +53,6 @@ public class PlayerPathPrewarmer {
         CompletableFuture.runAsync(this::prewarmPaths, scheduler);
     }
     
-    /**
-     * 停止预热
-     */
     public void stop() {
         running = false;
         if (scheduler != null && !scheduler.isShutdown()) {
@@ -85,9 +65,6 @@ public class PlayerPathPrewarmer {
         }
     }
     
-    /**
-     * 预热路径
-     */
     private void prewarmPaths() {
         try {
             
@@ -130,9 +107,6 @@ public class PlayerPathPrewarmer {
         }
     }
     
-    /**
-     * 预热一批生物
-     */
     private int prewarmBatch(List<Mob> mobs, List<BlockPos> pois) {
         int count = 0;
         
@@ -159,9 +133,6 @@ public class PlayerPathPrewarmer {
         return count;
     }
     
-    /**
-     * 预热单条路径
-     */
     private void prewarmPath(Mob mob, BlockPos start, BlockPos target) {
         
         if (start.distSqr(target) > PREWARM_RADIUS * PREWARM_RADIUS) {
@@ -172,9 +143,6 @@ public class PlayerPathPrewarmer {
         
     }
     
-    /**
-     * 获取玩家周围的生物
-     */
     private List<Mob> getNearbyMobs() {
         BlockPos playerPos = player.blockPosition();
         List<Mob> mobs = new ArrayList<>();
@@ -192,13 +160,6 @@ public class PlayerPathPrewarmer {
         return mobs;
     }
     
-    /**
-     * 获取附近的 POI（必须在主线程调用）
-     * 
-     * @param player 玩家
-     * @param level 世界
-     * @return POI 位置列表
-     */
     public static List<BlockPos> fetchNearbyPois(ServerPlayer player, ServerLevel level) {
         BlockPos playerPos = player.blockPosition();
         PoiManager poiManager = level.getPoiManager();
@@ -229,9 +190,6 @@ public class PlayerPathPrewarmer {
         return new ArrayList<>(pois);
     }
     
-    /**
-     * 找到最近的 N 个 POI
-     */
     private List<BlockPos> findClosestPois(BlockPos start, List<BlockPos> pois, int count) {
         return pois.stream()
             .sorted(Comparator.comparingDouble(poi -> start.distSqr(poi)))

@@ -16,23 +16,6 @@ import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 悦灵Tick优化Mixin
- * 
- * 将悦灵的AI决策异步化，减少主线程开销
- * 
- * 工作流程：
- * 1. 在主线程捕获快照（使用空间索引 - O(1)）
- * 2. 在异步线程计算决策
- * 3. 在主线程应用结果
- * 
- * 性能提升：
- * - 玩家查询：80-85% ⬇️
- * - 物品查询：85-90% ⬇️
- * - 总体AI开销：65-75% ⬇️
- * 
- * @author AkiAsync
- */
 @Mixin(value = Allay.class, priority = 1100)
 public class AllayTickMixin {
     

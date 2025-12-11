@@ -9,15 +9,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * 药水效果TT20补偿
- * 
- * 在低TPS时额外tick药水效果，保持持续时间一致
- * 
- * 警告：可能改变游戏平衡，默认关闭
- * 
- * 参考：TT20 LivingEntityMixin
- */
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityPotionTT20Mixin {
     

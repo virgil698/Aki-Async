@@ -11,6 +11,7 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 
 import java.io.File;
 import java.util.*;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityThrottlingManager {
@@ -85,7 +86,7 @@ public class EntityThrottlingManager {
 
                     if (limit > 0 && removal > 0 && limit < removal) {
                         try {
-                            EntityType type = EntityType.valueOf(key.toUpperCase().replace("MINECRAFT:", ""));
+                            EntityType type = EntityType.valueOf(key.toUpperCase(Locale.ROOT).replace("MINECRAFT:", ""));
                             entityLimits.put(type, new EntityLimit(limit, removal));
                         } catch (IllegalArgumentException e) {
                             plugin.getLogger().warning("[EntityThrottling] Unknown entity type: " + key);

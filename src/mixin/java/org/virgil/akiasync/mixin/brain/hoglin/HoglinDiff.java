@@ -10,13 +10,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.UUID;
 
-/**
- * 疣猪兽差异对象
- * 
- * 存储异步计算的结果，在主线程应用到疣猪兽
- * 
- * @author AkiAsync
- */
 public final class HoglinDiff {
     
     private final UUID attackTargetId;
@@ -29,12 +22,6 @@ public final class HoglinDiff {
         this.fleeTarget = fleeTarget;
     }
     
-    /**
-     * 应用差异到疣猪兽
-     * 
-     * @param hoglin 疣猪兽
-     * @param level 世界
-     */
     public void applyTo(Hoglin hoglin, ServerLevel level) {
         Brain<?> brain = hoglin.getBrain();
         

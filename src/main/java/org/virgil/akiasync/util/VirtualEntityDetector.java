@@ -6,6 +6,7 @@ import net.minecraft.world.level.Level;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.virgil.akiasync.compat.PluginDetectorRegistry;
 
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -266,7 +267,7 @@ public class VirtualEntityDetector {
                 PersistentDataContainer pdc = bukkitEntity.getPersistentDataContainer();
 
                 for (org.bukkit.NamespacedKey key : pdc.getKeys()) {
-                    String keyStr = key.toString().toLowerCase();
+                    String keyStr = key.toString().toLowerCase(Locale.ROOT);
                     if (keyStr.contains("virtual") || keyStr.contains("fake") ||
                         keyStr.contains("packet") || keyStr.contains("npc") ||
                         keyStr.contains("hologram") || keyStr.contains("marker")) {

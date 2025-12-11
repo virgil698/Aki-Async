@@ -12,25 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 监守者快照
- * 
- * 捕获监守者的环境信息用于异步AI计算
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() - O(1)查询
- * - 使用AiQueryHelper.getNearbyEntities() - O(1)查询
- * - 减少80-85%查询开销
- * 
- * 监守者特点：
- * - 声音和振动感知（不依赖视线）
- * - 愤怒值系统（Anger）
- * - 音波攻击（Sonic Boom）
- * - 挖掘逃跑机制
- * - 黑暗效果施加
- * 
- * @author AkiAsync
- */
 public final class WardenSnapshot {
     
     private final double health;
@@ -65,13 +46,6 @@ public final class WardenSnapshot {
         this.gameTime = gameTime;
     }
     
-    /**
-     * 捕获监守者快照
-     * 
-     * @param warden 监守者
-     * @param level 世界
-     * @return 快照
-     */
     public static WardenSnapshot capture(Warden warden, ServerLevel level) {
         double health = warden.getHealth();
         BlockPos position = warden.blockPosition();
@@ -122,9 +96,6 @@ public final class WardenSnapshot {
     public int getAttackCooldown() { return attackCooldown; }
     public long getGameTime() { return gameTime; }
     
-    /**
-     * 实体信息
-     */
     public static class EntityInfo {
         private final UUID entityId;
         private final BlockPos position;
@@ -144,9 +115,6 @@ public final class WardenSnapshot {
         public boolean isPlayer() { return isPlayer; }
     }
     
-    /**
-     * 玩家信息
-     */
     public static class PlayerInfo {
         private final UUID playerId;
         private final BlockPos position;

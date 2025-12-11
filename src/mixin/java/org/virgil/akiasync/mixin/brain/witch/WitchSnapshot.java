@@ -7,15 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Witch;
 import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
 
-/**
- * Witch快照 - 使用空间索引优化
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() 替代 level.getEntitiesOfClass()
- * - O(1)查询性能，减少80-85%查询开销
- * 
- * @author AkiAsync
- */
 public final class WitchSnapshot {
     private final List<PlayerInfo> players;
     private WitchSnapshot(List<PlayerInfo> p) { this.players = p; }

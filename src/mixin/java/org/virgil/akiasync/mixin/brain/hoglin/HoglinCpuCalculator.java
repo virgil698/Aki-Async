@@ -5,26 +5,8 @@ import net.minecraft.core.BlockPos;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 疣猪兽CPU计算器
- * 
- * 在异步线程中分析疣猪兽的环境并生成决策
- * 
- * 分析内容：
- * - 选择攻击目标（最近的玩家）
- * - 判断是否应该逃跑（附近有诡异菌）
- * - 评估逃跑方向
- * 
- * @author AkiAsync
- */
 public final class HoglinCpuCalculator {
     
-    /**
-     * 异步计算疣猪兽的决策
-     * 
-     * @param snapshot 快照
-     * @return 差异对象
-     */
     public static HoglinDiff compute(HoglinSnapshot snapshot) {
         
         if (snapshot.isBaby()) {
@@ -45,9 +27,6 @@ public final class HoglinCpuCalculator {
         return new HoglinDiff(attackTarget, false, null);
     }
     
-    /**
-     * 选择攻击目标（最近的玩家）
-     */
     private static UUID selectAttackTarget(HoglinSnapshot snapshot) {
         List<HoglinSnapshot.PlayerInfo> players = snapshot.getNearbyPlayers();
         
@@ -72,9 +51,6 @@ public final class HoglinCpuCalculator {
         return null;
     }
     
-    /**
-     * 计算逃跑目标（远离诡异菌）
-     */
     private static BlockPos calculateFleeTarget(HoglinSnapshot snapshot) {
         List<BlockPos> fungus = snapshot.getNearbyWarpedFungus();
         

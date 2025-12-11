@@ -39,9 +39,6 @@ public abstract class ItemEntityMergeMixin {
     @Unique
     private int aki$lastCacheTick = 0;
 
-    /**
-     * 取消原版的合并逻辑，避免与我们的优化重复
-     */
     @Inject(method = "mergeWithNeighbours", at = @At("HEAD"), cancellable = true)
     private void cancelVanillaMerge(CallbackInfo ci) {
         if (!initialized) {

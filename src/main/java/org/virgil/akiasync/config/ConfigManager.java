@@ -499,6 +499,10 @@ public class ConfigManager {
         dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
         dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
         dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        
+        brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
+        poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+        
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
         asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
         asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
@@ -945,6 +949,10 @@ public class ConfigManager {
         dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
         dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
         dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        
+        brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
+        poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+        
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
         asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
         asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);

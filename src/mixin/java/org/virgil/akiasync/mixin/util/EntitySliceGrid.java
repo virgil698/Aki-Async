@@ -107,12 +107,6 @@ public class EntitySliceGrid {
         return result;
     }
     
-    /**
-     * 跨区块范围查询（优化版）
-     * 
-     * 策略：遍历所有slice，只检查AABB相交的实体
-     * 虽然比单区块查询慢，但比完全放弃优化要好
-     */
     private List<Entity> queryRangeCrossChunk(AABB aabb) {
         List<Entity> result = new ArrayList<>();
         Set<Entity> deduplicatedEntities = new HashSet<>();

@@ -13,21 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * POI空间索引
- * 
- * 基于区块的POI索引，提供O(1)查询性能
- * 替代BatchPoiManager的缓存策略
- * 
- * 优势：
- * - 区块级别索引，不是查询级别缓存
- * - 支持类型索引（快速查找特定类型POI）
- * - 自动监听POI变化
- * - 无需手动清理缓存
- * 
- * @author AkiAsync
- */
 public class PoiSpatialIndex {
     
     private final ServerLevel level;
@@ -36,18 +23,15 @@ public class PoiSpatialIndex {
     
     private final Map<PoiType, Map<Long, List<PoiRecord>>> typeIndex = new ConcurrentHashMap<>();
     
-    private volatile long totalPois = 0;
-    private volatile long queryCount = 0;
-    private volatile long cacheHitCount = 0;
-    private volatile long typeQueryCount = 0;
+    private final AtomicLong totalPois = new AtomicLong(0);
+    private final AtomicLong queryCount = new AtomicLong(0);
+    private final AtomicLong cacheHitCount = new AtomicLong(0);
+    private final AtomicLong typeQueryCount = new AtomicLong(0);
     
     public PoiSpatialIndex(ServerLevel level) {
         this.level = level;
     }
     
-    /**
-     * 添加POI到索引
-     */
     public void addPoi(PoiRecord poi) {
         if (poi == null) return;
         
@@ -64,23 +48,14 @@ public class PoiSpatialIndex {
                 .add(poi);
         }
         
-        totalPois++;
+        totalPois.incrementAndGet();
     }
     
-    /**
-     * 添加POI到索引（简化版本，用于Mixin）
-     * 
-     * 注意：这个方法不会创建完整的PoiRecord，只记录位置和类型
-     * 用于快速索引，不适合需要完整POI信息的场景
-     */
     public void addPoiSimple(BlockPos pos, Holder<PoiType> typeHolder) {
         if (pos == null || typeHolder == null || !typeHolder.isBound()) return;
         
     }
     
-    /**
-     * 从索引移除POI
-     */
     public void removePoi(BlockPos pos) {
         if (pos == null) return;
         
@@ -98,7 +73,7 @@ public class PoiSpatialIndex {
             
             if (removed != null) {
                 pois.remove(removed);
-                totalPois--;
+                totalPois.decrementAndGet();
                 
                 if (pois.isEmpty()) {
                     chunkPoiMap.remove(chunkKey);
@@ -122,11 +97,8 @@ public class PoiSpatialIndex {
         }
     }
     
-    /**
-     * 查询范围内的POI - O(1)
-     */
     public List<PoiRecord> queryRange(BlockPos center, int radius) {
-        queryCount++;
+        queryCount.incrementAndGet();
         
         if (radius <= 0) return Collections.emptyList();
         
@@ -152,18 +124,15 @@ public class PoiSpatialIndex {
         }
         
         if (!result.isEmpty()) {
-            cacheHitCount++;
+            cacheHitCount.incrementAndGet();
         }
         
         return result;
     }
     
-    /**
-     * 查询特定类型的POI - 更快
-     */
     public List<PoiRecord> queryByType(BlockPos center, PoiType type, int radius) {
-        typeQueryCount++;
-        queryCount++;
+        typeQueryCount.incrementAndGet();
+        queryCount.incrementAndGet();
         
         if (radius <= 0 || type == null) return Collections.emptyList();
         
@@ -193,54 +162,40 @@ public class PoiSpatialIndex {
         }
         
         if (!result.isEmpty()) {
-            cacheHitCount++;
+            cacheHitCount.incrementAndGet();
         }
         
         return result;
     }
     
-    /**
-     * 清空索引
-     */
     public void clear() {
         chunkPoiMap.clear();
         typeIndex.clear();
-        totalPois = 0;
-        queryCount = 0;
-        cacheHitCount = 0;
-        typeQueryCount = 0;
+        totalPois.set(0);
+        queryCount.set(0);
+        cacheHitCount.set(0);
+        typeQueryCount.set(0);
     }
     
-    /**
-     * 检查索引是否为空
-     */
     public boolean isEmpty() {
         return chunkPoiMap.isEmpty();
     }
     
-    /**
-     * 获取统计信息
-     */
     public String getStatistics() {
-        double hitRate = queryCount > 0 ? (cacheHitCount * 100.0 / queryCount) : 0.0;
+        long queries = queryCount.get();
+        double hitRate = queries > 0 ? (cacheHitCount.get() * 100.0 / queries) : 0.0;
         return String.format(
             "POIs: %d | Queries: %d | Type Queries: %d | Hit Rate: %.2f%%",
-            totalPois, queryCount, typeQueryCount, hitRate
+            totalPois.get(), queries, typeQueryCount.get(), hitRate
         );
     }
     
-    /**
-     * 计算位置的区块key
-     */
     private long getChunkKey(BlockPos pos) {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
         return ChunkPos.asLong(chunkX, chunkZ);
     }
     
-    /**
-     * 获取范围内的所有区块key
-     */
     private List<Long> getChunkKeysInRange(BlockPos center, int radius) {
         List<Long> keys = new ArrayList<>();
         
@@ -258,37 +213,22 @@ public class PoiSpatialIndex {
         return keys;
     }
     
-    /**
-     * 获取POI总数
-     */
     public long getTotalPois() {
-        return totalPois;
+        return totalPois.get();
     }
     
-    /**
-     * 获取查询次数
-     */
     public long getQueryCount() {
-        return queryCount;
+        return queryCount.get();
     }
     
-    /**
-     * 获取类型查询次数
-     */
     public long getTypeQueryCount() {
-        return typeQueryCount;
+        return typeQueryCount.get();
     }
     
-    /**
-     * 获取缓存命中次数
-     */
     public long getCacheHitCount() {
-        return cacheHitCount;
+        return cacheHitCount.get();
     }
     
-    /**
-     * 获取世界
-     */
     public ServerLevel getLevel() {
         return level;
     }

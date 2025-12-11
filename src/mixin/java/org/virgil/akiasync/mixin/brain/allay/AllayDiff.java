@@ -12,13 +12,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.UUID;
 
-/**
- * 悦灵差异对象
- * 
- * 存储异步计算的结果，在主线程应用到悦灵
- * 
- * @author AkiAsync
- */
 public final class AllayDiff {
     
     private final UUID targetItemId;
@@ -31,12 +24,6 @@ public final class AllayDiff {
         this.noteBlockPos = noteBlockPos;
     }
     
-    /**
-     * 应用差异到悦灵
-     * 
-     * @param allay 悦灵
-     * @param level 世界
-     */
     public void applyTo(Allay allay, ServerLevel level) {
         Brain<?> brain = allay.getBrain();
         

@@ -13,24 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 流浪商人快照
- * 
- * 捕获流浪商人的环境信息用于异步AI计算
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() - O(1)查询
- * - 使用AiQueryHelper.getNearbyPoi() - O(1)查询
- * - 减少80-85%查询开销
- * 
- * 流浪商人特点：
- * - 需要寻找玩家进行交易
- * - 需要寻找村庄POI（聚集点）
- * - 需要避开敌对生物
- * - 有消失机制（despawn）
- * 
- * @author AkiAsync
- */
 public final class WanderingTraderSnapshot {
     
     private final double health;
@@ -59,13 +41,6 @@ public final class WanderingTraderSnapshot {
         this.gameTime = gameTime;
     }
     
-    /**
-     * 捕获流浪商人快照
-     * 
-     * @param trader 流浪商人
-     * @param level 世界
-     * @return 快照
-     */
     public static WanderingTraderSnapshot capture(WanderingTrader trader, ServerLevel level) {
         double health = trader.getHealth();
         BlockPos position = trader.blockPosition();
@@ -103,9 +78,6 @@ public final class WanderingTraderSnapshot {
     public boolean hasCustomer() { return hasCustomer; }
     public long getGameTime() { return gameTime; }
     
-    /**
-     * 玩家信息
-     */
     public static class PlayerInfo {
         private final UUID playerId;
         private final BlockPos position;

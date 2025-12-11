@@ -7,6 +7,8 @@ import org.virgil.akiasync.event.ConfigReloadEvent;
 
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+
+import java.util.Locale;
 @NullMarked
 public class DebugCommand implements BasicCommand {
     private final AkiAsyncPlugin plugin;
@@ -19,7 +21,7 @@ public class DebugCommand implements BasicCommand {
             source.getSender().sendMessage("[AkiAsync] Usage: /aki-debug <true|false>");
             return;
         }
-        String arg = args[0].toLowerCase();
+        String arg = args[0].toLowerCase(Locale.ROOT);
         boolean enableDebug;
         if (arg.equals("true") || arg.equals("on") || arg.equals("enable")) {
             enableDebug = true;

@@ -13,14 +13,6 @@ import net.minecraft.world.entity.npc.Villager;
 
 import java.util.List;
 
-/**
- * 村民POI优化 - 升级版
- * 
- * 使用AiQueryHelper和空间索引替代BatchPoiManager
- * 性能提升：POI查询从O(n)降到O(1)
- * 
- * @author AkiAsync
- */
 @Mixin(value = Villager.class, priority = 1100)
 public class VillagerPoiOptimizeMixin {
     

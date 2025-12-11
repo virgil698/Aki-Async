@@ -10,13 +10,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.UUID;
 
-/**
- * 流浪商人差异对象
- * 
- * 存储异步计算的结果，在主线程应用到流浪商人
- * 
- * @author AkiAsync
- */
 public final class WanderingTraderDiff {
     
     private final UUID closestPlayer;
@@ -29,12 +22,6 @@ public final class WanderingTraderDiff {
         this.shouldWander = shouldWander;
     }
     
-    /**
-     * 应用差异到流浪商人
-     * 
-     * @param trader 流浪商人
-     * @param level 世界
-     */
     public void applyTo(WanderingTrader trader, ServerLevel level) {
         Brain<?> brain = trader.getBrain();
         

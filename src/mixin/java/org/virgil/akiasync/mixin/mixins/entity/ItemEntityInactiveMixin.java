@@ -13,17 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
-/**
- * ItemEntity Inactive Tick优化
- * 
- * 对远离玩家的掉落物使用简化的tick逻辑，只更新关键属性：
- * - pickupDelay（拾取延迟）
- * - age（年龄）
- * - 定期尝试合并
- * 
- * 参考：ServerCore的Inactive Tick实现
- * 性能提升：30-50%（大量远距离掉落物场景）
- */
 @SuppressWarnings("unused")
 @Mixin(ItemEntity.class)
 public abstract class ItemEntityInactiveMixin {
@@ -56,10 +45,6 @@ public abstract class ItemEntityInactiveMixin {
     @Unique
     private static final int LIFETIME = 6000; 
 
-    /**
-     * 在tick开始时检查是否应该使用简化tick
-     * 注意：需要在其他tick优化之前执行，以便正确取消tick
-     */
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void inactiveTick(CallbackInfo ci) {
         if (!initialized) {
@@ -75,9 +60,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 判断是否应该使用简化tick
-     */
     @Unique
     private boolean akiasync$shouldUseInactiveTick(ItemEntity self) {
         
@@ -92,9 +74,6 @@ public abstract class ItemEntityInactiveMixin {
         return !akiasync$hasNearbyPlayer(self, inactiveRange);
     }
 
-    /**
-     * 执行简化的tick逻辑
-     */
     @Unique
     private void akiasync$performInactiveTick(ItemEntity self) {
         
@@ -117,9 +96,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 快速合并：只检查非常近的物品
-     */
     @Unique
     private void akiasync$tryQuickMerge(ItemEntity self) {
         try {
@@ -142,9 +118,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 检查是否可以合并
-     */
     @Unique
     private boolean akiasync$canMerge(ItemEntity self, ItemEntity other) {
         ItemStack selfStack = self.getItem();
@@ -152,9 +125,6 @@ public abstract class ItemEntityInactiveMixin {
         return ItemStack.isSameItemSameComponents(selfStack, otherStack);
     }
 
-    /**
-     * 检查是否可以合并（简化版）
-     */
     @Unique
     private boolean akiasync$isMergable(ItemEntity self) {
         try {
@@ -165,9 +135,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 检查附近是否有玩家
-     */
     @Unique
     private boolean akiasync$hasNearbyPlayer(ItemEntity self, double range) {
         try {
@@ -182,9 +149,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 检查是否在危险环境中
-     */
     @Unique
     private boolean akiasync$isInDangerousEnvironment(ItemEntity item) {
         try {
@@ -214,9 +178,6 @@ public abstract class ItemEntityInactiveMixin {
         }
     }
 
-    /**
-     * 检查是否为虚拟实体
-     */
     @Unique
     private boolean akiasync$isVirtualEntity(ItemEntity entity) {
         if (entity == null) return false;
@@ -234,9 +195,6 @@ public abstract class ItemEntityInactiveMixin {
         return false;
     }
 
-    /**
-     * 初始化配置
-     */
     @Unique
     private static synchronized void akiasync$initInactiveTick() {
         if (initialized) return;

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.virgil.akiasync.util.DebugLogger;
 
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -140,7 +141,7 @@ public class FancyNpcsDetector implements PluginDetector {
         try {
             PersistentDataContainer pdc = entity.getPersistentDataContainer();
             for (NamespacedKey key : pdc.getKeys()) {
-                String keyStr = key.toString().toLowerCase();
+                String keyStr = key.toString().toLowerCase(Locale.ROOT);
                 if (keyStr.contains("fancynpcs") || keyStr.contains("fancy")) {
                     DebugLogger.debug("[FancyNpcs Compat] Found FancyNpcs PDC key: %s", keyStr);
                     return true;

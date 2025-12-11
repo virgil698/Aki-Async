@@ -7,15 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * 时间加速TT20补偿
- * 
- * 在低TPS时加速游戏时间流逝，保持昼夜循环一致
- * 
- * 警告：可能影响某些依赖时间的机制，默认关闭
- * 
- * 参考：TT20 ServerWorldMixin
- */
 @Mixin(ServerLevel.class)
 public class ServerLevelTimeTT20Mixin {
     

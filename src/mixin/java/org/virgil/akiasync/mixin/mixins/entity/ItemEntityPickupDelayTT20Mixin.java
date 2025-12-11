@@ -9,13 +9,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-/**
- * 掉落物拾取延迟TT20补偿
- * 
- * 在低TPS时减少拾取延迟，保持玩家体验一致
- * 
- * 参考：TT20 ItemEntityMixin
- */
 @Mixin(ItemEntity.class)
 public class ItemEntityPickupDelayTT20Mixin {
     

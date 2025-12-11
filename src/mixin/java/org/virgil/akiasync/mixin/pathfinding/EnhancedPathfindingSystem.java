@@ -12,18 +12,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * 增强版寻路系统
- * 
- * 特性：
- * 1. 三级优先级队列（高/中/低）
- * 2. 多层缓存机制（热缓存/温缓存/冷缓存）
- * 3. 预热机制（玩家加入时预计算常用路径）
- * 4. 流量控制（限制并发请求数）
- * 5. 智能去重（相似路径复用）
- * 
- * @author AkiAsync
- */
 public class EnhancedPathfindingSystem {
     
     private static volatile boolean enabled = true;
@@ -52,9 +40,6 @@ public class EnhancedPathfindingSystem {
     private static final Map<UUID, PlayerPathPrewarmer> playerPrewarmers = 
         new ConcurrentHashMap<>();
     
-    /**
-     * 提交寻路请求
-     */
     public static CompletableFuture<Path> submitPathRequest(
             Mob mob, 
             BlockPos start, 
@@ -103,9 +88,6 @@ public class EnhancedPathfindingSystem {
         return future;
     }
     
-    /**
-     * 根据优先级添加到队列
-     */
     private static void addToQueue(PathRequest request) {
         double distance = request.getDistanceToNearestPlayer();
         
@@ -121,9 +103,6 @@ public class EnhancedPathfindingSystem {
         }
     }
     
-    /**
-     * 每 tick 处理队列
-     */
     public static void processTick() {
         if (!enabled) return;
         
@@ -156,9 +135,6 @@ public class EnhancedPathfindingSystem {
         cache.cleanupExpired();
     }
     
-    /**
-     * 处理单个请求
-     */
     private static void processRequest(PathRequest request) {
         activeRequests.incrementAndGet();
         
@@ -175,11 +151,6 @@ public class EnhancedPathfindingSystem {
         }, AsyncPathProcessor.getExecutor());
     }
     
-    /**
-     * 玩家加入时预热路径（主线程调用）
-     * 
-     * 此方法必须在主线程调用，因为需要访问 POI 数据
-     */
     public static void prewarmPlayerPathsMainThread(ServerPlayer player) {
         if (!enabled) return;
         
@@ -191,17 +162,11 @@ public class EnhancedPathfindingSystem {
         prewarmer.start();
     }
     
-    /**
-     * @deprecated 使用 prewarmPlayerPathsMainThread 代替
-     */
     @Deprecated
     public static void prewarmPlayerPaths(ServerPlayer player) {
         prewarmPlayerPathsMainThread(player);
     }
     
-    /**
-     * 玩家离开时清理
-     */
     public static void cleanupPlayer(UUID playerUUID) {
         PlayerPathPrewarmer prewarmer = playerPrewarmers.remove(playerUUID);
         if (prewarmer != null) {
@@ -209,9 +174,6 @@ public class EnhancedPathfindingSystem {
         }
     }
     
-    /**
-     * 获取统计信息
-     */
     public static String getStatistics() {
         long total = totalRequests.get();
         long hits = cacheHits.get();
@@ -227,9 +189,6 @@ public class EnhancedPathfindingSystem {
         );
     }
     
-    /**
-     * 配置更新
-     */
     public static void updateConfig(
             boolean enabled,
             int maxConcurrent,
@@ -244,9 +203,6 @@ public class EnhancedPathfindingSystem {
         EnhancedPathfindingSystem.mediumPriorityDistance = mediumPriorityDist;
     }
     
-    /**
-     * 清空所有队列和缓存
-     */
     public static void clear() {
         highPriorityQueue.clear();
         mediumPriorityQueue.clear();
@@ -257,17 +213,11 @@ public class EnhancedPathfindingSystem {
         playerPrewarmers.clear();
     }
     
-    /**
-     * 路径计算函数接口
-     */
     @FunctionalInterface
     public interface PathComputeFunction {
         Path compute() throws Exception;
     }
     
-    /**
-     * 路径请求
-     */
     private static class PathRequest {
         private final Mob mob;
         private final BlockPos start;
@@ -323,9 +273,6 @@ public class EnhancedPathfindingSystem {
         }
     }
     
-    /**
-     * 请求去重 Key
-     */
     private static class PathRequestKey {
         private final long startHash;
         private final long targetHash;

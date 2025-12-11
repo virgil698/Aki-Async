@@ -10,16 +10,6 @@ import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 
-/**
- * 通用AI差异 - 增强版（合并ExpensiveAI功能）
- * 
- * 支持：
- * - 目标设置（原有）
- * - Brain内存变更（从ExpensiveAI合并）
- * - POI相关变更（从ExpensiveAI合并）
- * 
- * @author AkiAsync
- */
 public final class UniversalAiDiff {
     
     private UUID target;
@@ -57,9 +47,6 @@ public final class UniversalAiDiff {
         changeCount++;
     }
     
-    /**
-     * 应用差异到Mob（增强版）
-     */
     public void applyTo(Mob mob, ServerLevel level) {
         
         if (target != null) {
@@ -84,9 +71,6 @@ public final class UniversalAiDiff {
         }
     }
     
-    /**
-     * 应用Brain内存变更
-     */
     @SuppressWarnings("unchecked")
     private void applyBrainMemoryChanges(Brain<?> brain) {
         for (Map.Entry<MemoryModuleType<?>, Object> entry : memoryChanges.entrySet()) {
@@ -107,9 +91,6 @@ public final class UniversalAiDiff {
         }
     }
     
-    /**
-     * 应用POI变更（从BrainDiff移植）
-     */
     @SuppressWarnings("unchecked")
     private void applyPoiChanges(Brain<?> brain) {
         if (topPoi != null) {

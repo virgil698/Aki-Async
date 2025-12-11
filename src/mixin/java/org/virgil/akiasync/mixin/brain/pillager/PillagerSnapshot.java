@@ -7,16 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
 
-/**
- * Pillager快照 - 使用空间索引优化
- * 
- * 优化点：
- * - 使用AiQueryHelper.getNearbyPlayers() 替代 level.getEntitiesOfClass()
- * - 使用AiQueryHelper.getNearbyPoi() 替代 level.getPoiManager().getInRange()
- * - O(1)查询性能，减少85-90%查询开销
- * 
- * @author AkiAsync
- */
 public final class PillagerSnapshot {
     private final double health;
     private final boolean isChargingCrossbow;

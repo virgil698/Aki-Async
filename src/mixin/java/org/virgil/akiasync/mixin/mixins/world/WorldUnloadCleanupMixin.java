@@ -11,18 +11,9 @@ import org.virgil.akiasync.mixin.poi.BatchPoiManager;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-/**
- * 世界卸载时清理所有缓存
- * 防止内存泄漏
- * 
- * @author AkiAsync
- */
 @Mixin(ServerLevel.class)
 public class WorldUnloadCleanupMixin {
     
-    /**
-     * 在世界关闭时清理所有相关缓存
-     */
     @Inject(method = "close", at = @At("HEAD"))
     private void akiasync$cleanupOnWorldClose(CallbackInfo ci) {
         ServerLevel level = (ServerLevel) (Object) this;

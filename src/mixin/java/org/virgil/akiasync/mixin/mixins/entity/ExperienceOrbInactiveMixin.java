@@ -12,15 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
-/**
- * 经验球Inactive Tick优化
- * 
- * 参考ItemEntityInactiveMixin的实现
- * 对远离玩家的经验球使用简化tick
- * 
- * 性能提升：30-40%
- * 预期MSPT降低：2-3ms
- */
 @SuppressWarnings("unused")
 @Mixin(ExperienceOrb.class)
 public abstract class ExperienceOrbInactiveMixin {
@@ -40,9 +31,6 @@ public abstract class ExperienceOrbInactiveMixin {
     @Unique
     private static final int LIFETIME = 6000; 
 
-    /**
-     * 在tick开始时检查是否应该使用简化tick
-     */
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void inactiveTick(CallbackInfo ci) {
         if (!initialized) {
@@ -58,18 +46,12 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 判断是否应该使用简化tick
-     */
     @Unique
     private boolean akiasync$shouldUseInactiveTick(ExperienceOrb self) {
         
         return !akiasync$hasNearbyPlayer(self, inactiveRange);
     }
 
-    /**
-     * 执行简化的tick逻辑
-     */
     @Unique
     private void akiasync$performInactiveTick(ExperienceOrb self) {
         
@@ -85,9 +67,6 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 快速合并：只检查非常近的经验球
-     */
     @Unique
     private void akiasync$tryQuickMerge(ExperienceOrb self) {
         try {
@@ -117,18 +96,12 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 检查是否可以合并
-     */
     @Unique
     private boolean akiasync$canMerge(ExperienceOrb self, ExperienceOrb other) {
         
         return other != null && !other.isRemoved() && akiasync$getValue(other) > 0;
     }
 
-    /**
-     * 获取经验值（使用公共方法）
-     */
     @Unique
     private int akiasync$getValue(ExperienceOrb orb) {
         try {
@@ -139,9 +112,6 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 设置经验值（使用公共方法）
-     */
     @Unique
     private void akiasync$setValue(ExperienceOrb orb, int newValue) {
         try {
@@ -152,9 +122,6 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 检查附近是否有玩家
-     */
     @Unique
     private boolean akiasync$hasNearbyPlayer(ExperienceOrb self, double range) {
         try {
@@ -169,9 +136,6 @@ public abstract class ExperienceOrbInactiveMixin {
         }
     }
 
-    /**
-     * 初始化配置
-     */
     @Unique
     private static synchronized void akiasync$initInactiveTick() {
         if (initialized) return;

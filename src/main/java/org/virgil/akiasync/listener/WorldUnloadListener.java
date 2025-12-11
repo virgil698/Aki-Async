@@ -8,13 +8,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
-/**
- * 世界卸载监听器
- * 
- * 清理与世界相关的静态缓存，防止内存泄漏
- * 
- * @author AkiAsync
- */
 public class WorldUnloadListener implements Listener {
     
     private final AkiAsyncPlugin plugin;

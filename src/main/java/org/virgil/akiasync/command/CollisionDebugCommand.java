@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class CollisionDebugCommand implements CommandExecutor {
@@ -42,7 +43,7 @@ public class CollisionDebugCommand implements CommandExecutor {
             return true;
         }
         
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ROOT)) {
             case "stats" -> showStats(player);
             case "nearby" -> showNearbyEntities(player, args);
             case "density" -> showDensityMap(player);

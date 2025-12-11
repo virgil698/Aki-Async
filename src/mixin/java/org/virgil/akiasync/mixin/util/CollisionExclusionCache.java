@@ -4,25 +4,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * 统一的碰撞排除列表缓存
- * 
- * 避免多个Mixin重复加载配置
- * 使用volatile + double-check locking保证线程安全
- * 
- * @author AkiAsync
- */
 public class CollisionExclusionCache {
     
     private static volatile Set<String> excludedEntities = null;
     private static volatile long lastLoadTime = 0;
     private static final long CACHE_LIFETIME_MS = 60000; 
     
-    /**
-     * 获取排除列表（带缓存）
-     * 
-     * @return 排除的实体ID集合
-     */
     public static Set<String> getExcludedEntities() {
         
         Set<String> cached = excludedEntities;
@@ -60,12 +47,6 @@ public class CollisionExclusionCache {
         }
     }
     
-    /**
-     * 检查实体是否在排除列表中
-     * 
-     * @param entity 要检查的实体
-     * @return true = 在排除列表中
-     */
     public static boolean isExcluded(net.minecraft.world.entity.Entity entity) {
         if (entity == null) {
             return false;
@@ -80,9 +61,6 @@ public class CollisionExclusionCache {
         return excluded.contains(entityId);
     }
     
-    /**
-     * 清空缓存（配置重载时调用）
-     */
     public static void clearCache() {
         synchronized (CollisionExclusionCache.class) {
             excludedEntities = null;
@@ -92,9 +70,6 @@ public class CollisionExclusionCache {
         }
     }
     
-    /**
-     * 获取缓存统计信息
-     */
     public static String getStats() {
         Set<String> cached = excludedEntities;
         long age = System.currentTimeMillis() - lastLoadTime;

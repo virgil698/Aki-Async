@@ -1,6 +1,7 @@
 package org.virgil.akiasync.mixin.brain.core;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,34 +15,17 @@ import org.virgil.akiasync.mixin.poi.PoiSpatialIndexManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
-/**
- * AI查询助手
- * 
- * 统一的AI查询接口，所有AI优化都通过这个接口查询
- * 自动使用空间索引，提供一致的O(1)性能
- * 
- * 替代原有的：
- * - level.getEntitiesOfClass(...)
- * - level.getNearbyEntities(...)
- * - BatchPoiManager.getPoiInRange(...)
- * 
- * @author AkiAsync
- */
 public class AiQueryHelper {
     
-    private static volatile long totalQueries = 0;
-    private static volatile long spatialIndexHits = 0;
-    private static volatile long fallbackQueries = 0;
+    private static final AtomicLong totalQueries = new AtomicLong(0);
+    private static final AtomicLong spatialIndexHits = new AtomicLong(0);
+    private static final AtomicLong fallbackQueries = new AtomicLong(0);
     
-    /**
-     * 查询附近的玩家 - O(1)
-     * 
-     * 替代: level.getEntitiesOfClass(Player.class, box)
-     */
     public static List<Player> getNearbyPlayers(Mob mob, double radius) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (mob == null || mob.level().isClientSide) {
             return Collections.emptyList();
@@ -53,22 +37,17 @@ public class AiQueryHelper {
         if (index != null && index.isEnabled()) {
             
             List<Player> result = index.queryPlayers(mob.blockPosition(), (int)radius);
-            spatialIndexHits++;
+            spatialIndexHits.incrementAndGet();
             return result;
         }
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         return level.getEntitiesOfClass(
             Player.class,
             mob.getBoundingBox().inflate(radius)
         );
     }
     
-    /**
-     * 查询附近的实体 - O(1)
-     * 
-     * 替代: level.getEntitiesOfClass(entityClass, box)
-     */
     public static <T extends LivingEntity> List<T> getNearbyEntities(
         Mob mob,
         Class<T> entityClass,
@@ -77,18 +56,13 @@ public class AiQueryHelper {
         return getNearbyEntities(mob, entityClass, radius, null);
     }
     
-    /**
-     * 查询附近的实体（带过滤器） - O(1)
-     * 
-     * 替代: level.getEntitiesOfClass(entityClass, box, filter)
-     */
     public static <T extends LivingEntity> List<T> getNearbyEntities(
         Mob mob,
         Class<T> entityClass,
         double radius,
         Predicate<T> filter
     ) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (mob == null || mob.level().isClientSide) {
             return Collections.emptyList();
@@ -100,7 +74,7 @@ public class AiQueryHelper {
         if (index != null && index.isEnabled()) {
             
             List<LivingEntity> candidates = index.queryEntities(mob.blockPosition(), (int)radius);
-            spatialIndexHits++;
+            spatialIndexHits.incrementAndGet();
             
             List<T> result = new ArrayList<>();
             for (LivingEntity entity : candidates) {
@@ -115,7 +89,7 @@ public class AiQueryHelper {
             return result;
         }
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         if (filter != null) {
             return level.getEntitiesOfClass(
                 entityClass,
@@ -130,17 +104,12 @@ public class AiQueryHelper {
         }
     }
     
-    /**
-     * 查询附近的任意实体（不限于LivingEntity） - O(1)
-     * 
-     * 替代: level.getEntities(mob, box, filter)
-     */
     public static List<Entity> getNearbyAnyEntities(
         Mob mob,
         double radius,
         Predicate<Entity> filter
     ) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (mob == null || mob.level().isClientSide) {
             return Collections.emptyList();
@@ -148,7 +117,7 @@ public class AiQueryHelper {
         
         ServerLevel level = (ServerLevel) mob.level();
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         return level.getEntities(
             mob,
             mob.getBoundingBox().inflate(radius),
@@ -156,13 +125,8 @@ public class AiQueryHelper {
         );
     }
     
-    /**
-     * 查询附近的POI - O(1)
-     * 
-     * 替代: BatchPoiManager.getPoiInRange(level, pos, radius)
-     */
     public static List<PoiRecord> getNearbyPoi(Mob mob, int radius) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (mob == null || mob.level().isClientSide) {
             return Collections.emptyList();
@@ -174,11 +138,11 @@ public class AiQueryHelper {
         if (index != null) {
             
             List<PoiRecord> result = index.queryRange(mob.blockPosition(), radius);
-            spatialIndexHits++;
+            spatialIndexHits.incrementAndGet();
             return result;
         }
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         return level.getPoiManager()
             .getInRange(
                 type -> true,
@@ -189,17 +153,12 @@ public class AiQueryHelper {
             .toList();
     }
     
-    /**
-     * 查询特定类型的POI - 更快
-     * 
-     * 使用类型索引，比通用查询更快
-     */
     public static List<PoiRecord> getNearbyPoiByType(
         Mob mob,
         PoiType type,
         int radius
     ) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (mob == null || mob.level().isClientSide || type == null) {
             return Collections.emptyList();
@@ -211,14 +170,14 @@ public class AiQueryHelper {
         if (index != null) {
             
             List<PoiRecord> result = index.queryByType(mob.blockPosition(), type, radius);
-            spatialIndexHits++;
+            spatialIndexHits.incrementAndGet();
             return result;
         }
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         return level.getPoiManager()
             .getInRange(
-                t -> t.equals(type),
+                t -> t.value().equals(type),
                 mob.blockPosition(),
                 radius,
                 net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy.ANY
@@ -226,11 +185,8 @@ public class AiQueryHelper {
             .toList();
     }
     
-    /**
-     * 查询附近的玩家（从BlockPos） - O(1)
-     */
     public static List<Player> getNearbyPlayersFromPos(ServerLevel level, BlockPos pos, int radius) {
-        totalQueries++;
+        totalQueries.incrementAndGet();
         
         if (level == null || pos == null) {
             return Collections.emptyList();
@@ -239,59 +195,47 @@ public class AiQueryHelper {
         AiSpatialIndex index = AiSpatialIndexManager.getIndex(level);
         
         if (index != null && index.isEnabled()) {
-            spatialIndexHits++;
+            spatialIndexHits.incrementAndGet();
             return index.queryPlayers(pos, radius);
         }
         
-        fallbackQueries++;
+        fallbackQueries.incrementAndGet();
         return level.getEntitiesOfClass(
             Player.class,
             new net.minecraft.world.phys.AABB(pos).inflate(radius)
         );
     }
     
-    /**
-     * 获取统计信息
-     */
     public static String getStatistics() {
-        double spatialHitRate = totalQueries > 0 ? 
-            (spatialIndexHits * 100.0 / totalQueries) : 0.0;
-        double fallbackRate = totalQueries > 0 ? 
-            (fallbackQueries * 100.0 / totalQueries) : 0.0;
+        long queries = totalQueries.get();
+        long hits = spatialIndexHits.get();
+        long fallback = fallbackQueries.get();
+        double spatialHitRate = queries > 0 ? 
+            (hits * 100.0 / queries) : 0.0;
+        double fallbackRate = queries > 0 ? 
+            (fallback * 100.0 / queries) : 0.0;
         
         return String.format(
             "AI Query Helper: %d queries | %.2f%% spatial index | %.2f%% fallback",
-            totalQueries, spatialHitRate, fallbackRate
+            queries, spatialHitRate, fallbackRate
         );
     }
     
-    /**
-     * 重置统计信息
-     */
     public static void resetStatistics() {
-        totalQueries = 0;
-        spatialIndexHits = 0;
-        fallbackQueries = 0;
+        totalQueries.set(0);
+        spatialIndexHits.set(0);
+        fallbackQueries.set(0);
     }
     
-    /**
-     * 获取总查询次数
-     */
     public static long getTotalQueries() {
-        return totalQueries;
+        return totalQueries.get();
     }
     
-    /**
-     * 获取空间索引命中次数
-     */
     public static long getSpatialIndexHits() {
-        return spatialIndexHits;
+        return spatialIndexHits.get();
     }
     
-    /**
-     * 获取降级查询次数
-     */
     public static long getFallbackQueries() {
-        return fallbackQueries;
+        return fallbackQueries.get();
     }
 }
