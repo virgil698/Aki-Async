@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.brain;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +18,7 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
+
 @SuppressWarnings("unused")
 @Mixin(value = Mob.class, priority = 990)
 public abstract class UniversalAiFamilyTickMixin {
@@ -48,13 +50,21 @@ public abstract class UniversalAiFamilyTickMixin {
         
         Mob mob = (Mob) (Object) this;
         
-        if (mob instanceof net.minecraft.world.entity.monster.Blaze ||
-            mob instanceof net.minecraft.world.entity.monster.Evoker ||
-            mob instanceof net.minecraft.world.entity.monster.Guardian ||
-            mob instanceof net.minecraft.world.entity.monster.Witch ||
-            mob instanceof net.minecraft.world.entity.monster.Pillager ||
-            mob instanceof net.minecraft.world.entity.monster.Vindicator ||
-            mob instanceof net.minecraft.world.entity.monster.Ravager) {
+        
+        if (mob instanceof net.minecraft.world.entity.npc.Villager ||                    
+            mob instanceof net.minecraft.world.entity.npc.WanderingTrader ||             
+            mob instanceof net.minecraft.world.entity.monster.warden.Warden ||           
+            mob instanceof net.minecraft.world.entity.monster.hoglin.Hoglin ||           
+            mob instanceof net.minecraft.world.entity.animal.allay.Allay ||              
+            mob instanceof net.minecraft.world.entity.monster.piglin.Piglin ||           
+            mob instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ||      
+            mob instanceof net.minecraft.world.entity.monster.Pillager ||                
+            mob instanceof net.minecraft.world.entity.monster.Vindicator ||              
+            mob instanceof net.minecraft.world.entity.monster.Ravager ||                 
+            mob instanceof net.minecraft.world.entity.monster.Evoker ||                  
+            mob instanceof net.minecraft.world.entity.monster.Blaze ||                   
+            mob instanceof net.minecraft.world.entity.monster.Guardian ||                
+            mob instanceof net.minecraft.world.entity.monster.Witch) {                   
             return; 
         }
         
@@ -244,6 +254,7 @@ public abstract class UniversalAiFamilyTickMixin {
 
         return false;
     }
+    
     @Unique private static synchronized void aki$init() {
         if (init) return;
 

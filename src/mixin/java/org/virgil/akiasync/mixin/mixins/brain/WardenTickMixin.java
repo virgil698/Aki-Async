@@ -35,57 +35,11 @@ public class WardenTickMixin {
     private int tickCounter = 0;
     
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
-    private void aki$asyncWardenAi(CallbackInfo ci) {
+    private void aki$ensureWardenVanillaFeatures(ServerLevel level, CallbackInfo ci) {
+        
+        
         if (!initialized) {
             aki$initWardenOptimization();
-        }
-        
-        if (!cached_enabled) {
-            return;
-        }
-        
-        Warden warden = (Warden) (Object) this;
-        ServerLevel level = (ServerLevel) warden.level();
-        
-        tickCounter++;
-        
-        if (tickCounter % 10 != 0) {
-            return;
-        }
-        
-        try {
-            
-            if (pendingDiff != null && pendingDiff.isDone()) {
-                try {
-                    WardenDiff diff = pendingDiff.get(1, TimeUnit.MILLISECONDS);
-                    diff.applyTo(warden, level);
-                    
-                    if (cached_debugEnabled) {
-                        Bridge bridge = BridgeManager.getBridge();
-                        if (bridge != null) {
-                            bridge.debugLog(
-                                "[AkiAsync-Warden] Applied diff: %s",
-                                diff.toString()
-                            );
-                        }
-                    }
-                } catch (Exception e) {
-                    
-                }
-                pendingDiff = null;
-            }
-            
-            if (pendingDiff == null) {
-                
-                WardenSnapshot snapshot = WardenSnapshot.capture(warden, level);
-                
-                pendingDiff = CompletableFuture.supplyAsync(
-                    () -> WardenCpuCalculator.compute(snapshot)
-                );
-            }
-        } catch (Exception e) {
-            
-            pendingDiff = null;
         }
     }
     
@@ -97,13 +51,12 @@ public class WardenTickMixin {
         
         if (bridge != null) {
             
-            cached_enabled = bridge.isWardenOptimizationEnabled() && 
-                           bridge.isAiSpatialIndexEnabled();
+            
+            cached_enabled = false; 
             cached_debugEnabled = bridge.isDebugLoggingEnabled();
             
             bridge.debugLog(
-                "[AkiAsync] WardenTickMixin initialized: enabled=%s | Using AI Spatial Index",
-                cached_enabled
+                "[AkiAsync] WardenTickMixin initialized: Vanilla behavior preserved (anger, darkness, vibrations)"
             );
         } else {
             cached_enabled = false;

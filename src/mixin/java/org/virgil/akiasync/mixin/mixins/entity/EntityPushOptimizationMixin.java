@@ -71,6 +71,7 @@ public abstract class EntityPushOptimizationMixin {
         }
         
         if (!self.isPushable() || !other.isPushable()) {
+            ci.cancel();
             return;
         }
         

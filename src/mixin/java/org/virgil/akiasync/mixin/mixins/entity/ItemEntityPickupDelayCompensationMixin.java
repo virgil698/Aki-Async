@@ -1,6 +1,6 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -9,11 +9,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-@Mixin(LivingEntity.class)
-public abstract class LivingEntityPotionTT20Mixin {
+@Mixin(ItemEntity.class)
+public class ItemEntityPickupDelayCompensationMixin {
     
     @Shadow
-    protected abstract void tickEffects();
+    private int pickupDelay;
     
     @Unique
     private static volatile boolean initialized = false;
@@ -22,18 +22,16 @@ public abstract class LivingEntityPotionTT20Mixin {
     @Unique
     private static volatile double tpsThreshold = 18.0;
     
-    @Inject(method = "baseTick", 
-        at = @At(value = "INVOKE", 
-                 target = "Lnet/minecraft/world/entity/LivingEntity;tickEffects()V",
-                 shift = At.Shift.AFTER))
-    private void compensatePotionEffects(CallbackInfo ci) {
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void compensatePickupDelay(CallbackInfo ci) {
         if (!initialized) {
             akiasync$init();
         }
         
         if (!enabled) return;
+        if (pickupDelay == 0) return;
         
-        LivingEntity self = (LivingEntity) (Object) this;
+        ItemEntity self = (ItemEntity) (Object) this;
         if (self.level().isClientSide) return;
         
         try {
@@ -42,9 +40,9 @@ public abstract class LivingEntityPotionTT20Mixin {
             
             if (currentTPS < tpsThreshold) {
                 int missedTicks = tracker.getApplicableMissedTicks();
-                
-                for (int i = 0; i < missedTicks; i++) {
-                    tickEffects();
+                if (missedTicks > 0) {
+                    
+                    pickupDelay = Math.max(0, pickupDelay - missedTicks);
                 }
             }
         } catch (Throwable t) {
@@ -60,10 +58,10 @@ public abstract class LivingEntityPotionTT20Mixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            enabled = bridge.isSmartLagPotionEffectsEnabled();
+            enabled = bridge.isSmartLagItemPickupDelayEnabled();
             tpsThreshold = bridge.getSmartLagTPSThreshold();
             
-            bridge.debugLog("[AkiAsync] LivingEntityPotionTT20Mixin initialized: enabled=%s, threshold=%.1f",
+            bridge.debugLog("[AkiAsync] ItemEntityPickupDelayCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
         } else {
             enabled = false;

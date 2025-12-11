@@ -28,7 +28,7 @@ public class PortalSuffocationCheckMixin {
         }
         
         if (disabled) {
-            cir.setReturnValue(false);
+            cir.setReturnValue(true);
         }
     }
     

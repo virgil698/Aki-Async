@@ -1,14 +1,15 @@
-package org.virgil.akiasync.mixin.mixins.world;
+package org.virgil.akiasync.mixin.mixins.fluid;
 
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.material.WaterFluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-@Mixin(ServerLevel.class)
-public class ServerLevelTimeTT20Mixin {
+@Mixin(WaterFluid.class)
+public class WaterFluidLagCompensationMixin {
     
     @Unique
     private static volatile boolean initialized = false;
@@ -17,34 +18,26 @@ public class ServerLevelTimeTT20Mixin {
     @Unique
     private static volatile double tpsThreshold = 18.0;
     
-    @ModifyVariable(
-        method = "tickTime",
-        at = @At(value = "STORE", ordinal = 0),
-        ordinal = 0
-    )
-    private long compensateTime(long timeOfDay) {
+    @Inject(method = "getTickDelay", at = @At("RETURN"), cancellable = true)
+    private void modifyTickDelay(CallbackInfoReturnable<Integer> cir) {
         if (!initialized) {
             akiasync$init();
         }
         
-        if (!enabled) return timeOfDay;
+        if (!enabled) return;
         
         try {
             TPSTracker tracker = TPSTracker.getInstance();
             double currentTPS = tracker.getMostAccurateTPS();
             
             if (currentTPS < tpsThreshold) {
-                int missedTicks = tracker.getApplicableMissedTicks();
-                if (missedTicks > 0) {
-                    
-                    return timeOfDay + missedTicks;
-                }
+                int original = cir.getReturnValue();
+                int compensated = tracker.tt20(original, true);
+                cir.setReturnValue(compensated);
             }
         } catch (Throwable t) {
             
         }
-        
-        return timeOfDay;
     }
     
     @Unique
@@ -55,10 +48,11 @@ public class ServerLevelTimeTT20Mixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            enabled = bridge.isSmartLagTimeAccelerationEnabled();
+            enabled = bridge.isSmartLagFluidCompensationEnabled() && 
+                     bridge.isSmartLagFluidWaterEnabled();
             tpsThreshold = bridge.getSmartLagTPSThreshold();
             
-            bridge.debugLog("[AkiAsync] ServerLevelTimeTT20Mixin initialized: enabled=%s, threshold=%.1f",
+            bridge.debugLog("[AkiAsync] WaterFluidLagCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
         } else {
             enabled = false;

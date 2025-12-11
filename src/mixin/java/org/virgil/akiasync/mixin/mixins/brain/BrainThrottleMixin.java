@@ -19,6 +19,11 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
     private void akiasync$tickThrottle(net.minecraft.server.level.ServerLevel level, E entity, CallbackInfo ci) {
         if (!initialized) { akiasync$initBrainThrottle(); }
         if (!cached_enabled) return;
+        
+        
+        if (entity instanceof net.minecraft.world.entity.monster.warden.Warden) {
+            return;
+        }
         long gameTime = level.getGameTime();
         if (gameTime < this.akiasync$skipUntil) {
             ci.cancel();

@@ -1,19 +1,15 @@
-package org.virgil.akiasync.mixin.mixins.entity;
+package org.virgil.akiasync.mixin.mixins.fluid;
 
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.level.material.LavaFluid;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil.akiasync.mixin.util.TPSTracker;
 
-@Mixin(ItemEntity.class)
-public class ItemEntityPickupDelayTT20Mixin {
-    
-    @Shadow
-    private int pickupDelay;
+@Mixin(LavaFluid.class)
+public class LavaFluidLagCompensationMixin {
     
     @Unique
     private static volatile boolean initialized = false;
@@ -22,28 +18,22 @@ public class ItemEntityPickupDelayTT20Mixin {
     @Unique
     private static volatile double tpsThreshold = 18.0;
     
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void compensatePickupDelay(CallbackInfo ci) {
+    @Inject(method = "getTickDelay", at = @At("RETURN"), cancellable = true)
+    private void modifyTickDelay(CallbackInfoReturnable<Integer> cir) {
         if (!initialized) {
             akiasync$init();
         }
         
         if (!enabled) return;
-        if (pickupDelay == 0) return;
-        
-        ItemEntity self = (ItemEntity) (Object) this;
-        if (self.level().isClientSide) return;
         
         try {
             TPSTracker tracker = TPSTracker.getInstance();
             double currentTPS = tracker.getMostAccurateTPS();
             
             if (currentTPS < tpsThreshold) {
-                int missedTicks = tracker.getApplicableMissedTicks();
-                if (missedTicks > 0) {
-                    
-                    pickupDelay = Math.max(0, pickupDelay - missedTicks);
-                }
+                int original = cir.getReturnValue();
+                int compensated = tracker.tt20(original, true);
+                cir.setReturnValue(compensated);
             }
         } catch (Throwable t) {
             
@@ -58,10 +48,11 @@ public class ItemEntityPickupDelayTT20Mixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            enabled = bridge.isSmartLagItemPickupDelayEnabled();
+            enabled = bridge.isSmartLagFluidCompensationEnabled() && 
+                     bridge.isSmartLagFluidLavaEnabled();
             tpsThreshold = bridge.getSmartLagTPSThreshold();
             
-            bridge.debugLog("[AkiAsync] ItemEntityPickupDelayTT20Mixin initialized: enabled=%s, threshold=%.1f",
+            bridge.debugLog("[AkiAsync] LavaFluidLagCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
         } else {
             enabled = false;

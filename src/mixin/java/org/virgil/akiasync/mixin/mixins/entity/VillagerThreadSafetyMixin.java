@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.Unique;
 public class VillagerThreadSafetyMixin {
 
     @Unique
-    private static final Object aki$villagerLock = new Object();
+    private final Object aki$instanceLock = new Object();
 
     @WrapMethod(method = "pickUpItem")
     private void aki$pickUpItemSafe(ServerLevel level, ItemEntity entity, Operation<Void> original) {
-        synchronized (aki$villagerLock) {
+        synchronized (aki$instanceLock) {
             
             if (!entity.isRemoved()) {
                 original.call(level, entity);
@@ -26,7 +26,7 @@ public class VillagerThreadSafetyMixin {
 
     @WrapMethod(method = "spawnGolemIfNeeded")
     private void aki$spawnGolemSafe(ServerLevel world, long time, int requiredCount, Operation<Void> original) {
-        synchronized (aki$villagerLock) {
+        synchronized (aki$instanceLock) {
             original.call(world, time, requiredCount);
         }
     }

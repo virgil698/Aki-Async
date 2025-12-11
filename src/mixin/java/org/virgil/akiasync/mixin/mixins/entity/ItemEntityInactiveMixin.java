@@ -161,6 +161,10 @@ public abstract class ItemEntityInactiveMixin {
                 return true;
             }
 
+            if (akiasync$isInPortal(item)) {
+                return true;
+            }
+
             net.minecraft.core.BlockPos pos = item.blockPosition();
             if (pos == null) return false;
 
@@ -172,9 +176,30 @@ public abstract class ItemEntityInactiveMixin {
                 return true;
             }
 
+            if (state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
+                state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock) {
+                return true;
+            }
+
             return false;
         } catch (Throwable t) {
             return true; 
+        }
+    }
+
+    @Unique
+    private boolean akiasync$isInPortal(ItemEntity item) {
+        try {
+            net.minecraft.core.BlockPos pos = item.blockPosition();
+            if (pos == null) return false;
+
+            net.minecraft.world.level.block.state.BlockState state = item.level().getBlockState(pos);
+            if (state == null) return false;
+
+            return state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
+                   state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock;
+        } catch (Throwable t) {
+            return false;
         }
     }
 
