@@ -22,65 +22,13 @@ import java.util.Optional;
 @Mixin(JigsawPlacement.class)
 public class JigsawPlacementMixin {
 
-    @Inject(method = "addPieces", at = @At("HEAD"))
-    private static void akiasync$onAddPiecesStart(
-            Structure.GenerationContext context,
-            Holder<StructureTemplatePool> startPool,
-            Optional<ResourceLocation> startJigsawName,
-            int maxDepth,
-            BlockPos pos,
-            boolean useExpansionHack,
-            Optional<Heightmap.Types> projectStartToHeightmap,
-            int maxDistanceFromCenter,
-            PoolAliasLookup aliasLookup,
-            DimensionPadding dimensionPadding,
-            LiquidSettings liquidSettings,
-            CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir) {
-
-        if (!akiasync$isJigsawOptimizationEnabled()) {
-            return;
-        }
-
-        try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            
-            if (bridge != null && !bridge.hasJigsawOctree()) {
-                
-                AABB bounds = new AABB(
-                    pos.getX() - maxDistanceFromCenter,
-                    context.chunkGenerator().getMinY(),
-                    pos.getZ() - maxDistanceFromCenter,
-                    pos.getX() + maxDistanceFromCenter,
-                    context.chunkGenerator().getGenDepth(),
-                    pos.getZ() + maxDistanceFromCenter
-                );
-                
-                bridge.initializeJigsawOctree(bounds);
-                
-                akiasync$debugLog("Initialized octree for Jigsaw structure at " + pos + 
-                                " with bounds " + bounds);
-            }
-        } catch (Exception e) {
-            
-        }
+    @Inject(method = "addPieces", at = @At("HEAD"), require = 0, remap = false)
+    private static void akiasync$onAddPiecesStart(CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir) {
+        
     }
 
-    @Inject(method = "addPieces", at = @At("RETURN"))
-    private static void akiasync$onAddPiecesEnd(
-            Structure.GenerationContext context,
-            Holder<StructureTemplatePool> startPool,
-            Optional<ResourceLocation> startJigsawName,
-            int maxDepth,
-            BlockPos pos,
-            boolean useExpansionHack,
-            Optional<Heightmap.Types> projectStartToHeightmap,
-            int maxDistanceFromCenter,
-            PoolAliasLookup aliasLookup,
-            DimensionPadding dimensionPadding,
-            LiquidSettings liquidSettings,
-            CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir) {
-
+    @Inject(method = "addPieces", at = @At("RETURN"), require = 0, remap = false)
+    private static void akiasync$onAddPiecesEnd(CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir) {
         if (!akiasync$isJigsawOptimizationEnabled()) {
             return;
         }
