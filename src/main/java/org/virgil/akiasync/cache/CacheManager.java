@@ -31,7 +31,7 @@ public class CacheManager {
             scheduler.scheduleAtFixedRate(() -> {
                 try {
                     cleanupExpired();
-                    org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
+                    org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup(plugin);
                     
                     if (plugin.getConfigManager().isDebugLoggingEnabled()) {
                         plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
@@ -54,16 +54,10 @@ public class CacheManager {
         globalCache.clear();
 
         plugin.getExecutorManager().getExecutorService().execute(() -> {
-            try {
-                org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to clear villager breed cache: " + e.getMessage());
-            }
-
-            try {
-                org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to reset brain executor statistics: " + e.getMessage());
+            
+            if (plugin.getBridge() != null) {
+                plugin.getBridge().clearVillagerBreedCache();
+                plugin.getBridge().resetBrainExecutorStatistics();
             }
             
             try {
@@ -181,7 +175,7 @@ public class CacheManager {
             globalCache.size(), MAX_CACHE_SIZE));
         
         sb.append("\n");
-        sb.append(org.virgil.akiasync.cache.SakuraCacheStatistics.formatStatistics());
+        sb.append(org.virgil.akiasync.cache.SakuraCacheStatistics.formatStatistics(plugin));
         
         return sb.toString();
     }

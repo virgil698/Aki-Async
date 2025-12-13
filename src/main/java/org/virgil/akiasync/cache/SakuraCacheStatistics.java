@@ -1,15 +1,20 @@
 package org.virgil.akiasync.cache;
 
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.bridge.AkiAsyncBridge;
 
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class SakuraCacheStatistics {
     
-    public static Map<String, Object> getAllStatistics() {
-        Bridge bridge = BridgeManager.getBridge();
+    public static Map<String, Object> getAllStatistics(AkiAsyncPlugin plugin) {
+        if (plugin == null) {
+            return new HashMap<>();
+        }
+        
+        AkiAsyncBridge bridge = plugin.getBridge();
         if (bridge == null) {
             return new HashMap<>();
         }
@@ -17,8 +22,8 @@ public class SakuraCacheStatistics {
         return bridge.getSakuraCacheStatistics();
     }
     
-    public static String formatStatistics() {
-        Map<String, Object> stats = getAllStatistics();
+    public static String formatStatistics(AkiAsyncPlugin plugin) {
+        Map<String, Object> stats = getAllStatistics(plugin);
         if (stats.isEmpty()) {
             return "§cSakura optimization cache statistics unavailable§r\n";
         }
@@ -61,8 +66,12 @@ public class SakuraCacheStatistics {
         return sb.toString();
     }
     
-    public static void performPeriodicCleanup() {
-        Bridge bridge = BridgeManager.getBridge();
+    public static void performPeriodicCleanup(AkiAsyncPlugin plugin) {
+        if (plugin == null) {
+            return;
+        }
+        
+        AkiAsyncBridge bridge = plugin.getBridge();
         if (bridge != null) {
             bridge.performSakuraCacheCleanup();
         }

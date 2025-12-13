@@ -2,7 +2,7 @@
 # AkiAsync 配置文件 / Configuration File
 # ==========================================
 # 配置版本 / Configuration version
-version: 17
+version: 18
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -132,7 +132,6 @@ collision-optimization:
     precompute-arrays: true  # 预计算形状数组 / Precompute shape arrays
     block-shape-cache: true  # 方块形状缓存 / Block shape cache (2-3x更快 / 2-3x faster)
     cache-size: 512  # 缓存大小 / Cache size (推荐 / Recommended: 512-2048)
-
 
 # 实体移动优化 / Living Entity Travel Optimization
 # 降低实体移动计算频率，减少CPU占用
@@ -284,7 +283,7 @@ async-ai:
   # POI snapshot + atomic job claiming + breeding optimization
   # 性能提升 / Performance gain: 70-80%
   villager-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: true  # 使用POI快照 / Use POI snapshot (避免主线程查询 / avoid main thread queries)
     
     # 快速射线追踪 / Fast Raytrace
@@ -315,35 +314,93 @@ async-ai:
   # Async AI + POI queries + player finding
   # 性能提升 / Performance gain: 95%
   wandering-trader-optimization:
-    enabled: false
+    enabled: true
   
   # 监守者优化 / Warden Optimization
   # 异步AI+声音感知+愤怒系统
   # Async AI + sound sensing + anger system
   # 性能提升 / Performance gain: 70-75%
   warden-optimization:
-    enabled: false
+    enabled: true
   
   # 疣猪兽优化 / Hoglin Optimization
   # 异步AI+逃跑机制+攻击系统
   # Async AI + fleeing mechanism + attack system
   # 性能提升 / Performance gain: 60-70%
   hoglin-optimization:
-    enabled: false
+    enabled: true
   
   # 悦灵优化 / Allay Optimization
   # 异步AI+物品收集+音符盒导航
   # Async AI + item collection + note block navigation
   # 性能提升 / Performance gain: 65-75%
   allay-optimization:
-    enabled: false
+    enabled: true
+  
+  # 末影人优化 / Enderman Optimization
+  # 异步AI+传送逻辑+阳光检测
+  # Async AI + teleportation logic + sunlight detection
+  # 性能提升 / Performance gain: 50-60%
+  enderman-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+    allow-pickup-blocks: true  # 允许拿方块 / Allow picking up blocks
+    allow-place-blocks: true  # 允许放方块 / Allow placing blocks
+  
+  # 犰狳优化 / Armadillo Optimization
+  # 异步AI+蜷缩反应+害怕逃跑
+  # Async AI + rolling response + fear fleeing
+  # 性能提升 / Performance gain: 50-60%
+  armadillo-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+  
+  # 嗅探兽优化 / Sniffer Optimization
+  # 异步AI+嗅探行为+挖掘逻辑
+  # Async AI + sniffing behavior + digging logic
+  # 性能提升 / Performance gain: 50-60%
+  sniffer-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+  
+  # 骆驼优化 / Camel Optimization
+  # 异步AI+坐下站起+冲刺逻辑
+  # Async AI + sitting/standing + dashing logic
+  # 性能提升 / Performance gain: 50-60%
+  camel-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+  
+  # 青蛙优化 / Frog Optimization
+  # 异步AI+吃史莱姆+长跳逻辑
+  # Async AI + eating slimes + long jump logic
+  # 性能提升 / Performance gain: 50-60%
+  frog-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+  
+  # 山羊优化 / Goat Optimization
+  # 异步AI+冲撞行为+高跳逻辑
+  # Async AI + ramming behavior + high jump logic
+  # 性能提升 / Performance gain: 50-60%
+  goat-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
+  
+  # 熊猫优化 / Panda Optimization
+  # 异步AI+性格系统+吃竹子+滚动
+  # Async AI + personality system + eating bamboo + rolling
+  # 性能提升 / Performance gain: 50-60%
+  panda-optimization:
+    enabled: true  # 默认启用 / Enabled by default
+    tick-interval: 3  # 降频间隔 / Tick interval (ticks, 推荐 / Recommended: 2-5)
   
   # 猪灵家族优化 / Piglin Family Optimization
   # 支持Piglin, PiglinBrute，UUID虚拟引用+物品比价+恐惧向量
   # Supports Piglin, PiglinBrute, UUID virtual reference + item comparison + fear vector
   # 性能提升 / Performance gain: 70-80%
   piglin-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: false  # 使用POI快照 / Use POI snapshot
     look-distance: 16  # 寻找目标的最大距离 / Maximum distance to look for targets
     barter-distance: 16  # 物品交易的最大距离 / Maximum distance for bartering
@@ -353,7 +410,7 @@ async-ai:
   # Supports Pillager, Vindicator, Ravager, safe reflection + Raid detection
   # 性能提升 / Performance gain: 70-80%
   pillager-family-optimization:
-    enabled: false
+    enabled: true
     use-poi-snapshot: false
   
   # 唤魔者优化 / Evoker Optimization
@@ -361,28 +418,28 @@ async-ai:
   # Spell cooldown + Vex summoning + empty block detection
   # 性能提升 / Performance gain: 70-80%
   evoker-optimization:
-    enabled: false
+    enabled: true
   
   # 烈焰人优化 / Blaze Optimization
   # 火焰弹CD+火柱空位检测
   # Fireball cooldown + fire column empty space detection
   # 性能提升 / Performance gain: 65-75%
   blaze-optimization:
-    enabled: false
+    enabled: true
   
   # 守卫者优化 / Guardian Optimization
   # 激光CD+水下玩家扫描
   # Laser cooldown + underwater player scanning
   # 性能提升 / Performance gain: 70-80%
   guardian-optimization:
-    enabled: false
+    enabled: true
   
   # 女巫优化 / Witch Optimization
   # 最近玩家目标筛选+安全异常处理
   # Nearest player target filtering + safe exception handling
   # 性能提升 / Performance gain: 65-75%
   witch-optimization:
-    enabled: false
+    enabled: true
 
 # ==========================================
 # VMP优化套件 / VMP Optimizations
@@ -487,7 +544,6 @@ experience-orb-optimizations:
     inactive-range: 32.0  # 不活跃范围 / Inactive range
     merge-interval: 100  # 合并间隔 / Merge interval
 
-
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
 # ==========================================
@@ -520,23 +576,6 @@ block-entity-optimizations:
     container-cache: true  # 容器缓存 / Container cache
     skip-failed-transfers: true  # 跳过失败的传输尝试 / Skip failed transfer attempts
     fast-empty-full-check: true  # 快速空满检测 / Fast empty/full check
-  
-  # 流体流动优化 / Fluid Flow Optimization
-  # 多种优化策略提升流体性能
-  # Multiple optimization strategies to boost fluid performance
-  # 性能提升 / Performance gain: 30-50%
-  fluid-flow-optimization:
-    enabled: true
-    optimize-sign-check: true  # 优化告示牌检查 / Optimize sign check (避免标签查找 / avoid tag lookup)
-    reduce-state-queries: true  # 减少方块状态查询 / Reduce block state queries
-    
-    # 旧版TT20补偿 / Legacy TT20 Compensation
-    # ⚠️ 已废弃 / Deprecated: 请使用smart-lag-compensation / Use smart-lag-compensation instead
-    tt20-compensation:
-      enabled: false
-      enable-for-water: false
-      enable-for-lava: false
-      tps-threshold: 18.0
   
   # 矿车tick优化 / Minecart Tick Optimization
   # 降低矿车tick频率，节省性能
@@ -581,14 +620,6 @@ smart-lag-compensation:
   enabled: true
   tps-threshold: 18.0  # TPS阈值 / TPS threshold (低于此值时启用补偿 / enable compensation when below)
   
-  # 流体补偿 / Fluid Compensation
-  # 在低TPS时加快流体流速，保持流体行为一致
-  # Speed up fluid flow during low TPS to maintain consistent behavior
-  fluid:
-    enabled: true
-    water: true  # 水流补偿 / Water compensation
-    lava: true  # 岩浆补偿 / Lava compensation
-  
   # 掉落物拾取延迟补偿 / Item Pickup Delay Compensation
   # 在低TPS时减少拾取延迟，保持玩家体验一致
   # Reduce pickup delay during low TPS to maintain player experience
@@ -608,7 +639,6 @@ smart-lag-compensation:
   # ⚠️ 可能影响某些依赖时间的机制 / May affect time-dependent mechanics
   time-acceleration:
     enabled: false  # 默认关闭 / Disabled by default
-
 
 # ==========================================
 # TNT爆炸优化 / TNT Explosion Optimization
@@ -698,114 +728,6 @@ falling-block-optimization:
   batch-size: 10  # 批量大小 / Batch size (推荐 / Recommended: 10-20)
 
 # ==========================================
-# 光照优化套件 / Lighting Optimizations
-# ==========================================
-# 基于Starlight和ScalableLux的高性能光照系统
-# High-performance lighting system based on Starlight and ScalableLux
-lighting-optimizations:
-  # 异步光照计算 / Async Lighting Calculation
-  # 将光照计算移至异步线程，避免阻塞主线程
-  # Move lighting calculations to async threads to avoid blocking main thread
-  async-lighting:
-    enabled: true
-    
-    # 线程池配置 / Thread Pool Configuration
-    # 根据CPU核心数自动调整或手动设置
-    # Auto-adjust based on CPU cores or manual setting
-    thread-pool-mode: auto  # auto=自动 / auto, manual=手动 / manual
-    thread-pool-size-manual: 2  # 手动模式下的线程数 / Threads in manual mode (推荐 / Recommended: 2-4)
-    thread-pool-calculation: "cores/3"  # 计算公式 / Calculation formula (cores/3=平衡 / balanced, cores/2=激进 / aggressive, cores/4=保守 / conservative)
-    min-threads: 1  # 最小线程数 / Minimum threads
-    max-threads: 4  # 最大线程数 / Maximum threads
-    
-    # 批量处理 / Batch Processing
-    # 批量处理光照更新，提升吞吐量
-    # Batch lighting updates to improve throughput
-    batch-threshold: 16  # 基础批量阈值 / Base batch threshold (越大延迟越低但吞吐量越高 / higher = lower latency but better throughput)
-    batch-threshold-max: 64  # 最大批量阈值 / Max batch threshold
-    aggressive-batching: false  # 激进批量模式 / Aggressive mode (高端服务器推荐 / recommended for high-end servers)
-    
-    # 优先级调度 / Priority Scheduling
-    # 根据玩家距离和场景重要性调度光照更新
-    # Schedule light updates by player distance and importance
-    # 降低玩家感知延迟 / Reduce perceived latency: 50-70%
-    priority-scheduling:
-      enabled: true
-      player-radius-high-priority: 32  # 高优先级半径 / High priority radius (玩家32格内 / within 32 blocks)
-      player-radius-medium-priority: 64  # 中优先级半径 / Medium priority radius (玩家64格内 / within 64 blocks)
-      player-radius-low-priority: 128  # 低优先级半径 / Low priority radius (玩家128格内 / within 128 blocks)
-      chunk-loading-priority: high  # 区块加载优先级 / Chunk loading priority (high/medium/normal)
-      max-low-priority-delay-ms: 500  # 低优先级最大延迟 / Max delay for low priority (毫秒 / milliseconds)
-    
-    # 光照更新去抖动 / Light Debouncing
-    # 延迟处理频繁变化的光照，减少无效计算
-    # Delay processing frequently changing lights to reduce wasted calculations
-    # 防止红石等频繁更新 / Prevent frequent updates from redstone
-    debouncing:
-      enabled: true
-      debounce-delay-ms: 50  # 去抖动延迟 / Debounce delay (推荐 / Recommended: 30-100ms)
-      max-updates-per-second: 20  # 单位置每秒最大更新次数 / Max updates per position per second
-      reset-on-stable-ms: 200  # 稳定后重置计数 / Reset counter when stable (毫秒 / milliseconds)
-    
-    # 光照更新合并 / Light Update Merging
-    # 检测并合并相邻方块的光照更新请求
-    # Detect and merge light update requests for adjacent blocks
-    update-merging:
-      enabled: true
-      merge-radius: 2  # 合并半径 / Merge radius (方块 / blocks, 推荐 / Recommended: 1-3)
-      merge-delay-ms: 10  # 合并延迟 / Merge delay (毫秒 / milliseconds, 等待更多更新 / wait for more updates)
-      max-merged-updates: 64  # 单次最大合并数 / Max merged updates per batch
-    
-    # 区块边界优化 / Chunk Border Optimization
-    # 优化跨区块边界的光照传播，减少区块锁竞争
-    # Optimize light propagation across chunk borders, reduce chunk lock contention
-    chunk-border:
-      enabled: true
-      batch-border-updates: true  # 批量处理边界更新 / Batch border updates
-      border-update-delay-ms: 20  # 边界更新延迟 / Border update delay (毫秒 / milliseconds)
-      cross-chunk-batch-size: 32  # 跨区块批量大小 / Cross-chunk batch size
-    
-    # 自适应调整 / Adaptive Tuning
-    # 监控队列和延迟，自动调整线程数和批量大小
-    # Monitor queue and latency, auto-adjust thread count and batch size
-    adaptive:
-      enabled: true
-      monitor-interval-seconds: 10  # 监控间隔 / Monitor interval (秒 / seconds)
-      auto-adjust-threads: true  # 自动调整线程数 / Auto-adjust thread count
-      auto-adjust-batch-size: true  # 自动调整批量大小 / Auto-adjust batch size
-      target-queue-size: 100  # 目标队列长度 / Target queue size
-      target-latency-ms: 50  # 目标延迟 / Target latency (毫秒 / milliseconds)
-    
-    # 区块卸载优化 / Chunk Unload Optimization
-    # 异步清理卸载区块的光照数据，减少主线程阻塞
-    # Async cleanup of lighting data for unloaded chunks, reduce main thread blocking
-    chunk-unload:
-      enabled: true
-      async-cleanup: true  # 异步清理 / Async cleanup
-      cleanup-batch-size: 16  # 清理批量大小 / Cleanup batch size
-      cleanup-delay-ms: 100  # 清理延迟 / Cleanup delay (毫秒 / milliseconds)
-  
-  # 光照传播队列 / Light Propagation Queue
-  # Starlight核心：16层队列按光照等级0-15分层处理
-  # Starlight core: 16-layer queue by light level 0-15
-  propagation-queue:
-    use-layered-queue: true
-    max-propagation-distance: 15  # 最大传播距离 / Max propagation distance (方块 / blocks)
-  
-  # 天空光缓存 / Skylight Cache
-  # 缓存天空光计算结果，减少重复计算
-  # Cache skylight results to reduce recalculation
-  skylight-cache:
-    enabled: true
-    cache-duration-ms: 100  # 缓存有效期 / Cache validity (毫秒 / milliseconds)
-  
-  # 高级选项 / Advanced Options
-  advanced:
-    enable-deduplication: true  # 防止同位置重复排队 / Prevent duplicate queuing at same position
-    dynamic-batch-adjustment: true  # 根据TPS自动调整批量大小 / Auto-adjust batch size by TPS
-    log-advanced-stats: false  # 记录详细统计信息 / Log detailed stats (调试用 / for debugging)
-
-# ==========================================
 # 区块优化 / Chunk Optimization
 # ==========================================
 # 方块Tick异步化 / Block Tick Async
@@ -893,6 +815,28 @@ structure-location-async:
 # ==========================================
 # 高级特性与实验性优化 / Advanced Features & Experimental
 # ==========================================
+
+# 光照优化 / Lighting Optimizations
+lighting-optimizations:
+  # 光照调度优化 / Lighting Scheduling Optimization
+  # 参考ScalableLux，使用时间窗口控制更新频率
+  # Based on ScalableLux, use time window to control update frequency
+  enabled: true
+  
+  # 更新间隔 / Update Interval
+  # 光照更新调度的最小间隔（毫秒）
+  # Minimum interval between light update scheduling (milliseconds)
+  # 
+  # 说明：StarLight会批量处理光照更新，但tryScheduleUpdate()会频繁调用
+  # Info: StarLight batches light updates, but tryScheduleUpdate() is called frequently
+  # 通过限制调度频率，减少不必要的CPU消耗
+  # By limiting scheduling frequency, reduce unnecessary CPU usage
+  # 
+  # 推荐值 / Recommended: 10ms (ScalableLux默认 / ScalableLux default)
+  # - 10ms: 平衡性能和响应速度 / Balanced performance and responsiveness
+  # - 5ms: 更高响应速度，轻微增加CPU / Higher responsiveness, slightly more CPU
+  # - 20ms: 更低CPU消耗，可能延迟光照 / Lower CPU, may delay lighting
+  update-interval-ms: 10
 
 # 蜜蜂修复 / Bee Fix
 # 修复7个MC bug / Fixes 7 MC bugs
@@ -1105,7 +1049,6 @@ performance:
       entity: false  # 实体系统调试 / Entity system debug
       chunk: false  # 区块系统调试 / Chunk system debug
       hopper: false  # 漏斗系统调试 / Hopper system debug
-      fluid: false  # 流体系统调试 / Fluid system debug
       math: false  # 数学优化调试 / Math optimization debug
       shapes: false  # 形状优化调试 / Shape optimization debug
       datapack: false  # 数据包优化调试 / Datapack optimization debug

@@ -1,8 +1,7 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -10,7 +9,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("unused")
 @Mixin(ExperienceOrb.class)
@@ -55,13 +56,35 @@ public abstract class ExperienceOrbInactiveMixin {
     @Unique
     private void akiasync$performInactiveTick(ExperienceOrb self) {
         
+        ((net.minecraft.world.entity.Entity) self).baseTick();
+        
+        
         age++;
 
+        
         if (age >= LIFETIME) {
             ((net.minecraft.world.entity.Entity) self).discard();
             return;
         }
 
+        
+        net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
+        if (deltaMovement != null && deltaMovement.lengthSqr() > 0.0001) {
+            
+            self.move(net.minecraft.world.entity.MoverType.SELF, deltaMovement);
+            
+            
+            double friction = 0.98;
+            if (self.onGround()) {
+                net.minecraft.core.BlockPos belowPos = self.getBlockPosBelowThatAffectsMyMovement();
+                net.minecraft.world.level.block.state.BlockState belowState = self.level().getBlockState(belowPos);
+                friction = belowState.getBlock().getFriction() * 0.98;
+            }
+            
+            self.setDeltaMovement(deltaMovement.multiply(friction, 0.98, friction));
+        }
+
+        
         if (age % mergeInterval == 0) {
             akiasync$tryQuickMerge(self);
         }

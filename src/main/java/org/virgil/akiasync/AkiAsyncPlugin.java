@@ -120,7 +120,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         if (configManager.isStructureLocationAsyncEnabled()) {
             org.virgil.akiasync.mixin.async.StructureLocatorBridge.initialize();
-            org.virgil.akiasync.async.structure.OptimizedStructureLocator.initialize(this);
+            org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.initialize(this);
             getLogger().info("[AkiAsync] Async structure location enabled with " + configManager.getStructureLocationThreads() + " threads");
             if (configManager.isStructureAlgorithmOptimizationEnabled()) {
                 getLogger().info("[AkiAsync] Structure search algorithm optimization enabled (" + configManager.getStructureSearchPattern() + " pattern)");
@@ -150,7 +150,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         registerCommand("aki-version", new VersionCommand(this));
         
         if (configManager.isEntityPacketThrottleEnabled()) {
-            org.virgil.akiasync.network.EntityPacketThrottler.initialize(this);
+            org.virgil.akiasync.mixin.network.EntityPacketThrottler.initialize(this);
             getLogger().info("[AkiAsync] Entity packet throttle enabled");
         }
 
@@ -225,7 +225,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
         try {
-            org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
+            org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.shutdown();
             getLogger().info("[AkiAsync] OptimizedStructureLocator shutdown completed");
         } catch (Exception e) {
             getLogger().warning("[AkiAsync] Failed to shutdown OptimizedStructureLocator: " + e.getMessage());
@@ -237,7 +237,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             optimizer.shutdown();
         }
 
-        org.virgil.akiasync.network.EntityPacketThrottler.shutdown();
+        org.virgil.akiasync.mixin.network.EntityPacketThrottler.shutdown();
 
         if (chunkLoadScheduler != null) {
             chunkLoadScheduler.shutdown();

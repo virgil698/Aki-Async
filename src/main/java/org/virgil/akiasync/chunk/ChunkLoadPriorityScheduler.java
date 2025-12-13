@@ -1,14 +1,14 @@
 package org.virgil.akiasync.chunk;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
+import org.bukkit.Chunk;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.virgil.akiasync.config.ConfigManager;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class ChunkLoadPriorityScheduler {
     
@@ -31,7 +31,7 @@ public class ChunkLoadPriorityScheduler {
         int threads = Math.max(2, Runtime.getRuntime().availableProcessors() / 4);
         this.loadExecutor = Executors.newFixedThreadPool(threads, r -> {
             Thread t = new Thread(r, "AkiAsync-ChunkLoader");
-            t.setPriority(Thread.NORM_PRIORITY - 1); 
+            t.setPriority(Thread.NORM_PRIORITY - 1);
             t.setDaemon(true);
             return t;
         });
@@ -72,12 +72,13 @@ public class ChunkLoadPriorityScheduler {
         }
     }
     
-    public void submitChunkLoad(ServerPlayer player, ChunkPos chunkPos, int priority, double speed) {
-        if (!running || player == null || chunkPos == null) {
+    
+    public void submitChunkLoad(Player player, World world, int chunkX, int chunkZ, int priority, double speed) {
+        if (!running || player == null || world == null) {
             return;
         }
         
-        UUID playerId = player.getUUID();
+        UUID playerId = player.getUniqueId();
         PlayerLoadStats stats = playerStats.computeIfAbsent(playerId, k -> new PlayerLoadStats());
         
         if (stats.shouldThrottle()) {
@@ -85,7 +86,7 @@ public class ChunkLoadPriorityScheduler {
             return;
         }
         
-        ChunkLoadTask task = new ChunkLoadTask(player, chunkPos, priority, speed, System.currentTimeMillis());
+        ChunkLoadTask task = new ChunkLoadTask(player, world, chunkX, chunkZ, priority, speed, System.currentTimeMillis());
         
         if (taskQueue.offer(task)) {
             totalQueued.incrementAndGet();
@@ -108,7 +109,7 @@ public class ChunkLoadPriorityScheduler {
                     continue;
                 }
                 
-                if (!task.getPlayer().isRemoved()) {
+                if (task.getPlayer().isOnline()) {
                     loadChunk(task);
                     batchCount++;
                 }
@@ -129,17 +130,21 @@ public class ChunkLoadPriorityScheduler {
     
     private void loadChunk(ChunkLoadTask task) {
         try {
-            ServerPlayer player = task.getPlayer();
-            ChunkPos chunkPos = task.getChunkPos();
-            ServerLevel level = (ServerLevel) player.level();
+            Player player = task.getPlayer();
+            World world = task.getWorld();
+            int chunkX = task.getChunkX();
+            int chunkZ = task.getChunkZ();
             
-            level.getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, true);
             
-            totalLoaded.incrementAndGet();
-            PlayerLoadStats stats = playerStats.get(player.getUUID());
-            if (stats != null) {
-                stats.recordLoaded();
-            }
+            world.getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+                if (chunk != null) {
+                    totalLoaded.incrementAndGet();
+                    PlayerLoadStats stats = playerStats.get(player.getUniqueId());
+                    if (stats != null) {
+                        stats.recordLoaded();
+                    }
+                }
+            });
             
         } catch (Exception e) {
             
@@ -147,15 +152,14 @@ public class ChunkLoadPriorityScheduler {
     }
     
     private void cleanup() {
-        
         playerStats.entrySet().removeIf(entry -> {
             PlayerLoadStats stats = entry.getValue();
-            return System.currentTimeMillis() - stats.getLastActivity() > 60000; 
+            return System.currentTimeMillis() - stats.getLastActivity() > 60000;
         });
         
         taskQueue.removeIf(task -> 
             System.currentTimeMillis() - task.getQueueTime() > 10000 || 
-            task.getPlayer().isRemoved() 
+            !task.getPlayer().isOnline()
         );
     }
     
@@ -165,7 +169,7 @@ public class ChunkLoadPriorityScheduler {
     
     public int getPlayerQueueSize(UUID playerId) {
         return (int) taskQueue.stream()
-            .filter(task -> task.getPlayer().getUUID().equals(playerId))
+            .filter(task -> task.getPlayer().getUniqueId().equals(playerId))
             .count();
     }
     
@@ -181,22 +185,28 @@ public class ChunkLoadPriorityScheduler {
     }
     
     private static class ChunkLoadTask {
-        private final ServerPlayer player;
-        private final ChunkPos chunkPos;
+        private final Player player;
+        private final World world;
+        private final int chunkX;
+        private final int chunkZ;
         private final int priority;
         private final double speed;
         private final long queueTime;
         
-        public ChunkLoadTask(ServerPlayer player, ChunkPos chunkPos, int priority, double speed, long queueTime) {
+        public ChunkLoadTask(Player player, World world, int chunkX, int chunkZ, int priority, double speed, long queueTime) {
             this.player = player;
-            this.chunkPos = chunkPos;
+            this.world = world;
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
             this.priority = priority;
             this.speed = speed;
             this.queueTime = queueTime;
         }
         
-        public ServerPlayer getPlayer() { return player; }
-        public ChunkPos getChunkPos() { return chunkPos; }
+        public Player getPlayer() { return player; }
+        public World getWorld() { return world; }
+        public int getChunkX() { return chunkX; }
+        public int getChunkZ() { return chunkZ; }
         public int getPriority() { return priority; }
         public double getSpeed() { return speed; }
         public long getQueueTime() { return queueTime; }
@@ -220,7 +230,6 @@ public class ChunkLoadPriorityScheduler {
         }
         
         public boolean shouldThrottle() {
-            
             return System.currentTimeMillis() - lastLoadTime < 10;
         }
         

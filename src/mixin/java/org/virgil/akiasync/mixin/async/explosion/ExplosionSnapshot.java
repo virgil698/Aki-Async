@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.async.explosion;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,19 +7,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+
 public class ExplosionSnapshot {
     private final Map<BlockPos, BlockState> blocks;
     private final Set<BlockPos> protectedBlocks;
+    private final Set<BlockPos> blockLockerProtectedBlocks; 
     private final List<EntitySnapshot> entities;
     private final Vec3 center;
     private final float power;
     private final boolean fire;
     private final boolean inFluid;
     private final ServerLevel level;
+    private final boolean isInProtectedLand; 
     public ExplosionSnapshot(ServerLevel level, Vec3 center, float power, boolean fire) {
         this.level = level;
         this.center = center;
@@ -31,11 +36,22 @@ public class ExplosionSnapshot {
         
         this.blocks = new HashMap<>();
         this.protectedBlocks = new HashSet<>();
+        this.blockLockerProtectedBlocks = new HashSet<>();
 
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         boolean landProtectionEnabled = bridge != null && bridge.isTNTLandProtectionEnabled();
         boolean blockLockerEnabled = bridge != null && bridge.isBlockLockerProtectionEnabled();
+        
+        
+        boolean centerInProtectedLand = false;
+        if (landProtectionEnabled) {
+            centerInProtectedLand = !bridge.canTNTExplodeAt(level, centerPos);
+            if (centerInProtectedLand && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Explosion center at %s is in protected land, explosion will be cancelled", centerPos);
+            }
+        }
+        this.isInProtectedLand = centerInProtectedLand;
 
         int minX = (int) Math.floor(center.x - power - 1);
         int minY = (int) Math.floor(center.y - power - 1);
@@ -55,9 +71,10 @@ public class ExplosionSnapshot {
                     BlockState state = level.getBlockState(pos);
                     blocks.put(pos, state);
 
-                    boolean isProtected = false;
+                    boolean isLandProtected = false;
 
-                    if (landProtectionEnabled) {
+                    
+                    if (landProtectionEnabled && !centerInProtectedLand) {
                         
                         int chunkX = x >> 4;
                         int chunkZ = z >> 4;
@@ -73,16 +90,16 @@ public class ExplosionSnapshot {
                         if (chunkProtection != null) {
                             
                             if (!chunkProtection) {
-                                isProtected = true;
+                                isLandProtected = true;
                             }
                         } else {
                             
                             if (!bridge.canTNTExplodeAt(level, pos)) {
-                                isProtected = true;
+                                isLandProtected = true;
                             }
                         }
 
-                        if (isProtected) {
+                        if (isLandProtected) {
                             protectedBlocks.add(pos);
                             if (bridge.isTNTDebugEnabled()) {
                                 bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by land protection");
@@ -91,10 +108,24 @@ public class ExplosionSnapshot {
                         }
                     }
 
+                    
                     if (blockLockerEnabled && bridge.isBlockLockerProtected(level, pos, state)) {
+                        blockLockerProtectedBlocks.add(pos);
                         protectedBlocks.add(pos);
+                        
+                        
+                        for (int dx = -1; dx <= 1; dx++) {
+                            for (int dy = -1; dy <= 1; dy++) {
+                                for (int dz = -1; dz <= 1; dz++) {
+                                    if (dx == 0 && dy == 0 && dz == 0) continue;
+                                    BlockPos nearbyPos = pos.offset(dx, dy, dz);
+                                    protectedBlocks.add(nearbyPos);
+                                }
+                            }
+                        }
+                        
                         if (bridge.isTNTDebugEnabled()) {
-                            bridge.debugLog("[AkiAsync-TNT] Snapshot: Block at " + pos + " is protected by BlockLocker");
+                            bridge.debugLog("[AkiAsync-TNT] Snapshot: Container at " + pos + " is protected by BlockLocker (including 26 nearby blocks)");
                         }
                     }
                 }
@@ -195,6 +226,14 @@ public class ExplosionSnapshot {
 
     public boolean isProtected(BlockPos pos) {
         return protectedBlocks.contains(pos);
+    }
+    
+    public boolean isBlockLockerProtected(BlockPos pos) {
+        return blockLockerProtectedBlocks.contains(pos);
+    }
+    
+    public boolean isInProtectedLand() {
+        return isInProtectedLand;
     }
     
     private static boolean isEntityProtectedByBlocks(

@@ -1,8 +1,6 @@
 package org.virgil.akiasync.util;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.level.Level;
+import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.virgil.akiasync.compat.PluginDetectorRegistry;
 
@@ -10,6 +8,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
 
 public class VirtualEntityDetector {
 
@@ -35,10 +34,11 @@ public class VirtualEntityDetector {
         debugLog("PluginDetectorRegistry registered with VirtualEntityDetector");
     }
 
+    
     public static boolean isVirtualEntity(Entity entity) {
         if (entity == null) return false;
         
-        int entityId = entity.getId();
+        int entityId = entity.getEntityId();
         Boolean cached = virtualEntityCache.get(entityId);
         if (cached != null) return cached;
         
@@ -48,66 +48,47 @@ public class VirtualEntityDetector {
         }
         
         boolean isVirtual = isVirtualEntitySlow(entity);
-        virtualEntityCache.putIfAbsent(entityId, isVirtual);
+        cacheResult(entityId, isVirtual);
         return isVirtual;
     }
     
+    
     public static boolean isVirtualEntityQuick(Entity entity) {
         if (entity == null) return false;
-        Boolean cached = virtualEntityCache.get(entity.getId());
+        Boolean cached = virtualEntityCache.get(entity.getEntityId());
         return cached != null ? cached : isVirtualEntity(entity);
     }
     
+    
     private static boolean isDefinitelyRealEntity(Entity entity) {
         
-        if (entity instanceof ItemEntity) return true;
-        if (entity instanceof net.minecraft.world.entity.vehicle.AbstractMinecart) return true;
-        if (entity instanceof net.minecraft.world.entity.item.FallingBlockEntity) return true;
-        if (entity instanceof net.minecraft.world.entity.projectile.Projectile) return true;
-        if (entity instanceof net.minecraft.world.entity.item.PrimedTnt) return true;
+        if (entity instanceof org.bukkit.entity.Item) return true;
+        if (entity instanceof org.bukkit.entity.Minecart) return true;
+        if (entity instanceof org.bukkit.entity.FallingBlock) return true;
+        if (entity instanceof org.bukkit.entity.Projectile) return true;
+        if (entity instanceof org.bukkit.entity.TNTPrimed) return true;
         
-        if (entity.getDeltaMovement().lengthSqr() > 0.0001) return true;
+        
+        if (entity.getVelocity().lengthSquared() > 0.0001) return true;
         
         return false;
     }
     
+    
     private static boolean isVirtualEntitySlow(Entity entity) {
-
         try {
             
-            UUID uuid = entity.getUUID();
+            UUID uuid = entity.getUniqueId();
             if (uuid == null) {
                 debugLog("Virtual entity detected: null UUID");
                 return true;
             }
 
-            Level level = entity.level();
-            if (level != null) {
-                Entity foundEntity = level.getEntity(entity.getId());
-                if (foundEntity == null || foundEntity != entity) {
-                    debugLog("Virtual entity detected: not in world entity list, id=" + entity.getId());
-                    return true;
-                }
-            }
-
-            org.bukkit.entity.Entity bukkitEntity = null;
-            try {
-                bukkitEntity = entity.getBukkitEntity();
-            } catch (Throwable t) {
-                debugLog("Error getting Bukkit entity: " + t.getMessage());
-                
-                return true;
-            }
             
-            if (bukkitEntity == null) {
-                debugLog("Virtual entity detected: null Bukkit entity");
-                return true;
-            }
-
             if (detectorRegistry != null) {
                 try {
-                    if (detectorRegistry.isVirtualEntity(bukkitEntity)) {
-                        String source = detectorRegistry.getEntitySource(bukkitEntity);
+                    if (detectorRegistry.isVirtualEntity(entity)) {
+                        String source = detectorRegistry.getEntitySource(entity);
                         debugLog("Virtual entity detected via PluginDetectorRegistry: " + source + ", uuid=" + uuid);
                         return true;
                     }
@@ -116,13 +97,15 @@ public class VirtualEntityDetector {
                 }
             }
 
-            if (isZNPCEntityFast(bukkitEntity)) {
-                debugLog("Virtual entity detected: ZNPCS NPC (fallback), uuid=" + uuid);
+            
+            if (isZNPCEntity(entity)) {
+                debugLog("Virtual entity detected: ZNPCS NPC, uuid=" + uuid);
                 return true;
             }
 
-            if (hasVirtualEntityMarkersFast(bukkitEntity)) {
-                debugLog("Virtual entity detected: has virtual markers (fallback), uuid=" + uuid);
+            
+            if (hasVirtualEntityMarkers(entity)) {
+                debugLog("Virtual entity detected: has virtual markers, uuid=" + uuid);
                 return true;
             }
 
@@ -134,12 +117,11 @@ public class VirtualEntityDetector {
         return false;
     }
     
+    
     private static void cacheResult(int entityId, boolean isVirtual) {
-        
         if (++cacheAccessCount >= CLEANUP_INTERVAL) {
             cacheAccessCount = 0;
             if (virtualEntityCache.size() > MAX_CACHE_SIZE) {
-                
                 virtualEntityCache.clear();
                 debugLog("Virtual entity cache cleared, size was: " + MAX_CACHE_SIZE);
             }
@@ -148,34 +130,32 @@ public class VirtualEntityDetector {
         virtualEntityCache.put(entityId, isVirtual);
     }
     
+    
     public static void clearCache() {
         virtualEntityCache.clear();
         debugLog("Virtual entity cache manually cleared");
     }
+    
     
     public static String getCacheStats() {
         return String.format("VirtualEntityCache: size=%d/%d", 
             virtualEntityCache.size(), MAX_CACHE_SIZE);
     }
 
+    
     public static String getEntitySource(Entity entity) {
         if (entity == null) return null;
 
         try {
-            
             if (detectorRegistry != null) {
                 try {
-                    org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
-                    if (bukkitEntity != null) {
-                        String source = detectorRegistry.getEntitySource(bukkitEntity);
-                        if (source != null) {
-                            debugLog("Entity source determined: " + source + ", uuid=" + entity.getUUID());
-                            return source;
-                        }
+                    String source = detectorRegistry.getEntitySource(entity);
+                    if (source != null) {
+                        debugLog("Entity source determined: " + source + ", uuid=" + entity.getUniqueId());
+                        return source;
                     }
                 } catch (Throwable t) {
                     debugLog("Error getting entity source from registry: " + t.getMessage());
-                    
                 }
             }
 
@@ -194,40 +174,21 @@ public class VirtualEntityDetector {
         return null;
     }
 
+    
     private static boolean isZNPCEntity(Entity entity) {
         try {
-            if (!(entity instanceof net.minecraft.world.entity.player.Player)) {
+            if (!(entity instanceof org.bukkit.entity.Player)) {
                 return false;
             }
 
-            org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
-            if (bukkitEntity == null) {
-                return false;
-            }
-
-            return isZNPCEntityFast(bukkitEntity);
-
-        } catch (Throwable t) {
-            debugLog("Error checking ZNPC entity: " + t.getClass().getSimpleName());
-        }
-
-        return false;
-    }
-    
-    private static boolean isZNPCEntityFast(org.bukkit.entity.Entity bukkitEntity) {
-        try {
-            if (bukkitEntity == null) {
-                return false;
-            }
-
-            String name = bukkitEntity.getName();
+            String name = entity.getName();
             if (name != null && name.startsWith(ZNPC_PREFIX)) {
                 return true;
             }
 
-            if (bukkitEntity.customName() != null) {
+            if (entity.customName() != null) {
                 String customName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
-                    .serialize(bukkitEntity.customName());
+                    .serialize(entity.customName());
 
                 if (customName.startsWith(ZNPC_PREFIX)) {
                     return true;
@@ -241,45 +202,22 @@ public class VirtualEntityDetector {
         return false;
     }
 
+    
     private static boolean hasVirtualEntityMarkers(Entity entity) {
         try {
-            org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
-            if (bukkitEntity == null) {
-                return false;
-            }
+            PersistentDataContainer pdc = entity.getPersistentDataContainer();
 
-            return hasVirtualEntityMarkersFast(bukkitEntity);
+            for (org.bukkit.NamespacedKey key : pdc.getKeys()) {
+                String keyStr = key.toString().toLowerCase(Locale.ROOT);
+                if (keyStr.contains("virtual") || keyStr.contains("fake") ||
+                    keyStr.contains("packet") || keyStr.contains("npc") ||
+                    keyStr.contains("hologram") || keyStr.contains("marker")) {
+                    return true;
+                }
+            }
 
         } catch (Throwable t) {
             debugLog("Error checking virtual entity markers: " + t.getClass().getSimpleName());
-        }
-
-        return false;
-    }
-    
-    private static boolean hasVirtualEntityMarkersFast(org.bukkit.entity.Entity bukkitEntity) {
-        try {
-            if (bukkitEntity == null) {
-                return false;
-            }
-
-            try {
-                PersistentDataContainer pdc = bukkitEntity.getPersistentDataContainer();
-
-                for (org.bukkit.NamespacedKey key : pdc.getKeys()) {
-                    String keyStr = key.toString().toLowerCase(Locale.ROOT);
-                    if (keyStr.contains("virtual") || keyStr.contains("fake") ||
-                        keyStr.contains("packet") || keyStr.contains("npc") ||
-                        keyStr.contains("hologram") || keyStr.contains("marker")) {
-                        return true;
-                    }
-                }
-            } catch (Throwable t) {
-                debugLog("Error checking entity PDC: " + t.getClass().getSimpleName());
-            }
-
-        } catch (Throwable t) {
-            debugLog("Error checking PDC markers: " + t.getClass().getSimpleName());
         }
 
         return false;

@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.17-SNAPSHOT"
+version = "3.2.18-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -172,6 +172,7 @@ dependencies {
             compileOnly(libs.spongeMixin)
             compileOnly(libs.mixinCondition)
             compileOnly(libs.fastutil)
+            compileOnly("com.mojang:datafixerupper:6.0.8")
             accessWiden(compileOnly(files(getMappedServerJar()))!!)
         }
     }

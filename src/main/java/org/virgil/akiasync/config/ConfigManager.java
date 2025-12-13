@@ -1,15 +1,14 @@
 package org.virgil.akiasync.config;
 
+import java.util.Set;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
-import java.io.File;
-import java.util.Set;
-
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 17;
+    private static final int CURRENT_CONFIG_VERSION = 18;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -48,6 +47,24 @@ public class ConfigManager {
     private boolean wardenOptimizationEnabled;
     private boolean hoglinOptimizationEnabled;
     private boolean allayOptimizationEnabled;
+    private boolean endermanOptimizationEnabled;
+    private int endermanTickInterval;
+    private boolean endermanAllowPickupBlocks;
+    private boolean endermanAllowPlaceBlocks;
+    
+    
+    private boolean armadilloOptimizationEnabled;
+    private int armadilloTickInterval;
+    private boolean snifferOptimizationEnabled;
+    private int snifferTickInterval;
+    private boolean camelOptimizationEnabled;
+    private int camelTickInterval;
+    private boolean frogOptimizationEnabled;
+    private int frogTickInterval;
+    private boolean goatOptimizationEnabled;
+    private int goatTickInterval;
+    private boolean pandaOptimizationEnabled;
+    private int pandaTickInterval;
     private boolean piglinOptimizationEnabled;
     private boolean piglinUsePOISnapshot;
     private int piglinLookDistance;
@@ -148,6 +165,7 @@ public class ConfigManager {
     private boolean asyncLightingEnabled;
     private int lightingThreadPoolSize;
     private int lightBatchThreshold;
+    private int lightUpdateIntervalMs;
     private boolean useLayeredPropagationQueue;
     private int maxLightPropagationDistance;
     private boolean skylightCacheEnabled;
@@ -216,6 +234,7 @@ public class ConfigManager {
     
     private boolean tntOptimizationEnabled;
     private boolean tntDebugEnabled;
+    private boolean lightingDebugEnabled;
     private java.util.Set<String> tntExplosionEntities;
     private int tntThreads;
     private int tntMaxBlocks;
@@ -262,22 +281,9 @@ public class ConfigManager {
     private int chunkTickAsyncBatchSize;
     
     private boolean enableDebugLogging;
-    private boolean fluidOptimizationEnabled;
-    private boolean fluidDebugEnabled;
-    private boolean fluidTickThrottleEnabled;
-    private int staticFluidInterval;
-    private int flowingFluidInterval;
-    
-    private boolean fluidTickCompensationEnabled;
-    private boolean fluidCompensationEnabledForWater;
-    private boolean fluidCompensationEnabledForLava;
-    private double fluidCompensationTPSThreshold;
     
     private boolean smartLagCompensationEnabled;
     private double smartLagTPSThreshold;
-    private boolean smartLagFluidCompensationEnabled;
-    private boolean smartLagFluidWaterEnabled;
-    private boolean smartLagFluidLavaEnabled;
     private boolean smartLagItemPickupDelayEnabled;
     private boolean smartLagPotionEffectsEnabled;
     private boolean smartLagTimeAccelerationEnabled;
@@ -482,6 +488,25 @@ public class ConfigManager {
         wardenOptimizationEnabled = config.getBoolean("async-ai.warden-optimization.enabled", false);
         hoglinOptimizationEnabled = config.getBoolean("async-ai.hoglin-optimization.enabled", false);
         allayOptimizationEnabled = config.getBoolean("async-ai.allay-optimization.enabled", false);
+        endermanOptimizationEnabled = config.getBoolean("async-ai.enderman-optimization.enabled", true);
+        endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
+        endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
+        endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
+        
+        
+        armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
+        armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
+        snifferOptimizationEnabled = config.getBoolean("async-ai.sniffer-optimization.enabled", true);
+        snifferTickInterval = config.getInt("async-ai.sniffer-optimization.tick-interval", 3);
+        camelOptimizationEnabled = config.getBoolean("async-ai.camel-optimization.enabled", true);
+        camelTickInterval = config.getInt("async-ai.camel-optimization.tick-interval", 3);
+        frogOptimizationEnabled = config.getBoolean("async-ai.frog-optimization.enabled", true);
+        frogTickInterval = config.getInt("async-ai.frog-optimization.tick-interval", 3);
+        goatOptimizationEnabled = config.getBoolean("async-ai.goat-optimization.enabled", true);
+        goatTickInterval = config.getInt("async-ai.goat-optimization.tick-interval", 3);
+        pandaOptimizationEnabled = config.getBoolean("async-ai.panda-optimization.enabled", true);
+        pandaTickInterval = config.getInt("async-ai.panda-optimization.tick-interval", 3);
+        
         piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
@@ -544,9 +569,10 @@ public class ConfigManager {
         entityTickThreads = config.getInt("entity-tick-parallel.threads", 4);
         minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
         entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
-        asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
+        asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
+        lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
         useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
         maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
         skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
@@ -618,6 +644,7 @@ public class ConfigManager {
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
+        lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -648,22 +675,9 @@ public class ConfigManager {
         endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
         
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
-        fluidOptimizationEnabled = config.getBoolean("fluid-flow-optimization.enabled", true);
-        fluidDebugEnabled = config.getBoolean("performance.debug.fluid", false);
-        fluidTickThrottleEnabled = config.getBoolean("fluid-flow-optimization.tick-throttle.enabled", true);
-        staticFluidInterval = config.getInt("fluid-flow-optimization.tick-throttle.static-fluid-interval", 5);
-        
-        fluidTickCompensationEnabled = config.getBoolean("fluid-flow-optimization.tt20-compensation.enabled", false);
-        fluidCompensationEnabledForWater = config.getBoolean("fluid-flow-optimization.tt20-compensation.enable-for-water", false);
-        fluidCompensationEnabledForLava = config.getBoolean("fluid-flow-optimization.tt20-compensation.enable-for-lava", false);
-        fluidCompensationTPSThreshold = config.getDouble("fluid-flow-optimization.tt20-compensation.tps-threshold", 18.0);
-        flowingFluidInterval = config.getInt("fluid-flow-optimization.tick-throttle.flowing-fluid-interval", 2);
         
         smartLagCompensationEnabled = config.getBoolean("smart-lag-compensation.enabled", true);
         smartLagTPSThreshold = config.getDouble("smart-lag-compensation.tps-threshold", 18.0);
-        smartLagFluidCompensationEnabled = config.getBoolean("smart-lag-compensation.fluid.enabled", true);
-        smartLagFluidWaterEnabled = config.getBoolean("smart-lag-compensation.fluid.water", true);
-        smartLagFluidLavaEnabled = config.getBoolean("smart-lag-compensation.fluid.lava", true);
         smartLagItemPickupDelayEnabled = config.getBoolean("smart-lag-compensation.item-pickup-delay.enabled", true);
         smartLagPotionEffectsEnabled = config.getBoolean("smart-lag-compensation.potion-effects.enabled", false);
         smartLagTimeAccelerationEnabled = config.getBoolean("smart-lag-compensation.time-acceleration.enabled", false);
@@ -932,6 +946,25 @@ public class ConfigManager {
         wardenOptimizationEnabled = config.getBoolean("async-ai.warden-optimization.enabled", false);
         hoglinOptimizationEnabled = config.getBoolean("async-ai.hoglin-optimization.enabled", false);
         allayOptimizationEnabled = config.getBoolean("async-ai.allay-optimization.enabled", false);
+        endermanOptimizationEnabled = config.getBoolean("async-ai.enderman-optimization.enabled", true);
+        endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
+        endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
+        endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
+        
+        
+        armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
+        armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
+        snifferOptimizationEnabled = config.getBoolean("async-ai.sniffer-optimization.enabled", true);
+        snifferTickInterval = config.getInt("async-ai.sniffer-optimization.tick-interval", 3);
+        camelOptimizationEnabled = config.getBoolean("async-ai.camel-optimization.enabled", true);
+        camelTickInterval = config.getInt("async-ai.camel-optimization.tick-interval", 3);
+        frogOptimizationEnabled = config.getBoolean("async-ai.frog-optimization.enabled", true);
+        frogTickInterval = config.getInt("async-ai.frog-optimization.tick-interval", 3);
+        goatOptimizationEnabled = config.getBoolean("async-ai.goat-optimization.enabled", true);
+        goatTickInterval = config.getInt("async-ai.goat-optimization.tick-interval", 3);
+        pandaOptimizationEnabled = config.getBoolean("async-ai.panda-optimization.enabled", true);
+        pandaTickInterval = config.getInt("async-ai.panda-optimization.tick-interval", 3);
+        
         piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
@@ -1000,9 +1033,10 @@ public class ConfigManager {
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
 
-        asyncLightingEnabled = config.getBoolean("lighting-optimizations.async-lighting.enabled", true);
+        asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
+        lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
         useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
         maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
         skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
@@ -1025,6 +1059,7 @@ public class ConfigManager {
 
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
+        lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -1276,60 +1311,12 @@ public class ConfigManager {
         return enableDebugLogging;
     }
     
-    public boolean isFluidOptimizationEnabled() {
-        return fluidOptimizationEnabled;
-    }
-    
-    public boolean isFluidDebugEnabled() {
-        return fluidDebugEnabled;
-    }
-    
-    public boolean isFluidTickThrottleEnabled() {
-        return fluidTickThrottleEnabled;
-    }
-    
-    public int getStaticFluidInterval() {
-        return staticFluidInterval;
-    }
-    
-    public int getFlowingFluidInterval() {
-        return flowingFluidInterval;
-    }
-    
-    public boolean isFluidTickCompensationEnabled() {
-        return fluidTickCompensationEnabled;
-    }
-    
-    public boolean isFluidCompensationEnabledForWater() {
-        return fluidCompensationEnabledForWater;
-    }
-    
-    public boolean isFluidCompensationEnabledForLava() {
-        return fluidCompensationEnabledForLava;
-    }
-    
-    public double getFluidCompensationTPSThreshold() {
-        return fluidCompensationTPSThreshold;
-    }
-    
     public boolean isSmartLagCompensationEnabled() {
         return smartLagCompensationEnabled;
     }
     
     public double getSmartLagTPSThreshold() {
         return smartLagTPSThreshold;
-    }
-    
-    public boolean isSmartLagFluidCompensationEnabled() {
-        return smartLagFluidCompensationEnabled;
-    }
-    
-    public boolean isSmartLagFluidWaterEnabled() {
-        return smartLagFluidWaterEnabled;
-    }
-    
-    public boolean isSmartLagFluidLavaEnabled() {
-        return smartLagFluidLavaEnabled;
     }
     
     public boolean isSmartLagItemPickupDelayEnabled() {
@@ -1426,6 +1413,24 @@ public class ConfigManager {
     public boolean isWardenOptimizationEnabled() { return wardenOptimizationEnabled; }
     public boolean isHoglinOptimizationEnabled() { return hoglinOptimizationEnabled; }
     public boolean isAllayOptimizationEnabled() { return allayOptimizationEnabled; }
+    public boolean isEndermanOptimizationEnabled() { return endermanOptimizationEnabled; }
+    public int getEndermanTickInterval() { return endermanTickInterval; }
+    public boolean isEndermanAllowPickupBlocks() { return endermanAllowPickupBlocks; }
+    public boolean isEndermanAllowPlaceBlocks() { return endermanAllowPlaceBlocks; }
+    
+    
+    public boolean isArmadilloOptimizationEnabled() { return armadilloOptimizationEnabled; }
+    public int getArmadilloTickInterval() { return armadilloTickInterval; }
+    public boolean isSnifferOptimizationEnabled() { return snifferOptimizationEnabled; }
+    public int getSnifferTickInterval() { return snifferTickInterval; }
+    public boolean isCamelOptimizationEnabled() { return camelOptimizationEnabled; }
+    public int getCamelTickInterval() { return camelTickInterval; }
+    public boolean isFrogOptimizationEnabled() { return frogOptimizationEnabled; }
+    public int getFrogTickInterval() { return frogTickInterval; }
+    public boolean isGoatOptimizationEnabled() { return goatOptimizationEnabled; }
+    public int getGoatTickInterval() { return goatTickInterval; }
+    public boolean isPandaOptimizationEnabled() { return pandaOptimizationEnabled; }
+    public int getPandaTickInterval() { return pandaTickInterval; }
     public boolean isPiglinOptimizationEnabled() { return piglinOptimizationEnabled; }
     public boolean isPiglinUsePOISnapshot() { return piglinUsePOISnapshot; }
     public int getPiglinLookDistance() { return piglinLookDistance; }
@@ -1523,6 +1528,7 @@ public class ConfigManager {
     public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }
     public int getLightingThreadPoolSize() { return lightingThreadPoolSize; }
     public int getLightBatchThreshold() { return lightBatchThreshold; }
+    public int getLightUpdateIntervalMs() { return lightUpdateIntervalMs; }
     public boolean useLayeredPropagationQueue() { return useLayeredPropagationQueue; }
     public int getMaxLightPropagationDistance() { return maxLightPropagationDistance; }
     public boolean isSkylightCacheEnabled() { return skylightCacheEnabled; }
@@ -1530,6 +1536,7 @@ public class ConfigManager {
     public boolean isLightDeduplicationEnabled() { return lightDeduplicationEnabled; }
     public boolean isDynamicBatchAdjustmentEnabled() { return dynamicBatchAdjustmentEnabled; }
     public boolean isAdvancedLightingStatsEnabled() { return advancedLightingStatsEnabled; }
+    public boolean isLightingDebugEnabled() { return enableDebugLogging && lightingDebugEnabled; }
     public boolean isPlayerChunkLoadingOptimizationEnabled() { return playerChunkLoadingOptimizationEnabled; }
     public int getMaxConcurrentChunkLoadsPerPlayer() { return maxConcurrentChunkLoadsPerPlayer; }
     public boolean isEntityTrackingRangeOptimizationEnabled() { return entityTrackingRangeOptimizationEnabled; }

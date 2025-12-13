@@ -1,9 +1,7 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -11,7 +9,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("unused")
 @Mixin(ItemEntity.class)
@@ -77,20 +78,49 @@ public abstract class ItemEntityInactiveMixin {
     @Unique
     private void akiasync$performInactiveTick(ItemEntity self) {
         
+        ((net.minecraft.world.entity.Entity) self).baseTick();
+        
+        
         if (pickupDelay > 0 && pickupDelay != INFINITE_PICKUP_DELAY) {
             pickupDelay--;
         }
 
+        
         if (age != INFINITE_LIFETIME) {
             age++;
         }
 
+        
         if (age >= LIFETIME) {
-            
             ((net.minecraft.world.entity.Entity) self).discard();
             return;
         }
 
+        
+        net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
+        if (deltaMovement != null && deltaMovement.lengthSqr() > 0.0001) {
+            
+            self.move(net.minecraft.world.entity.MoverType.SELF, deltaMovement);
+            
+            
+            double friction = 0.98;
+            if (self.onGround()) {
+                
+                net.minecraft.core.BlockPos belowPos = self.getBlockPosBelowThatAffectsMyMovement();
+                net.minecraft.world.level.block.state.BlockState belowState = self.level().getBlockState(belowPos);
+                friction = belowState.getBlock().getFriction() * 0.98;
+            }
+            
+            
+            self.setDeltaMovement(deltaMovement.multiply(friction, 0.98, friction));
+            
+            
+            if (self.onGround() && deltaMovement.y < 0.0) {
+                self.setDeltaMovement(self.getDeltaMovement().multiply(1.0, -0.5, 1.0));
+            }
+        }
+
+        
         if (age % mergeInterval == 0 && akiasync$isMergable(self)) {
             akiasync$tryQuickMerge(self);
         }
@@ -100,6 +130,10 @@ public abstract class ItemEntityInactiveMixin {
     private void akiasync$tryQuickMerge(ItemEntity self) {
         try {
             
+            if (!akiasync$isTickThread(self)) {
+                return;
+            }
+            
             AABB box = self.getBoundingBox().inflate(1.0);
             List<ItemEntity> nearby = self.level().getEntitiesOfClass(
                 ItemEntity.class,
@@ -108,6 +142,10 @@ public abstract class ItemEntityInactiveMixin {
             );
 
             for (ItemEntity other : nearby) {
+                
+                if (!akiasync$isTickThread(other)) {
+                    continue;
+                }
                 this.tryToMerge(other);
                 if (self.isRemoved()) {
                     break;
@@ -115,6 +153,30 @@ public abstract class ItemEntityInactiveMixin {
             }
         } catch (Throwable t) {
             
+        }
+    }
+    
+    @Unique
+    private boolean akiasync$isTickThread(ItemEntity entity) {
+        try {
+            
+            
+            if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                
+                try {
+                    java.lang.reflect.Method method = entity.getClass().getMethod("isOwnedByCurrentRegion");
+                    return (Boolean) method.invoke(entity);
+                } catch (NoSuchMethodException e) {
+                    
+                    return true;
+                } catch (Exception e) {
+                    
+                    return false;
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            return true; 
         }
     }
 
@@ -170,16 +232,6 @@ public abstract class ItemEntityInactiveMixin {
 
             net.minecraft.world.level.block.state.BlockState state = item.level().getBlockState(pos);
             if (state == null) return false;
-
-            if (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
-                state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
-                return true;
-            }
-
-            if (state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
-                state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock) {
-                return true;
-            }
 
             return false;
         } catch (Throwable t) {

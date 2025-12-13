@@ -36,17 +36,7 @@ public class PackRepositoryMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null && bridge.isDataPackDebugEnabled()) {
-            try {
-                Class<?> optimizerClass = Class.forName("org.virgil.akiasync.async.datapack.DataPackLoadOptimizer");
-                Object optimizer = optimizerClass.getMethod("getInstance").invoke(null);
-                if (optimizer != null) {
-                    Object stats = optimizerClass.getMethod("getStatistics").invoke(optimizer);
-                    bridge.debugLog("[AkiAsync-DataPack] Pack repository reload completed. Stats: " +
-                        stats.toString());
-                }
-            } catch (Exception e) {
-                bridge.debugLog("[AkiAsync-DataPack] Pack repository reload completed.");
-            }
+            bridge.debugLog("[AkiAsync-DataPack] Pack repository reload completed.");
         }
     }
 
@@ -62,13 +52,8 @@ public class PackRepositoryMixin {
                 " packs (pendingReload: " + pendingReload + ")");
         }
 
-        try {
-            Class<?> optimizerClass = Class.forName("org.virgil.akiasync.async.datapack.DataPackLoadOptimizer");
-            Object optimizer = optimizerClass.getMethod("getInstance").invoke(null);
-            if (optimizer != null && bridge != null && bridge.isDataPackDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-DataPack] Preloading selected packs completed");
-            }
-        } catch (Exception e) {
+        if (bridge != null && bridge.isDataPackDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-DataPack] Preloading selected packs completed");
         }
     }
 

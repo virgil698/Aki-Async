@@ -142,26 +142,26 @@ public final class ExecutorHealthChecker {
             return true;
         }
 
-        ExceptionHandler.logDebug("Shutting down executor: " + executorName);
+        org.virgil.akiasync.mixin.util.ExceptionHandler.logDebug("Shutting down executor: " + executorName);
 
         executor.shutdown();
 
         try {
             if (!executor.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS)) {
-                ExceptionHandler.logDebug("Executor " + executorName + " did not terminate gracefully, forcing shutdown");
+                org.virgil.akiasync.mixin.util.ExceptionHandler.logDebug("Executor " + executorName + " did not terminate gracefully, forcing shutdown");
                 executor.shutdownNow();
 
                 if (!executor.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS)) {
-                    ExceptionHandler.logError("Executor " + executorName + " did not terminate after forced shutdown", null);
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.logError("Executor " + executorName + " did not terminate after forced shutdown", null);
                     return false;
                 }
             }
-            ExceptionHandler.logDebug("Executor " + executorName + " shutdown successfully");
+            org.virgil.akiasync.mixin.util.ExceptionHandler.logDebug("Executor " + executorName + " shutdown successfully");
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             executor.shutdownNow();
-            ExceptionHandler.logError("Interrupted while shutting down executor " + executorName, e);
+            org.virgil.akiasync.mixin.util.ExceptionHandler.logError("Interrupted while shutting down executor " + executorName, e);
             return false;
         }
     }

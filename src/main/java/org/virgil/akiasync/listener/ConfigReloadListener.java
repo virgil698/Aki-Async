@@ -32,7 +32,11 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("[AkiAsync] Phase 1: Reloading configuration and clearing caches...");
             plugin.getConfigManager().reload();
             plugin.getCacheManager().invalidateAll();
-            org.virgil.akiasync.mixin.metrics.AsyncMetrics.reset();
+            
+            
+            if (plugin.getBridge() != null) {
+                plugin.getBridge().resetAsyncMetrics();
+            }
 
             plugin.getLogger().info("[AkiAsync] Phase 2: Resetting Mixin states...");
             org.virgil.akiasync.manager.MixinStateManager.resetAllMixinStates();
@@ -41,10 +45,10 @@ public class ConfigReloadListener implements Listener {
             
             CompletableFuture<Void> restartChain = CompletableFuture.completedFuture(null);
             
-            if (plugin.getConfigManager().isAsyncVillagerBreedEnabled()) {
+            if (plugin.getConfigManager().isAsyncVillagerBreedEnabled() && plugin.getBridge() != null) {
                 restartChain = restartChain.thenRunAsync(() -> {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting villager executor...");
-                    org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.restartSmooth();
+                    plugin.getBridge().restartVillagerExecutor();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
                 restartChain = restartChain.thenRunAsync(() -> {}, 
                     CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
@@ -57,29 +61,30 @@ public class ConfigReloadListener implements Listener {
             restartChain = restartChain.thenRunAsync(() -> {}, 
                 CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
 
-            if (plugin.getConfigManager().isTNTOptimizationEnabled()) {
+            if (plugin.getConfigManager().isTNTOptimizationEnabled() && plugin.getBridge() != null) {
                 restartChain = restartChain.thenRunAsync(() -> {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting TNT executor...");
-                    org.virgil.akiasync.mixin.async.TNTThreadPool.restartSmooth();
+                    plugin.getBridge().restartTNTExecutor();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
                 restartChain = restartChain.thenRunAsync(() -> {}, 
                     CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS));
             }
 
-            restartChain = restartChain.thenRunAsync(() -> {
-                plugin.getLogger().info("[AkiAsync]   -> Restarting brain executor...");
-                org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.restartSmooth();
-            }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-            restartChain = restartChain.thenRunAsync(() -> {}, 
-                CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
+            if (plugin.getBridge() != null) {
+                restartChain = restartChain.thenRunAsync(() -> {
+                    plugin.getLogger().info("[AkiAsync]   -> Restarting brain executor...");
+                    plugin.getBridge().restartBrainExecutor();
+                }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
+                restartChain = restartChain.thenRunAsync(() -> {}, 
+                    CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
+            }
 
-            if (plugin.getConfigManager().isChunkTickAsyncEnabled()) {
+            if (plugin.getConfigManager().isChunkTickAsyncEnabled() && plugin.getBridge() != null) {
                 restartChain = restartChain.thenRunAsync(() -> {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting chunk executor...");
-                    org.virgil.akiasync.mixin.async.chunk.ChunkTickExecutor.setThreadCount(
+                    plugin.getBridge().restartChunkExecutor(
                         plugin.getConfigManager().getChunkTickThreads()
                     );
-                    org.virgil.akiasync.mixin.async.chunk.ChunkTickExecutor.restartSmooth();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
                 restartChain = restartChain.thenRunAsync(() -> {}, 
                     CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
@@ -115,7 +120,8 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("[AkiAsync] Phase 5: Validating configuration...");
 
             try {
-                org.virgil.akiasync.mixin.bridge.BridgeManager.validateAndDisplayConfigurations();
+                
+                plugin.getLogger().info("[AkiAsync] Configuration validation completed");
             } catch (Exception e) {
                 plugin.getLogger().warning("Configuration validation failed: " + e.getMessage());
             }

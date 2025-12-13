@@ -4,10 +4,11 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import net.minecraft.world.entity.LivingEntity;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
-@SuppressWarnings("unused")
+import net.minecraft.world.entity.LivingEntity;
+
+@SuppressWarnings({"unused", "ConstantConditions", "NullableProblems"})
 @Mixin(value = LivingEntity.class, priority = 900)
 public abstract class PushEntitiesOptimizationMixin {
     @Unique
@@ -30,33 +31,56 @@ public abstract class PushEntitiesOptimizationMixin {
     }
     
     @Inject(method = "pushEntities", at = @At("HEAD"), cancellable = true)
+    @SuppressWarnings({"ConstantConditions", "ConstantValue"}) 
     private void optimizePush(CallbackInfo ci) {
-        
         if (!enabled) {
             return;
         }
         
         LivingEntity self = (LivingEntity) (Object) this;
         
+        
         if (self instanceof net.minecraft.world.entity.monster.Shulker) {
             ci.cancel();
             return;
         }
         
-        if (interval > 1 && self.tickCount % interval != 0) {
-            ci.cancel();
+        
+        net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
+        if (deltaMovement == null) {
+            
+            
+            return;
+        }
+        double movementSqr = deltaMovement.lengthSqr();
+        
+        
+        if (movementSqr > 0.0001) { 
+            
             return;
         }
         
-        if (self.getDeltaMovement().lengthSqr() < 1.0E-7) {
-            
-            if (self.onGround() && !self.isInWater() && !self.isInLava()) {
-                
-                if (self.tickCount % 10 != 0) {
-                    ci.cancel();
-                }
+        
+        if (movementSqr > 1.0E-10) { 
+            if (self.tickCount % 2 != 0) {
+                ci.cancel();
             }
+            return;
+        }
+        
+        
+        if (self.onGround() && !self.isInWater() && !self.isInLava()) {
             
+            
+            if (self.tickCount % 10 != 0) {
+                ci.cancel();
+            }
+        } else {
+            
+            
+            if (self.tickCount % 2 != 0) {
+                ci.cancel();
+            }
         }
     }
     

@@ -12,7 +12,6 @@ import org.virgil.akiasync.mixin.util.ObjectPool;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -69,6 +68,17 @@ public class ExplosionCalculator {
         
         if (bridge != null && bridge.isTNTDebugEnabled()) {
             bridge.debugLog("[AkiAsync-TNT] ExplosionCalculator.calculate() started");
+        }
+        
+        
+        if (snapshot.isInProtectedLand()) {
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Explosion cancelled: center is in protected land");
+            }
+            
+            ExplosionResult result = RESULT_POOL.acquire();
+            result.set(new ArrayList<>(), new HashMap<>(), false);
+            return result;
         }
         
         calculateAffectedBlocks();
@@ -164,7 +174,10 @@ public class ExplosionCalculator {
                                     org.virgil.akiasync.mixin.bridge.Bridge bridge =
                                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                                     if (bridge != null && bridge.isTNTDebugEnabled()) {
-                                        bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected (from snapshot), skipping");
+                                        String protectionType = snapshot.isBlockLockerProtected(pos) ? 
+                                            "BlockLocker protected container or nearby block" : "land protection";
+                                        bridge.debugLog("[AkiAsync-TNT] Block at " + pos + " is protected (" + 
+                                            protectionType + "), skipping");
                                     }
                                     continue;
                                 }

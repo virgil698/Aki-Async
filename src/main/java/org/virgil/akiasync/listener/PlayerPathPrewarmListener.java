@@ -1,14 +1,13 @@
 package org.virgil.akiasync.listener;
 
-import net.minecraft.server.level.ServerPlayer;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.virgil.akiasync.AkiAsyncPlugin;
-import org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem;
+
 
 public class PlayerPathPrewarmListener implements Listener {
     
@@ -25,19 +24,20 @@ public class PlayerPathPrewarmListener implements Listener {
         }
         
         try {
-            
-            ServerPlayer serverPlayer = ((CraftPlayer) event.getPlayer()).getHandle();
+            Player player = event.getPlayer();
             
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 try {
                     
-                    EnhancedPathfindingSystem.prewarmPlayerPathsMainThread(serverPlayer);
+                    if (plugin.getBridge() != null) {
+                        plugin.getBridge().prewarmPlayerPaths(player.getUniqueId());
+                    }
                     plugin.getLogger().info("[PathPrewarm] Started prewarming paths for player: " + 
-                        event.getPlayer().getName());
+                        player.getName());
                 } catch (Exception e) {
                     plugin.getLogger().warning("[PathPrewarm] Failed to prewarm paths: " + e.getMessage());
                 }
-            }, 40L); 
+            }, 40L);
             
         } catch (Exception e) {
             plugin.getLogger().warning("[PathPrewarm] Error on player join: " + e.getMessage());
@@ -51,7 +51,10 @@ public class PlayerPathPrewarmListener implements Listener {
         }
         
         try {
-            EnhancedPathfindingSystem.cleanupPlayer(event.getPlayer().getUniqueId());
+            
+            if (plugin.getBridge() != null) {
+                plugin.getBridge().cleanupPlayerPaths(event.getPlayer().getUniqueId());
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("[PathPrewarm] Error on player quit: " + e.getMessage());
         }

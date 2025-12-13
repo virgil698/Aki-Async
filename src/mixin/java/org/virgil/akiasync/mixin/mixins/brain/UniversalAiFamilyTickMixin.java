@@ -12,7 +12,6 @@ import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiCpuCalculator;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiDiff;
 import org.virgil.akiasync.mixin.brain.universal.UniversalAiSnapshot;
-import org.virgil.akiasync.mixin.optimization.cache.BlockPosIterationCache;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
@@ -50,7 +49,6 @@ public abstract class UniversalAiFamilyTickMixin {
         
         Mob mob = (Mob) (Object) this;
         
-        
         if (mob instanceof net.minecraft.world.entity.npc.Villager ||                    
             mob instanceof net.minecraft.world.entity.npc.WanderingTrader ||             
             mob instanceof net.minecraft.world.entity.monster.warden.Warden ||           
@@ -64,13 +62,23 @@ public abstract class UniversalAiFamilyTickMixin {
             mob instanceof net.minecraft.world.entity.monster.Evoker ||                  
             mob instanceof net.minecraft.world.entity.monster.Blaze ||                   
             mob instanceof net.minecraft.world.entity.monster.Guardian ||                
-            mob instanceof net.minecraft.world.entity.monster.Witch) {                   
+            mob instanceof net.minecraft.world.entity.monster.Witch ||
+            mob instanceof net.minecraft.world.entity.monster.EnderMan ||
+            mob instanceof net.minecraft.world.entity.animal.armadillo.Armadillo ||
+            mob instanceof net.minecraft.world.entity.animal.sniffer.Sniffer ||
+            mob instanceof net.minecraft.world.entity.animal.camel.Camel ||
+            mob instanceof net.minecraft.world.entity.animal.frog.Frog ||
+            mob instanceof net.minecraft.world.entity.animal.goat.Goat ||
+            mob instanceof net.minecraft.world.entity.animal.Panda) {                   
             return; 
         }
         
-        String entityType = mob.getType().toString();
-        if (enabledEntities != null && !enabledEntities.contains(entityType)) {
-            return;
+        
+        if (enabledEntities != null) {
+            net.minecraft.world.entity.EntityType<?> type = mob.getType();
+            if (type != null && !enabledEntities.contains(type.toString())) {
+                return;
+            }
         }
         
         ServerLevel level = (ServerLevel) mob.level();
@@ -164,9 +172,6 @@ public abstract class UniversalAiFamilyTickMixin {
         if (mob.onGround() && dist2 < 1.0E-4) {
             aki$stillTicks++;
             if (aki$stillTicks >= 10) {
-                if (aki$shouldProtectAI(mob)) {
-                    return false;
-                }
                 return true;
             }
         } else {

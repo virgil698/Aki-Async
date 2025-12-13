@@ -60,6 +60,29 @@ public interface Bridge {
     boolean isWardenOptimizationEnabled();
     boolean isHoglinOptimizationEnabled();
     boolean isAllayOptimizationEnabled();
+    boolean isEndermanOptimizationEnabled();
+    int getEndermanTickInterval();
+    boolean isEndermanAllowPickupBlocks();
+    boolean isEndermanAllowPlaceBlocks();
+    
+    
+    boolean isArmadilloOptimizationEnabled();
+    int getArmadilloTickInterval();
+    
+    boolean isSnifferOptimizationEnabled();
+    int getSnifferTickInterval();
+    
+    boolean isCamelOptimizationEnabled();
+    int getCamelTickInterval();
+    
+    boolean isFrogOptimizationEnabled();
+    int getFrogTickInterval();
+    
+    boolean isGoatOptimizationEnabled();
+    int getGoatTickInterval();
+    
+    boolean isPandaOptimizationEnabled();
+    int getPandaTickInterval();
 
     boolean isPiglinOptimizationEnabled();
 
@@ -166,6 +189,8 @@ public interface Bridge {
     ExecutorService getLightingExecutor();
 
     int getLightBatchThreshold();
+    
+    int getLightUpdateIntervalMs();
 
     boolean useLayeredPropagationQueue();
 
@@ -180,6 +205,8 @@ public interface Bridge {
     boolean isDynamicBatchAdjustmentEnabled();
 
     boolean isAdvancedLightingStatsEnabled();
+    
+    boolean isLightingDebugEnabled();
 
     boolean isPlayerChunkLoadingOptimizationEnabled();
 
@@ -339,23 +366,8 @@ public interface Bridge {
 
     boolean isDebugLoggingEnabled();
     
-    boolean isFluidOptimizationEnabled();
-    boolean isFluidDebugEnabled();
-    boolean isFluidTickThrottleEnabled();
-    int getStaticFluidInterval();
-    int getFlowingFluidInterval();
-    
-    boolean isFluidTickCompensationEnabled();
-    boolean isFluidCompensationEnabledForWater();
-    boolean isFluidCompensationEnabledForLava();
-    double getFluidCompensationTPSThreshold();
-    
     boolean isSmartLagCompensationEnabled();
     double getSmartLagTPSThreshold();
-    
-    boolean isSmartLagFluidCompensationEnabled();
-    boolean isSmartLagFluidWaterEnabled();
-    boolean isSmartLagFluidLavaEnabled();
     
     boolean isSmartLagItemPickupDelayEnabled();
     
@@ -580,4 +592,19 @@ public interface Bridge {
     double getMaxOffsetSpeed();
     double getMaxOffsetRatio();
     void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
+    
+    void clearWorldCaches(String worldName);
+    void prewarmPlayerPaths(java.util.UUID playerId);
+    void cleanupPlayerPaths(java.util.UUID playerId);
+    
+    
+    void restartVillagerExecutor();
+    void restartTNTExecutor();
+    void restartBrainExecutor();
+    void restartChunkExecutor(int threadCount);
+    
+    
+    void clearVillagerBreedCache();
+    void resetBrainExecutorStatistics();
+    void resetAsyncMetrics();
 }

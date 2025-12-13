@@ -1,8 +1,7 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -10,7 +9,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("unused")
 @Mixin(ItemEntity.class)
@@ -56,28 +57,26 @@ public abstract class ItemEntityAgeMixin {
 
         akiasync$updateStaticState(self);
 
+        
         if (aki$isStatic && !akiasync$hasNearbyPlayer(self) && self.onGround()) {
-            
             net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
             double velocitySq = deltaMovement.lengthSqr();
             
             if (velocitySq < 0.0001) {
                 aki$ageTickCounter++;
 
-                if (aki$ageTickCounter % ageIncrementInterval != 0) {
-                    age++;
-                    ci.cancel();
-                    return;
+                
+                if (aki$ageTickCounter % ageIncrementInterval == 0) {
+                    org.virgil.akiasync.mixin.util.BridgeConfigCache.debugLog(
+                        "[AkiAsync-ItemAge] Static item detected: age=%d, pos=%s, staticTicks=%d",
+                        age, self.blockPosition(), aki$staticTicks
+                    );
+                    aki$ageTickCounter = 0;
                 }
-
-                aki$ageTickCounter = 0;
-
-                org.virgil.akiasync.mixin.util.BridgeConfigCache.debugLog(
-                    "[AkiAsync-ItemAge] Static item throttled: age=%d, pos=%s",
-                    age, self.blockPosition()
-                );
             }
         }
+        
+        
     }
 
     @Unique

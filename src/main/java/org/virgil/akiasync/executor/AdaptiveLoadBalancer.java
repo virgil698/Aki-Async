@@ -44,14 +44,11 @@ public class AdaptiveLoadBalancer {
         adjustTaskSubmitRate(mspt);
         
         if (oldLoad != currentLoad) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.debugLog(String.format(
-                    "[AkiAsync-LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
-                    oldLoad, currentLoad, mspt, taskSubmitRate * 100
-                ));
-            }
+            
+            System.out.println(String.format(
+                "[AkiAsync-LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
+                oldLoad, currentLoad, mspt, taskSubmitRate * 100
+            ));
         }
     }
     

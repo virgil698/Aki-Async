@@ -1,4 +1,5 @@
 package org.virgil.akiasync.command;
+
 import org.bukkit.Bukkit;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -6,12 +7,16 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+
 @NullMarked
 public class VersionCommand implements BasicCommand {
+    
     private final AkiAsyncPlugin plugin;
+
     public VersionCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         String prefix = "[AkiAsync] ";

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.command;
+
 import org.bukkit.Bukkit;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -9,12 +10,16 @@ import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 
 import java.util.Locale;
+
 @NullMarked
 public class DebugCommand implements BasicCommand {
+
     private final AkiAsyncPlugin plugin;
+
     public DebugCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
+    
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (args.length != 1) {

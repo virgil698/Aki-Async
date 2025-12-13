@@ -1,9 +1,9 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,9 +13,10 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import org.virgil.akiasync.mixin.util.EntitySliceGrid;
 import org.virgil.akiasync.mixin.util.EntitySliceGridManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("unused")
 @Mixin(value = Level.class, priority = 800)
@@ -79,19 +80,36 @@ public abstract class SpatialCollisionOptimizationMixin {
             }
             
             if (candidates.isEmpty()) {
-                
                 double rangeX = box.maxX - box.minX;
                 double rangeY = box.maxY - box.minY;
                 double rangeZ = box.maxZ - box.minZ;
                 
-                if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
+                
+                if (except != null && 
+                    (except.isOnPortalCooldown() || 
+                     except instanceof net.minecraft.world.entity.player.Player)) {
                     
-                    if (bridge != null && bridge.isTNTDebugEnabled()) {
-                        bridge.debugLog("[AkiAsync-Collision] Query range too large, falling back to vanilla");
+                    
+                    if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                        bridge.debugLog("[AkiAsync-Collision] Portal/Player query, using vanilla for safety");
                     }
                     return;
                 }
                 
+                
+                if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
+                    if (bridge != null && bridge.isTNTDebugEnabled()) {
+                        bridge.debugLog("[AkiAsync-Collision] Query range too large (%.1fx%.1fx%.1f), falling back to vanilla", 
+                            rangeX, rangeY, rangeZ);
+                    }
+                    return;
+                }
+                
+                
+                if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                    bridge.debugLog("[AkiAsync-Collision] No candidates in slice grid, returning empty list (%.1fx%.1fx%.1f)", 
+                        rangeX, rangeY, rangeZ);
+                }
                 cir.setReturnValue(new ArrayList<>());
                 return;
             }
@@ -135,7 +153,7 @@ public abstract class SpatialCollisionOptimizationMixin {
             
             cir.setReturnValue(result);
             
-        } catch (Exception e) {
+        } catch (NullPointerException | IllegalStateException | ClassCastException e) {
             
             if (bridge != null) {
                 bridge.errorLog("[AkiAsync-Collision] Slice grid query failed: " + e.getMessage());

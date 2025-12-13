@@ -1,4 +1,5 @@
 package org.virgil.akiasync.executor;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -9,10 +10,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.virgil.akiasync.AkiAsyncPlugin;
+
 public class AIExecutorManager {
+
     private final AkiAsyncPlugin plugin;
     private final ThreadPoolExecutor aiExecutor;
+
     public AIExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         int aiThreads = 4;
@@ -26,6 +31,7 @@ public class AIExecutorManager {
                 return thread;
             }
         };
+        
         this.aiExecutor = new ThreadPoolExecutor(
             aiThreads,
             aiThreads,

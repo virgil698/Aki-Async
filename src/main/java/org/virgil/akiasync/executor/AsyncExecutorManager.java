@@ -1,4 +1,5 @@
 package org.virgil.akiasync.executor;
+
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -13,7 +14,9 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.compat.FoliaExecutorAdapter;
 import org.virgil.akiasync.util.resource.ExecutorLifecycleManager;
 import org.virgil.akiasync.util.resource.ResourceTracker;
+
 public class AsyncExecutorManager {
+    
     private final AkiAsyncPlugin plugin;
     private final ForkJoinPool executorService;  
     private final ForkJoinPool lightingExecutor;  
@@ -23,6 +26,7 @@ public class AsyncExecutorManager {
     private final ExecutorService brainExecutor;
     private final ExecutorService collisionExecutor;
     private final ScheduledExecutorService metricsExecutor;
+
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();

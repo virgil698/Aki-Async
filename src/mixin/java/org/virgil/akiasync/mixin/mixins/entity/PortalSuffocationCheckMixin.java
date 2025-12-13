@@ -1,12 +1,13 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 
 @Mixin(Entity.class)
 public class PortalSuffocationCheckMixin {
@@ -22,12 +23,28 @@ public class PortalSuffocationCheckMixin {
         at = @At("HEAD"),
         cancellable = true
     )
+    @SuppressWarnings("unused") 
     private void onFudgePositionAfterSizeChange(EntityDimensions dimensions, CallbackInfoReturnable<Boolean> cir) {
         if (!init) {
             aki$init();
         }
         
         if (disabled) {
+            Entity entity = (Entity) (Object) this;
+            if (entity == null) {
+                return;
+            }
+            
+            
+            if (entity instanceof net.minecraft.world.entity.player.Player) {
+                return;  
+            }
+            
+            
+            if (entity.isOnPortalCooldown()) {
+                return;  
+            }
+            
             cir.setReturnValue(true);
         }
     }

@@ -5,12 +5,13 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
-import org.virgil.akiasync.mixin.util.BridgeConfigCache;
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
 @SuppressWarnings("unused")
 @Mixin(value = Villager.class, priority = 1200)
 public class VillagerBreedAsyncMixin {
@@ -54,7 +55,9 @@ public class VillagerBreedAsyncMixin {
             return;
         }
 
+        
         if (aki$hasImportantState(villager)) {
+            ci.cancel(); 
             return;
         }
 
@@ -226,7 +229,26 @@ public class VillagerBreedAsyncMixin {
 
         java.util.Optional<?> interactionTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.INTERACTION_TARGET);
         if (interactionTarget != null && interactionTarget.isPresent()) {
+            BridgeConfigCache.debugLog("[AkiAsync-Interaction] Villager has interaction target (gossip/trade), preserving AI");
             return true;
+        }
+        
+        
+        java.util.Optional<?> nearbyEntities = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+        if (nearbyEntities != null && nearbyEntities.isPresent()) {
+            try {
+                @SuppressWarnings("unchecked")
+                net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities entities = 
+                    (net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities) nearbyEntities.get();
+                long nearbyVillagerCount = entities.find(v -> v instanceof Villager && v != villager).count();
+                if (nearbyVillagerCount > 0) {
+                    BridgeConfigCache.debugLog("[AkiAsync-Golem] Villager has " + nearbyVillagerCount + " nearby villagers, preserving AI for potential gossip/golem spawn");
+                    return true;
+                }
+            } catch (Exception e) {
+                
+                return true;
+            }
         }
 
         java.util.Optional<?> breedTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.BREED_TARGET);
@@ -256,9 +278,14 @@ public class VillagerBreedAsyncMixin {
         java.util.Set<net.minecraft.world.entity.schedule.Activity> activeActivities = brain.getActiveActivities();
         if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.WORK) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.MEET) ||
-            activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.REST) ||
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
+            return true;
+        }
+        
+        
+        if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
+            BridgeConfigCache.debugLog("[AkiAsync-Panic] Villager in PANIC, preserving AI for escape behavior");
             return true;
         }
 
@@ -322,9 +349,6 @@ public class VillagerBreedAsyncMixin {
         }
 
         java.util.Optional<?> walkTarget = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
-        if (walkTarget != null && walkTarget.isPresent() && villager.canBreed()) {
-            return true;
-        }
 
         return false;
         } catch (Exception e) {

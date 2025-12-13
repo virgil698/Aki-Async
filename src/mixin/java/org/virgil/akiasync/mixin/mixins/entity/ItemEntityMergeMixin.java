@@ -1,7 +1,8 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.phys.AABB;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -9,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("unused")
 @Mixin(ItemEntity.class)
@@ -78,6 +79,10 @@ public abstract class ItemEntityMergeMixin {
 
     @Unique
     private void akiasync$smartMerge(ItemEntity self) {
+        
+        if (!akiasync$isTickThread(self)) {
+            return;
+        }
 
         int currentTick = self.tickCount;
         if (aki$cachedNearbyItems == null || currentTick - aki$lastCacheTick >= 3) {
@@ -94,14 +99,43 @@ public abstract class ItemEntityMergeMixin {
         int mergedCount = 0;
         for (ItemEntity other : aki$cachedNearbyItems) {
             if (other != self && !other.isRemoved()) {
+                
+                if (!akiasync$isTickThread(other)) {
+                    continue;
+                }
                 try {
                     this.tryToMerge(other);
                     mergedCount++;
                     
                     if (!highDensity && mergedCount >= 5) break;
                 } catch (Throwable t) {
+                    
                 }
             }
+        }
+    }
+    
+    @Unique
+    private boolean akiasync$isTickThread(ItemEntity entity) {
+        try {
+            
+            
+            if (entity.level() instanceof net.minecraft.server.level.ServerLevel) {
+                
+                try {
+                    java.lang.reflect.Method method = entity.getClass().getMethod("isOwnedByCurrentRegion");
+                    return (Boolean) method.invoke(entity);
+                } catch (NoSuchMethodException e) {
+                    
+                    return true;
+                } catch (Exception e) {
+                    
+                    return false;
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            return true; 
         }
     }
 

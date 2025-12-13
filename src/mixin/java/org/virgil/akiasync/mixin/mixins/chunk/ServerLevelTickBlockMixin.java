@@ -4,23 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BooleanSupplier;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.BlockTickCategory;
+import org.virgil.akiasync.mixin.util.BlockTickTask;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import org.virgil.akiasync.mixin.util.BlockTickTask;
-import org.virgil.akiasync.mixin.util.BlockTickCategory;
-import org.virgil.akiasync.mixin.util.BridgeConfigCache;
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 @SuppressWarnings("unused")
 @Mixin(value = ServerLevel.class, priority = 1200)
@@ -183,7 +182,20 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique
     private static BlockTickCategory aki$classifyBlock(Block block) {
         return BLOCK_CATEGORY_CACHE.computeIfAbsent(block, b -> {
+            
+            
+            if (b instanceof net.minecraft.world.level.block.LiquidBlock) {
+                return BlockTickCategory.ENTITY_INTERACTION;
+            }
+            
             String blockId = aki$getBlockId(b);
+            
+            
+            if (blockId.contains("water") || 
+                blockId.contains("lava") || 
+                blockId.contains("flowing")) {
+                return BlockTickCategory.ENTITY_INTERACTION;
+            }
             
             if (aki$isRedstoneRelatedBlock(b)) {
                 return BlockTickCategory.REDSTONE;
@@ -435,51 +447,6 @@ public abstract class ServerLevelTickBlockMixin {
     @Unique
     private static boolean aki$requiresMainThreadExecution(Block block) {
         String blockId = aki$getBlockId(block);
-
-        if (blockId.contains("sand") || 
-            blockId.contains("gravel") || 
-            blockId.contains("concrete_powder") ||
-            blockId.contains("anvil") ||
-            blockId.contains("dragon_egg")) {
-            return true;
-        }
-
-        if (blockId.contains("sapling") ||
-            blockId.contains("bamboo") ||
-            blockId.contains("sugar_cane") ||
-            blockId.contains("cactus") ||
-            blockId.contains("chorus") ||
-            blockId.contains("kelp") ||
-            blockId.contains("vine") ||
-            blockId.contains("glow_lichen")) {
-            return true;
-        }
-
-        if (blockId.contains("water") ||
-            blockId.contains("lava") ||
-            blockId.contains("bubble_column")) {
-            return true;
-        }
-
-        if (blockId.contains("fire") ||
-            blockId.contains("soul_fire") ||
-            blockId.contains("campfire") ||
-            blockId.contains("magma")) {
-            return true;
-        }
-
-        if (blockId.contains("spawner") ||
-            blockId.contains("end_portal") ||
-            blockId.contains("end_gateway") ||
-            blockId.contains("sculk") ||
-            blockId.contains("respawn_anchor")) {
-            return true;
-        }
-
-        if (blockId.contains("tnt")) {
-            return true;
-        }
-
         return false;
     }
     

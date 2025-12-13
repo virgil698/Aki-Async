@@ -30,21 +30,12 @@ public class ZipFileSystemProviderMixin {
         try {
             String path = uri.getPath();
             if (path != null && (path.contains("datapacks") || path.contains("resourcepacks") || path.endsWith(".zip"))) {
+                org.virgil.akiasync.mixin.bridge.Bridge bridge =
+                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
 
-                try {
-                    Class<?> optimizerClass = Class.forName("org.virgil.akiasync.async.datapack.DataPackLoadOptimizer");
-                    Object optimizer = optimizerClass.getMethod("getInstance").invoke(null);
-                    if (optimizer != null) {
-                        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-
-                        if (bridge != null && bridge.isDataPackDebugEnabled()) {
-                            bridge.debugLog("[AkiAsync-DataPack] Intercepting zip file system creation for: " +
-                                java.nio.file.Paths.get(uri).getFileName());
-                        }
-
-                    }
-                } catch (Exception e) {
+                if (bridge != null && bridge.isDataPackOptimizationEnabled() && bridge.isDataPackDebugEnabled()) {
+                    bridge.debugLog("[AkiAsync-DataPack] Intercepting zip file system creation for: " +
+                        java.nio.file.Paths.get(uri).getFileName());
                 }
             }
         } catch (Exception e) {

@@ -8,16 +8,17 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 public final class AsyncPathProcessor {
 
   private static volatile ThreadPoolExecutor executor;
-  private static volatile boolean initialized = false;
+  private static final AtomicBoolean initialized = new AtomicBoolean(false);
   private static volatile boolean enabled = false;
-  private static final Object LOCK = new Object();
   
   private static final ThreadLocal<List<AsyncPath>> pendingPaths = ThreadLocal.withInitial(ArrayList::new);
   private static final AtomicInteger batchCount = new AtomicInteger(0);
@@ -30,55 +31,50 @@ public final class AsyncPathProcessor {
   }
 
   public static void initialize() {
-    synchronized (LOCK) {
-      if (initialized) {
-        return;
-      }
-
-      Bridge bridge = BridgeManager.getBridge();
-      if (bridge == null) {
-        initialized = true;
-        return;
-      }
-
-      enabled = bridge.isAsyncPathfindingEnabled();
-      if (!enabled) {
-        bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding is disabled");
-        initialized = true;
-        return;
-      }
-
-      int maxThreads = bridge.getAsyncPathfindingMaxThreads();
-      int keepAliveSeconds = bridge.getAsyncPathfindingKeepAliveSeconds();
-      int maxQueueSize = bridge.getAsyncPathfindingMaxQueueSize();
-
-      ThreadFactory threadFactory = new PathfindingThreadFactory();
-      BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maxQueueSize);
-
-      executor = new ThreadPoolExecutor(
-          maxThreads,
-          maxThreads,
-          keepAliveSeconds,
-          TimeUnit.SECONDS,
-          workQueue,
-          threadFactory,
-          new ThreadPoolExecutor.CallerRunsPolicy()
-      );
-
-      int prestartedThreads = executor.prestartAllCoreThreads();
-
-      bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding processor initialized:");
-      bridge.debugLog("  - Max threads: " + maxThreads);
-      bridge.debugLog("  - Keep-alive: " + keepAliveSeconds + "s");
-      bridge.debugLog("  - Max queue size: " + maxQueueSize);
-      bridge.debugLog("  - Prestarted threads: " + prestartedThreads);
-
-      initialized = true;
+    
+    if (!initialized.compareAndSet(false, true)) {
+      return; 
     }
+
+    Bridge bridge = BridgeManager.getBridge();
+    if (bridge == null) {
+      return;
+    }
+
+    enabled = bridge.isAsyncPathfindingEnabled();
+    if (!enabled) {
+      bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding is disabled");
+      return;
+    }
+
+    int maxThreads = bridge.getAsyncPathfindingMaxThreads();
+    int keepAliveSeconds = bridge.getAsyncPathfindingKeepAliveSeconds();
+    int maxQueueSize = bridge.getAsyncPathfindingMaxQueueSize();
+
+    ThreadFactory threadFactory = new PathfindingThreadFactory();
+    BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maxQueueSize);
+
+    executor = new ThreadPoolExecutor(
+        maxThreads,
+        maxThreads,
+        keepAliveSeconds,
+        TimeUnit.SECONDS,
+        workQueue,
+        threadFactory,
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
+    int prestartedThreads = executor.prestartAllCoreThreads();
+
+    bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding processor initialized:");
+    bridge.debugLog("  - Max threads: " + maxThreads);
+    bridge.debugLog("  - Keep-alive: " + keepAliveSeconds + "s");
+    bridge.debugLog("  - Max queue size: " + maxQueueSize);
+    bridge.debugLog("  - Prestarted threads: " + prestartedThreads);
   }
 
   public static void queue(AsyncPath path) {
-    if (!initialized) {
+    if (!initialized.get()) {
       initialize();
     }
 
@@ -187,32 +183,34 @@ public final class AsyncPathProcessor {
   }
 
   public static void shutdown() {
-    synchronized (LOCK) {
-      if (executor != null && !executor.isShutdown()) {
-        Bridge bridge = BridgeManager.getBridge();
-        if (bridge != null) {
-          bridge.debugLog("[AkiAsync-AsyncPath] Shutting down async pathfinding processor...");
-        }
-
-        executor.shutdown();
-        try {
-          if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-            executor.shutdownNow();
-          }
-        } catch (InterruptedException e) {
-          executor.shutdownNow();
-          Thread.currentThread().interrupt();
-        }
-
-        if (bridge != null) {
-          bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding processor shut down");
-        }
-      }
-      
-      initialized = false;
-      enabled = false;
-      executor = null;
+    
+    if (!initialized.compareAndSet(true, false)) {
+      return; 
     }
+
+    if (executor != null && !executor.isShutdown()) {
+      Bridge bridge = BridgeManager.getBridge();
+      if (bridge != null) {
+        bridge.debugLog("[AkiAsync-AsyncPath] Shutting down async pathfinding processor...");
+      }
+
+      executor.shutdown();
+      try {
+        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+          executor.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+
+      if (bridge != null) {
+        bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding processor shut down");
+      }
+    }
+    
+    enabled = false;
+    executor = null;
   }
 
   public static String getStatistics() {
@@ -254,7 +252,7 @@ public final class AsyncPathProcessor {
   }
 
   public static ThreadPoolExecutor getExecutor() {
-    if (!initialized) {
+    if (!initialized.get()) {
       initialize();
     }
     return executor;
