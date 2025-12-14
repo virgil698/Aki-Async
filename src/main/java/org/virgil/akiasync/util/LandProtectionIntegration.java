@@ -1,5 +1,6 @@
 package org.virgil.akiasync.util;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
@@ -13,6 +14,24 @@ public class LandProtectionIntegration {
     private static volatile Boolean dominionEnabled = null;
     private static volatile Boolean worldGuardEnabled = null;
     private static volatile Boolean landsEnabled = null;
+    
+    private static volatile Object residenceAPI = null;
+    private static volatile Object dominionCache = null;
+    private static volatile Object worldGuardQuery = null;
+    private static volatile Object landsIntegration = null;
+    
+    private static volatile Method residenceGetByLoc = null;
+    private static volatile Method residenceHasFlag = null;
+    private static volatile Method dominionGetByLoc = null;
+    private static volatile Method dominionGetFlagValue = null;
+    private static volatile Method worldGuardTestState = null;
+    private static volatile Method worldGuardAdapt = null;
+    private static volatile Method landsGetLandByChunk = null;
+    private static volatile Method landsHasRoleFlag = null;
+    
+    private static volatile Object worldGuardTNTFlag = null;
+    private static volatile Object dominionTNTFlag = null;
+    private static volatile Object landsTNTFlag = null;
 
     private static final ConcurrentHashMap<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, ChunkCacheEntry> CHUNK_CACHE = new ConcurrentHashMap<>();
@@ -149,27 +168,29 @@ public class LandProtectionIntegration {
     
     private static boolean checkResidence(Location location) {
         try {
+            if (residenceAPI == null) {
+                com.bekvon.bukkit.residence.Residence residence = 
+                    com.bekvon.bukkit.residence.Residence.getInstance();
+                if (residence == null) {
+                    residenceEnabled = false;
+                    return true;
+                }
+                residenceAPI = residence.getResidenceManager();
+                if (residenceAPI == null) {
+                    residenceEnabled = false;
+                    return true;
+                }
+            }
+
+            com.bekvon.bukkit.residence.protection.ResidenceManager manager = 
+                (com.bekvon.bukkit.residence.protection.ResidenceManager) residenceAPI;
             
-            Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence");
-            Object instance = residenceClass.getMethod("getInstance").invoke(null);
-            
-            
-            Object api = instance.getClass().getMethod("getAPI").invoke(instance);
-            if (api == null) {
-                residenceEnabled = false;
+            com.bekvon.bukkit.residence.protection.ClaimedResidence res = manager.getByLoc(location);
+            if (res == null) {
                 return true;
             }
 
-            
-            Object res = api.getClass().getMethod("getByLoc", Location.class).invoke(api, location);
-            if (res == null) {
-                return true; 
-            }
-
-            
-            Object flagResult = res.getClass().getMethod("hasFlag", String.class).invoke(res, "tnt");
-            
-            return flagResult instanceof Boolean && (Boolean) flagResult;
+            return res.getPermissions().has("tnt", true);
 
         } catch (Exception e) {
             if (residenceEnabled == null) {
@@ -182,37 +203,18 @@ public class LandProtectionIntegration {
     
     private static boolean checkDominion(Location location) {
         try {
-            
-            Class<?> cacheClass = Class.forName("cn.lunadeer.dominion.Cache");
-            Object cacheInstance = cacheClass.getMethod("instance").invoke(null);
-            
-            
-            Object dominion = cacheClass.getMethod("getDominionByLoc", Location.class)
-                .invoke(cacheInstance, location);
-            
-            if (dominion == null) {
-                return true; 
-            }
-
-            
-            Class<?> flagClass = Class.forName("cn.lunadeer.dominion.dtos.Flag");
-            Object tntFlag = null;
-            for (Object flag : flagClass.getEnumConstants()) {
-                if ("TNT_EXPLODE".equals(flag.toString())) {
-                    tntFlag = flag;
-                    break;
+            if (dominionCache == null) {
+                dominionCache = cn.lunadeer.dominion.api.DominionAPI.getInstance();
+                if (dominionCache == null) {
+                    dominionEnabled = false;
+                    return true;
                 }
             }
 
-            if (tntFlag == null) {
-                return true;
-            }
-
+            cn.lunadeer.dominion.api.DominionAPI api = 
+                (cn.lunadeer.dominion.api.DominionAPI) dominionCache;
             
-            Object allowed = dominion.getClass().getMethod("getFlagValue", flagClass)
-                .invoke(dominion, tntFlag);
-            
-            return allowed instanceof Boolean && (Boolean) allowed;
+            return api.checkEnvironmentFlag(location, cn.lunadeer.dominion.api.dtos.flag.Flags.TNT_EXPLODE);
 
         } catch (Exception e) {
             if (dominionEnabled == null) {
@@ -225,37 +227,43 @@ public class LandProtectionIntegration {
     
     private static boolean checkWorldGuard(Location location) {
         try {
-            
-            Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard");
-            Object wgInstance = wgClass.getMethod("getInstance").invoke(null);
-            
-            
-            Object platform = wgClass.getMethod("getPlatform").invoke(wgInstance);
-            
-            
-            Class<?> platformClass = Class.forName("com.sk89q.worldguard.platform.Platform");
-            Object regionContainer = platformClass.getMethod("getRegionContainer").invoke(platform);
-            
-            
-            Class<?> containerClass = Class.forName("com.sk89q.worldguard.protection.regions.RegionContainer");
-            Object query = containerClass.getMethod("createQuery").invoke(regionContainer);
-            
-            
+            if (worldGuardQuery == null) {
+                Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard");
+                Object wg = wgClass.getMethod("getInstance").invoke(null);
+                if (wg == null) {
+                    worldGuardEnabled = false;
+                    return true;
+                }
+                
+                Object platform = wgClass.getMethod("getPlatform").invoke(wg);
+                Class<?> platformClass = Class.forName("com.sk89q.worldguard.internal.platform.WorldGuardPlatform");
+                Object container = platformClass.getMethod("getRegionContainer").invoke(platform);
+                
+                if (container == null) {
+                    worldGuardEnabled = false;
+                    return true;
+                }
+                
+                Class<?> containerClass = Class.forName("com.sk89q.worldguard.protection.regions.RegionContainer");
+                worldGuardQuery = containerClass.getMethod("createQuery").invoke(container);
+                if (worldGuardQuery == null) {
+                    worldGuardEnabled = false;
+                    return true;
+                }
+            }
+
             Class<?> adapterClass = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
             Object wgLocation = adapterClass.getMethod("adapt", Location.class).invoke(null, location);
             
-            
             Class<?> flagsClass = Class.forName("com.sk89q.worldguard.protection.flags.Flags");
             Object tntFlag = flagsClass.getField("TNT").get(null);
-            
             
             Class<?> queryClass = Class.forName("com.sk89q.worldguard.protection.regions.RegionQuery");
             Class<?> wgLocClass = Class.forName("com.sk89q.worldedit.util.Location");
             Class<?> stateFlagClass = Class.forName("com.sk89q.worldguard.protection.flags.StateFlag");
             
             Object state = queryClass.getMethod("testState", wgLocClass, stateFlagClass)
-                .invoke(query, wgLocation, tntFlag);
-            
+                .invoke(worldGuardQuery, wgLocation, tntFlag);
             
             return state == null || !"DENY".equals(state.toString());
 
@@ -270,43 +278,48 @@ public class LandProtectionIntegration {
     
     private static boolean checkLands(Location location) {
         try {
-            
-            Class<?> integrationClass = Class.forName("me.angeschossen.lands.api.integration.LandsIntegration");
-            
-            
-            org.bukkit.plugin.Plugin landsPlugin = Bukkit.getPluginManager().getPlugin("Lands");
-            Object integration = integrationClass.getMethod("of", org.bukkit.plugin.Plugin.class)
-                .invoke(null, landsPlugin);
-            
-            if (integration == null) {
-                landsEnabled = false;
-                return true;
+            if (landsIntegration == null) {
+                Class<?> integrationClass = Class.forName("me.angeschossen.lands.api.integration.LandsIntegration");
+                
+                org.bukkit.plugin.Plugin landsPlugin = Bukkit.getPluginManager().getPlugin("Lands");
+                if (landsPlugin == null) {
+                    landsEnabled = false;
+                    return true;
+                }
+                
+                Object integration = integrationClass.getMethod("of", org.bukkit.plugin.Plugin.class)
+                    .invoke(null, landsPlugin);
+                if (integration == null) {
+                    landsEnabled = false;
+                    return true;
+                }
+                landsIntegration = integration;
             }
 
             int chunkX = location.getBlockX() >> 4;
             int chunkZ = location.getBlockZ() >> 4;
 
-            
-            Object land = integrationClass.getMethod("getLandByChunk", World.class, int.class, int.class)
-                .invoke(integration, location.getWorld(), chunkX, chunkZ);
+            Object land = landsIntegration.getClass()
+                .getMethod("getLandByChunk", World.class, int.class, int.class)
+                .invoke(landsIntegration, location.getWorld(), chunkX, chunkZ);
             
             if (land == null) {
-                return true; 
+                return true;
             }
 
-            
             Class<?> flagsClass = Class.forName("me.angeschossen.lands.api.flags.type.Flags");
-            Object tntFlag = flagsClass.getField("BLOCK_IGNITE").get(null);
-
+            Object blockIgniteFlag = flagsClass.getField("BLOCK_IGNITE").get(null);
             
-            Class<?> landClass = Class.forName("me.angeschossen.lands.api.land.Land");
-            Class<?> playerClass = Class.forName("me.angeschossen.lands.api.player.LandPlayer");
+            Class<?> landClass = land.getClass();
             Class<?> roleFlagClass = Class.forName("me.angeschossen.lands.api.flags.type.RoleFlag");
             
-            Object allowed = landClass.getMethod("hasRoleFlag", playerClass, roleFlagClass, boolean.class)
-                .invoke(land, null, tntFlag, true);
+            Object result = landClass.getMethod("hasRoleFlag", 
+                Class.forName("me.angeschossen.lands.api.player.LandPlayer"), 
+                roleFlagClass, 
+                boolean.class)
+                .invoke(land, null, blockIgniteFlag, true);
             
-            return allowed instanceof Boolean && (Boolean) allowed;
+            return result instanceof Boolean && (Boolean) result;
 
         } catch (Exception e) {
             if (landsEnabled == null) {
@@ -368,6 +381,12 @@ public class LandProtectionIntegration {
         dominionEnabled = null;
         worldGuardEnabled = null;
         landsEnabled = null;
+        
+        residenceAPI = null;
+        dominionCache = null;
+        worldGuardQuery = null;
+        landsIntegration = null;
+        
         clearCache();
     }
 }
