@@ -34,7 +34,16 @@ public abstract class PoiIndexUpdateMixin {
             at = @At("TAIL"), 
             require = 0)
     @SuppressWarnings("unused")
-    private void akiasync$onPoiAdd(BlockPos pos, Holder<PoiType> typeHolder, CallbackInfo ci) {
+    private void akiasync$onPoiAddVoid(BlockPos pos, Holder<PoiType> typeHolder, CallbackInfo ci) {
+        akiasync$handlePoiAdd(pos, typeHolder);
+    }
+    
+    @Inject(method = "add(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Holder;)Lnet/minecraft/world/entity/ai/village/poi/PoiRecord;", 
+            at = @At("RETURN"), 
+            require = 0)
+    @SuppressWarnings("unused")
+    private void akiasync$onPoiAddReturn(BlockPos pos, Holder<PoiType> typeHolder, 
+                                         org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<PoiRecord> cir) {
         akiasync$handlePoiAdd(pos, typeHolder);
     }
     

@@ -20,10 +20,18 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
         if (!initialized) { akiasync$initBrainThrottle(); }
         if (!cached_enabled) return;
         
-        
         if (entity instanceof net.minecraft.world.entity.monster.warden.Warden) {
             return;
         }
+        
+        if (entity instanceof net.minecraft.world.entity.npc.Villager) {
+            return;
+        }
+        
+        if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager) {
+            return;
+        }
+        
         long gameTime = level.getGameTime();
         if (gameTime < this.akiasync$skipUntil) {
             ci.cancel();

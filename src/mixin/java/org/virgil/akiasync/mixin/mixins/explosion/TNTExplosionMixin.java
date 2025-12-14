@@ -67,10 +67,14 @@ public class TNTExplosionMixin {
         double speed = velocity.lengthSqr();
         int fuse = tnt.getFuse();
         
-        if (speed > 0.5 && fuse <= 2) {
+        double horizontalSpeed = velocity.x * velocity.x + velocity.z * velocity.z;
+        boolean isPistonPushed = speed > 0.1 || horizontalSpeed > 0.05;
+        
+        if (isPistonPushed) {
             if (bridge.isTNTDebugEnabled()) {
-                BridgeConfigCache.debugLog("[AkiAsync-TNT] Skipping optimization for potential duplication: speed=" + 
-                    String.format("%.2f", Math.sqrt(speed)) + ", fuse=" + fuse);
+                BridgeConfigCache.debugLog("[AkiAsync-TNT] Skipping optimization for piston-pushed TNT: speed=" + 
+                    String.format("%.3f", Math.sqrt(speed)) + ", horizontal=" + String.format("%.3f", Math.sqrt(horizontalSpeed)) + 
+                    ", fuse=" + fuse);
             }
             return; 
         }

@@ -47,6 +47,10 @@ public abstract class EntityTrackerMixin {
             return;
         }
         
+        if (!seenBy.contains(player.connection)) {
+            return;
+        }
+        
         
         Bridge bridgeForThrottle = BridgeManager.getBridge();
         if (bridgeForThrottle != null && bridgeForThrottle.isEntityPacketThrottleEnabled()) {

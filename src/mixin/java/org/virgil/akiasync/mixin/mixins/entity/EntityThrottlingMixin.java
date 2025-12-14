@@ -40,6 +40,10 @@ public class EntityThrottlingMixin {
                 return;
             }
 
+            if (!self.onGround()) {
+                return;
+            }
+
             if (self instanceof net.minecraft.world.entity.item.ItemEntity) {
 
                 if (self.isInLava() || self.isOnFire() || self.getRemainingFireTicks() > 0) {
