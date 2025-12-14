@@ -55,6 +55,10 @@ public abstract class FastRayTraceMixin {
             return;
         }
         
+        if (aki$isPlayerInteraction(context)) {
+            return;
+        }
+        
         if (aki$isProjectileContext(context)) {
             return;
         }
@@ -62,7 +66,7 @@ public abstract class FastRayTraceMixin {
         Vec3 from = context.getFrom();
         Vec3 to = context.getTo();
         
-        long hash = aki$hashRayTrace(from, to);
+        long hash = aki$hashRayTrace(from, to, context);
         
         RayTraceCacheHolder cache = aki$getCache();
         BlockHitResult cached = cache.get(hash);
@@ -79,6 +83,10 @@ public abstract class FastRayTraceMixin {
             return;
         }
         
+        if (aki$isPlayerInteraction(context)) {
+            return;
+        }
+        
         if (aki$isProjectileContext(context)) {
             return;
         }
@@ -88,27 +96,60 @@ public abstract class FastRayTraceMixin {
         BlockHitResult result = cir.getReturnValue();
         
         if (result != null) {
-            long hash = aki$hashRayTrace(from, to);
+            long hash = aki$hashRayTrace(from, to, context);
             RayTraceCacheHolder cache = aki$getCache();
             cache.put(hash, result);
         }
     }
     
     @Unique
-    private long aki$hashRayTrace(Vec3 from, Vec3 to) {
+    private long aki$hashRayTrace(Vec3 from, Vec3 to, ClipContext context) {
         long hash = 17;
-        hash = hash * 31 + Double.hashCode(Math.floor(from.x * 2) / 2);
-        hash = hash * 31 + Double.hashCode(Math.floor(from.y * 2) / 2);
-        hash = hash * 31 + Double.hashCode(Math.floor(from.z * 2) / 2);
-        hash = hash * 31 + Double.hashCode(Math.floor(to.x * 2) / 2);
-        hash = hash * 31 + Double.hashCode(Math.floor(to.y * 2) / 2);
-        hash = hash * 31 + Double.hashCode(Math.floor(to.z * 2) / 2);
+        hash = hash * 31 + Double.hashCode(Math.floor(from.x * 10) / 10);
+        hash = hash * 31 + Double.hashCode(Math.floor(from.y * 10) / 10);
+        hash = hash * 31 + Double.hashCode(Math.floor(from.z * 10) / 10);
+        hash = hash * 31 + Double.hashCode(Math.floor(to.x * 10) / 10);
+        hash = hash * 31 + Double.hashCode(Math.floor(to.y * 10) / 10);
+        hash = hash * 31 + Double.hashCode(Math.floor(to.z * 10) / 10);
+        try {
+            java.lang.reflect.Field blockField = ClipContext.class.getDeclaredField("block");
+            blockField.setAccessible(true);
+            Object blockMode = blockField.get(context);
+            hash = hash * 31 + blockMode.hashCode();
+            
+            java.lang.reflect.Field fluidField = ClipContext.class.getDeclaredField("fluid");
+            fluidField.setAccessible(true);
+            Object fluidMode = fluidField.get(context);
+            hash = hash * 31 + fluidMode.hashCode();
+        } catch (Exception e) {
+        }
         return hash;
     }
     
     @Unique
+    private boolean aki$isPlayerInteraction(ClipContext context) {
+        try {
+            java.lang.reflect.Field blockField = ClipContext.class.getDeclaredField("block");
+            blockField.setAccessible(true);
+            Object blockMode = blockField.get(context);
+            
+            if (blockMode == ClipContext.Block.OUTLINE) {
+                Vec3 from = context.getFrom();
+                Vec3 to = context.getTo();
+                double distanceSq = from.distanceToSqr(to);
+                
+                if (distanceSq > 4.0 && distanceSq < 40.0) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return true;
+        }
+        return false;
+    }
+    
+    @Unique
     private boolean aki$isProjectileContext(ClipContext context) {
-        
         Vec3 from = context.getFrom();
         Vec3 to = context.getTo();
         double distanceSq = from.distanceToSqr(to);
