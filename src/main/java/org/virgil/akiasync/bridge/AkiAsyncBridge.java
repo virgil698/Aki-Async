@@ -733,16 +733,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean canAccessEntityDirectly(net.minecraft.world.entity.Entity entity) {
-        
-        
-        return true;
+        return org.virgil.akiasync.mixin.compat.FoliaRegionContext.canAccessEntityDirectly(entity);
     }
 
     @Override
     public boolean canAccessBlockPosDirectly(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
-        
-        
-        return true;
+        return org.virgil.akiasync.mixin.compat.FoliaRegionContext.canAccessBlockPosDirectly(level, pos);
     }
 
     @Override

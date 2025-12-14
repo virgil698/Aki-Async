@@ -13,8 +13,7 @@ public class VirtualEntityCompatManager {
     private final ConfigManager configManager;
     private final Logger logger;
     private final PluginDetectorRegistry detectorRegistry;
-    
-    
+    private final VirtualEntityPacketHandler packetHandler;
     private final Map<String, Boolean> pluginAvailability;
     private boolean enabled;
     
@@ -24,7 +23,7 @@ public class VirtualEntityCompatManager {
         this.logger = plugin.getLogger();
         this.pluginAvailability = new ConcurrentHashMap<>();
         this.detectorRegistry = new PluginDetectorRegistry(logger);
-        
+        this.packetHandler = new VirtualEntityPacketHandler(detectorRegistry, configManager, logger);
         this.enabled = false;
     }
     
@@ -207,5 +206,9 @@ public class VirtualEntityCompatManager {
         }
         
         logger.info("[VirtualEntity] Virtual entity compatibility configuration reloaded successfully");
+    }
+    
+    public VirtualEntityPacketHandler getPacketHandler() {
+        return packetHandler;
     }
 }
