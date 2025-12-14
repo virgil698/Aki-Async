@@ -77,7 +77,7 @@ public abstract class CommandFunctionDeduplicatorMixin {
         return commandString.length() * 2L + 24L;
     }
     
-    public static void clearCache() {
+    private static void clearCache() {
         synchronized (actionCache) {
             if (totalCommands > 0) {
                 logStatistics();
@@ -110,7 +110,7 @@ public abstract class CommandFunctionDeduplicatorMixin {
         }
     }
     
-    public static String getStatistics() {
+    private static String getStatistics() {
         synchronized (actionCache) {
             int uniqueCommands = actionCache.size();
             int duplicateCommands = totalCommands - uniqueCommands;
