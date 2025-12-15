@@ -115,7 +115,9 @@ public abstract class ExperienceOrbInactiveMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ExperienceOrbInactive", "tryQuickMerge",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 
@@ -141,7 +143,8 @@ public abstract class ExperienceOrbInactiveMixin {
             
             orb.setValue(newValue);
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ExperienceOrbInactive", "setValue", e);
         }
     }
 

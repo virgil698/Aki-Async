@@ -408,11 +408,13 @@ public class OptimizedStructureLocator {
                             }
                         }
                     } catch (Exception e) {
-
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "OptimizedStructureLocator", "processStructureStart", e);
                     }
                 }
             } catch (Exception e) {
-
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "OptimizedStructureLocator", "processChunkStructures", e);
             }
         }
         
@@ -496,7 +498,8 @@ public class OptimizedStructureLocator {
                 }
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "OptimizedStructureLocator", "getStructureAtPosition", e);
         }
 
         return null;
@@ -573,6 +576,8 @@ public class OptimizedStructureLocator {
                 return holder.unwrapKey().get().location().toString();
             }
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "OptimizedStructureLocator", "getStructureName", e);
         }
 
         try {

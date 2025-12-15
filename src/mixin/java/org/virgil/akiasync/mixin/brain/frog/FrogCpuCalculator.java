@@ -23,7 +23,8 @@ public final class FrogCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FrogCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

@@ -32,6 +32,7 @@ public class FoliaSchedulerAdapter {
             locationScheduleMethod = foliaRegionScheduler.getMethod("run", Plugin.class, Location.class, Runnable.class);
 
         } catch (Exception e) {
+            
         }
         IS_FOLIA = foliaDetected;
     }

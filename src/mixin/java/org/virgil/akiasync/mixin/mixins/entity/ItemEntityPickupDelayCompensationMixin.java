@@ -46,7 +46,9 @@ public class ItemEntityPickupDelayCompensationMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ItemEntityPickupDelayCompensation", "compensatePickupDelay",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
     

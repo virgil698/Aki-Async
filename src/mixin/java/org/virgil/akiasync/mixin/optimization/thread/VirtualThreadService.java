@@ -11,14 +11,16 @@ public abstract class VirtualThreadService {
     protected void runTest() throws Throwable {
         try {
             this.start(() -> {}).join();
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         try {
             var thread = this.createFactory().newThread(() -> {});
             thread.start();
             thread.join();
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -34,10 +36,12 @@ public abstract class VirtualThreadService {
             initialized = true;
             try {
                 implementation = DirectVirtualThreadService.create();
-            } catch (Throwable ignored) {
+            } catch (Throwable e) {
+                
                 try {
                     implementation = ReflectionVirtualThreadService.create();
-                } catch (Throwable ignored2) {
+                } catch (Throwable e2) {
+                    
                 }
             }
         }

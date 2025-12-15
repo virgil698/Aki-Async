@@ -48,6 +48,8 @@ public class VillagerBreedExecutor {
                 task.run();
                 movementCache.put(villagerUUID, level.getGameTime());
             } catch (Exception e) {
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "VillagerBreedExecutor", "submitTask", e);
             }
         });
     }

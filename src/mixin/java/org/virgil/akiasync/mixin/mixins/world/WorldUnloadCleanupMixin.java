@@ -10,6 +10,7 @@ import org.virgil.akiasync.mixin.poi.PoiSpatialIndexManager;
 import org.virgil.akiasync.mixin.poi.BatchPoiManager;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.ExceptionHandler;
 
 @Mixin(ServerLevel.class)
 public class WorldUnloadCleanupMixin {
@@ -30,11 +31,15 @@ public class WorldUnloadCleanupMixin {
             
             try {
                 org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearLevelCache(level);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                ExceptionHandler.handleCleanup("WorldUnloadCleanup", "SakuraBlockDensityCache", e);
+            }
             
             try {
                 org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearLevelCache(level);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                ExceptionHandler.handleCleanup("WorldUnloadCleanup", "RedstoneNetworkCache", e);
+            }
             
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {

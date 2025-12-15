@@ -25,7 +25,8 @@ public final class ArmadilloCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ArmadilloCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

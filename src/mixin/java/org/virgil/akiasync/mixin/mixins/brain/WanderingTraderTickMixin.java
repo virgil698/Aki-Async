@@ -70,7 +70,8 @@ public class WanderingTraderTickMixin {
                         }
                     }
                 } catch (Exception e) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "WanderingTraderTick", "applyDiff", e);
                 }
                 pendingDiff = null;
             }

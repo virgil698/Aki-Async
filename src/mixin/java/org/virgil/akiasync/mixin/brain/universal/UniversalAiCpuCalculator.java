@@ -48,7 +48,8 @@ public final class UniversalAiCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "UniversalAiCpuCalculator", "optimizeBrainMemories", e);
         }
     }
     
@@ -75,7 +76,8 @@ public final class UniversalAiCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "UniversalAiCpuCalculator", "optimizePOI", e);
         }
     }
     

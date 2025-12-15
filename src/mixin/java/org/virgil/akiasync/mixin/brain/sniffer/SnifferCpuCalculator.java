@@ -23,7 +23,8 @@ public final class SnifferCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "SnifferCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

@@ -23,7 +23,8 @@ public final class GoatCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "GoatCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

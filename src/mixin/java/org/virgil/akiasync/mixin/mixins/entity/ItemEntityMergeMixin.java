@@ -109,7 +109,9 @@ public abstract class ItemEntityMergeMixin {
                     
                     if (!highDensity && mergedCount >= 5) break;
                 } catch (Throwable t) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "ItemEntityMerge", "tryMerge",
+                        t instanceof Exception ? (Exception) t : new RuntimeException(t));
                 }
             }
         }
@@ -168,7 +170,9 @@ public abstract class ItemEntityMergeMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ItemEntityMerge", "getNearbyItemsOptimized",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
         
         AABB searchBox = boundingBox.inflate(mergeRange);

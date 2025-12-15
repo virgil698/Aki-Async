@@ -49,7 +49,8 @@ public abstract class EntityTickChunkParallelMixin {
                     } else {
                         tempField = null; 
                     }
-                } catch (NoSuchFieldException ignored) {
+                } catch (NoSuchFieldException e) {
+                    
                 }
             }
             
@@ -116,7 +117,9 @@ public abstract class EntityTickChunkParallelMixin {
                                 }
                                 action.accept(entity);
                             } catch (Throwable t) {
-
+                                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                                    "EntityTickParallel", "smoothSchedulerTask", 
+                                    t instanceof Exception ? (Exception) t : new RuntimeException(t));
                             }
                         });
                 }
@@ -141,7 +144,9 @@ public abstract class EntityTickChunkParallelMixin {
                     try {
                         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(entity)) return;
                         action.accept(entity);
-                    } catch (Exception ignored) {
+                    } catch (Exception e) {
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "EntityTickParallel", "fallbackTick", e);
                     }
                 }));
                 return;
@@ -177,6 +182,9 @@ public abstract class EntityTickChunkParallelMixin {
 
                             action.accept(entity);
                         } catch (Throwable t) {
+                            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                                "EntityTickParallel", "batchTick", 
+                                t instanceof Exception ? (Exception) t : new RuntimeException(t));
                         }
                     });
                 }, executor))
@@ -321,7 +329,9 @@ public abstract class EntityTickChunkParallelMixin {
                 return 2;
             }
         } catch (Throwable t) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityTickParallel", "determinePriority", 
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
         
         return 3;

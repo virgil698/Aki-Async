@@ -87,10 +87,13 @@ public class AsyncPath {
         try {
           runnable.run();
         } catch (Exception e) {
-          
+          org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+              "AsyncPath", "postProcessing", e);
         }
       }
     } catch (Exception e) {
+      org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+          "AsyncPath", "process", e);
       processState = PathState.COMPLETED;
     }
   }

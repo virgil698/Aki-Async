@@ -152,7 +152,9 @@ public abstract class ItemEntityInactiveMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ItemEntityInactive", "tryQuickMerge",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
     

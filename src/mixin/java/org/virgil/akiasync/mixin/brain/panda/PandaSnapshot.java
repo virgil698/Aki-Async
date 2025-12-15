@@ -67,8 +67,9 @@ public final class PandaSnapshot {
                 personality = pandaEntity.getMainGene().toString();
                 isEating = pandaEntity.isEating();
             }
-        } catch (Exception ignored) {
-            
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PandaSnapshot", "capturePersonality", e);
         }
         
         
@@ -81,8 +82,9 @@ public final class PandaSnapshot {
                 (offHand != null && offHand.is(net.minecraft.world.item.Items.BAMBOO))) {
                 hasFood = true;
             }
-        } catch (Exception ignored) {
-            
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PandaSnapshot", "captureFood", e);
         }
         
         

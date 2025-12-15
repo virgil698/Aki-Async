@@ -48,7 +48,9 @@ public abstract class LivingEntityPotionCompensationMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "LivingEntityPotionCompensation", "compensatePotionEffects",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
     

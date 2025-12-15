@@ -143,8 +143,9 @@ public class EnhancedPathfindingSystem {
                 Path path = request.compute();
                 request.getFuture().complete(path);
             } catch (Exception e) {
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "EnhancedPathfindingSystem", "processRequest", e);
                 request.getFuture().completeExceptionally(e);
-                BridgeConfigCache.debugLog("[PathfindingSystem] Request failed: " + e.getMessage());
             } finally {
                 activeRequests.decrementAndGet();
             }

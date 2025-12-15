@@ -40,7 +40,8 @@ public abstract class PoolElementStructurePieceMixin {
                 }
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PoolElementStructurePiece", "insertJigsawOctree", e);
         }
     }
 

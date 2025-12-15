@@ -73,7 +73,7 @@ public class DirectEntityQuery {
             
         } catch (Exception e) {
             reflectionFailed = true;
-            
+            ExceptionHandler.handleExpected("DirectEntityQuery", "reflectionInit", e);
         }
     }
     

@@ -58,7 +58,8 @@ public class VillagerPoiOptimizeMixin {
                 }
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "VillagerPoiOptimize", "optimizedPoiQuery", e);
         }
     }
     

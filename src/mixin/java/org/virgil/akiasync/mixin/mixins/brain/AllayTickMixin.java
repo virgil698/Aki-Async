@@ -70,7 +70,8 @@ public class AllayTickMixin {
                         }
                     }
                 } catch (Exception e) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "AllayTick", "applyDiff", e);
                 }
                 pendingDiff = null;
             }

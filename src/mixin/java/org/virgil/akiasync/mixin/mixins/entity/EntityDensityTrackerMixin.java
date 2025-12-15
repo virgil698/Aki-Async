@@ -69,7 +69,8 @@ public abstract class EntityDensityTrackerMixin {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityDensityTracker", "trackDensity", e);
         }
     }
 }

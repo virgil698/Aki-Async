@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import org.virgil.akiasync.mixin.util.ExceptionHandler;
 
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public final class BrainMemoryHelper {
         try {
             return brain.getMemory(memoryType);
         } catch (Exception e) {
-            
+            ExceptionHandler.handleExpected("BrainMemoryHelper", "getMemory", e);
             return Optional.empty();
         }
     }
@@ -41,7 +42,7 @@ public final class BrainMemoryHelper {
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
-
+            ExceptionHandler.handleExpected("BrainMemoryHelper", "setMemory", e);
         }
     }
 
@@ -58,7 +59,7 @@ public final class BrainMemoryHelper {
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
-
+            ExceptionHandler.handleExpected("BrainMemoryHelper", "setMemoryRaw", e);
         }
     }
 
@@ -73,7 +74,7 @@ public final class BrainMemoryHelper {
         try {
             brain.eraseMemory(memoryType);
         } catch (Exception e) {
-
+            ExceptionHandler.handleExpected("BrainMemoryHelper", "eraseMemory", e);
         }
     }
 

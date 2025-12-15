@@ -249,12 +249,14 @@ public class EntityThrottlingManager {
                             }
                         }
                     } catch (Exception e) {
-                        
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "EntityThrottlingManager", "scanChunkEntities", e);
                     }
                 }
             );
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityThrottlingManager", "scanChunks", e);
         }
     }
 
@@ -343,12 +345,14 @@ public class EntityThrottlingManager {
                             entity.remove();
                         }
                     } catch (Exception e) {
-                        
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "EntityThrottlingManager", "removeEntity", e);
                     }
                 }
             );
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityThrottlingManager", "scheduleEntityRemoval", e);
             if (plugin.getConfigManager().isDebugLoggingEnabled()) {
                 plugin.getLogger().warning("[EntityThrottling] Failed to schedule entity removal: " + e.getMessage());
             }

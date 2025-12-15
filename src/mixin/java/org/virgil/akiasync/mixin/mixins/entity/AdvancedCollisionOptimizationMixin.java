@@ -57,7 +57,8 @@ public abstract class AdvancedCollisionOptimizationMixin {
                 maxPushIterations = bridge.getMaxPushIterations();
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AdvancedCollisionOptimization", "initConfig", e);
         }
     }
     

@@ -15,7 +15,9 @@ public class TPSTrackerMixin {
         try {
             TPSTracker.getInstance().onTick();
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "TPSTracker", "onTick",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 }

@@ -70,6 +70,9 @@ public abstract class FallingBlockParallelMixin {
                     try {
                         akiasync$preTick(falling);
                     } catch (Throwable t) {
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "FallingBlockParallel", "preTickFallback",
+                            t instanceof Exception ? (Exception) t : new RuntimeException(t));
                     }
                 }));
                 return;
@@ -81,6 +84,9 @@ public abstract class FallingBlockParallelMixin {
                         try {
                             akiasync$preTick(falling);
                         } catch (Throwable t) {
+                            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                                "FallingBlockParallel", "preTickAsync",
+                                t instanceof Exception ? (Exception) t : new RuntimeException(t));
                         }
                     });
                 }, executor))

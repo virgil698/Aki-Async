@@ -60,7 +60,9 @@ public class PlayerPathPrewarmer {
             try {
                 scheduler.awaitTermination(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 scheduler.shutdownNow();
+                BridgeConfigCache.debugLog("[PathPrewarmer] Interrupted during shutdown");
             }
         }
     }
@@ -100,8 +102,12 @@ public class PlayerPathPrewarmer {
             
             BridgeConfigCache.debugLog("[PathPrewarmer] Completed prewarm: " + prewarmCount + " paths cached");
             
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            BridgeConfigCache.debugLog("[PathPrewarmer] Prewarm interrupted");
         } catch (Exception e) {
-            BridgeConfigCache.debugLog("[PathPrewarmer] Error during prewarm: " + e.getMessage());
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PlayerPathPrewarmer", "prewarmPaths", e);
         } finally {
             stop();
         }
@@ -125,7 +131,8 @@ public class PlayerPathPrewarmer {
                     prewarmPath(mob, mobPos, poi);
                     count++;
                 } catch (Exception e) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "PlayerPathPrewarmer", "prewarmPath", e);
                 }
             }
         }

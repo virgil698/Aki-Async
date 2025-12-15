@@ -32,10 +32,11 @@ public class AsyncCollisionProcessor {
             return future.get(DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             
         } catch (TimeoutException e) {
-            
+            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "countNearbyTimeout", 
+                new Exception("Timeout after " + DEFAULT_TIMEOUT_MS + "ms"));
             return 0;
         } catch (Exception e) {
-            
+            ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "countNearbyAsync", e);
             return 0;
         }
     }
@@ -54,6 +55,7 @@ public class AsyncCollisionProcessor {
             
             return nearby.size();
         } catch (Exception e) {
+            ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "countNearbySync", e);
             return 0;
         }
     }
@@ -78,10 +80,11 @@ public class AsyncCollisionProcessor {
             return future.get(timeoutMs, TimeUnit.MILLISECONDS);
             
         } catch (TimeoutException e) {
-            
+            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "getEntitiesTimeout", 
+                new Exception("Timeout after " + timeoutMs + "ms"));
             return new ArrayList<>();
         } catch (Exception e) {
-            
+            ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "getEntitiesAsync", e);
             return new ArrayList<>();
         }
     }
@@ -96,6 +99,7 @@ public class AsyncCollisionProcessor {
             if (level == null) return new ArrayList<>();
             return level.getEntities(except, box, predicate);
         } catch (Exception e) {
+            ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "getEntitiesSync", e);
             return new ArrayList<>();
         }
     }
@@ -125,13 +129,14 @@ public class AsyncCollisionProcessor {
                         }
                     }
                 } catch (Exception e) {
-                    
+                    ExceptionHandler.handleExpected("AsyncCollisionProcessor", "batchTaskResult", e);
                 }
             }
             
             return results;
             
         } catch (Exception e) {
+            ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "processBatchAsync", e);
             return new ArrayList<>();
         }
     }

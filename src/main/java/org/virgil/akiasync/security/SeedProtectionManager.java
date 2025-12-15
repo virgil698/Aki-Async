@@ -105,7 +105,8 @@ public class SeedProtectionManager implements Listener {
                     }
                 }
             } catch (Exception e) {
-
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "SeedProtectionManager", "monitorSeedAccess", e);
             }
         }, "SeedProtection-Monitor");
         

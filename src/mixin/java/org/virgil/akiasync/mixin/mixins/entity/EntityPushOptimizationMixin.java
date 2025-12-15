@@ -61,48 +61,68 @@ public abstract class EntityPushOptimizationMixin {
         
         Entity self = (Entity) (Object) this;
         
+        
         if (akiasync$isExcludedEntity(self) || akiasync$isExcludedEntity(other)) {
             return;
         }
         
-        if (self.isRemoved() || other.isRemoved()) {
-            ci.cancel();
+        
+        if (self.isOnPortalCooldown() || other.isOnPortalCooldown()) {
             return;
         }
+        
+        
+        if (akiasync$isInPortal(self) || akiasync$isInPortal(other)) {
+            return;
+        }
+        
+        
+        if (self.isRemoved() || other.isRemoved()) {
+            return;
+        }
+        
         
         if (!self.isPushable() || !other.isPushable()) {
-            ci.cancel();
             return;
         }
         
+        
         if (self.isInWater() || self.isInLava()) {
-            return; 
+            return;
         }
+        
         
         if (akiasync$isBeingPushedByFluid(self)) {
+            return;
+        }
+        
+        
+        if (akiasync$isSuffocating(self)) {
             return; 
         }
         
-        double dx = other.getX() - self.getX();
-        double dz = other.getZ() - self.getZ();
+        
+        double dx = self.getX() - other.getX();
+        double dz = self.getZ() - other.getZ();
         double distSqr = dx * dx + dz * dz;
+        
         
         if (distSqr < 0.0001 || distSqr > 1.0) {
             return;
         }
         
-        double invDistSqr = fixedPushStrength / distSqr;
         
+        if (!akiasync$canAccumulatePush(self.getId())) {
+            return; 
+        }
+        
+        
+        double invDistSqr = fixedPushStrength / distSqr;
         dx *= invDistSqr;
         dz *= invDistSqr;
         
         Vec3 push = new Vec3(dx, 0, dz);
-        
-        if (!akiasync$accumulatePush(self.getId(), push)) {
-            
-            ci.cancel();
-            return;
-        }
+        akiasync$recordPush(self.getId(), push);
         
         Vec3 currentDelta = self.getDeltaMovement();
         self.setDeltaMovement(
@@ -137,27 +157,28 @@ public abstract class EntityPushOptimizationMixin {
     }
     
     @Unique
-    private boolean akiasync$accumulatePush(int entityId, Vec3 push) {
+    private boolean akiasync$canAccumulatePush(int entityId) {
+        PushAccumulator accumulator = pushAccumulators.get(entityId);
+        if (accumulator == null) {
+            return true; 
+        }
+        
+        double totalSqr = accumulator.totalX * accumulator.totalX + accumulator.totalZ * accumulator.totalZ;
+        double maxPushSqr = maxPushPerTick * maxPushPerTick;
+        
+        return totalSqr <= maxPushSqr;
+    }
+    
+    @Unique
+    private void akiasync$recordPush(int entityId, Vec3 push) {
         PushAccumulator accumulator = pushAccumulators.computeIfAbsent(
             entityId,
             k -> new PushAccumulator()
         );
         
-        double newTotalX = accumulator.totalX + Math.abs(push.x);
-        double newTotalZ = accumulator.totalZ + Math.abs(push.z);
-        
-        double newTotalSqr = newTotalX * newTotalX + newTotalZ * newTotalZ;
-        double maxPushSqr = maxPushPerTick * maxPushPerTick;
-        
-        if (newTotalSqr > maxPushSqr) {
-            return false;
-        }
-        
-        accumulator.totalX = newTotalX;
-        accumulator.totalZ = newTotalZ;
+        accumulator.totalX += Math.abs(push.x);
+        accumulator.totalZ += Math.abs(push.z);
         accumulator.count++;
-        
-        return true;
     }
     
     @Unique
@@ -182,6 +203,43 @@ public abstract class EntityPushOptimizationMixin {
     @Unique
     private static boolean akiasync$isExcludedEntity(Entity entity) {
         return org.virgil.akiasync.mixin.util.CollisionExclusionCache.isExcluded(entity);
+    }
+    
+    @Unique
+    private boolean akiasync$isInPortal(Entity entity) {
+        try {
+            net.minecraft.core.BlockPos pos = entity.blockPosition();
+            net.minecraft.world.level.block.state.BlockState state = entity.level().getBlockState(pos);
+            
+            if (state == null) return false;
+            
+            
+            return state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
+                   state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock;
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityPushOptimizationMixin", "isInPortal", e);
+            return false;
+        }
+    }
+    
+    @Unique
+    private boolean akiasync$isSuffocating(Entity entity) {
+        try {
+            net.minecraft.core.BlockPos pos = entity.blockPosition();
+            net.minecraft.world.level.block.state.BlockState state = entity.level().getBlockState(pos);
+            
+            if (state == null || state.isAir()) {
+                return false;
+            }
+            
+            
+            return state.isSuffocating(entity.level(), pos);
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityPushOptimizationMixin", "isSuffocating", e);
+            return false;
+        }
     }
 
     @Unique

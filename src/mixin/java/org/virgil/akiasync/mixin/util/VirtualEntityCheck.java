@@ -12,6 +12,8 @@ public final class VirtualEntityCheck {
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             return bridge != null && bridge.isVirtualEntity(entity);
         } catch (Throwable t) {
+            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntity", 
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
             return false;
         }
     }
@@ -23,6 +25,8 @@ public final class VirtualEntityCheck {
                 return is(realEntity);
             }
         } catch (Throwable t) {
+            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntityAccess", 
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
             return false;
         }
         return false;

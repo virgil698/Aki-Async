@@ -70,7 +70,8 @@ public class HoglinTickMixin {
                         }
                     }
                 } catch (Exception e) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "HoglinTick", "applyDiff", e);
                 }
                 pendingDiff = null;
             }

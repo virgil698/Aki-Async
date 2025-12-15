@@ -94,6 +94,9 @@ public abstract class FurnaceRecipeCacheMixin {
 
             cacheMisses++;
         } catch (Throwable t) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FurnaceRecipeCache", "optimizeCookTime",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 
@@ -122,6 +125,9 @@ public abstract class FurnaceRecipeCacheMixin {
                 }
             }
         } catch (Throwable t) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FurnaceRecipeCache", "cacheRecipeResult",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 
@@ -197,6 +203,9 @@ public abstract class FurnaceRecipeCacheMixin {
                 totalLookups, cacheHits, cacheMisses, hitRate
             );
         } catch (Throwable t) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FurnaceRecipeCache", "logCacheStats",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 

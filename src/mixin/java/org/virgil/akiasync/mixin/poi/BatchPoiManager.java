@@ -94,6 +94,8 @@ public class BatchPoiManager {
             return result;
             
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "BatchPoiManager", "getPoiInRange", e);
             return Collections.emptyMap();
         }
     }

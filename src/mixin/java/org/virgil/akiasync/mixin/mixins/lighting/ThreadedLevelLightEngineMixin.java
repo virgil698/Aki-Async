@@ -77,8 +77,8 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
             this.aki$lastLightUpdate.compareAndSet(lastUpdate, currentTime);
             
         } catch (RuntimeException e) {
-            
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ThreadedLevelLightEngine", "optimizeScheduling", e);
         }
     }
     

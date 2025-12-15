@@ -38,7 +38,8 @@ public class EndIslandDensityFixMixin {
                 akiasync$fixEnabled = bridge.isEndIslandDensityFixEnabled();
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EndIslandDensityFix", "initConfig", e);
         }
         
         akiasync$initialized = true;

@@ -58,8 +58,9 @@ public final class GoatSnapshot {
             if (goat instanceof net.minecraft.world.entity.animal.goat.Goat goatEntity) {
                 isScreaming = goatEntity.isScreamingGoat();
             }
-        } catch (Exception ignored) {
-            
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "GoatSnapshot", "captureScreaming", e);
         }
         
         boolean canRam = onGround && !isInWater;

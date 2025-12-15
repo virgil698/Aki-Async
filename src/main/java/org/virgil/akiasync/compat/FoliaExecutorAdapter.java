@@ -33,6 +33,7 @@ public class FoliaExecutorAdapter implements ExecutorService {
             regionScheduleMethod = regionScheduler.getClass().getMethod("execute", Plugin.class, Location.class, Runnable.class);
 
         } catch (Exception e) {
+            
         }
     }
 

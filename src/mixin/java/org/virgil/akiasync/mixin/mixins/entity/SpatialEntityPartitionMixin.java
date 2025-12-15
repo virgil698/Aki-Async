@@ -85,7 +85,8 @@ public abstract class SpatialEntityPartitionMixin {
                 }
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "SpatialEntityPartition", "optimizeQuery", e);
         }
     }
     
@@ -188,7 +189,8 @@ public abstract class SpatialEntityPartitionMixin {
                 grid.cells.computeIfAbsent(cellKey, k -> new ArrayList<>()).add(entity);
             });
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "SpatialEntityPartition", "updateGridsSync", e);
         } finally {
             
             isUpdatingGrids.set(false);

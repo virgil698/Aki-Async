@@ -120,17 +120,20 @@ public final class AsyncPathProcessor {
           try {
             path.process();
           } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AsyncPathProcessor", "pathProcess", e);
           }
         }
       });
     } catch (RejectedExecutionException e) {
-
+      org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+          "AsyncPathProcessor", "queueRejected", e);
       for (AsyncPath path : mergedBatch) {
         try {
           path.process();
         } catch (Exception ex) {
-
+          org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+              "AsyncPathProcessor", "fallbackProcess", ex);
         }
       }
     }
@@ -164,7 +167,8 @@ public final class AsyncPathProcessor {
               processStateField.setAccessible(true);
               processStateField.set(current, existing.getClass().getDeclaredField("processState").get(existing));
             } catch (Exception e) {
-              
+              org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                  "AsyncPathProcessor", "pathMergeReflection", e);
               current.process();
             }
           });

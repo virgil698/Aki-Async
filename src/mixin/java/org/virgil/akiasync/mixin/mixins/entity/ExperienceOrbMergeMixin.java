@@ -129,7 +129,8 @@ public abstract class ExperienceOrbMergeMixin {
                 }
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ExperienceOrbMerge", "tryMergeNearby", e);
         }
     }
 

@@ -19,7 +19,7 @@ public class BridgeConfigCache {
             try {
                 refreshCache();
             } catch (Exception e) {
-                
+                ExceptionHandler.handleInitialization("BridgeConfigCache", e);
             }
         }, "BridgeConfigCache-Init");
         initThread.setDaemon(true);
@@ -40,7 +40,7 @@ public class BridgeConfigCache {
                 lastRefreshTime = System.currentTimeMillis();
             }
         } catch (Exception e) {
-            
+            ExceptionHandler.handleUnexpected("BridgeConfigCache", "refreshCache", e);
         }
     }
     
@@ -64,6 +64,7 @@ public class BridgeConfigCache {
                 }
             } catch (Exception e) {
                 
+                System.err.println("[BridgeConfigCache] Failed to log debug message: " + e.getMessage());
             }
         }
     }
@@ -77,6 +78,7 @@ public class BridgeConfigCache {
                 }
             } catch (Exception e) {
                 
+                System.err.println("[BridgeConfigCache] Failed to log debug message: " + e.getMessage());
             }
         }
     }
@@ -89,6 +91,8 @@ public class BridgeConfigCache {
             }
         } catch (Exception e) {
             
+            System.err.println("[BridgeConfigCache] CRITICAL: Failed to log error message: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

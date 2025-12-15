@@ -96,7 +96,8 @@ public final class BrainSnapshot {
                             brain.setMemory(typedMemory, value);
                         }
                     } catch (Exception e) {
-                        
+                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                            "BrainSnapshot", "setMemory", e);
                     }
                 }
             } else if (memoryType != null) {
@@ -104,7 +105,8 @@ public final class BrainSnapshot {
                 try {
                     brain.eraseMemory(memoryType);
                 } catch (Exception e) {
-                    
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "BrainSnapshot", "eraseMemory", e);
                 }
             }
         });

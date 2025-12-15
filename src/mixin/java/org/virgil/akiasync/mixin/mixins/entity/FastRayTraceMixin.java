@@ -122,6 +122,8 @@ public abstract class FastRayTraceMixin {
             Object fluidMode = fluidField.get(context);
             hash = hash * 31 + fluidMode.hashCode();
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FastRayTraceMixin", "hashRayTrace", e);
         }
         return hash;
     }

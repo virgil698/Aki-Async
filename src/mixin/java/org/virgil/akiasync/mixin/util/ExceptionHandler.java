@@ -3,129 +3,192 @@ package org.virgil.akiasync.mixin.util;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
-public final class ExceptionHandler {
-
-    private static final String ERROR_PREFIX = "[AkiAsync-Error]";
-    private static final String DEBUG_PREFIX = "[AkiAsync-Debug]";
-
-    private ExceptionHandler() {
-        throw new UnsupportedOperationException("Utility class");
-    }
-
-    public static void safeExecute(Runnable operation, String operationName) {
-        safeExecute(operation, operationName, null);
-    }
-
-    public static void safeExecute(Runnable operation, String operationName, Runnable fallback) {
-        try {
-            operation.run();
-        } catch (Exception e) {
-            logError(operationName + " failed: " + e.getMessage(), e);
-            if (fallback != null) {
-                try {
-                    fallback.run();
-                } catch (Exception fallbackEx) {
-                    logError(operationName + " fallback also failed: " + fallbackEx.getMessage(), fallbackEx);
-                }
-            }
-        }
-    }
-
-    public static <T> T safeSupply(Supplier<T> supplier, String operationName, T defaultValue) {
-        try {
-            return supplier.get();
-        } catch (Exception e) {
-            logError(operationName + " failed: " + e.getMessage(), e);
-            return defaultValue;
-        }
-    }
-
-    public static <T> T safeSupply(Supplier<T> supplier, String operationName, Supplier<T> fallback) {
-        try {
-            return supplier.get();
-        } catch (Exception e) {
-            logError(operationName + " failed: " + e.getMessage(), e);
-            if (fallback != null) {
-                try {
-                    return fallback.get();
-                } catch (Exception fallbackEx) {
-                    logError(operationName + " fallback also failed: " + fallbackEx.getMessage(), fallbackEx);
-                    return null;
-                }
-            }
-            return null;
-        }
-    }
-
-    public static void safeReflection(ReflectiveRunnable reflectionOperation, String operationName) {
-        try {
-            reflectionOperation.run();
-        } catch (ReflectiveOperationException e) {
-            logError("Reflection operation '" + operationName + "' failed: " + e.getMessage(), e);
-        } catch (Exception e) {
-            logError("Unexpected error in reflection operation '" + operationName + "': " + e.getMessage(), e);
-        }
-    }
-
-    @FunctionalInterface
-    public interface ReflectiveRunnable {
-        void run() throws ReflectiveOperationException;
-    }
-
-    public static <T> T safeReflectionSupply(ReflectiveSupplier<T> reflectionOperation, String operationName, T defaultValue) {
-        try {
-            return reflectionOperation.get();
-        } catch (ReflectiveOperationException e) {
-            logError("Reflection operation '" + operationName + "' failed: " + e.getMessage(), e);
-            return defaultValue;
-        } catch (Exception e) {
-            logError("Unexpected error in reflection operation '" + operationName + "': " + e.getMessage(), e);
-            return defaultValue;
-        }
-    }
-
-    @FunctionalInterface
-    public interface ReflectiveSupplier<T> {
-        T get() throws ReflectiveOperationException;
-    }
-
-    public static void logError(String message, Throwable throwable) {
+public class ExceptionHandler {
+    
+    
+    private static final Map<String, AtomicInteger> exceptionCounts = new ConcurrentHashMap<>();
+    private static final Map<String, Long> lastLogTime = new ConcurrentHashMap<>();
+    private static final long LOG_THROTTLE_MS = 60000; 
+    
+    
+    public static void handleExpected(String component, String operation, Exception e) {
+        recordException(component, "expected");
+        
         Bridge bridge = BridgeManager.getBridge();
-        if (bridge != null) {
-            bridge.errorLog(ERROR_PREFIX + " " + message);
-            if (throwable != null && bridge.isDebugLoggingEnabled()) {
-                java.io.StringWriter sw = new java.io.StringWriter();
-                throwable.printStackTrace(new java.io.PrintWriter(sw));
-                bridge.debugLog("Stack trace: " + sw.toString());
-            }
-        } else {
-            System.err.println(ERROR_PREFIX + " " + message);
-            if (throwable != null) {
-                java.io.StringWriter sw = new java.io.StringWriter();
-                throwable.printStackTrace(new java.io.PrintWriter(sw));
-                System.err.println("Stack trace: " + sw.toString());
+        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+            BridgeConfigCache.debugLog("[%s] Expected exception in %s: %s", 
+                component, operation, e.getClass().getSimpleName());
+        }
+    }
+    
+    
+    public static void handleUnexpected(String component, String operation, Exception e) {
+        recordException(component, "unexpected");
+        
+        String key = component + ":" + operation;
+        long now = System.currentTimeMillis();
+        Long lastLog = lastLogTime.get(key);
+        
+        
+        if (lastLog == null || now - lastLog > LOG_THROTTLE_MS) {
+            lastLogTime.put(key, now);
+            
+            BridgeConfigCache.errorLog("[%s] Unexpected exception in %s: %s - %s", 
+                component, operation, e.getClass().getSimpleName(), e.getMessage());
+            
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null && bridge.isDebugLoggingEnabled()) {
+                BridgeConfigCache.errorLog("[%s] Stack trace:", component);
+                StackTraceElement[] stackTrace = e.getStackTrace();
+                for (int i = 0; i < Math.min(5, stackTrace.length); i++) {
+                    BridgeConfigCache.errorLog("  at %s", stackTrace[i].toString());
+                }
+                
+                if (e.getCause() != null) {
+                    BridgeConfigCache.errorLog("[%s] Caused by: %s - %s", 
+                        component, e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+                }
             }
         }
     }
-
+    
+    
+    public static void handleRecoverable(String component, String operation, 
+                                        Exception e, Runnable fallback) {
+        recordException(component, "recoverable");
+        
+        BridgeConfigCache.errorLog("[%s] Recoverable exception in %s: %s - %s", 
+            component, operation, e.getClass().getSimpleName(), e.getMessage());
+        
+        if (fallback != null) {
+            try {
+                BridgeConfigCache.debugLog("[%s] Executing fallback for %s", component, operation);
+                fallback.run();
+            } catch (Exception fallbackEx) {
+                BridgeConfigCache.errorLog("[%s] Fallback also failed in %s: %s", 
+                    component, operation, fallbackEx.getMessage());
+                recordException(component, "fallback-failed");
+            }
+        }
+    }
+    
+    
+    public static boolean handleInitialization(String component, Exception e) {
+        recordException(component, "initialization");
+        
+        BridgeConfigCache.errorLog("[%s] Initialization failed: %s - %s", 
+            component, e.getClass().getSimpleName(), e.getMessage());
+        BridgeConfigCache.errorLog("[%s] Feature will be disabled", component);
+        
+        Bridge bridge = BridgeManager.getBridge();
+        if (bridge != null && bridge.isDebugLoggingEnabled()) {
+            e.printStackTrace();
+        }
+        
+        return true; 
+    }
+    
+    
+    public static void handleCleanup(String component, String resource, Exception e) {
+        recordException(component, "cleanup");
+        
+        BridgeConfigCache.errorLog("[%s] Failed to cleanup %s: %s", 
+            component, resource, e.getMessage());
+        
+        
+    }
+    
+    
+    private static void recordException(String component, String type) {
+        String key = component + ":" + type;
+        exceptionCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
+    }
+    
+    
+    public static String getStatistics() {
+        if (exceptionCounts.isEmpty()) {
+            return "No exceptions recorded";
+        }
+        
+        StringBuilder sb = new StringBuilder("Exception Statistics:\n");
+        exceptionCounts.entrySet().stream()
+            .sorted((a, b) -> b.getValue().get() - a.getValue().get())
+            .forEach(entry -> {
+                sb.append(String.format("  %s: %d\n", entry.getKey(), entry.getValue().get()));
+            });
+        return sb.toString();
+    }
+    
+    
+    public static void clearStatistics() {
+        exceptionCounts.clear();
+        lastLogTime.clear();
+    }
+    
+    
+    public static int getExceptionCount(String component, String type) {
+        String key = component + ":" + type;
+        AtomicInteger count = exceptionCounts.get(key);
+        return count != null ? count.get() : 0;
+    }
+    
+    
+    public static <T> T safeSupply(java.util.function.Supplier<T> supplier, String operation, T defaultValue) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            handleExpected("SafeSupply", operation, e);
+            return defaultValue;
+        }
+    }
+    
+    
+    public static <T> T safeReflectionSupply(java.util.function.Supplier<T> supplier, String operation, T defaultValue) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            handleExpected("Reflection", operation, e);
+            return defaultValue;
+        }
+    }
+    
+    
+    public static void safeReflection(Runnable runnable, String operation) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            handleExpected("Reflection", operation, e);
+        }
+    }
+    
+    
+    public static void safeExecute(Runnable task, String context) {
+        try {
+            task.run();
+        } catch (Exception e) {
+            handleExpected("SafeExecute", context, e);
+        }
+    }
+    
+    
     public static void logDebug(String message) {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isDebugLoggingEnabled()) {
-            bridge.debugLog(DEBUG_PREFIX + " " + message);
+            BridgeConfigCache.debugLog(message);
         }
     }
-
-    public static boolean isAsyncCatcherError(Throwable throwable) {
-        if (throwable == null) return false;
-        StackTraceElement[] stack = throwable.getStackTrace();
-        return stack.length > 0 && "org.spigotmc.AsyncCatcher".equals(stack[0].getClassName());
-    }
-
-    public static <T> Consumer<T> safeConsumer(Consumer<T> consumer, String operationName) {
-        return item -> safeExecute(() -> consumer.accept(item), operationName);
+    
+    
+    public static void logError(String message, Exception e) {
+        if (e != null) {
+            BridgeConfigCache.errorLog("%s: %s", message, e.getMessage());
+        } else {
+            BridgeConfigCache.errorLog(message);
+        }
     }
 }

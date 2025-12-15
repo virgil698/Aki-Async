@@ -41,7 +41,9 @@ public class ServerLevelTimeCompensationMixin {
                 }
             }
         } catch (Throwable t) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ServerLevelTimeCompensation", "compensateTime",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
         
         return timeOfDay;

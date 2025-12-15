@@ -67,6 +67,8 @@ public class ZipFileSystemProviderMixin {
 
             }
         } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ZipFileSystemProvider", "optimizeNewFileSystemFromPath", e);
         }
     }
 

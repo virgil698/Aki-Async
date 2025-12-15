@@ -12,8 +12,6 @@ public final class FoliaUtils {
 
     
     private static final String REGIONIZED_SERVER_CLASS = "io.papermc.paper.threadedregions.RegionizedServer";
-    private static final String BUKKIT_CLASS = "org.bukkit.Bukkit";
-    private static final String IS_OWNED_METHOD = "isOwnedByCurrentRegion";
     private static final String QUEUE_METHOD = "queueTickTaskQueue";
 
     private static volatile Boolean isFolia = null;
@@ -21,7 +19,6 @@ public final class FoliaUtils {
     private static volatile Object regionizedServerInstance = null;
     private static volatile Object taskQueue = null;
     private static volatile Method queueMethod = null;
-    private static volatile Method isOwnedMethod = null;
 
     private static final ConcurrentHashMap<String, Method> methodCache = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
@@ -58,20 +55,21 @@ public final class FoliaUtils {
         }
 
         return ExceptionHandler.safeReflectionSupply(() -> {
-            if (isOwnedMethod == null) {
-                Class<?> bukkitClass = getOrCacheClass(BUKKIT_CLASS);
-                
+            try {
+                Class<?> bukkitClass = getOrCacheClass("org.bukkit.Bukkit");
                 Class<?> worldClass = getOrCacheClass("org.bukkit.World");
-                isOwnedMethod = getOrCacheMethod(bukkitClass, IS_OWNED_METHOD,
+                Method isOwnedMethod = getOrCacheMethod(bukkitClass, "isOwnedByCurrentRegion",
                     worldClass, int.class, int.class);
-            }
 
-            BlockPos blockPos = BlockPos.containing(position);
-            
-            Method getWorldMethod = level.getClass().getMethod("getWorld");
-            Object bukkitWorld = getWorldMethod.invoke(level);
-            return (Boolean) isOwnedMethod.invoke(null, bukkitWorld,
-                blockPos.getX() >> 4, blockPos.getZ() >> 4);
+                BlockPos blockPos = BlockPos.containing(position);
+                
+                Method getWorldMethod = level.getClass().getMethod("getWorld");
+                Object bukkitWorld = getWorldMethod.invoke(level);
+                return (Boolean) isOwnedMethod.invoke(null, bukkitWorld,
+                    blockPos.getX() >> 4, blockPos.getZ() >> 4);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
         }, "Region ownership check", true);
     }
 
@@ -82,13 +80,17 @@ public final class FoliaUtils {
         }
 
         ExceptionHandler.safeReflection(() -> {
-            initializeFoliaScheduler();
+            try {
+                initializeFoliaScheduler();
 
-            BlockPos blockPos = BlockPos.containing(position);
-            int chunkX = blockPos.getX() >> 4;
-            int chunkZ = blockPos.getZ() >> 4;
+                BlockPos blockPos = BlockPos.containing(position);
+                int chunkX = blockPos.getX() >> 4;
+                int chunkZ = blockPos.getZ() >> 4;
 
-            queueMethod.invoke(taskQueue, new Object[]{level, chunkX, chunkZ, task});
+                queueMethod.invoke(taskQueue, new Object[]{level, chunkX, chunkZ, task});
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
         }, "Folia region task scheduling");
 
         if (queueMethod == null) {
@@ -143,7 +145,6 @@ public final class FoliaUtils {
         regionizedServerInstance = null;
         taskQueue = null;
         queueMethod = null;
-        isOwnedMethod = null;
         methodCache.clear();
         classCache.clear();
     }

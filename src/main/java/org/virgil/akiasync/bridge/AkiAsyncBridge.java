@@ -50,7 +50,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
                 isFolia = true;
             } catch (ClassNotFoundException e) {
-
+                
             }
             
             if (isFolia) {
@@ -1245,7 +1245,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             org.virgil.akiasync.mixin.network.EntityDataThrottler.clearEntity(entityId);
             org.virgil.akiasync.mixin.network.EntityPacketThrottler.clearEntity(entityId);
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "clearEntityThrottleCache", e);
         }
     }
 
@@ -1328,7 +1329,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     networkManager.expire(serverLevel.getGameTime());
                     
                 } catch (Exception e) {
-
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "AkiAsyncBridge", "expireRedstoneNetwork", e);
                 }
             }
         } catch (Exception e) {
@@ -1711,7 +1713,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             try {
                 task.run();
             } catch (Exception ex) {
-                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "AkiAsyncBridge", "runTaskFallback", ex);
             }
         }
     }
@@ -1741,7 +1744,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return (sum / (double) count) / 1_000_000.0;
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "getCurrentMSPT", e);
         }
         return 50.0;
     }
@@ -1777,7 +1781,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return smoothScheduler.submit(task, pri, category != null ? category : "Unknown");
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "submitSmoothTask", e);
         }
         return false;
     }
@@ -1808,7 +1813,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return successCount;
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "submitSmoothTaskBatch", e);
         }
         return 0;
     }
@@ -1822,7 +1828,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 smoothScheduler.onTick();
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "notifySmoothSchedulerTick", e);
         }
     }
     
@@ -1835,7 +1842,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 smoothScheduler.updatePerformanceMetrics(tps, mspt);
             }
         } catch (Exception e) {
-
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "updateSmoothSchedulerMetrics", e);
         }
     }
     
@@ -2198,7 +2206,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 org.virgil.akiasync.mixin.network.EntityPacketThrottler.tick();
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "tickEntityPacketThrottler", e);
         }
     }
     
@@ -2244,7 +2253,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         try {
             org.virgil.akiasync.mixin.network.EntityDataThrottler.tick();
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "tickEntityDataThrottler", e);
         }
     }
     
@@ -2276,7 +2286,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         try {
             org.virgil.akiasync.mixin.network.ChunkVisibilityFilter.tick();
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AkiAsyncBridge", "tickChunkVisibilityFilter", e);
         }
     }
     

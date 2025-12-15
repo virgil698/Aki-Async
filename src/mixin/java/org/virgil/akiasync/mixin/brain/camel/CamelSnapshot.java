@@ -65,8 +65,9 @@ public final class CamelSnapshot {
             if (camel.getDeltaMovement().lengthSqr() < 0.001 && !hasPassengers) {
                 isSitting = true;
             }
-        } catch (Exception ignored) {
-            
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "CamelSnapshot", "captureSitting", e);
         }
         
         

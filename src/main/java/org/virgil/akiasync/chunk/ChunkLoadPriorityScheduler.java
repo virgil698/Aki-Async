@@ -123,7 +123,8 @@ public class ChunkLoadPriorityScheduler {
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception e) {
-                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "ChunkLoadPriorityScheduler", "processQueue", e);
             }
         }
     }
@@ -147,7 +148,8 @@ public class ChunkLoadPriorityScheduler {
             });
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ChunkLoadPriorityScheduler", "loadChunk", e);
         }
     }
     

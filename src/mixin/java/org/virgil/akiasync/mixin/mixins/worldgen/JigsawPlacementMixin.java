@@ -47,7 +47,8 @@ public class JigsawPlacementMixin {
                 bridge.clearJigsawOctree();
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "JigsawPlacement", "clearJigsawOctree", e);
         }
     }
 

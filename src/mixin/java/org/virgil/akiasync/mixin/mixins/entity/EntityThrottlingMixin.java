@@ -100,7 +100,8 @@ public class EntityThrottlingMixin {
             }
 
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityThrottling", "throttleCheck", e);
         }
     }
 }

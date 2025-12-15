@@ -50,15 +50,19 @@ public final class FoliaRegionContext {
                     isOwnedByCurrentRegionEntityMethod = regionizedServerClass.getMethod(
                         "isOwnedByCurrentRegion", Entity.class);
                 } catch (NoSuchMethodException e) {
+                    
                 }
 
                 try {
                     isOwnedByCurrentRegionLocationMethod = regionizedServerClass.getMethod(
                         "isOwnedByCurrentRegion", Level.class, BlockPos.class);
                 } catch (NoSuchMethodException e) {
+                    
                 }
 
             } catch (Exception e) {
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "FoliaRegionContext", "initializeReflection", e);
             }
         }
     }

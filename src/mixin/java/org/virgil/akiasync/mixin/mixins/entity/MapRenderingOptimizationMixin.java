@@ -56,7 +56,8 @@ public abstract class MapRenderingOptimizationMixin {
                 aki$renderMapAsync(mapData);
                 aki$lastUpdateTime = currentTime;
             } catch (Exception e) {
-                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "MapRenderingOptimization", "renderMapAsync", e);
             }
         }, aki$mapRenderExecutor);
     }

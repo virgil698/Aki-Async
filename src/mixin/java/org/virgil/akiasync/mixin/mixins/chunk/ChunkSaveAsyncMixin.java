@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.util.ExceptionHandler;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
@@ -49,6 +50,7 @@ public class ChunkSaveAsyncMixin {
                 BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Using optimized async save executor");
             }
         } catch (Exception e) {
+            ExceptionHandler.handleExpected("ChunkSaveAsync", "logFoliaDetection", e);
         }
     }
 
@@ -69,6 +71,7 @@ public class ChunkSaveAsyncMixin {
                     ));
                 }
             } catch (Exception e) {
+                ExceptionHandler.handleExpected("ChunkSaveAsync", "logStatistics", e);
             }
         }
     }
@@ -136,6 +139,7 @@ public class ChunkSaveAsyncMixin {
                 try {
                     callUnsafeSave(finalHolder, false);
                 } catch (Exception ex) {
+                    ExceptionHandler.handleUnexpected("ChunkSaveAsync", "asyncSaveTask", ex);
                 }
             }, finalPos);
 
@@ -144,7 +148,9 @@ public class ChunkSaveAsyncMixin {
                 if (asyncCallCount <= 5) {
                     BridgeConfigCache.debugLog("[AkiAsync-ChunkSave] Async save failed, fallback to sync: " + e.getMessage());
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception logEx) {
+                ExceptionHandler.handleExpected("ChunkSaveAsync", "fallbackLogging", logEx);
+            }
             callUnsafeSave(holder, flush);
         }
     }

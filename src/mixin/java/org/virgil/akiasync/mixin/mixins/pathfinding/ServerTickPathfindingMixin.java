@@ -19,7 +19,8 @@ public class ServerTickPathfindingMixin {
         try {
             EnhancedPathfindingInitializer.tick();
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "ServerTickPathfinding", "tick", e);
         }
     }
 }

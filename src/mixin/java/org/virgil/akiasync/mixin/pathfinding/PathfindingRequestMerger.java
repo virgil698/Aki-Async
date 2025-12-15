@@ -126,6 +126,8 @@ public class PathfindingRequestMerger {
                 
                 return computePath(representative.entity, representative.start, representative.target);
             } catch (Exception e) {
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "PathfindingRequestMerger", "computePath", e);
                 return null;
             }
         }).thenAccept(path -> {

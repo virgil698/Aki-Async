@@ -161,7 +161,9 @@ public class TaskSmoothingScheduler {
                                     task.task.run();
                                     totalExecuted.incrementAndGet();
                                 } catch (Throwable t) {
-
+                                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                                        "TaskSmoothingScheduler", "executeTask",
+                                        t instanceof Exception ? (Exception) t : new RuntimeException(t));
                                 }
                             });
                             
@@ -175,7 +177,9 @@ public class TaskSmoothingScheduler {
                     Thread.currentThread().interrupt();
                     break;
                 } catch (Throwable t) {
-
+                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                        "TaskSmoothingScheduler", "schedulerLoop",
+                        t instanceof Exception ? (Exception) t : new RuntimeException(t));
                 }
             }
         }, "AkiAsync-TaskSmoothing");

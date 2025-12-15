@@ -33,7 +33,8 @@ public final class PandaCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PandaCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

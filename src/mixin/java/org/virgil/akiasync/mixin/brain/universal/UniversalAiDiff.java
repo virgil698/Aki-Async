@@ -86,7 +86,8 @@ public final class UniversalAiDiff {
                     brain.eraseMemory(type);
                 }
             } catch (Exception e) {
-                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "UniversalAiDiff", "applyBrainMemoryChanges", e);
             }
         }
     }

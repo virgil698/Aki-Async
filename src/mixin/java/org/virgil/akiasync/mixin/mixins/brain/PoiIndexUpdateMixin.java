@@ -60,7 +60,8 @@ public abstract class PoiIndexUpdateMixin {
             
             index.removePoi(pos);
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PoiIndexUpdate", "removePoi", e);
         }
     }
     
@@ -81,7 +82,8 @@ public abstract class PoiIndexUpdateMixin {
                 index.addPoi(record);
             }
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PoiIndexUpdate", "addPoi", e);
         }
     }
     

@@ -13,6 +13,7 @@ import org.virgil.akiasync.mixin.brain.core.AiSpatialIndex;
 import org.virgil.akiasync.mixin.brain.core.AiSpatialIndexManager;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.ExceptionHandler;
 
 @Mixin(value = LivingEntity.class, priority = 800)
 public abstract class AiSpatialIndexTrackerMixin {
@@ -83,7 +84,9 @@ public abstract class AiSpatialIndexTrackerMixin {
             if (bridge != null) {
                 bridge.clearEntityThrottleCache(entity.getId());
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            ExceptionHandler.handleCleanup("AiSpatialIndexTracker", "entityThrottleCache", e);
+        }
         
         akiasync$lastIndexedPos = null;
     }

@@ -64,6 +64,9 @@ public abstract class CraftingMenuMixin {
             akiasync$updateCache(craftingContainer);
 
         } catch (Throwable t) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "CraftingMenu", "optimizeSlotsChanged",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 
@@ -114,6 +117,9 @@ public abstract class CraftingMenuMixin {
                 totalLookups, cacheHits, cacheMisses, hitRate
             );
         } catch (Throwable t) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "CraftingMenu", "logCacheStats",
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
 

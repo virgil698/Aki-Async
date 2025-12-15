@@ -25,7 +25,8 @@ public final class CamelCpuCalculator {
             }
             
         } catch (Exception e) {
-            
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "CamelCpuCalculator", "runCpuOnly", e);
         }
         
         return diff;

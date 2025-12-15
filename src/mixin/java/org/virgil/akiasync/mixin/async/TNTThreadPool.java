@@ -43,7 +43,8 @@ public class TNTThreadPool {
                     }
                 }
             } catch (Exception e) {
-                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "TNTThreadPool", "checkExecutorHealth", e);
             }
         }
 
