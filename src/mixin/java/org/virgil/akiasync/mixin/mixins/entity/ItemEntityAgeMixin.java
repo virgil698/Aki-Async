@@ -57,7 +57,6 @@ public abstract class ItemEntityAgeMixin {
 
         akiasync$updateStaticState(self);
 
-        
         if (aki$isStatic && !akiasync$hasNearbyPlayer(self) && self.onGround()) {
             net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
             double velocitySq = deltaMovement.lengthSqr();
@@ -65,7 +64,6 @@ public abstract class ItemEntityAgeMixin {
             if (velocitySq < 0.0001) {
                 aki$ageTickCounter++;
 
-                
                 if (aki$ageTickCounter % ageIncrementInterval == 0) {
                     org.virgil.akiasync.mixin.util.BridgeConfigCache.debugLog(
                         "[AkiAsync-ItemAge] Static item detected: age=%d, pos=%s, staticTicks=%d",
@@ -75,7 +73,6 @@ public abstract class ItemEntityAgeMixin {
                 }
             }
         }
-        
         
     }
 

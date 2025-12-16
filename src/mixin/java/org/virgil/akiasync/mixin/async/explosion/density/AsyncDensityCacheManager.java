@@ -44,6 +44,7 @@ public class AsyncDensityCacheManager {
         executorInitialized = true;
     }
     
+    @SuppressWarnings("unused")
     private final ServerLevel level;
     private final SakuraBlockDensityCache cache;
     private final ConcurrentHashMap<String, CompletableFuture<Float>> pendingCalculations = new ConcurrentHashMap<>();

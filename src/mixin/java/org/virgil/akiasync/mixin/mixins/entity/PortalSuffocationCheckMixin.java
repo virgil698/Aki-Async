@@ -35,11 +35,9 @@ public class PortalSuffocationCheckMixin {
                 return;
             }
             
-            
             if (entity instanceof net.minecraft.world.entity.player.Player) {
                 return;  
             }
-            
             
             if (entity.isOnPortalCooldown()) {
                 return;  

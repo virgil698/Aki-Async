@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.sniffer.Sniffer", priority = 1100)
 public abstract class SnifferTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class SnifferTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncSnifferAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class SnifferTickMixin {
             net.minecraft.world.entity.animal.Animal sniffer = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (sniffer.isInLava() || sniffer.isOnFire() || 
                 sniffer.getHealth() < sniffer.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class SnifferTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = SnifferSnapshot.capture(sniffer, level, sniffer.tickCount);
-            
             
             CompletableFuture<SnifferDiff> future = AsyncBrainExecutor.runSync(() ->
                 SnifferCpuCalculator.runCpuOnly(sniffer, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             SnifferDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 SnifferDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(sniffer, level);

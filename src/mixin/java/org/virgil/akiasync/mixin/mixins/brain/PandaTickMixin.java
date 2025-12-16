@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.Panda", priority = 1100)
 public abstract class PandaTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class PandaTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncPandaAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class PandaTickMixin {
             net.minecraft.world.entity.animal.Animal panda = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (panda.isInLava() || panda.isOnFire() || 
                 panda.getHealth() < panda.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class PandaTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = PandaSnapshot.capture(panda, level, panda.tickCount);
-            
             
             CompletableFuture<PandaDiff> future = AsyncBrainExecutor.runSync(() ->
                 PandaCpuCalculator.runCpuOnly(panda, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             PandaDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 PandaDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(panda, level);

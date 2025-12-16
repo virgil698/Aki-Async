@@ -171,7 +171,7 @@ public class CacheManager {
         StringBuilder sb = new StringBuilder();
         
         sb.append("§6=== AkiAsync Cache Statistics ===§r\n");
-        sb.append(String.format("§e[Global Cache]§r\n  §7Size: §f%d/%d§r\n", 
+        sb.append(String.format("§e[Global Cache]§r%n  §7Size: §f%d/%d§r%n", 
             globalCache.size(), MAX_CACHE_SIZE));
         
         sb.append("\n");

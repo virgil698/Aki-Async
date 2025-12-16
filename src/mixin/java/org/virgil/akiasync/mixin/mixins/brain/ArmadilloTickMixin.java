@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.armadillo.Armadillo", priority = 1100)
 public abstract class ArmadilloTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class ArmadilloTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncArmadilloAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class ArmadilloTickMixin {
             net.minecraft.world.entity.animal.Animal armadillo = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (armadillo.isInLava() || armadillo.isOnFire() || 
                 armadillo.getHealth() < armadillo.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class ArmadilloTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = ArmadilloSnapshot.capture(armadillo, level, armadillo.tickCount);
-            
             
             CompletableFuture<ArmadilloDiff> future = AsyncBrainExecutor.runSync(() ->
                 ArmadilloCpuCalculator.runCpuOnly(armadillo, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             ArmadilloDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 ArmadilloDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(armadillo, level);

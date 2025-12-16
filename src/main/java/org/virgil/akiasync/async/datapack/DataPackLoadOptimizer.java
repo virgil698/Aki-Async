@@ -62,6 +62,7 @@ public class DataPackLoadOptimizer {
         startCleanupTask();
     }
 
+    @SuppressWarnings("MS_EXPOSE_REP")
     public static synchronized DataPackLoadOptimizer getInstance(AkiAsyncPlugin plugin) {
         if (instance == null) {
             instance = new DataPackLoadOptimizer(plugin);
@@ -69,6 +70,7 @@ public class DataPackLoadOptimizer {
         return instance;
     }
 
+    @SuppressWarnings("MS_EXPOSE_REP")
     public static synchronized DataPackLoadOptimizer getInstance() {
         return instance;
     }
@@ -355,6 +357,7 @@ public class DataPackLoadOptimizer {
         }
     }
 
+    @SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public void shutdown() {
         fileLoadExecutor.shutdown();
         zipProcessExecutor.shutdown();

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.async.chunk;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,6 +49,7 @@ public final class ChunkTickExecutor {
             bridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor initialized with " + threadCount + " threads");
         }
     }
+
     public static CompletableFuture<ChunkSnapshot> runAsync(ChunkSnapshot snap) {
         if (POOL == null || POOL.isShutdown()) {
             initializePools();
@@ -67,6 +69,7 @@ public final class ChunkTickExecutor {
     public static void setThreadCount(int count) {
         threadCount = Math.max(1, Math.min(count, 16));
     }
+    
     public static void shutdown() {
         if (POOL != null) {
             POOL.shutdown();

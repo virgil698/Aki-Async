@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.frog.Frog", priority = 1100)
 public abstract class FrogTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class FrogTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncFrogAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class FrogTickMixin {
             net.minecraft.world.entity.animal.Animal frog = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (frog.isInLava() || frog.isOnFire() || 
                 frog.getHealth() < frog.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class FrogTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = FrogSnapshot.capture(frog, level, frog.tickCount);
-            
             
             CompletableFuture<FrogDiff> future = AsyncBrainExecutor.runSync(() ->
                 FrogCpuCalculator.runCpuOnly(frog, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             FrogDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 FrogDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(frog, level);

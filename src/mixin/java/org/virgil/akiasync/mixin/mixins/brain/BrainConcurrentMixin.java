@@ -16,7 +16,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
-
 @Mixin(Brain.class)
 public class BrainConcurrentMixin {
 
@@ -25,7 +24,6 @@ public class BrainConcurrentMixin {
     @Mutable
     private Map<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> memories;
 
-    
     @SuppressWarnings("unused")
     @Inject(method = "<init>", at = @At("RETURN"))
     private void replaceMemoriesWithConcurrent(CallbackInfo ci) {

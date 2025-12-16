@@ -12,7 +12,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.monster.EnderMan;
 
-
 @Mixin(EnderMan.class)
 public class EndermanBlockInteractionMixin {
     
@@ -25,14 +24,12 @@ public class EndermanBlockInteractionMixin {
     @Unique
     private static volatile boolean cached_allowPlaceBlocks = true;
     
-    
     @Inject(method = "registerGoals", at = @At("RETURN"))
     @SuppressWarnings("unused") 
     private void aki$controlBlockInteraction(CallbackInfo ci) {
         if (!cached_initialized) {
             aki$initConfig();
         }
-        
         
         if (cached_allowPickupBlocks && cached_allowPlaceBlocks) {
             return;
@@ -50,11 +47,9 @@ public class EndermanBlockInteractionMixin {
             java.util.Set<net.minecraft.world.entity.ai.goal.WrappedGoal> availableGoals = 
                 (java.util.Set<net.minecraft.world.entity.ai.goal.WrappedGoal>) availableGoalsField.get(goalSelector);
             
-            
             availableGoals.removeIf(wrappedGoal -> {
                 Goal goal = wrappedGoal.getGoal();
                 String goalClassName = goal.getClass().getSimpleName();
-                
                 
                 if (!cached_allowPickupBlocks && goalClassName.equals("EndermanTakeBlockGoal")) {
                     Bridge bridge = BridgeManager.getBridge();
@@ -63,7 +58,6 @@ public class EndermanBlockInteractionMixin {
                     }
                     return true;
                 }
-                
                 
                 if (!cached_allowPlaceBlocks && goalClassName.equals("EndermanLeaveBlockGoal")) {
                     Bridge bridge = BridgeManager.getBridge();

@@ -84,18 +84,15 @@ public abstract class SpatialCollisionOptimizationMixin {
                 double rangeY = box.maxY - box.minY;
                 double rangeZ = box.maxZ - box.minZ;
                 
-                
                 if (except != null && 
                     (except.isOnPortalCooldown() || 
                      except instanceof net.minecraft.world.entity.player.Player)) {
-                    
                     
                     if (bridge != null && bridge.isDebugLoggingEnabled()) {
                         bridge.debugLog("[AkiAsync-Collision] Portal/Player query, using vanilla for safety");
                     }
                     return;
                 }
-                
                 
                 if (rangeX > 32 || rangeY > 32 || rangeZ > 32) {
                     if (bridge != null && bridge.isTNTDebugEnabled()) {
@@ -104,7 +101,6 @@ public abstract class SpatialCollisionOptimizationMixin {
                     }
                     return;
                 }
-                
                 
                 if (bridge != null && bridge.isDebugLoggingEnabled()) {
                     bridge.debugLog("[AkiAsync-Collision] No candidates in slice grid, returning empty list (%.1fx%.1fx%.1f)", 

@@ -17,7 +17,6 @@ public class FoliaExecutorAdapter implements ExecutorService {
     private final AtomicInteger taskCounter = new AtomicInteger(0);
 
     private static Method globalScheduleMethod;
-    private static Method regionScheduleMethod;
     private static Object globalScheduler;
     private static Object regionScheduler;
 
@@ -30,10 +29,9 @@ public class FoliaExecutorAdapter implements ExecutorService {
             regionScheduler = server.getClass().getMethod("getRegionScheduler").invoke(server);
 
             globalScheduleMethod = globalScheduler.getClass().getMethod("execute", Plugin.class, Runnable.class);
-            regionScheduleMethod = regionScheduler.getClass().getMethod("execute", Plugin.class, Location.class, Runnable.class);
 
         } catch (Exception e) {
-            
+            System.out.println("[AkiAsync-FoliaExecutorAdapter] Folia not detected, using fallback ThreadPool executor");
         }
     }
 

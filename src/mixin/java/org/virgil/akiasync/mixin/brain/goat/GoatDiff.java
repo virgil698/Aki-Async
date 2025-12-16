@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class GoatDiff {
     
     private boolean shouldRam = false;
@@ -34,12 +33,10 @@ public final class GoatDiff {
     public boolean shouldHighJump() { return shouldHighJump; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal goat, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -49,4 +46,3 @@ public final class GoatDiff {
                 shouldRam, targetEntityId, shouldHighJump, changeCount);
     }
 }
-

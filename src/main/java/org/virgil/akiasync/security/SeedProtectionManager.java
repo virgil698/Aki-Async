@@ -13,7 +13,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
-
 public class SeedProtectionManager implements Listener {
     
     private final AkiAsyncPlugin plugin;
@@ -30,12 +29,10 @@ public class SeedProtectionManager implements Listener {
         this.logSuspiciousAccess = plugin.getConfig().getBoolean("seed-encryption.anti-plugin-theft.log-suspicious-access", true);
     }
     
-    
     public void initialize() {
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
         
-
         for (World world : Bukkit.getWorlds()) {
             protectWorld(world);
         }
@@ -46,19 +43,16 @@ public class SeedProtectionManager implements Listener {
         }
     }
     
-    
     @EventHandler(priority = EventPriority.LOWEST)
     public void onWorldLoad(WorldLoadEvent event) {
         protectWorld(event.getWorld());
     }
-    
     
     private void protectWorld(World world) {
         try {
 
             Class<?> craftWorldClass = world.getClass();
             
-
             if (logSuspiciousAccess) {
                 detectSuspiciousAccess(world);
             }
@@ -70,7 +64,6 @@ public class SeedProtectionManager implements Listener {
         }
     }
     
-    
     private void detectSuspiciousAccess(World world) {
 
         Thread monitorThread = new Thread(() -> {
@@ -78,12 +71,10 @@ public class SeedProtectionManager implements Listener {
 
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 
-
                 for (StackTraceElement element : stackTrace) {
                     String className = element.getClassName();
                     String methodName = element.getMethodName();
                     
-
                     if (methodName.contains("getSeed") || methodName.contains("seed")) {
 
                         if (!className.startsWith("org.virgil.akiasync") &&
@@ -96,7 +87,6 @@ public class SeedProtectionManager implements Listener {
                             logger.warning("  Method: " + methodName);
                             logger.warning("  Line: " + element.getLineNumber());
                             
-
                             String pluginName = identifyPlugin(className);
                             if (pluginName != null) {
                                 logger.warning("  Suspected plugin: " + pluginName);
@@ -114,16 +104,13 @@ public class SeedProtectionManager implements Listener {
         monitorThread.start();
     }
     
-    
     private String identifyPlugin(String className) {
-
 
         String[] parts = className.split("\\.");
         if (parts.length >= 3) {
             return parts[2];
         }
         
-
         for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             String pluginPackage = plugin.getClass().getPackage().getName();
             if (className.startsWith(pluginPackage)) {
@@ -134,16 +121,13 @@ public class SeedProtectionManager implements Listener {
         return null;
     }
     
-    
     public long getFakeSeed() {
         return fakeSeed;
     }
     
-    
     public boolean shouldReturnFakeSeed() {
         return returnFakeSeed;
     }
-    
     
     public void logSeedAccess(String source, long requestedSeed) {
         if (logSuspiciousAccess) {

@@ -2,9 +2,7 @@ package org.virgil.akiasync.mixin.brain.enderman;
 
 import net.minecraft.world.entity.monster.EnderMan;
 
-
 public final class EndermanCpuCalculator {
-    
     
     public static EndermanDiff runCpuOnly(EnderMan enderman, EndermanSnapshot snap) {
         EndermanDiff diff = new EndermanDiff();
@@ -15,7 +13,6 @@ public final class EndermanCpuCalculator {
                 diff.setShouldTeleport(true);
                 diff.setShouldClearTarget(true);
             }
-            
             
             if (shouldTeleportFromWater(snap)) {
                 diff.setShouldTeleport(true);
@@ -29,9 +26,7 @@ public final class EndermanCpuCalculator {
         return diff;
     }
     
-    
     private static boolean shouldTeleportFromSunlight(EndermanSnapshot snap) {
-        
         
         if (!snap.isBrightOutside()) {
             return false;
@@ -49,13 +44,10 @@ public final class EndermanCpuCalculator {
             return false;
         }
         
-        
         float threshold = (snap.lightLevel() - 0.4F) * 2.0F;
-        
         
         return threshold > 15.0F;
     }
-    
     
     private static boolean shouldTeleportFromWater(EndermanSnapshot snap) {
         

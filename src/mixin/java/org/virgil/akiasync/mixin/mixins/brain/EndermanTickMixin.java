@@ -19,7 +19,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-
 @Mixin(value = EnderMan.class, priority = 1100)
 public abstract class EndermanTickMixin {
     
@@ -50,7 +49,6 @@ public abstract class EndermanTickMixin {
     @Unique
     private EndermanDiff aki$pendingDiff = null;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void aki$asyncEndermanAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -63,14 +61,12 @@ public abstract class EndermanTickMixin {
         
         EnderMan enderman = (EnderMan) (Object) this;
         
-        
         if (enderman.isInLava() || enderman.isOnFire() || 
             enderman.getHealth() < enderman.getMaxHealth() * 0.5) {
             return;
         }
         
         long currentTick = level.getGameTime();
-        
         
         if (currentTick < aki$nextTick) {
             
@@ -92,20 +88,16 @@ public abstract class EndermanTickMixin {
                                                    enderman.tickCount, 
                                                    this.targetChangeTime);
             
-            
             CompletableFuture<EndermanDiff> future = AsyncBrainExecutor.runSync(() ->
                 EndermanCpuCalculator.runCpuOnly(enderman, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
-            
             
             EndermanDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 EndermanDiff::new);
             
-            
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(enderman, level);
-                
                 
                 if (diff.shouldTeleport()) {
                     aki$pendingDiff = diff;

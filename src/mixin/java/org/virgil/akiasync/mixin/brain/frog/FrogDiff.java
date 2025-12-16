@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class FrogDiff {
     
     private boolean shouldEatSlime = false;
@@ -34,12 +33,10 @@ public final class FrogDiff {
     public boolean shouldLongJump() { return shouldLongJump; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal frog, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -49,4 +46,3 @@ public final class FrogDiff {
                 shouldEatSlime, targetSlimeId, shouldLongJump, changeCount);
     }
 }
-

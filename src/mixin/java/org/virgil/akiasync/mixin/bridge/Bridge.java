@@ -65,7 +65,6 @@ public interface Bridge {
     boolean isEndermanAllowPickupBlocks();
     boolean isEndermanAllowPlaceBlocks();
     
-    
     boolean isArmadilloOptimizationEnabled();
     int getArmadilloTickInterval();
     
@@ -597,12 +596,10 @@ public interface Bridge {
     void prewarmPlayerPaths(java.util.UUID playerId);
     void cleanupPlayerPaths(java.util.UUID playerId);
     
-    
     void restartVillagerExecutor();
     void restartTNTExecutor();
     void restartBrainExecutor();
     void restartChunkExecutor(int threadCount);
-    
     
     void clearVillagerBreedCache();
     void resetBrainExecutorStatistics();

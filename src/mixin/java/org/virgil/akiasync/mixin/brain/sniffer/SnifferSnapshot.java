@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class SnifferSnapshot {
     
     private final Vec3 position;
@@ -52,14 +51,12 @@ public final class SnifferSnapshot {
         long gameTime = level.getGameTime();
         boolean isBaby = sniffer.isBaby();
         
-        
         List<BlockInfo> dirtBlocks = new ArrayList<>();
         for (int x = -8; x <= 8; x++) {
             for (int y = -2; y <= 2; y++) {
                 for (int z = -8; z <= 8; z++) {
                     BlockPos checkPos = blockPos.offset(x, y, z);
                     BlockState state = level.getBlockState(checkPos);
-                    
                     
                     if (state.is(net.minecraft.tags.BlockTags.DIRT) || 
                         state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK)) {
@@ -68,7 +65,6 @@ public final class SnifferSnapshot {
                 }
             }
         }
-        
         
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
@@ -105,4 +101,3 @@ public final class SnifferSnapshot {
     public record BlockInfo(BlockPos pos, String blockType) {}
     public record PlayerInfo(UUID id, Vec3 pos, double distanceSq) {}
 }
-

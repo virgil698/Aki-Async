@@ -433,7 +433,6 @@ public class OptimizedStructureLocator {
         return true;
     }
     
-
     private static int getAdaptiveSearchRadius(HolderSet<Structure> structures, int defaultRadius) {
 
         if (defaultRadius <= 0) {

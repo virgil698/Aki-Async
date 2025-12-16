@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 public class VirtualEntityCompatManager {
     
-    private final AkiAsyncPlugin plugin;
     private final ConfigManager configManager;
     private final Logger logger;
     private final PluginDetectorRegistry detectorRegistry;
@@ -18,7 +17,6 @@ public class VirtualEntityCompatManager {
     private boolean enabled;
     
     public VirtualEntityCompatManager(AkiAsyncPlugin plugin) {
-        this.plugin = plugin;
         this.configManager = plugin.getConfigManager();
         this.logger = plugin.getLogger();
         this.pluginAvailability = new ConcurrentHashMap<>();
@@ -175,7 +173,6 @@ public class VirtualEntityCompatManager {
     public PluginDetectorRegistry getDetectorRegistry() {
         return detectorRegistry;
     }
-    
     
     public Map<String, Boolean> getPluginAvailability() {
         return new ConcurrentHashMap<>(pluginAvailability);

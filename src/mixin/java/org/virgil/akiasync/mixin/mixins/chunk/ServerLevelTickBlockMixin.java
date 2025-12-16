@@ -183,13 +183,11 @@ public abstract class ServerLevelTickBlockMixin {
     private static BlockTickCategory aki$classifyBlock(Block block) {
         return BLOCK_CATEGORY_CACHE.computeIfAbsent(block, b -> {
             
-            
             if (b instanceof net.minecraft.world.level.block.LiquidBlock) {
                 return BlockTickCategory.ENTITY_INTERACTION;
             }
             
             String blockId = aki$getBlockId(b);
-            
             
             if (blockId.contains("water") || 
                 blockId.contains("lava") || 

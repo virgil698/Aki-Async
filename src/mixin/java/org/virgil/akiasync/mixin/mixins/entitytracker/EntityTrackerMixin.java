@@ -32,25 +32,21 @@ public abstract class EntityTrackerMixin {
     private void preUpdatePlayer(ServerPlayer player, CallbackInfo ci) {
         if (!initialized) { akiasync$initEntityTracker(); }
 
-        
         if (!cached_enabled) {
             return;
         }
 
-        
         if (entity instanceof ServerPlayer) {
             return;
         }
 
-        
         if (akiasync$isVirtualEntity(entity)) {
             return;
         }
         
-        if (!seenBy.contains(player.connection)) {
+        if (!seenBy.contains(player)) {
             return;
         }
-        
         
         Bridge bridgeForThrottle = BridgeManager.getBridge();
         if (bridgeForThrottle != null && bridgeForThrottle.isEntityPacketThrottleEnabled()) {
@@ -60,7 +56,6 @@ public abstract class EntityTrackerMixin {
                 return;
             }
         }
-        
         
     }
     private boolean akiasync$isVirtualEntity(Entity entity) {

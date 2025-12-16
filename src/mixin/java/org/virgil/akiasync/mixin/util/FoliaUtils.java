@@ -7,10 +7,8 @@ import net.minecraft.world.phys.Vec3;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public final class FoliaUtils {
 
-    
     private static final String REGIONIZED_SERVER_CLASS = "io.papermc.paper.threadedregions.RegionizedServer";
     private static final String QUEUE_METHOD = "queueTickTaskQueue";
 

@@ -21,13 +21,12 @@ public class TaskSmoothingScheduler {
         final Runnable task;
         final Priority priority;
         final long submitTime;
-        final String category;
         
         SmoothTask(Runnable task, Priority priority, String category) {
             this.task = task;
             this.priority = priority;
             this.submitTime = System.nanoTime();
-            this.category = category;
+            
         }
         
         @Override
@@ -60,7 +59,6 @@ public class TaskSmoothingScheduler {
     
     private final int maxQueueSize;
     private final int maxTasksPerTick;
-    private final int smoothingWindowTicks;
     private final ExecutorService executor;
     
     private final PriorityBlockingQueue<SmoothTask> taskQueue;
@@ -82,7 +80,6 @@ public class TaskSmoothingScheduler {
         this.executor = executor;
         this.maxQueueSize = maxQueueSize;
         this.maxTasksPerTick = maxTasksPerTick;
-        this.smoothingWindowTicks = smoothingWindowTicks;
         this.taskQueue = new PriorityBlockingQueue<>(maxQueueSize);
         
         startSchedulerThread();

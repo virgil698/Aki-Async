@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.camel.Camel", priority = 1100)
 public abstract class CamelTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class CamelTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncCamelAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class CamelTickMixin {
             net.minecraft.world.entity.animal.Animal camel = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (camel.isInLava() || camel.isOnFire() || 
                 camel.getHealth() < camel.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class CamelTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = CamelSnapshot.capture(camel, level, camel.tickCount);
-            
             
             CompletableFuture<CamelDiff> future = AsyncBrainExecutor.runSync(() ->
                 CamelCpuCalculator.runCpuOnly(camel, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             CamelDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 CamelDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(camel, level);

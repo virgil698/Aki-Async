@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-
 public class VirtualEntityDetector {
 
     private static final String ZNPC_PREFIX = "[ZNPC] ";
@@ -34,7 +33,6 @@ public class VirtualEntityDetector {
         debugLog("PluginDetectorRegistry registered with VirtualEntityDetector");
     }
 
-    
     public static boolean isVirtualEntity(Entity entity) {
         if (entity == null) return false;
         
@@ -52,13 +50,11 @@ public class VirtualEntityDetector {
         return isVirtual;
     }
     
-    
     public static boolean isVirtualEntityQuick(Entity entity) {
         if (entity == null) return false;
         Boolean cached = virtualEntityCache.get(entity.getEntityId());
         return cached != null ? cached : isVirtualEntity(entity);
     }
-    
     
     private static boolean isDefinitelyRealEntity(Entity entity) {
         
@@ -68,23 +64,16 @@ public class VirtualEntityDetector {
         if (entity instanceof org.bukkit.entity.Projectile) return true;
         if (entity instanceof org.bukkit.entity.TNTPrimed) return true;
         
-        
         if (entity.getVelocity().lengthSquared() > 0.0001) return true;
         
         return false;
     }
     
-    
     private static boolean isVirtualEntitySlow(Entity entity) {
         try {
             
             UUID uuid = entity.getUniqueId();
-            if (uuid == null) {
-                debugLog("Virtual entity detected: null UUID");
-                return true;
-            }
 
-            
             if (detectorRegistry != null) {
                 try {
                     if (detectorRegistry.isVirtualEntity(entity)) {
@@ -97,13 +86,11 @@ public class VirtualEntityDetector {
                 }
             }
 
-            
             if (isZNPCEntity(entity)) {
                 debugLog("Virtual entity detected: ZNPCS NPC, uuid=" + uuid);
                 return true;
             }
 
-            
             if (hasVirtualEntityMarkers(entity)) {
                 debugLog("Virtual entity detected: has virtual markers, uuid=" + uuid);
                 return true;
@@ -117,7 +104,6 @@ public class VirtualEntityDetector {
         return false;
     }
     
-    
     private static void cacheResult(int entityId, boolean isVirtual) {
         if (++cacheAccessCount >= CLEANUP_INTERVAL) {
             cacheAccessCount = 0;
@@ -130,19 +116,16 @@ public class VirtualEntityDetector {
         virtualEntityCache.put(entityId, isVirtual);
     }
     
-    
     public static void clearCache() {
         virtualEntityCache.clear();
         debugLog("Virtual entity cache manually cleared");
     }
-    
     
     public static String getCacheStats() {
         return String.format("VirtualEntityCache: size=%d/%d", 
             virtualEntityCache.size(), MAX_CACHE_SIZE);
     }
 
-    
     public static String getEntitySource(Entity entity) {
         if (entity == null) return null;
 
@@ -174,7 +157,6 @@ public class VirtualEntityDetector {
         return null;
     }
 
-    
     private static boolean isZNPCEntity(Entity entity) {
         try {
             if (!(entity instanceof org.bukkit.entity.Player)) {
@@ -186,11 +168,13 @@ public class VirtualEntityDetector {
                 return true;
             }
 
-            if (entity.customName() != null) {
+            net.kyori.adventure.text.Component customNameComponent = entity.customName();
+            if (customNameComponent != null) {
+                
                 String customName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
-                    .serialize(entity.customName());
+                    .serialize(customNameComponent);
 
-                if (customName.startsWith(ZNPC_PREFIX)) {
+                if (customName != null && customName.startsWith(ZNPC_PREFIX)) {
                     return true;
                 }
             }
@@ -202,7 +186,6 @@ public class VirtualEntityDetector {
         return false;
     }
 
-    
     private static boolean hasVirtualEntityMarkers(Entity entity) {
         try {
             PersistentDataContainer pdc = entity.getPersistentDataContainer();

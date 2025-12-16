@@ -2,9 +2,7 @@ package org.virgil.akiasync.mixin.brain.goat;
 
 import java.util.UUID;
 
-
 public final class GoatCpuCalculator {
-    
     
     public static GoatDiff runCpuOnly(net.minecraft.world.entity.animal.Animal goat, 
                                      GoatSnapshot snap) {
@@ -16,7 +14,6 @@ public final class GoatCpuCalculator {
             if (targetEntity != null) {
                 diff.setShouldRam(true, targetEntity);
             }
-            
             
             if (shouldHighJump(snap)) {
                 diff.setShouldHighJump(true);
@@ -30,21 +27,17 @@ public final class GoatCpuCalculator {
         return diff;
     }
     
-    
     private static UUID findRamTarget(GoatSnapshot snap) {
         
         if (snap.isBaby()) {
             return null;
         }
         
-        
         if (!snap.canRam()) {
             return null;
         }
         
-        
         double ramDistance = snap.isScreaming() ? 256.0 : 64.0; 
-        
         
         UUID bestTarget = null;
         double bestDistance = Double.MAX_VALUE;
@@ -60,18 +53,15 @@ public final class GoatCpuCalculator {
         return bestTarget;
     }
     
-    
     private static boolean shouldHighJump(GoatSnapshot snap) {
         
         if (snap.isBaby()) {
             return false;
         }
         
-        
         if (!snap.canRam()) {
             return false;
         }
-        
         
         for (GoatSnapshot.EntityInfo entity : snap.nearbyEntities()) {
             
@@ -83,4 +73,3 @@ public final class GoatCpuCalculator {
         return false;
     }
 }
-

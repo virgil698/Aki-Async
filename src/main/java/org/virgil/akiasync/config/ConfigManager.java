@@ -52,7 +52,6 @@ public class ConfigManager {
     private boolean endermanAllowPickupBlocks;
     private boolean endermanAllowPlaceBlocks;
     
-    
     private boolean armadilloOptimizationEnabled;
     private int armadilloTickInterval;
     private boolean snifferOptimizationEnabled;
@@ -492,7 +491,6 @@ public class ConfigManager {
         endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
         endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
         endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
-        
         
         armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
         armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
@@ -950,7 +948,6 @@ public class ConfigManager {
         endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
         endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
         endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
-        
         
         armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
         armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
@@ -1417,7 +1414,6 @@ public class ConfigManager {
     public int getEndermanTickInterval() { return endermanTickInterval; }
     public boolean isEndermanAllowPickupBlocks() { return endermanAllowPickupBlocks; }
     public boolean isEndermanAllowPlaceBlocks() { return endermanAllowPlaceBlocks; }
-    
     
     public boolean isArmadilloOptimizationEnabled() { return armadilloOptimizationEnabled; }
     public int getArmadilloTickInterval() { return armadilloTickInterval; }

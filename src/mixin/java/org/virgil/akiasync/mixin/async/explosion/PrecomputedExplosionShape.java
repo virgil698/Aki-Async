@@ -73,11 +73,13 @@ public class PrecomputedExplosionShape {
     }
     
     public static Vec3[] getPrecomputedRays() {
-        return PRECOMPUTED_RAYS;
+        
+        return PRECOMPUTED_RAYS.clone();
     }
     
     public static BlockOffset[] getPrecomputedBlocks() {
-        return PRECOMPUTED_BLOCKS;
+        
+        return PRECOMPUTED_BLOCKS.clone();
     }
     
     public static BlockOffset[] getBlocksForPower(float power) {
@@ -86,10 +88,10 @@ public class PrecomputedExplosionShape {
         }
         
         if (power == 1.0f) {
-            return PRECOMPUTED_BLOCKS;
+            
+            return PRECOMPUTED_BLOCKS.clone();
         }
         
-        float maxDistance = 4.0f * power;
         List<BlockOffset> result = new ArrayList<>();
         
         for (BlockOffset offset : PRECOMPUTED_BLOCKS) {

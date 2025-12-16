@@ -33,7 +33,6 @@ public class ConfigReloadListener implements Listener {
             plugin.getConfigManager().reload();
             plugin.getCacheManager().invalidateAll();
             
-            
             if (plugin.getBridge() != null) {
                 plugin.getBridge().resetAsyncMetrics();
             }

@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class CamelSnapshot {
     
     private final Vec3 position;
@@ -52,15 +51,12 @@ public final class CamelSnapshot {
         long gameTime = level.getGameTime();
         boolean isBaby = camel.isBaby();
         
-        
         List<Entity> passengers = camel.getPassengers();
         boolean hasPassengers = !passengers.isEmpty();
         int passengerCount = passengers.size();
         
-        
         boolean isSitting = false;
         try {
-            
             
             if (camel.getDeltaMovement().lengthSqr() < 0.001 && !hasPassengers) {
                 isSitting = true;
@@ -69,7 +65,6 @@ public final class CamelSnapshot {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "CamelSnapshot", "captureSitting", e);
         }
-        
         
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
@@ -107,4 +102,3 @@ public final class CamelSnapshot {
     
     public record PlayerInfo(UUID id, Vec3 pos, double distanceSq) {}
 }
-

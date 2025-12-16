@@ -3,7 +3,6 @@ package org.virgil.akiasync.mixin.brain.enderman;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.EnderMan;
 
-
 public final class EndermanDiff {
     
     private boolean shouldTeleport = false;
@@ -30,17 +29,14 @@ public final class EndermanDiff {
     public boolean shouldClearTarget() { return shouldClearTarget; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(EnderMan enderman, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
         
-        
         if (shouldClearTarget && enderman.getTarget() != null) {
             enderman.setTarget(null);
         }
-        
         
     }
     

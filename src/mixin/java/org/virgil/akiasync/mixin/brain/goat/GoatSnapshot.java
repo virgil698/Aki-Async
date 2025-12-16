@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class GoatSnapshot {
     
     private final Vec3 position;
@@ -52,7 +51,6 @@ public final class GoatSnapshot {
         long gameTime = level.getGameTime();
         boolean isBaby = goat.isBaby();
         
-        
         boolean isScreaming = false;
         try {
             if (goat instanceof net.minecraft.world.entity.animal.goat.Goat goatEntity) {
@@ -64,7 +62,6 @@ public final class GoatSnapshot {
         }
         
         boolean canRam = onGround && !isInWater;
-        
         
         List<EntityInfo> entities = new ArrayList<>();
         List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(
@@ -81,7 +78,6 @@ public final class GoatSnapshot {
                 entity instanceof net.minecraft.world.entity.player.Player
             ));
         }
-        
         
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
@@ -120,4 +116,3 @@ public final class GoatSnapshot {
     public record EntityInfo(UUID id, Vec3 pos, double distanceSq, boolean isPlayer) {}
     public record PlayerInfo(UUID id, Vec3 pos, double distanceSq) {}
 }
-

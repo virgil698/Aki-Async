@@ -1,8 +1,6 @@
 package org.virgil.akiasync.mixin.brain.armadillo;
 
-
 public final class ArmadilloCpuCalculator {
-    
     
     public static ArmadilloDiff runCpuOnly(net.minecraft.world.entity.animal.Animal armadillo, 
                                           ArmadilloSnapshot snap) {
@@ -14,11 +12,9 @@ public final class ArmadilloCpuCalculator {
                 diff.setShouldStartRolling(true);
             }
             
-            
             if (shouldStopRolling(snap)) {
                 diff.setShouldStopRolling(true);
             }
-            
             
             if (shouldFlee(snap)) {
                 diff.setShouldFlee(true);
@@ -32,13 +28,11 @@ public final class ArmadilloCpuCalculator {
         return diff;
     }
     
-    
     private static boolean shouldStartRolling(ArmadilloSnapshot snap) {
         
         if (snap.hasTarget() || snap.health() < snap.maxHealth()) {
             return true;
         }
-        
         
         for (ArmadilloSnapshot.ThreatInfo threat : snap.nearbyThreats()) {
             if (threat.distanceSq() < 25.0) { 
@@ -48,7 +42,6 @@ public final class ArmadilloCpuCalculator {
         
         return false;
     }
-    
     
     private static boolean shouldStopRolling(ArmadilloSnapshot snap) {
         
@@ -61,7 +54,6 @@ public final class ArmadilloCpuCalculator {
         return false;
     }
     
-    
     private static boolean shouldFlee(ArmadilloSnapshot snap) {
         
         if (snap.isBaby()) {
@@ -72,7 +64,6 @@ public final class ArmadilloCpuCalculator {
             }
         }
         
-        
         for (ArmadilloSnapshot.ThreatInfo threat : snap.nearbyThreats()) {
             if (threat.isPlayer() && threat.distanceSq() < 16.0) { 
                 return true;
@@ -82,4 +73,3 @@ public final class ArmadilloCpuCalculator {
         return false;
     }
 }
-

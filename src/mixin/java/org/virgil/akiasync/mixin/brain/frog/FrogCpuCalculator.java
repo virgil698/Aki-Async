@@ -2,9 +2,7 @@ package org.virgil.akiasync.mixin.brain.frog;
 
 import java.util.UUID;
 
-
 public final class FrogCpuCalculator {
-    
     
     public static FrogDiff runCpuOnly(net.minecraft.world.entity.animal.Animal frog, 
                                      FrogSnapshot snap) {
@@ -16,7 +14,6 @@ public final class FrogCpuCalculator {
             if (targetSlime != null) {
                 diff.setShouldEatSlime(true, targetSlime);
             }
-            
             
             if (shouldLongJump(snap)) {
                 diff.setShouldLongJump(true);
@@ -30,13 +27,11 @@ public final class FrogCpuCalculator {
         return diff;
     }
     
-    
     private static UUID findTargetSlime(FrogSnapshot snap) {
         
         if (snap.isBaby()) {
             return null;
         }
-        
         
         UUID bestTarget = null;
         double bestDistance = Double.MAX_VALUE;
@@ -54,23 +49,19 @@ public final class FrogCpuCalculator {
         return bestTarget;
     }
     
-    
     private static boolean shouldLongJump(FrogSnapshot snap) {
         
         if (snap.isBaby()) {
             return false;
         }
         
-        
         if (!snap.canJump()) {
             return false;
         }
         
-        
         if (snap.isInWater()) {
             return false;
         }
-        
         
         if (!snap.nearbySlimes().isEmpty()) {
             for (FrogSnapshot.SlimeInfo slime : snap.nearbySlimes()) {
@@ -84,4 +75,3 @@ public final class FrogCpuCalculator {
         return false;
     }
 }
-

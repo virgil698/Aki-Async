@@ -23,6 +23,7 @@ public class OptimizedExplosionCache {
     private long lastCleanupTime = 0;
     
     public OptimizedExplosionCache(Level level) {
+        
         this.level = level;
         this.blockStateCache = new Long2ObjectOpenHashMap<>(512);
         this.fluidStateCache = new Long2ObjectOpenHashMap<>(256);

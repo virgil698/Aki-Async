@@ -7,14 +7,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class ExceptionHandler {
-    
     
     private static final Map<String, AtomicInteger> exceptionCounts = new ConcurrentHashMap<>();
     private static final Map<String, Long> lastLogTime = new ConcurrentHashMap<>();
     private static final long LOG_THROTTLE_MS = 60000; 
-    
     
     public static void handleExpected(String component, String operation, Exception e) {
         recordException(component, "expected");
@@ -26,14 +23,12 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static void handleUnexpected(String component, String operation, Exception e) {
         recordException(component, "unexpected");
         
         String key = component + ":" + operation;
         long now = System.currentTimeMillis();
         Long lastLog = lastLogTime.get(key);
-        
         
         if (lastLog == null || now - lastLog > LOG_THROTTLE_MS) {
             lastLogTime.put(key, now);
@@ -57,7 +52,6 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static void handleRecoverable(String component, String operation, 
                                         Exception e, Runnable fallback) {
         recordException(component, "recoverable");
@@ -77,7 +71,6 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static boolean handleInitialization(String component, Exception e) {
         recordException(component, "initialization");
         
@@ -93,22 +86,18 @@ public class ExceptionHandler {
         return true; 
     }
     
-    
     public static void handleCleanup(String component, String resource, Exception e) {
         recordException(component, "cleanup");
         
         BridgeConfigCache.errorLog("[%s] Failed to cleanup %s: %s", 
             component, resource, e.getMessage());
         
-        
     }
-    
     
     private static void recordException(String component, String type) {
         String key = component + ":" + type;
         exceptionCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
     }
-    
     
     public static String getStatistics() {
         if (exceptionCounts.isEmpty()) {
@@ -124,19 +113,16 @@ public class ExceptionHandler {
         return sb.toString();
     }
     
-    
     public static void clearStatistics() {
         exceptionCounts.clear();
         lastLogTime.clear();
     }
-    
     
     public static int getExceptionCount(String component, String type) {
         String key = component + ":" + type;
         AtomicInteger count = exceptionCounts.get(key);
         return count != null ? count.get() : 0;
     }
-    
     
     public static <T> T safeSupply(java.util.function.Supplier<T> supplier, String operation, T defaultValue) {
         try {
@@ -147,7 +133,6 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static <T> T safeReflectionSupply(java.util.function.Supplier<T> supplier, String operation, T defaultValue) {
         try {
             return supplier.get();
@@ -157,7 +142,6 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static void safeReflection(Runnable runnable, String operation) {
         try {
             runnable.run();
@@ -165,7 +149,6 @@ public class ExceptionHandler {
             handleExpected("Reflection", operation, e);
         }
     }
-    
     
     public static void safeExecute(Runnable task, String context) {
         try {
@@ -175,14 +158,12 @@ public class ExceptionHandler {
         }
     }
     
-    
     public static void logDebug(String message) {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isDebugLoggingEnabled()) {
             BridgeConfigCache.debugLog(message);
         }
     }
-    
     
     public static void logError(String message, Exception e) {
         if (e != null) {

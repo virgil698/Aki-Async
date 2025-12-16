@@ -18,7 +18,6 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 @Mixin(targets = "net.minecraft.world.entity.animal.goat.Goat", priority = 1100)
 public abstract class GoatTickMixin {
     
@@ -43,7 +42,6 @@ public abstract class GoatTickMixin {
     @Unique
     private long aki$nextTick = 0;
     
-    
     @Inject(method = "customServerAiStep", at = @At("HEAD"), require = 0)
     private void aki$asyncGoatAi(ServerLevel level, CallbackInfo ci) {
         if (!initialized) {
@@ -58,7 +56,6 @@ public abstract class GoatTickMixin {
             net.minecraft.world.entity.animal.Animal goat = 
                 (net.minecraft.world.entity.animal.Animal) (Object) this;
             
-            
             if (goat.isInLava() || goat.isOnFire() || 
                 goat.getHealth() < goat.getMaxHealth() * 0.5) {
                 return;
@@ -66,26 +63,21 @@ public abstract class GoatTickMixin {
             
             long currentTick = level.getGameTime();
             
-            
             if (currentTick < aki$nextTick) {
                 return;
             }
             
             aki$nextTick = currentTick + cached_tickInterval;
             
-            
             aki$snapshot = GoatSnapshot.capture(goat, level, goat.tickCount);
-            
             
             CompletableFuture<GoatDiff> future = AsyncBrainExecutor.runSync(() ->
                 GoatCpuCalculator.runCpuOnly(goat, aki$snapshot), 
                 cached_timeout, TimeUnit.MICROSECONDS);
             
-            
             GoatDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(
                 future, cached_timeout, TimeUnit.MICROSECONDS, 
                 GoatDiff::new);
-            
             
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(goat, level);

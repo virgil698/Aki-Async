@@ -58,21 +58,17 @@ public abstract class ExperienceOrbInactiveMixin {
         
         ((net.minecraft.world.entity.Entity) self).baseTick();
         
-        
         age++;
 
-        
         if (age >= LIFETIME) {
             ((net.minecraft.world.entity.Entity) self).discard();
             return;
         }
 
-        
         net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
         if (deltaMovement != null && deltaMovement.lengthSqr() > 0.0001) {
             
             self.move(net.minecraft.world.entity.MoverType.SELF, deltaMovement);
-            
             
             double friction = 0.98;
             if (self.onGround()) {
@@ -84,7 +80,6 @@ public abstract class ExperienceOrbInactiveMixin {
             self.setDeltaMovement(deltaMovement.multiply(friction, 0.98, friction));
         }
 
-        
         if (age % mergeInterval == 0) {
             akiasync$tryQuickMerge(self);
         }

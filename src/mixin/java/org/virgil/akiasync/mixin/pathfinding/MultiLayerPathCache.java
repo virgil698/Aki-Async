@@ -232,13 +232,13 @@ public class MultiLayerPathCache {
         private final Path path;
         private final long createTime;
         private volatile long lastAccessTime;
-        private volatile int hitCount;
+        private final java.util.concurrent.atomic.AtomicInteger hitCount;
         
         CachedPath(Path path) {
             this.path = path;
             this.createTime = System.currentTimeMillis();
             this.lastAccessTime = createTime;
-            this.hitCount = 0;
+            this.hitCount = new java.util.concurrent.atomic.AtomicInteger(0);
         }
         
         Path getPath() {
@@ -247,7 +247,7 @@ public class MultiLayerPathCache {
         
         void recordHit() {
             this.lastAccessTime = System.currentTimeMillis();
-            this.hitCount++;
+            this.hitCount.incrementAndGet();
         }
         
         boolean isExpired(long expireMs) {
@@ -259,7 +259,7 @@ public class MultiLayerPathCache {
         }
         
         int getHitCount() {
-            return hitCount;
+            return hitCount.get();
         }
         
         CachedPath refresh() {

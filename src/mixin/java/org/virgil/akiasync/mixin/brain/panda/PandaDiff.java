@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class PandaDiff {
     
     private boolean shouldEat = false;
@@ -52,12 +51,10 @@ public final class PandaDiff {
     public UUID targetItemId() { return targetItemId; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal panda, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -67,4 +64,3 @@ public final class PandaDiff {
                 shouldEat, shouldRoll, shouldSitDown, shouldPickupItem, targetItemId, changeCount);
     }
 }
-

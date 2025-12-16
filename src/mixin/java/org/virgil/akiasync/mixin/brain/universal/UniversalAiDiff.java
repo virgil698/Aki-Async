@@ -21,7 +21,11 @@ public final class UniversalAiDiff {
     private Object likedPlayer;
     
     public UniversalAiDiff() {
+        this.target = null;
         this.changeCount = 0;
+        this.memoryChanges = null;
+        this.topPoi = null;
+        this.likedPlayer = null;
     }
     
     public void setTarget(UUID id) {

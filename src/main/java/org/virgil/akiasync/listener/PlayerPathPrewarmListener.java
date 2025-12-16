@@ -8,7 +8,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
-
 public class PlayerPathPrewarmListener implements Listener {
     
     private final AkiAsyncPlugin plugin;

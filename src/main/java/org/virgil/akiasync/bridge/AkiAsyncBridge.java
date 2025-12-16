@@ -756,8 +756,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public String getBlockId(net.minecraft.world.level.block.Block block) {
         try {
+            
             net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
-            return key != null ? key.toString() : "unknown";
+            return key.toString();
         } catch (Exception e) {
             return block.getClass().getSimpleName().toLowerCase();
         }
@@ -1732,10 +1733,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public double getCurrentMSPT() {
         try {
-
+            
             long[] tickTimes = plugin.getServer().getTickTimes();
-            if (tickTimes != null && tickTimes.length > 0) {
-
+            if (tickTimes.length > 0) {
                 long sum = 0;
                 int count = Math.min(100, tickTimes.length);
                 for (int i = 0; i < count; i++) {
@@ -2301,10 +2301,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return;
             }
             
-            
             net.minecraft.server.level.ServerLevel level = 
                 ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-            
             
             org.virgil.akiasync.mixin.brain.core.AiSpatialIndexManager.removeIndex(level);
             org.virgil.akiasync.mixin.poi.PoiSpatialIndexManager.removeIndex(level);
@@ -2331,10 +2329,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 return;
             }
             
-            
             net.minecraft.server.level.ServerPlayer serverPlayer = 
                 ((org.bukkit.craftbukkit.entity.CraftPlayer) player).getHandle();
-            
             
             org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem.prewarmPlayerPathsMainThread(serverPlayer);
         } catch (Exception e) {

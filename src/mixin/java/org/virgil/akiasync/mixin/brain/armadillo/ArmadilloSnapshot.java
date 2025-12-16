@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class ArmadilloSnapshot {
     
     private final Vec3 position;
@@ -56,7 +55,6 @@ public final class ArmadilloSnapshot {
         boolean hasTarget = armadillo.getLastHurtByMob() != null;
         boolean isBaby = armadillo.isBaby();
         
-        
         List<ThreatInfo> threats = new ArrayList<>();
         List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(
             LivingEntity.class,
@@ -96,4 +94,3 @@ public final class ArmadilloSnapshot {
     
     public record ThreatInfo(UUID id, Vec3 pos, double distanceSq, boolean isPlayer) {}
 }
-

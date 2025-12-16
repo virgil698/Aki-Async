@@ -73,7 +73,6 @@ public abstract class UniversalAiFamilyTickMixin {
             return; 
         }
         
-        
         if (enabledEntities != null) {
             net.minecraft.world.entity.EntityType<?> type = mob.getType();
             if (type != null && !enabledEntities.contains(type.toString())) {

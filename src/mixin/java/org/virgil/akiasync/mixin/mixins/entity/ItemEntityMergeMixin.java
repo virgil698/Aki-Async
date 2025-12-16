@@ -121,7 +121,6 @@ public abstract class ItemEntityMergeMixin {
     private boolean akiasync$isTickThread(ItemEntity entity) {
         try {
             
-            
             if (entity.level() instanceof net.minecraft.server.level.ServerLevel) {
                 
                 try {

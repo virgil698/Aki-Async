@@ -77,7 +77,6 @@ public abstract class CommandFunctionDeduplicatorMixin {
         return commandString.length() * 2L + 24L;
     }
     
-    
     private static void clearCache() {
         synchronized (actionCache) {
             if (totalCommands > 0) {

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.async.explosion;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,22 +28,13 @@ public class ExplosionCalculator {
     private final LinkedBlockingQueue<BlockPos> toDestroy = new LinkedBlockingQueue<>(10000);
     private final ConcurrentHashMap<BlockPos, Boolean> destroyedBlocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Vec3> toHurt = new ConcurrentHashMap<>();
-    private final boolean useFullRaycast;
     private final SakuraBlockDensityCache densityCache;
     private final OptimizedExplosionCache optimizedCache;
     private final DDACollisionDetector ddaDetector;
-    
-    @SuppressWarnings("unused")
-    private final WorkStealingTaskScheduler scheduler;
 
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
         this.snapshot = snapshot;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        this.useFullRaycast = bridge != null &&
-            bridge.isTNTVanillaCompatibilityEnabled() &&
-            bridge.isTNTUseFullRaycast();
-
+        
         this.densityCache = SakuraBlockDensityCache.getOrCreate(snapshot.getLevel());
         
         this.densityCache.expire(snapshot.getLevel().getGameTime());
@@ -50,16 +42,6 @@ public class ExplosionCalculator {
         this.optimizedCache = new OptimizedExplosionCache(snapshot.getLevel());
         
         this.ddaDetector = new DDACollisionDetector();
-
-        WorkStealingTaskScheduler tempScheduler = null;
-        if (!isFoliaEnvironment()) {
-            try {
-                tempScheduler = OptimizationManager.getInstance().getTaskScheduler();
-            } catch (Exception e) {
-                tempScheduler = null;
-            }
-        }
-        this.scheduler = tempScheduler;
     }
 
     public ExplosionResult calculate() {
@@ -69,7 +51,6 @@ public class ExplosionCalculator {
         if (bridge != null && bridge.isTNTDebugEnabled()) {
             bridge.debugLog("[AkiAsync-TNT] ExplosionCalculator.calculate() started");
         }
-        
         
         if (snapshot.isInProtectedLand()) {
             if (bridge != null && bridge.isTNTDebugEnabled()) {
@@ -203,6 +184,7 @@ public class ExplosionCalculator {
                     }
         }
     }
+
     private void calculateEntityDamage() {
         Vec3 center = snapshot.getCenter();
         if (center == null) {
@@ -290,6 +272,7 @@ public class ExplosionCalculator {
             bridge.debugLog("[AkiAsync-TNT] calculateEntityDamage completed, total entities to hurt: %d", toHurt.size());
         }
     }
+
     private double calculateExposure(Vec3 explosionCenter, ExplosionSnapshot.EntitySnapshot entity) {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();

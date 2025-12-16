@@ -15,7 +15,11 @@ public class TPSTracker {
     
     private static TPSTracker instance;
     
-    private TPSTracker() {}
+    private TPSTracker() {
+        this.lastTick = null;
+        this.currentTick = null;
+        this.allMissedTicks = 0;
+    }
     
     public static TPSTracker getInstance() {
         if (instance == null) {

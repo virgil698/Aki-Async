@@ -80,28 +80,23 @@ public abstract class ItemEntityInactiveMixin {
         
         ((net.minecraft.world.entity.Entity) self).baseTick();
         
-        
         if (pickupDelay > 0 && pickupDelay != INFINITE_PICKUP_DELAY) {
             pickupDelay--;
         }
 
-        
         if (age != INFINITE_LIFETIME) {
             age++;
         }
 
-        
         if (age >= LIFETIME) {
             ((net.minecraft.world.entity.Entity) self).discard();
             return;
         }
 
-        
         net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
         if (deltaMovement != null && deltaMovement.lengthSqr() > 0.0001) {
             
             self.move(net.minecraft.world.entity.MoverType.SELF, deltaMovement);
-            
             
             double friction = 0.98;
             if (self.onGround()) {
@@ -111,16 +106,13 @@ public abstract class ItemEntityInactiveMixin {
                 friction = belowState.getBlock().getFriction() * 0.98;
             }
             
-            
             self.setDeltaMovement(deltaMovement.multiply(friction, 0.98, friction));
-            
             
             if (self.onGround() && deltaMovement.y < 0.0) {
                 self.setDeltaMovement(self.getDeltaMovement().multiply(1.0, -0.5, 1.0));
             }
         }
 
-        
         if (age % mergeInterval == 0 && akiasync$isMergable(self)) {
             akiasync$tryQuickMerge(self);
         }
@@ -161,7 +153,6 @@ public abstract class ItemEntityInactiveMixin {
     @Unique
     private boolean akiasync$isTickThread(ItemEntity entity) {
         try {
-            
             
             if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                 

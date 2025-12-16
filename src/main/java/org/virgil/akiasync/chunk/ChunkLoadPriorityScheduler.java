@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class ChunkLoadPriorityScheduler {
     
     private final ConfigManager config;
@@ -71,7 +70,6 @@ public class ChunkLoadPriorityScheduler {
             Thread.currentThread().interrupt();
         }
     }
-    
     
     public void submitChunkLoad(Player player, World world, int chunkX, int chunkZ, int priority, double speed) {
         if (!running || player == null || world == null) {
@@ -135,7 +133,6 @@ public class ChunkLoadPriorityScheduler {
             World world = task.getWorld();
             int chunkX = task.getChunkX();
             int chunkZ = task.getChunkZ();
-            
             
             world.getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
                 if (chunk != null) {

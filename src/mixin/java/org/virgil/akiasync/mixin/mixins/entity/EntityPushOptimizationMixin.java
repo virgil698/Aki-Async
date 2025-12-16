@@ -61,61 +61,49 @@ public abstract class EntityPushOptimizationMixin {
         
         Entity self = (Entity) (Object) this;
         
-        
         if (akiasync$isExcludedEntity(self) || akiasync$isExcludedEntity(other)) {
             return;
         }
-        
         
         if (self.isOnPortalCooldown() || other.isOnPortalCooldown()) {
             return;
         }
         
-        
         if (akiasync$isInPortal(self) || akiasync$isInPortal(other)) {
             return;
         }
-        
         
         if (self.isRemoved() || other.isRemoved()) {
             return;
         }
         
-        
         if (!self.isPushable() || !other.isPushable()) {
             return;
         }
-        
         
         if (self.isInWater() || self.isInLava()) {
             return;
         }
         
-        
         if (akiasync$isBeingPushedByFluid(self)) {
             return;
         }
-        
         
         if (akiasync$isSuffocating(self)) {
             return; 
         }
         
-        
         double dx = self.getX() - other.getX();
         double dz = self.getZ() - other.getZ();
         double distSqr = dx * dx + dz * dz;
-        
         
         if (distSqr < 0.0001 || distSqr > 1.0) {
             return;
         }
         
-        
         if (!akiasync$canAccumulatePush(self.getId())) {
             return; 
         }
-        
         
         double invDistSqr = fixedPushStrength / distSqr;
         dx *= invDistSqr;
@@ -213,7 +201,6 @@ public abstract class EntityPushOptimizationMixin {
             
             if (state == null) return false;
             
-            
             return state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
                    state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock;
         } catch (Exception e) {
@@ -232,7 +219,6 @@ public abstract class EntityPushOptimizationMixin {
             if (state == null || state.isAir()) {
                 return false;
             }
-            
             
             return state.isSuffocating(entity.level(), pos);
         } catch (Exception e) {

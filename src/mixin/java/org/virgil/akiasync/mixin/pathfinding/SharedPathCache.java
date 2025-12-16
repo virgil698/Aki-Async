@@ -21,12 +21,12 @@ public class SharedPathCache {
     private static class CachedPath {
         final Path path;
         final long createTime;
-        volatile int useCount;
+        final java.util.concurrent.atomic.AtomicInteger useCount;
         
         CachedPath(Path path) {
             this.path = path;
             this.createTime = System.currentTimeMillis();
-            this.useCount = 0;
+            this.useCount = new java.util.concurrent.atomic.AtomicInteger(0);
         }
         
         boolean isExpired() {
@@ -34,7 +34,7 @@ public class SharedPathCache {
         }
         
         Path getPath() {
-            useCount++;
+            useCount.incrementAndGet();
             return path;
         }
     }
@@ -83,7 +83,7 @@ public class SharedPathCache {
         if (force) {
             
             PATH_CACHE.entrySet().removeIf(entry -> 
-                entry.getValue().isExpired() || entry.getValue().useCount < 2
+                entry.getValue().isExpired() || entry.getValue().useCount.get() < 2
             );
         } else {
             

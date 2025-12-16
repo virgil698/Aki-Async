@@ -1,9 +1,11 @@
 package org.virgil.akiasync.mixin.brain.piglin;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+
 public final class PiglinDiff {
     private java.util.UUID lookPlayerId;
     private BlockPos lookPlayerPos;
@@ -11,7 +13,13 @@ public final class PiglinDiff {
     private BlockPos walkTarget;
     private Integer huntedTimer;
     private int changeCount;
+    
     public PiglinDiff() {
+        this.lookPlayerId = null;
+        this.lookPlayerPos = null;
+        this.barterPlayerId = null;
+        this.walkTarget = null;
+        this.huntedTimer = null;
         this.changeCount = 0;
     }
     public void setLookTarget(java.util.UUID playerId, BlockPos playerPos) {
@@ -66,8 +74,13 @@ public final class PiglinDiff {
                 brain.eraseMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
                 return;
             }
+            
+            BlockPos playerPos = player.blockPosition();
             double barterDistSqr = barterDist * barterDist;
-            if (player.distanceToSqr(lookPlayerPos.getX(), lookPlayerPos.getY(), lookPlayerPos.getZ()) < barterDistSqr && hasGold(player)) {
+            
+            BlockPos refPos = lookPlayerPos != null ? lookPlayerPos : playerPos;
+            
+            if (player.distanceToSqr(refPos.getX(), refPos.getY(), refPos.getZ()) < barterDistSqr && hasGold(player)) {
                 brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, player);
             } else {
                 brain.eraseMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);

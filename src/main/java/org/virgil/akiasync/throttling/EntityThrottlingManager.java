@@ -184,10 +184,9 @@ public class EntityThrottlingManager {
                 try {
                     
                     org.bukkit.Chunk[] loadedChunks = world.getLoadedChunks();
-                    int chunkCount = loadedChunks != null ? loadedChunks.length : 0;
+                    int chunkCount = loadedChunks.length;
                     
                     for (org.bukkit.Chunk chunk : loadedChunks) {
-                        
                         scheduleRegionEntityCheck(world, chunk);
                     }
                 } catch (Exception e) {

@@ -3,7 +3,6 @@ package org.virgil.akiasync.mixin.brain.sniffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class SnifferDiff {
     
     private boolean shouldSniff = false;
@@ -33,12 +32,10 @@ public final class SnifferDiff {
     public BlockPos targetDigPos() { return targetDigPos; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal sniffer, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -48,4 +45,3 @@ public final class SnifferDiff {
                 shouldSniff, shouldDig, targetDigPos, changeCount);
     }
 }
-

@@ -2,7 +2,6 @@ package org.virgil.akiasync.mixin.brain.armadillo;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class ArmadilloDiff {
     
     private boolean shouldStartRolling = false;
@@ -38,12 +37,10 @@ public final class ArmadilloDiff {
     public boolean shouldFlee() { return shouldFlee; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal armadillo, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -53,4 +50,3 @@ public final class ArmadilloDiff {
                 shouldStartRolling, shouldStopRolling, shouldFlee, changeCount);
     }
 }
-

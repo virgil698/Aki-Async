@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-
 @SuppressWarnings({"unused", "ConstantConditions"})
 @Mixin(Entity.class)
 public abstract class CollisionOptimizationMixin {
@@ -22,12 +21,10 @@ public abstract class CollisionOptimizationMixin {
     @Unique
     private static volatile int blockCheckInterval = 5; 
     
-    
     @Unique
     private long akiasync$lastBlockCheckTick = 0;
     @Unique
     private Vec3 akiasync$lastBlockCheckPos = Vec3.ZERO;
-    
     
     @Inject(method = "checkInsideBlocks", at = @At("HEAD"), cancellable = true)
     private void akiasync$optimizeBlockCheck(CallbackInfo ci) {
@@ -37,17 +34,13 @@ public abstract class CollisionOptimizationMixin {
         Entity self = (Entity) (Object) this;
         if (self == null) return;
         
-        
         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(self)) return;
         
-        
         if (akiasync$isExcludedEntity(self)) return;
-        
         
         if (akiasync$canSafelyReduceCheckFrequency(self)) {
             long currentTick = self.level().getGameTime();
             Vec3 currentPos = self.position();
-            
             
             boolean positionChanged = currentPos.distanceToSqr(akiasync$lastBlockCheckPos) > 0.01;
             boolean enoughTicksPassed = (currentTick - akiasync$lastBlockCheckTick) >= blockCheckInterval;
@@ -58,13 +51,11 @@ public abstract class CollisionOptimizationMixin {
                 return;
             }
             
-            
             akiasync$lastBlockCheckTick = currentTick;
             akiasync$lastBlockCheckPos = currentPos;
         }
         
     }
-    
     
     @Unique
     @SuppressWarnings("RedundantIfStatement")
@@ -74,21 +65,17 @@ public abstract class CollisionOptimizationMixin {
             return false;
         }
         
-        
         if (entity instanceof net.minecraft.world.entity.item.ItemEntity item) {
             return !item.isInLava() && !item.isOnFire() && item.getRemainingFireTicks() <= 0;
         }
-        
         
         if (entity instanceof net.minecraft.world.entity.item.FallingBlockEntity falling) {
             double verticalSpeed = Math.abs(falling.getDeltaMovement().y);
             return verticalSpeed < 0.01; 
         }
         
-        
         return entity instanceof net.minecraft.world.entity.ExperienceOrb; 
     }
-    
     
     @Inject(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("HEAD"), cancellable = true)
     private void optimizeEntityPush(Entity other, CallbackInfo ci) {
@@ -102,7 +89,6 @@ public abstract class CollisionOptimizationMixin {
         
         double selfMovementSqr = self.getDeltaMovement().lengthSqr();
         double otherMovementSqr = other.getDeltaMovement().lengthSqr();
-        
         
         if (selfMovementSqr < minMovementSqr && otherMovementSqr < minMovementSqr) {
             ci.cancel();

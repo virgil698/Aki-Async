@@ -55,7 +55,6 @@ public class VillagerBreedAsyncMixin {
             return;
         }
 
-        
         if (aki$hasImportantState(villager)) {
             ci.cancel(); 
             return;
@@ -233,7 +232,6 @@ public class VillagerBreedAsyncMixin {
             return true;
         }
         
-        
         java.util.Optional<?> nearbyEntities = aki$safeGetMemory(brain, net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
         if (nearbyEntities != null && nearbyEntities.isPresent()) {
             try {
@@ -282,7 +280,6 @@ public class VillagerBreedAsyncMixin {
             activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PLAY)) {
             return true;
         }
-        
         
         if (activeActivities.contains(net.minecraft.world.entity.schedule.Activity.PANIC)) {
             BridgeConfigCache.debugLog("[AkiAsync-Panic] Villager in PANIC, preserving AI for escape behavior");

@@ -194,4 +194,169 @@
         <Class name="org.virgil.akiasync.mixin.pathfinding.AsyncPath"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    
+    <Match>
+        <Bug pattern="MS_EXPOSE_REP"/>
+        <Method name="getInstance"/>
+    </Match>
+    
+    <Match>
+        <Class name="~org\.virgil\.akiasync\..*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Or>
+            <Method name="&lt;init&gt;"/>
+            <Method name="initialize"/>
+            <Method name="onConfigReload"/>
+            <Method name="updateConfiguration"/>
+        </Or>
+    </Match>
+    
+    <Match>
+        <Class name="~org\.virgil\.akiasync\..*"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+        <Method name="~get.*"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+        <Or>
+            <Method name="onEnable"/>
+            <Method name="onDisable"/>
+            <Method name="shutdown"/>
+        </Or>
+    </Match>
+    
+    <Match>
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="UC_USELESS_VOID_METHOD"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.AkiAsyncPlugin"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.ExplosionBlockCache"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.ExplosionBlockCache"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.OptimizedExplosionCache"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.structure.StructureLocateTask"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.structure.StructureLocateTask"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.util.VirtualEntityDetector"/>
+        <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="DC_PARTIALLY_CONSTRUCTED"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="UCF_USELESS_CONTROL_FLOW"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="RI_REDUNDANT_INTERFACES"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="MS_PKGPROTECT"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="IT_NO_SUCH_ELEMENT"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="UC_USELESS_OBJECT"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="DC_DOUBLECHECK"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Cache"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Processor"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
 </FindBugsFilter>

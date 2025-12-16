@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public class EntityVisibilityManager {
     
     private static final Map<UUID, PlayerViewFrustum> VIEW_FRUSTUM_CACHE = new ConcurrentHashMap<>();

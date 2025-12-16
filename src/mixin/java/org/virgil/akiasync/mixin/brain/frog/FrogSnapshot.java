@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class FrogSnapshot {
     
     private final Vec3 position;
@@ -55,7 +54,6 @@ public final class FrogSnapshot {
         boolean isBaby = frog.isBaby();
         boolean canJump = onGround && !isInWater;
         
-        
         List<SlimeInfo> slimes = new ArrayList<>();
         List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(
             LivingEntity.class,
@@ -73,7 +71,6 @@ public final class FrogSnapshot {
                 entity.getBbWidth() 
             ));
         }
-        
         
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
@@ -111,4 +108,3 @@ public final class FrogSnapshot {
     public record SlimeInfo(UUID id, Vec3 pos, double distanceSq, float size) {}
     public record PlayerInfo(UUID id, Vec3 pos, double distanceSq) {}
 }
-

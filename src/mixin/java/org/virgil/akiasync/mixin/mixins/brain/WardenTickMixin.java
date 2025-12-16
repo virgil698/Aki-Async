@@ -37,7 +37,6 @@ public class WardenTickMixin {
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void aki$ensureWardenVanillaFeatures(ServerLevel level, CallbackInfo ci) {
         
-        
         if (!initialized) {
             aki$initWardenOptimization();
         }
@@ -50,7 +49,6 @@ public class WardenTickMixin {
         Bridge bridge = BridgeManager.getBridge();
         
         if (bridge != null) {
-            
             
             cached_enabled = false; 
             cached_debugEnabled = bridge.isDebugLoggingEnabled();

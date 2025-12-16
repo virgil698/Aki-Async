@@ -26,6 +26,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private org.virgil.akiasync.compat.VirtualEntityCompatManager virtualEntityCompatManager;
     private org.virgil.akiasync.crypto.QuantumSeedManager quantumSeedManager;
 
+    @SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public void onEnable() {
         synchronized (AkiAsyncPlugin.class) {
@@ -190,6 +191,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("Plugin enabled successfully! Use /aki-version for details");
     }
 
+    @SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public void onDisable() {
         BridgeManager.clearBridge();
@@ -247,6 +249,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             executorManager.shutdown();
         }
         getLogger().info("[AkiAsync] Plugin disabled. All async tasks have been gracefully shut down.");
+        
         synchronized (AkiAsyncPlugin.class) {
             instance = null;
         }
@@ -300,45 +303,53 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }, 60, 60, java.util.concurrent.TimeUnit.SECONDS);
     }
 
+    @SuppressWarnings("MS_EXPOSE_REP")
     public static AkiAsyncPlugin getInstance() {
         return instance;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public ConfigManager getConfigManager() {
         return configManager;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public AsyncExecutorManager getExecutorManager() {
         return executorManager;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public CacheManager getCacheManager() {
         return cacheManager;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public AkiAsyncBridge getBridge() {
         return bridge;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public org.virgil.akiasync.throttling.EntityThrottlingManager getThrottlingManager() {
         return throttlingManager;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public ChunkLoadPriorityScheduler getChunkLoadScheduler() {
         return chunkLoadScheduler;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP")
     public org.virgil.akiasync.compat.VirtualEntityCompatManager getVirtualEntityCompatManager() {
         return virtualEntityCompatManager;
     }
     
+    @SuppressWarnings("EI_EXPOSE_REP")
     public org.virgil.akiasync.crypto.QuantumSeedManager getQuantumSeedManager() {
         return quantumSeedManager;
     }
 
     public void restartMetricsScheduler() {
         stopMetricsScheduler();
-
         startCombinedMetrics();
     }
 

@@ -6,7 +6,6 @@ import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class SakuraCacheStatistics {
     
     public static Map<String, Object> getAllStatistics(AkiAsyncPlugin plugin) {
@@ -36,7 +35,7 @@ public class SakuraCacheStatistics {
         Map<String, String> densityStats = (Map<String, String>) stats.get("density_cache");
         if (densityStats != null) {
             for (Map.Entry<String, String> entry : densityStats.entrySet()) {
-                sb.append(String.format("  §7%s: §f%s§r\n", entry.getKey(), entry.getValue()));
+                sb.append(String.format("  §7%s: §f%s§r%n", entry.getKey(), entry.getValue()));
             }
         }
         
@@ -45,13 +44,13 @@ public class SakuraCacheStatistics {
         Map<String, String> asyncStats = (Map<String, String>) stats.get("async_density_cache");
         if (asyncStats != null) {
             for (Map.Entry<String, String> entry : asyncStats.entrySet()) {
-                sb.append(String.format("  §7%s: §f%s§r\n", entry.getKey(), entry.getValue()));
+                sb.append(String.format("  §7%s: §f%s§r%n", entry.getKey(), entry.getValue()));
             }
         }
         
         Object evaluatorCount = stats.get("pandawire_evaluators");
         if (evaluatorCount != null) {
-            sb.append(String.format("§e[PandaWire Evaluators]§r\n  §7Cache count: §f%s§r\n", evaluatorCount));
+            sb.append(String.format("§e[PandaWire Evaluators]§r%n  §7Cache count: §f%s§r%n", evaluatorCount));
         }
         
         sb.append("§e[Redstone Network Cache]§r\n");
@@ -59,7 +58,7 @@ public class SakuraCacheStatistics {
         Map<String, String> networkStats = (Map<String, String>) stats.get("network_cache");
         if (networkStats != null) {
             for (Map.Entry<String, String> entry : networkStats.entrySet()) {
-                sb.append(String.format("  §7%s: §f%s§r\n", entry.getKey(), entry.getValue()));
+                sb.append(String.format("  §7%s: §f%s§r%n", entry.getKey(), entry.getValue()));
             }
         }
         

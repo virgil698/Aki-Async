@@ -18,7 +18,6 @@ import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.chunk.LightChunkGetter;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 
-
 @Mixin(value = ThreadedLevelLightEngine.class, priority = 1100)
 public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine implements StarLightLightingProvider {
     
@@ -35,7 +34,6 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
     
     @Unique
     private final AtomicLong aki$lastLightUpdate = new AtomicLong(0);
-    
     
     @Inject(
             method = "tryScheduleUpdate",
@@ -54,25 +52,20 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         
         try {
             
-            
             StarLightInterface starlightEngine = this.starlight$getLightEngine();
             if (starlightEngine != null && starlightEngine.hasUpdates()) {
                 
-                
                 return;
             }
-            
             
             long lastUpdate = this.aki$lastLightUpdate.get();
             long currentTime = System.nanoTime();
             
             if (currentTime - lastUpdate < updateIntervalNanos) {
                 
-                
                 ci.cancel();
                 return;
             }
-            
             
             this.aki$lastLightUpdate.compareAndSet(lastUpdate, currentTime);
             
@@ -82,7 +75,6 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         }
     }
     
-    
     @Inject(
             method = "checkBlock",
             at = @At("RETURN")
@@ -91,11 +83,9 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
     private void onBlockChange(BlockPos blockPos, CallbackInfo ci) {
         if (enabled) {
             
-            
             this.aki$lastLightUpdate.set(0);
         }
     }
-    
     
     @Inject(
             method = "updateSectionStatus",
@@ -116,7 +106,6 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         if (bridge != null) {
             enabled = bridge.isAsyncLightingEnabled();
             
-            
             int intervalMs = bridge.getLightUpdateIntervalMs();
             updateIntervalNanos = intervalMs * 1_000_000L;
             
@@ -135,4 +124,3 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         initialized = true;
     }
 }
-

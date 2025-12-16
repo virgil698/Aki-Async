@@ -7,31 +7,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-
 public class LandProtectionIntegration {
 
     private static volatile Boolean residenceEnabled = null;
     private static volatile Boolean dominionEnabled = null;
     private static volatile Boolean worldGuardEnabled = null;
     private static volatile Boolean landsEnabled = null;
-    
+
     private static volatile Object residenceAPI = null;
     private static volatile Object dominionCache = null;
     private static volatile Object worldGuardQuery = null;
     private static volatile Object landsIntegration = null;
-    
-    private static volatile Method residenceGetByLoc = null;
-    private static volatile Method residenceHasFlag = null;
-    private static volatile Method dominionGetByLoc = null;
-    private static volatile Method dominionGetFlagValue = null;
-    private static volatile Method worldGuardTestState = null;
-    private static volatile Method worldGuardAdapt = null;
-    private static volatile Method landsGetLandByChunk = null;
-    private static volatile Method landsHasRoleFlag = null;
-    
-    private static volatile Object worldGuardTNTFlag = null;
-    private static volatile Object dominionTNTFlag = null;
-    private static volatile Object landsTNTFlag = null;
 
     private static final ConcurrentHashMap<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, ChunkCacheEntry> CHUNK_CACHE = new ConcurrentHashMap<>();
@@ -67,7 +53,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     public static boolean canTNTExplode(World world, int x, int y, int z) {
         try {
             
@@ -77,7 +62,6 @@ public class LandProtectionIntegration {
                 return cached.allowed;
             }
 
-            
             String chunkKey = getChunkCacheKey(world, x, z);
             ChunkCacheEntry chunkCached = CHUNK_CACHE.get(chunkKey);
             if (chunkCached != null && chunkCached.isValid() && chunkCached.allAllowed != null) {
@@ -86,7 +70,6 @@ public class LandProtectionIntegration {
                 return allowed;
             }
 
-            
             if (CACHE.size() > MAX_CACHE_SIZE) {
                 CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
             }
@@ -98,7 +81,6 @@ public class LandProtectionIntegration {
 
             boolean allowed = true;
 
-            
             if (isResidenceEnabled()) {
                 allowed = checkResidence(location);
             }
@@ -115,7 +97,6 @@ public class LandProtectionIntegration {
                 allowed = checkLands(location);
             }
 
-            
             CACHE.put(cacheKey, new CacheEntry(allowed));
 
             return allowed;
@@ -125,7 +106,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     public static Boolean checkChunkProtection(World world, int chunkX, int chunkZ) {
         try {
             String chunkKey = getChunkCacheKeyDirect(world, chunkX, chunkZ);
@@ -140,7 +120,6 @@ public class LandProtectionIntegration {
             Boolean firstResult = null;
             boolean allSame = true;
 
-            
             int[] sampleX = {0, 8, 15, 0, 15, 0, 8, 15, 8};
             int[] sampleZ = {0, 0, 0, 8, 8, 15, 15, 15, 8};
 
@@ -165,7 +144,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     private static boolean checkResidence(Location location) {
         try {
             if (residenceAPI == null) {
@@ -200,7 +178,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     private static boolean checkDominion(Location location) {
         try {
             if (dominionCache == null) {
@@ -224,7 +201,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     private static boolean checkWorldGuard(Location location) {
         try {
             if (worldGuardQuery == null) {
@@ -275,7 +251,6 @@ public class LandProtectionIntegration {
         }
     }
 
-    
     private static boolean checkLands(Location location) {
         try {
             if (landsIntegration == null) {

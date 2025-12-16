@@ -1,18 +1,23 @@
 package org.virgil.akiasync.mixin.mixins.explosion;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+
 import java.util.Map;
 import java.util.UUID;
+
 @SuppressWarnings("unused")
 @Mixin(value = PrimedTnt.class, priority = 1200)
 public class TNTExplosionMixin {
@@ -484,14 +489,17 @@ public class TNTExplosionMixin {
                 new org.virgil.akiasync.mixin.async.explosion.ExplosionSnapshot(sl, center, 4.0F, false);
 
             java.util.concurrent.ExecutorService executor = org.virgil.akiasync.mixin.async.TNTThreadPool.getExecutor();
-            String healthStatus = bridge.checkExecutorHealth(executor, "TNT");
+            
+            if (bridge != null) {
+                String healthStatus = bridge.checkExecutorHealth(executor, "TNT");
 
-            if (healthStatus != null && healthStatus.contains("unhealthy")) {
-                if (bridge != null && bridge.isTNTDebugEnabled()) {
-                    BridgeConfigCache.debugLog("[AkiAsync-TNT] Executor unhealthy, using sync calculation: " + healthStatus);
+                if (healthStatus != null && healthStatus.contains("unhealthy")) {
+                    if (bridge.isTNTDebugEnabled()) {
+                        BridgeConfigCache.debugLog("[AkiAsync-TNT] Executor unhealthy, using sync calculation: " + healthStatus);
+                    }
+                    aki$executeSyncExplosion(tnt, sl, center, snapshot, bridge);
+                    return;
                 }
-                aki$executeSyncExplosion(tnt, sl, center, snapshot, bridge);
-                return;
             }
 
             executor.execute(() -> {

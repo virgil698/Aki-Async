@@ -13,6 +13,7 @@ public class ExplosionBlockCache {
     
     public ExplosionBlockCache(BlockPos pos, BlockState blockState, FluidState fluidState, float resistance) {
         this.pos = pos.immutable();
+        
         this.blockState = blockState;
         this.fluidState = fluidState;
         this.resistance = resistance;
@@ -24,10 +25,12 @@ public class ExplosionBlockCache {
     }
     
     public BlockState getBlockState() {
+        
         return blockState;
     }
     
     public FluidState getFluidState() {
+        
         return fluidState;
     }
     

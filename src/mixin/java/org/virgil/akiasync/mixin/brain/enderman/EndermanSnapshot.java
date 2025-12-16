@@ -8,7 +8,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public final class EndermanSnapshot {
     
     private final Vec3 position;
@@ -60,7 +59,6 @@ public final class EndermanSnapshot {
         float lightLevel = enderman.getLightLevelDependentMagicValue();
         long gameTime = level.getGameTime();
         boolean hasTarget = enderman.getTarget() != null;
-        
         
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 

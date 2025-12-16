@@ -39,27 +39,22 @@ public abstract class PushEntitiesOptimizationMixin {
         
         LivingEntity self = (LivingEntity) (Object) this;
         
-        
         if (self instanceof net.minecraft.world.entity.monster.Shulker) {
             ci.cancel();
             return;
         }
         
-        
         net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
         if (deltaMovement == null) {
-            
             
             return;
         }
         double movementSqr = deltaMovement.lengthSqr();
         
-        
         if (movementSqr > 0.0001) { 
             
             return;
         }
-        
         
         if (movementSqr > 1.0E-10) { 
             if (self.tickCount % 2 != 0) {
@@ -68,15 +63,12 @@ public abstract class PushEntitiesOptimizationMixin {
             return;
         }
         
-        
         if (self.onGround() && !self.isInWater() && !self.isInLava()) {
-            
             
             if (self.tickCount % 10 != 0) {
                 ci.cancel();
             }
         } else {
-            
             
             if (self.tickCount % 2 != 0) {
                 ci.cancel();

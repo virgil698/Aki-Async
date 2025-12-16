@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-
 public class BlockLockerIntegration {
 
     private static volatile Boolean blockLockerEnabled = null;
@@ -32,26 +31,22 @@ public class BlockLockerIntegration {
         }
     }
 
-    
     public static boolean isProtected(World world, int x, int y, int z, String blockType) {
         try {
             if (!isBlockLockerEnabled()) {
                 return false;
             }
 
-            
             String cacheKey = getCacheKey(world, x, y, z);
             CacheEntry cached = CACHE.get(cacheKey);
             if (cached != null && cached.isValid()) {
                 return cached.protected_;
             }
 
-            
             if (CACHE.size() > MAX_CACHE_SIZE) {
                 CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
             }
 
-            
             if (!isContainerBlock(blockType)) {
                 CACHE.put(cacheKey, new CacheEntry(false));
                 return false;
@@ -62,7 +57,6 @@ public class BlockLockerIntegration {
 
             boolean protected_ = checkBlockLockerProtection(block);
 
-            
             CACHE.put(cacheKey, new CacheEntry(protected_));
 
             return protected_;
@@ -73,7 +67,6 @@ public class BlockLockerIntegration {
         }
     }
 
-    
     private static boolean checkBlockLockerProtection(Block block) {
         try {
             if (isProtectedMethod == null) {
@@ -82,13 +75,11 @@ public class BlockLockerIntegration {
                         
                         Class<?> apiClass = Class.forName("nl.rutgerkok.blocklocker.BlockLockerAPIv2");
                         
-                        
                         isProtectedMethod = apiClass.getMethod("isProtected", Block.class);
                     }
                 }
             }
 
-            
             Object result = isProtectedMethod.invoke(null, block);
             return result instanceof Boolean && (Boolean) result;
 
@@ -102,7 +93,6 @@ public class BlockLockerIntegration {
         }
     }
 
-    
     private static boolean isContainerBlock(String blockType) {
         if (blockType == null) return false;
         

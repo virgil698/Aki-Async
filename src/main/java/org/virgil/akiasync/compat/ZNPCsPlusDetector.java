@@ -93,9 +93,11 @@ public class ZNPCsPlusDetector implements PluginDetector {
         
         try {
             
-            if (entity.customName() != null) {
+            net.kyori.adventure.text.Component customNameComponent = entity.customName();
+            if (customNameComponent != null) {
+                
                 String customName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
-                    .serialize(entity.customName());
+                    .serialize(customNameComponent);
                 if (customName != null && customName.startsWith(ZNPC_NAME_PREFIX)) {
                     DebugLogger.debug("[ZNPCsPlus Compat] Found ZNPC name prefix: %s", customName);
                     return true;

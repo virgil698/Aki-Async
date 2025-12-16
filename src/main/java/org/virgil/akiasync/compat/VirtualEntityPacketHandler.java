@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 public class VirtualEntityPacketHandler {
 
-    private final PluginDetectorRegistry detectorRegistry;
     private final ConfigManager configManager;
     private final Logger logger;
     private volatile boolean enabled;
@@ -14,7 +13,7 @@ public class VirtualEntityPacketHandler {
     public VirtualEntityPacketHandler(PluginDetectorRegistry detectorRegistry, 
                                      ConfigManager configManager, 
                                      Logger logger) {
-        this.detectorRegistry = detectorRegistry;
+        
         this.configManager = configManager;
         this.logger = logger;
         this.enabled = false;

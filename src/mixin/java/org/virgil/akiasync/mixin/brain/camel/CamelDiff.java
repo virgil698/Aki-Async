@@ -2,7 +2,6 @@ package org.virgil.akiasync.mixin.brain.camel;
 
 import net.minecraft.server.level.ServerLevel;
 
-
 public final class CamelDiff {
     
     private boolean shouldStandUp = false;
@@ -38,12 +37,10 @@ public final class CamelDiff {
     public boolean shouldDash() { return shouldDash; }
     public boolean hasChanges() { return changeCount > 0; }
     
-    
     public void applyTo(net.minecraft.world.entity.animal.Animal camel, ServerLevel level) {
         if (!hasChanges()) {
             return;
         }
-        
         
     }
     
@@ -53,4 +50,3 @@ public final class CamelDiff {
                 shouldStandUp, shouldSitDown, shouldDash, changeCount);
     }
 }
-

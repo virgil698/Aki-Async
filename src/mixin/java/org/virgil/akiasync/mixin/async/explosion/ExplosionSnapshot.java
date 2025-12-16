@@ -43,7 +43,6 @@ public class ExplosionSnapshot {
         boolean landProtectionEnabled = bridge != null && bridge.isTNTLandProtectionEnabled();
         boolean blockLockerEnabled = bridge != null && bridge.isBlockLockerProtectionEnabled();
         
-        
         boolean centerInProtectedLand = false;
         if (landProtectionEnabled) {
             centerInProtectedLand = !bridge.canTNTExplodeAt(level, centerPos);
@@ -73,7 +72,6 @@ public class ExplosionSnapshot {
 
                     boolean isLandProtected = false;
 
-                    
                     if (landProtectionEnabled && !centerInProtectedLand) {
                         
                         int chunkX = x >> 4;
@@ -108,11 +106,9 @@ public class ExplosionSnapshot {
                         }
                     }
 
-                    
                     if (blockLockerEnabled && bridge.isBlockLockerProtected(level, pos, state)) {
                         blockLockerProtectedBlocks.add(pos);
                         protectedBlocks.add(pos);
-                        
                         
                         for (int dx = -1; dx <= 1; dx++) {
                             for (int dy = -1; dy <= 1; dy++) {

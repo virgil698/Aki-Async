@@ -9,7 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
-
 public final class PandaSnapshot {
     
     private final Vec3 position;
@@ -58,7 +57,6 @@ public final class PandaSnapshot {
         long gameTime = level.getGameTime();
         boolean isBaby = panda.isBaby();
         
-        
         String personality = "NORMAL";
         boolean isEating = false;
         try {
@@ -71,7 +69,6 @@ public final class PandaSnapshot {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "PandaSnapshot", "capturePersonality", e);
         }
-        
         
         boolean hasFood = false;
         try {
@@ -86,7 +83,6 @@ public final class PandaSnapshot {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "PandaSnapshot", "captureFood", e);
         }
-        
         
         List<EntityInfo> entities = new ArrayList<>();
         List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(
@@ -104,7 +100,6 @@ public final class PandaSnapshot {
             ));
         }
         
-        
         List<PlayerInfo> players = new ArrayList<>();
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
             level.getEntitiesOfClass(
@@ -120,7 +115,6 @@ public final class PandaSnapshot {
                 panda.distanceToSqr(player)
             ));
         }
-        
         
         List<ItemInfo> items = new ArrayList<>();
         List<net.minecraft.world.entity.item.ItemEntity> nearbyItems = 
@@ -163,4 +157,3 @@ public final class PandaSnapshot {
     public record PlayerInfo(UUID id, Vec3 pos, double distanceSq) {}
     public record ItemInfo(UUID id, Vec3 pos, double distanceSq, String itemType) {}
 }
-
