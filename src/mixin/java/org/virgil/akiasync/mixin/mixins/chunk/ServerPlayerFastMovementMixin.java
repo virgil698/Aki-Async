@@ -34,6 +34,11 @@ public abstract class ServerPlayerFastMovementMixin {
     @Unique private PlayerMovementData aki$movementData;
     @Unique private Vec3 aki$lastPosition;
     @Unique private long aki$lastCheckTime = 0;
+    @Unique private long aki$joinTime = 0;
+    
+    @Unique private static volatile boolean warmupEnabled = true;
+    @Unique private static volatile long warmupDurationMs = 3000L;
+    @Unique private static volatile double warmupInitialRate = 0.5;
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void aki$checkFastMovement(CallbackInfo ci) {
@@ -51,6 +56,10 @@ public abstract class ServerPlayerFastMovementMixin {
 
             if (self.level().isClientSide) {
                 return;
+            }
+            
+            if (aki$joinTime == 0) {
+                aki$joinTime = System.currentTimeMillis();
             }
 
             long currentTime = self.level().getGameTime();
@@ -181,10 +190,29 @@ public abstract class ServerPlayerFastMovementMixin {
             );
         }
 
+        long timeSinceJoin = System.currentTimeMillis() - aki$joinTime;
+        int warmupMaxLoads = adjustedMaxLoads;
+        if (warmupEnabled && timeSinceJoin < warmupDurationMs) {
+            double warmupProgress = timeSinceJoin / (double) warmupDurationMs;
+            double currentRate = warmupInitialRate + (1.0 - warmupInitialRate) * warmupProgress;
+            warmupMaxLoads = Math.max(1, (int) (adjustedMaxLoads * currentRate));
+            
+            if (debugEnabled) {
+                bridge.debugLog(
+                    "[FastChunk-Warmup] Player %s: warmup %.1f%%, rate %.0f%%, limiting loads to %d/%d",
+                    player.getScoreboardName(),
+                    warmupProgress * 100,
+                    currentRate * 100,
+                    warmupMaxLoads,
+                    adjustedMaxLoads
+                );
+            }
+        }
+        
         int submitted = 0;
         int priority = 100; 
         
-        for (int i = 0; i < sortedChunks.size() && submitted < adjustedMaxLoads; i++) {
+        for (int i = 0; i < sortedChunks.size() && submitted < warmupMaxLoads; i++) {
             ChunkPos chunkPos = sortedChunks.get(i);
             if (aki$shouldLoadChunk(player, chunkPos)) {
                 
@@ -233,6 +261,10 @@ public abstract class ServerPlayerFastMovementMixin {
                 minOffsetSpeed = bridge.getMinOffsetSpeed();
                 maxOffsetSpeed = bridge.getMaxOffsetSpeed();
                 maxOffsetRatio = bridge.getMaxOffsetRatio();
+                
+                warmupEnabled = bridge.isPlayerJoinWarmupEnabled();
+                warmupDurationMs = bridge.getPlayerJoinWarmupDurationMs();
+                warmupInitialRate = bridge.getPlayerJoinWarmupInitialRate();
 
                 if (isFolia) {
                     bridge.debugLog("[FastChunk] Initialized in Folia mode with region safety checks");
@@ -240,6 +272,10 @@ public abstract class ServerPlayerFastMovementMixin {
                 if (centerOffsetEnabled) {
                     bridge.debugLog("[FastChunk] Center offset enabled: speed range %.1f-%.1f b/t, max offset ratio %.1f%%",
                         minOffsetSpeed, maxOffsetSpeed, maxOffsetRatio * 100);
+                }
+                if (warmupEnabled) {
+                    bridge.debugLog("[FastChunk] Player join warmup enabled: duration %dms, initial rate %.0f%%",
+                        warmupDurationMs, warmupInitialRate * 100);
                 }
             }
             initialized = true;

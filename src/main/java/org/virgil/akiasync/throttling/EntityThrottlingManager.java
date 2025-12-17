@@ -204,6 +204,10 @@ public class EntityThrottlingManager {
                     if (entityLimits.containsKey(type)) {
                         EntityCounter counter = entityCounters.computeIfAbsent(type, k -> new EntityCounter());
                         counter.addEntity(entity);
+                        
+                        if (type == EntityType.ENDERMAN && isEndermanCarryingBlock(entity)) {
+                            counter.markAsCarrying(entity);
+                        }
                     }
                 }
             }
@@ -244,6 +248,10 @@ public class EntityThrottlingManager {
                                 EntityCounter counter = entityCounters.computeIfAbsent(type, k -> new EntityCounter());
                                 synchronized (counter) {
                                     counter.addEntity(entity);
+                                    
+                                    if (type == EntityType.ENDERMAN && isEndermanCarryingBlock(entity)) {
+                                        counter.markAsCarrying(entity);
+                                    }
                                 }
                             }
                         }
@@ -295,8 +303,17 @@ public class EntityThrottlingManager {
 
     private void removeOldestEntities(EntityCounter counter, int count) {
         List<Entity> entities = counter.getEntities();
+        List<Entity> carryingEntities = counter.getCarryingEntities();
 
-        entities.sort(Comparator.comparingInt(Entity::getTicksLived).reversed());
+        entities.sort((e1, e2) -> {
+            boolean e1Carrying = carryingEntities.contains(e1);
+            boolean e2Carrying = carryingEntities.contains(e2);
+            
+            if (e1Carrying && !e2Carrying) return -1;
+            if (!e1Carrying && e2Carrying) return 1;
+            
+            return Integer.compare(e2.getTicksLived(), e1.getTicksLived());
+        });
 
         int removed = 0;
         for (Entity entity : entities) {
@@ -319,6 +336,20 @@ public class EntityThrottlingManager {
                 entity.remove();
             }
             removed++;
+        }
+    }
+
+    private boolean isEndermanCarryingBlock(Entity entity) {
+        if (entity.getType() != EntityType.ENDERMAN) {
+            return false;
+        }
+
+        try {
+            Object nmsEntity = entity.getClass().getMethod("getHandle").invoke(entity);
+            Object carriedBlock = nmsEntity.getClass().getMethod("getCarriedBlock").invoke(nmsEntity);
+            return carriedBlock != null;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -425,10 +456,15 @@ public class EntityThrottlingManager {
 
     private static class EntityCounter {
         private final List<Entity> entities = new ArrayList<>();
+        private final List<Entity> carryingEntities = new ArrayList<>();
         private boolean throttled = false;
 
         public void addEntity(Entity entity) {
             entities.add(entity);
+        }
+
+        public void markAsCarrying(Entity entity) {
+            carryingEntities.add(entity);
         }
 
         public int getCount() {
@@ -437,6 +473,10 @@ public class EntityThrottlingManager {
 
         public List<Entity> getEntities() {
             return entities;
+        }
+
+        public List<Entity> getCarryingEntities() {
+            return carryingEntities;
         }
 
         public boolean isThrottled() {

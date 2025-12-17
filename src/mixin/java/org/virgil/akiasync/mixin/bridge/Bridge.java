@@ -590,6 +590,11 @@ public interface Bridge {
     double getMinOffsetSpeed();
     double getMaxOffsetSpeed();
     double getMaxOffsetRatio();
+    
+    boolean isPlayerJoinWarmupEnabled();
+    long getPlayerJoinWarmupDurationMs();
+    double getPlayerJoinWarmupInitialRate();
+    
     void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
     
     void clearWorldCaches(String worldName);
@@ -604,4 +609,9 @@ public interface Bridge {
     void clearVillagerBreedCache();
     void resetBrainExecutorStatistics();
     void resetAsyncMetrics();
+    
+    boolean isEndermanBlockCarryLimiterEnabled();
+    int getEndermanMaxCarrying();
+    boolean isEndermanCountTowardsMobCap();
+    boolean isEndermanPreventPickup();
 }

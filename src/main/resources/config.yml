@@ -817,26 +817,10 @@ structure-location-async:
 # ==========================================
 
 # 光照优化 / Lighting Optimizations
+# 参考ScalableLux，使用时间窗口控制更新频率 / Based on ScalableLux, use time window to control update frequency
 lighting-optimizations:
-  # 光照调度优化 / Lighting Scheduling Optimization
-  # 参考ScalableLux，使用时间窗口控制更新频率
-  # Based on ScalableLux, use time window to control update frequency
   enabled: true
-  
-  # 更新间隔 / Update Interval
-  # 光照更新调度的最小间隔（毫秒）
-  # Minimum interval between light update scheduling (milliseconds)
-  # 
-  # 说明：StarLight会批量处理光照更新，但tryScheduleUpdate()会频繁调用
-  # Info: StarLight batches light updates, but tryScheduleUpdate() is called frequently
-  # 通过限制调度频率，减少不必要的CPU消耗
-  # By limiting scheduling frequency, reduce unnecessary CPU usage
-  # 
-  # 推荐值 / Recommended: 10ms (ScalableLux默认 / ScalableLux default)
-  # - 10ms: 平衡性能和响应速度 / Balanced performance and responsiveness
-  # - 5ms: 更高响应速度，轻微增加CPU / Higher responsiveness, slightly more CPU
-  # - 20ms: 更低CPU消耗，可能延迟光照 / Lower CPU, may delay lighting
-  update-interval-ms: 10
+  update-interval-ms: 10  # 光照更新间隔 / Light update interval (推荐 10ms / Recommended: 10ms, 5ms=更快 / faster, 20ms=更省CPU / lower CPU)
 
 # 蜜蜂修复 / Bee Fix
 # 修复7个MC bug / Fixes 7 MC bugs
@@ -864,6 +848,15 @@ end-island-density-fix:
 # Disabling this check greatly improves portal performance, but rarely large mobs may get stuck
 portal-suffocation-check:
   disabled: false  # false=保持原版行为 / keep vanilla, true=禁用检查提升性能 / disable for performance
+
+# 末影人方块搬运限制 / Enderman Block Carry Limiter
+# 修复Mojang的bug：手持方块的末影人不占刷怪上限导致无限堆积 / Fix Mojang's bug: Endermen carrying blocks don't count towards mob cap
+# ⚠️ 注意：如果启用了 entity-throttling，建议将此功能设为 false / Note: Set to false if entity-throttling is enabled
+enderman-block-carry-limiter:
+  enabled: true  # 启用限制器 / Enable limiter (推荐 true，entity-throttling 启用时建议 false / Recommended: true, false if entity-throttling enabled)
+  max-carrying-endermen: 50  # 最大手持方块末影人数量 / Max carrying endermen (推荐 30-100 / Recommended: 30-100)
+  count-towards-mob-cap: true  # 强制计入刷怪上限 / Count towards mob cap (修复原版bug / Fix vanilla bug)
+  prevent-pickup-when-limit-reached: true  # 达到限制时阻止拾取 / Prevent pickup when limit reached
 
 # 数据包加载优化 / DataPack Loading Optimization
 # 多线程并行加载数据包，提升加载速度
@@ -1023,6 +1016,14 @@ fast-movement-chunk-load:
   async-loading:
     batch-size: 2  # 每批区块数 / Chunks per batch (推荐 / Recommended: 2/3/4)
     batch-delay-ms: 20  # 批次延迟 / Batch delay (毫秒 / milliseconds, 推荐 / Recommended: 20/15/10)
+  
+  # 玩家加入热身期 / Player Join Warmup Period
+  # 玩家刚进入时逐渐增加区块加载速率，避免MSPT峰值
+  # Gradually increase chunk loading rate when player joins to avoid MSPT spikes
+  player-join-warmup:
+    enabled: true
+    warmup-duration-ms: 3000  # 热身期时长 / Warmup duration (毫秒 / milliseconds, 推荐 / Recommended: 3000/2000/5000)
+    initial-rate: 0.5  # 初始加载速率 / Initial loading rate (0.0-1.0, 推荐 / Recommended: 0.5/0.3/0.7)
   
   # 地图渲染加速 / Map Rendering
   # 高速移动时优化地图渲染

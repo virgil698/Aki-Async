@@ -2,8 +2,11 @@ package org.virgil.akiasync.executor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 
 public class AdaptiveLoadBalancer {
+    
+    private static final Logger LOGGER = Logger.getLogger("AkiAsync");
     
     private static final double MSPT_WARNING = 40.0;
     private static final double MSPT_CRITICAL = 45.0;
@@ -44,9 +47,8 @@ public class AdaptiveLoadBalancer {
         adjustTaskSubmitRate(mspt);
         
         if (oldLoad != currentLoad) {
-            
-            System.out.println(String.format(
-                "[AkiAsync-LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
+            LOGGER.info(String.format(
+                "[LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
                 oldLoad, currentLoad, mspt, taskSubmitRate * 100
             ));
         }

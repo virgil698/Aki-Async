@@ -216,6 +216,9 @@ public class ChunkLoadPriorityScheduler {
         private final AtomicInteger loadedCount = new AtomicInteger(0);
         private volatile long lastActivity = System.currentTimeMillis();
         private volatile long lastLoadTime = 0;
+        private volatile long firstLoadTime = System.currentTimeMillis();
+        private static final int MAX_LOADS_PER_SECOND = 20;
+        private static final int INITIAL_GRACE_PERIOD_MS = 3000;
         
         public void recordQueued() {
             queuedCount.incrementAndGet();
@@ -229,7 +232,27 @@ public class ChunkLoadPriorityScheduler {
         }
         
         public boolean shouldThrottle() {
-            return System.currentTimeMillis() - lastLoadTime < 10;
+            long now = System.currentTimeMillis();
+            long timeSinceFirst = now - firstLoadTime;
+            
+            if (timeSinceFirst < INITIAL_GRACE_PERIOD_MS) {
+                int allowedLoads = (int) ((timeSinceFirst / 1000.0) * MAX_LOADS_PER_SECOND * 0.5);
+                if (queuedCount.get() >= Math.max(5, allowedLoads)) {
+                    return true;
+                }
+            }
+            
+            if (now - lastLoadTime < 50) {
+                return true;
+            }
+            
+            long recentWindow = 1000;
+            if (timeSinceFirst < recentWindow) {
+                int loadsInWindow = queuedCount.get();
+                return loadsInWindow >= MAX_LOADS_PER_SECOND;
+            }
+            
+            return false;
         }
         
         public long getLastActivity() {

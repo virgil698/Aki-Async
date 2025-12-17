@@ -1667,6 +1667,21 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
 
     @Override
+    public boolean isPlayerJoinWarmupEnabled() {
+        return config != null ? config.isPlayerJoinWarmupEnabled() : true;
+    }
+
+    @Override
+    public long getPlayerJoinWarmupDurationMs() {
+        return config != null ? config.getPlayerJoinWarmupDurationMs() : 3000L;
+    }
+
+    @Override
+    public double getPlayerJoinWarmupInitialRate() {
+        return config != null ? config.getPlayerJoinWarmupInitialRate() : 0.5;
+    }
+
+    @Override
     public void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed) {
         if (plugin == null || player == null || chunkPos == null) {
             return;
@@ -2410,5 +2425,25 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         } catch (Exception e) {
             plugin.getLogger().warning("[Bridge] Failed to reset async metrics: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public boolean isEndermanBlockCarryLimiterEnabled() {
+        return config.isEndermanBlockCarryLimiterEnabled();
+    }
+    
+    @Override
+    public int getEndermanMaxCarrying() {
+        return config.getEndermanMaxCarrying();
+    }
+    
+    @Override
+    public boolean isEndermanCountTowardsMobCap() {
+        return config.isEndermanCountTowardsMobCap();
+    }
+    
+    @Override
+    public boolean isEndermanPreventPickup() {
+        return config.isEndermanPreventPickup();
     }
 }

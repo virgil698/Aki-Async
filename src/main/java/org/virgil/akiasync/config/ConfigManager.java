@@ -52,6 +52,11 @@ public class ConfigManager {
     private boolean endermanAllowPickupBlocks;
     private boolean endermanAllowPlaceBlocks;
     
+    private boolean endermanBlockCarryLimiterEnabled;
+    private int endermanMaxCarrying;
+    private boolean endermanCountTowardsMobCap;
+    private boolean endermanPreventPickup;
+    
     private boolean armadilloOptimizationEnabled;
     private int armadilloTickInterval;
     private boolean snifferOptimizationEnabled;
@@ -397,6 +402,10 @@ public class ConfigManager {
     private double maxOffsetRatio;
     private int asyncLoadingBatchSize;
     private long asyncLoadingBatchDelayMs;
+    
+    private boolean playerJoinWarmupEnabled;
+    private long playerJoinWarmupDurationMs;
+    private double playerJoinWarmupInitialRate;
 
     private boolean virtualEntityCompatibilityEnabled;
     private boolean virtualEntityBypassPacketQueue;
@@ -491,6 +500,10 @@ public class ConfigManager {
         endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
         endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
         endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
+        endermanBlockCarryLimiterEnabled = config.getBoolean("enderman-block-carry-limiter.enabled", true);
+        endermanMaxCarrying = config.getInt("enderman-block-carry-limiter.max-carrying-endermen", 50);
+        endermanCountTowardsMobCap = config.getBoolean("enderman-block-carry-limiter.count-towards-mob-cap", true);
+        endermanPreventPickup = config.getBoolean("enderman-block-carry-limiter.prevent-pickup-when-limit-reached", true);
         
         armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
         armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
@@ -814,6 +827,10 @@ public class ConfigManager {
         
         asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.async-loading.batch-size", 2);
         asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
+        
+        playerJoinWarmupEnabled = config.getBoolean("fast-movement-chunk-load.player-join-warmup.enabled", true);
+        playerJoinWarmupDurationMs = config.getLong("fast-movement-chunk-load.player-join-warmup.warmup-duration-ms", 3000L);
+        playerJoinWarmupInitialRate = config.getDouble("fast-movement-chunk-load.player-join-warmup.initial-rate", 0.5);
 
         suffocationOptimizationEnabled = config.getBoolean("suffocation-optimization.enabled", true);
         
@@ -948,6 +965,10 @@ public class ConfigManager {
         endermanTickInterval = config.getInt("async-ai.enderman-optimization.tick-interval", 3);
         endermanAllowPickupBlocks = config.getBoolean("async-ai.enderman-optimization.allow-pickup-blocks", true);
         endermanAllowPlaceBlocks = config.getBoolean("async-ai.enderman-optimization.allow-place-blocks", true);
+        endermanBlockCarryLimiterEnabled = config.getBoolean("enderman-block-carry-limiter.enabled", true);
+        endermanMaxCarrying = config.getInt("enderman-block-carry-limiter.max-carrying-endermen", 50);
+        endermanCountTowardsMobCap = config.getBoolean("enderman-block-carry-limiter.count-towards-mob-cap", true);
+        endermanPreventPickup = config.getBoolean("enderman-block-carry-limiter.prevent-pickup-when-limit-reached", true);
         
         armadilloOptimizationEnabled = config.getBoolean("async-ai.armadillo-optimization.enabled", true);
         armadilloTickInterval = config.getInt("async-ai.armadillo-optimization.tick-interval", 3);
@@ -1415,6 +1436,11 @@ public class ConfigManager {
     public boolean isEndermanAllowPickupBlocks() { return endermanAllowPickupBlocks; }
     public boolean isEndermanAllowPlaceBlocks() { return endermanAllowPlaceBlocks; }
     
+    public boolean isEndermanBlockCarryLimiterEnabled() { return endermanBlockCarryLimiterEnabled; }
+    public int getEndermanMaxCarrying() { return endermanMaxCarrying; }
+    public boolean isEndermanCountTowardsMobCap() { return endermanCountTowardsMobCap; }
+    public boolean isEndermanPreventPickup() { return endermanPreventPickup; }
+    
     public boolean isArmadilloOptimizationEnabled() { return armadilloOptimizationEnabled; }
     public int getArmadilloTickInterval() { return armadilloTickInterval; }
     public boolean isSnifferOptimizationEnabled() { return snifferOptimizationEnabled; }
@@ -1722,6 +1748,10 @@ public class ConfigManager {
     public double getMinOffsetSpeed() { return minOffsetSpeed; }
     public double getMaxOffsetSpeed() { return maxOffsetSpeed; }
     public double getMaxOffsetRatio() { return maxOffsetRatio; }
+    
+    public boolean isPlayerJoinWarmupEnabled() { return playerJoinWarmupEnabled; }
+    public long getPlayerJoinWarmupDurationMs() { return playerJoinWarmupDurationMs; }
+    public double getPlayerJoinWarmupInitialRate() { return playerJoinWarmupInitialRate; }
     public int getAsyncLoadingBatchSize() { return asyncLoadingBatchSize; }
     public long getAsyncLoadingBatchDelayMs() { return asyncLoadingBatchDelayMs; }
 

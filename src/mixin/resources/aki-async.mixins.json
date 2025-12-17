@@ -21,6 +21,7 @@
     "brain.WanderingTraderTickMixin",
     "brain.WardenTickMixin",
     "brain.EndermanTickMixin",
+    "entity.EndermanBlockCarryLimiterMixin",
     "brain.HoglinTickMixin",
     "brain.AllayTickMixin",
     "brain.ArmadilloTickMixin",

@@ -36,7 +36,7 @@ public class PlayerPathPrewarmListener implements Listener {
                 } catch (Exception e) {
                     plugin.getLogger().warning("[PathPrewarm] Failed to prewarm paths: " + e.getMessage());
                 }
-            }, 40L);
+            }, 100L);
             
         } catch (Exception e) {
             plugin.getLogger().warning("[PathPrewarm] Error on player join: " + e.getMessage());
