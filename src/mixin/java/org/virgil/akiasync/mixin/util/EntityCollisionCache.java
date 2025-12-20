@@ -1,6 +1,7 @@
 package org.virgil.akiasync.mixin.util;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import java.util.List;
 
 public final class EntityCollisionCache {
@@ -20,5 +21,16 @@ public final class EntityCollisionCache {
     
     public static void setCacheLifetime(int lifetimeMs) {
         cacheLifetimeMs = lifetimeMs;
+    }
+    
+    public static void clearCacheForEntity(Entity entity) {
+        Level level = entity.level();
+        if (level instanceof EntityCollisionCacheAccess access) {
+            access.akiasync$clearEntityCache(entity);
+        }
+    }
+    
+    public interface EntityCollisionCacheAccess {
+        void akiasync$clearEntityCache(Entity entity);
     }
 }

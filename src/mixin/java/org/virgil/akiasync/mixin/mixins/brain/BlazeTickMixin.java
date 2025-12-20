@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.brain;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,6 +15,7 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Blaze;
+
 @SuppressWarnings("unused")
 @Mixin(value = Mob.class, priority = 993)
 public abstract class BlazeTickMixin {

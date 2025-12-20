@@ -30,7 +30,7 @@ public final class ExecutorLifecycleManager {
             public Thread newThread(@Nonnull Runnable r) {
                 Thread thread = new Thread(r, name + "-" + threadNumber.getAndIncrement());
                 thread.setDaemon(daemon);
-                thread.setPriority(Thread.NORM_PRIORITY);
+                thread.setPriority(Thread.NORM_PRIORITY - 2);
                 return thread;
             }
         };

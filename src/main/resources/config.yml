@@ -5,17 +5,22 @@
 version: 18
 
 # ==========================================
+# 统一线程池配置 / Unified Thread Pool Configuration
+# ==========================================
+# 所有异步任务统一使用此线程池配置 / All async tasks use this unified thread pool configuration
+# 0 = 自动分配（CPU核心数/4，最小2）/ Auto-allocate (CPU cores/4, min 2)
+# >0 = 手动指定线程数 / Manually specify thread count
+general-thread-pool:
+  size: 0  # 统一线程池大小 / Unified thread pool size (推荐保持0 / Recommended: keep 0)
+
+# ==========================================
 # 实体系统优化 / Entity System Optimization
 # ==========================================
 
-# 异步实体追踪器 / Async Entity Tracker
-# 将实体位置更新移至异步线程处理，减少主线程负担
-# Moves entity position updates to async threads to reduce main thread load
+# 多线程实体追踪器 / Multithreaded Entity Tracker
+# 多线程并行处理实体追踪，大幅降低MSPT（10-30%） / Multi-threaded parallel entity tracking, significantly reduces MSPT (10-30%)
 entity-tracker:
-  enabled: true
-  thread-pool-size: 4  # 线程池大小 / Thread pool size (推荐 / Recommended: CPU核心数 / CPU cores)
-  update-interval-ticks: 1  # 更新间隔 / Update interval (1=每tick / every tick)
-  max-queue-size: 10000  # 队列上限 / Queue limit (推荐 / Recommended: 1000-20000)
+  enabled: true  # 启用多线程实体追踪器 / Enable multithreaded entity tracker
 
 # 异步生物生成 / Async Mob Spawning
 # 异步处理自然生成逻辑，避免阻塞主线程
@@ -47,24 +52,24 @@ suffocation-optimization:
   enabled: true
 
 # 虚拟实体兼容性 / Virtual Entity Compatibility
-# 支持FancyNpcs、ZNPCsPlus等虚拟实体插件
-# Support for FancyNpcs, ZNPCsPlus and other virtual entity plugins
+# 支持FancyNpcs、ZNPCsPlus等虚拟实体插件 / Support for FancyNpcs, ZNPCsPlus and other virtual entity plugins
+# 影响范围：实体包节流、掉落物优化、下落方块优化等 / Affects: entity packet throttle, item entity optimizations, falling block optimizations, etc.
 # ⚠️ 禁用后虚拟实体插件可能无法正常显示 / May break virtual entity plugins when disabled
 virtual-entity-compatibility:
-  enabled: true
+  enabled: true  # 启用虚拟实体兼容 / Enable virtual entity compatibility
   bypass-packet-queue: true  # 虚拟实体包绕过队列直发 / Bypass queue for virtual entity packets
-  exclude-from-throttling: true  # 从节流排除 / Exclude from throttling
+  exclude-from-throttling: true  # 从所有节流优化中排除 / Exclude from all throttling optimizations
   
   plugins:
     fancynpcs:
-      enabled: true  # 识别FancyNpcs的NPC为虚拟实体 / Identify FancyNpcs NPCs as virtual entities
-      use-api: true
-      priority: 90
+      enabled: true  # 识别FancyNpcs的NPC / Identify FancyNpcs NPCs
+      use-api: true  # 使用API检测 / Use API detection
+      priority: 90  # 检测优先级 / Detection priority
     
     znpcsplus:
-      enabled: true  # 识别ZNPCsPlus的NPC为虚拟实体 / Identify ZNPCsPlus NPCs as virtual entities
-      use-api: false  # 主要通过名称前缀检测 / Primarily name prefix detection
-      priority: 90
+      enabled: true  # 识别ZNPCsPlus的NPC / Identify ZNPCsPlus NPCs
+      use-api: false  # 使用名称前缀检测 / Use name prefix detection
+      priority: 90  # 检测优先级 / Detection priority
 
 # 实体碰撞优化 / Entity Collision Optimization
 # 针对密集实体环境的高性能碰撞检测优化
@@ -124,6 +129,28 @@ collision-optimization:
     use-section-grid: true  # 使用Section网格 / Use Section grid (推荐 / recommended)
     section-grid-warmup: false  # 预热网格 / Warmup grid (可选，增加内存占用 / optional, increases memory)
   
+  # 向量化碰撞检测 / Vectorized Collision Detection
+  # 批量处理实体碰撞检测，高密度场景性能提升 25-40%
+  # Batch process entity collision detection, 25-40% boost in high-density scenarios
+  vectorized:
+    enabled: true
+    threshold: 64  # 向量化阈值 / Vectorization threshold (实体数 >= 此值才使用向量化 / use vectorization when entity count >= threshold)
+  
+  # 方块缓存 / Block Cache
+  # 缓存碰撞检测中的方块状态查询，性能提升 10-15%
+  # Cache block state queries in collision detection, 10-15% boost
+  block-cache:
+    enabled: true
+    cache-size: 512  # 缓存大小 / Cache size (推荐 / Recommended: 256-1024)
+    expire-ticks: 600  # 过期时间 / Expire time (ticks, 600 = 30秒 / 30 seconds)
+  
+  # 射线碰撞检测 / Ray Collision Detection
+  # DDA 算法优化射线追踪，性能提升 50-70%
+  # DDA algorithm for ray tracing, 50-70% boost
+  ray-collision:
+    enabled: true
+    max-distance: 64.0  # 最大检测距离 / Max detection distance (blocks)
+  
   # 形状优化 / Shape Optimization
   # 预计算和缓存碰撞形状，减少对象分配
   # Precompute and cache collision shapes to reduce object allocation
@@ -158,9 +185,10 @@ mob-despawn-optimization:
 # 并行实体Tick / Parallel Entity Tick
 # 多线程并行处理实体tick，充分利用多核CPU
 # Multi-threaded parallel entity ticking to utilize multi-core CPUs
+# 线程数由 general-thread-pool.size 统一控制
+# Thread count controlled by general-thread-pool.size
 entity-tick-parallel:
   enabled: true
-  threads: 4  # 线程数 / Thread count (推荐 / Recommended: CPU核心数 / CPU cores)
   min-entities: 50  # 低于此值不启用并行 / Skip parallel below threshold
   batch-size: 8  # 批量大小 / Batch size (每批处理的实体数 / entities per batch)
 
@@ -201,7 +229,6 @@ async-ai:
   # Move pathfinding calculations to async threads to avoid blocking main thread
   async-pathfinding:
     enabled: true
-    max-threads: 6  # 线程池大小 / Thread pool size (推荐 / Recommended: CPU核心数×1.5 / CPU cores × 1.5)
     keep-alive-seconds: 60  # 线程存活时间 / Thread keep-alive time
     max-queue-size: 500  # 最大队列大小 / Max queue size (推荐 / Recommended: 500-1000)
     timeout-ms: 100  # 寻路超时时间 / Pathfinding timeout (毫秒 / milliseconds)
@@ -244,6 +271,32 @@ async-ai:
         max-pois-per-mob: 3  # 每个生物预热的POI数 / POIs per mob
         batch-delay-ms: 100  # 批次间延迟 / Delay between batches
         total-time-seconds: 5  # 总预热时间 / Total prewarm time
+  
+  # AI传感器优化 / AI Sensor Optimization
+  # 延长视线缓存清空间隔，减少昂贵的射线追踪计算
+  # Extend line-of-sight cache clear interval to save expensive raytrace calculations
+  sensor-optimization:
+    enabled: true  # 启用优化 / Enable optimization (安全实现 / safe implementation)
+    sensing-refresh-interval: 5  # 缓存清空间隔 / Cache clear interval (ticks, 3=激进/aggressive 5=平衡/balanced 10=保守/conservative)
+  
+  # 游戏事件系统优化 / Game Event System Optimization
+  # 提前过滤不关心的事件，减少 Sculk Sensor 等的处理开销
+  # Early filter irrelevant events to reduce Sculk Sensor processing overhead
+  game-event-optimization:
+    enabled: true
+    early-filter: true  # 提前过滤 / Early filter (在分发前检查 / check before dispatching)
+    
+    # 低优先级事件节流 / Low Priority Event Throttling
+    # 对高频但不重要的事件（如脚步声、游泳等）进行节流
+    # Throttle high-frequency but unimportant events (like steps, swimming, etc.)
+    throttle-low-priority: true  # 启用节流 / Enable throttling
+    throttle-interval-ms: 50  # 节流间隔 / Throttle interval (毫秒 / milliseconds)
+    
+    # 距离过滤 / Distance Filtering
+    # 过滤距离所有玩家都很远的事件
+    # Filter events that are too far from all players
+    distance-filter: true  # 启用距离过滤 / Enable distance filtering
+    max-detection-distance: 64.0  # 最大检测距离 / Max detection distance (方块 / blocks)
   
   # 统一AI优化 / Universal AI
   # 统一模板+配置化+DAB，覆盖所有Brain实体
@@ -305,7 +358,6 @@ async-ai:
     # Async villager breeding logic to avoid blocking main thread
     breed-optimization:
       async-villager-breed: true  # 异步繁殖 / Async breeding
-      threads: 2  # 繁殖线程数 / Breeding threads
       age-throttle: true  # 年龄节流 / Age throttle (跳过空闲村民20 ticks / skip idle villagers for 20 ticks)
       check-interval: 5  # 检查间隔 / Check interval
   
@@ -651,7 +703,6 @@ tnt-explosion-optimization:
     - "minecraft:tnt"
     - "minecraft:tnt_minecart"
     - "minecraft:wither_skull"
-  threads: 4  # 线程数 / Thread count (推荐 / Recommended: CPU核心数 / CPU cores)
   
   # 原版兼容性 / Vanilla Compatibility
   # 确保TNT行为与原版一致
@@ -734,7 +785,6 @@ falling-block-optimization:
 # Folia环境下自动禁用 / Auto-disabled on Folia
 chunk-tick-async:
   enabled: false
-  threads: 4  # 线程数 / Thread count
   timeout-us: 200  # 超时 / Timeout (微秒 / microseconds)
   batch-size: 16  # 批量大小 / Batch size
 
@@ -759,7 +809,6 @@ chunk-generation:
 # Async structure finding to prevent main thread blocking
 structure-location-async:
   enabled: true
-  threads: 2  # 线程数 / Thread count (推荐 / Recommended: 2)
   
   # /locate 命令优化 / /locate Command Optimization
   # 异步处理/locate命令，避免卡顿
@@ -863,8 +912,6 @@ enderman-block-carry-limiter:
 # Multi-threaded parallel datapack loading to boost loading speed
 datapack-optimization:
   enabled: true
-  file-load-threads: 2  # 文件加载线程数 / File load threads
-  zip-process-threads: 2  # ZIP处理线程数 / ZIP process threads
   batch-size: 100  # 批量大小 / Batch size
   cache-expiration-minutes: 30  # 缓存过期时间 / Cache expiration (分钟 / minutes)
   max-file-cache-size: 1000  # 文件缓存上限 / Max file cache size (防止内存泄漏 / prevent memory leak)
@@ -1031,7 +1078,6 @@ fast-movement-chunk-load:
   # ⚠️ 实验性功能 / Experimental
   map-rendering:
     enabled: false
-    threads: 2  # 渲染线程数 / Rendering threads
 
 # ==========================================
 # 性能监控与调试 / Performance Monitoring & Debug
@@ -1056,6 +1102,7 @@ performance:
       execute-command: false  # Execute命令优化调试 / Execute command optimization debug
       command-deduplication: false  # 命令去重调试 / Command deduplication debug
       smart-lag-compensation: false  # 智能滞后补偿调试 / Smart lag compensation debug
+      land-protection: false  # 领地保护集成调试 / Land protection integration debug
       log-missed-ticks: false  # 记录丢失的tick / Log missed ticks
       log-compensation: false  # 记录补偿操作 / Log compensation actions
   

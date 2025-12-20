@@ -31,6 +31,32 @@ public class ExplosionCalculator {
     private final SakuraBlockDensityCache densityCache;
     private final OptimizedExplosionCache optimizedCache;
     private final DDACollisionDetector ddaDetector;
+    
+    private static final int VECTORIZED_BATCH_SIZE = 64;
+    private final ThreadLocal<VectorizedEntityBatch> vectorizedBatchCache = 
+        ThreadLocal.withInitial(() -> new VectorizedEntityBatch(VECTORIZED_BATCH_SIZE));
+    
+    private static class VectorizedEntityBatch {
+        final float[] xminArr;
+        final float[] yminArr;
+        final float[] zminArr;
+        final float[] xmaxArr;
+        final float[] ymaxArr;
+        final float[] zmaxArr;
+        final net.minecraft.world.phys.AABB[] boxes;
+        final ExplosionSnapshot.EntitySnapshot[] entities;
+        
+        VectorizedEntityBatch(int size) {
+            this.xminArr = new float[size];
+            this.yminArr = new float[size];
+            this.zminArr = new float[size];
+            this.xmaxArr = new float[size];
+            this.ymaxArr = new float[size];
+            this.zmaxArr = new float[size];
+            this.boxes = new net.minecraft.world.phys.AABB[size];
+            this.entities = new ExplosionSnapshot.EntitySnapshot[size];
+        }
+    }
 
     public ExplosionCalculator(ExplosionSnapshot snapshot) {
         this.snapshot = snapshot;
@@ -219,58 +245,122 @@ public class ExplosionCalculator {
             }
         }
         
-        for (ExplosionSnapshot.EntitySnapshot entity : entitiesToProcess) {
-            double dx = entity.getPosition().x - center.x;
-            double dy = entity.getPosition().y - center.y;
-            double dz = entity.getPosition().z - center.z;
-            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (dist >= radius) continue;
-
-            double exposure = calculateExposure(center, entity);
-            if (exposure <= 0) continue;
-
-            double impact = (1.0 - dist / radius) * exposure;
-
-            if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Entity damage calculation: " +
-                    entity.getUuid() + " dist=" + String.format("%.2f", dist) +
-                    " exposure=" + String.format("%.3f", exposure) +
-                    " impact=" + String.format("%.3f", impact));
-            }
-
-            if (impact <= 0.0) {
-                if (bridge != null && bridge.isTNTDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-TNT] Entity %s impact <= 0, skipping", entity.getUuid());
-                }
-                continue;
-            }
-
-            double knockbackX = dx / dist * impact;
-            double knockbackY = Math.max(dy / dist * impact, impact * 0.3);
-            double knockbackZ = dz / dist * impact;
-
-            double maxKnockback = 2.0;
-            double knockbackLength = Math.sqrt(knockbackX * knockbackX + knockbackY * knockbackY + knockbackZ * knockbackZ);
-            if (knockbackLength > maxKnockback) {
-                double scale = maxKnockback / knockbackLength;
-                knockbackX *= scale;
-                knockbackY *= scale;
-                knockbackZ *= scale;
-            }
-
-            Vec3 knockbackVec = new Vec3(knockbackX, knockbackY, knockbackZ);
+        if (entitiesToProcess.size() >= VECTORIZED_BATCH_SIZE && 
+            bridge != null && bridge.isTNTUseVectorizedAABB()) {
             
-            if (bridge != null && bridge.isTNTDebugEnabled()) {
-                bridge.debugLog("[AkiAsync-TNT] Adding entity %s to hurt list", entity.getUuid());
-                bridge.debugLog("[AkiAsync-TNT]   Knockback: %s", knockbackVec);
-            }
+            calculateEntityDamageVectorized(center, radius, entitiesToProcess, bridge);
             
-            toHurt.put(entity.getUuid(), knockbackVec);
+        } else {
+            
+            calculateEntityDamageTraditional(center, radius, entitiesToProcess, bridge);
         }
         
         if (bridge != null && bridge.isTNTDebugEnabled()) {
             bridge.debugLog("[AkiAsync-TNT] calculateEntityDamage completed, total entities to hurt: %d", toHurt.size());
         }
+    }
+    
+    private void calculateEntityDamageVectorized(Vec3 center, double radius, 
+                                                  java.util.List<ExplosionSnapshot.EntitySnapshot> entities,
+                                                  org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+        
+        float explosionMinX = (float) (center.x - radius);
+        float explosionMinY = (float) (center.y - radius);
+        float explosionMinZ = (float) (center.z - radius);
+        float explosionMaxX = (float) (center.x + radius);
+        float explosionMaxY = (float) (center.y + radius);
+        float explosionMaxZ = (float) (center.z + radius);
+        
+        VectorizedEntityBatch batch = vectorizedBatchCache.get();
+        int entityCount = entities.size();
+        
+        for (int startIdx = 0; startIdx < entityCount; startIdx += VECTORIZED_BATCH_SIZE) {
+            int endIdx = Math.min(startIdx + VECTORIZED_BATCH_SIZE, entityCount);
+            int batchSize = endIdx - startIdx;
+            
+            for (int i = 0; i < batchSize; i++) {
+                ExplosionSnapshot.EntitySnapshot entity = entities.get(startIdx + i);
+                net.minecraft.world.phys.AABB aabb = entity.getBoundingBox();
+                
+                batch.xminArr[i] = (float) aabb.minX;
+                batch.yminArr[i] = (float) aabb.minY;
+                batch.zminArr[i] = (float) aabb.minZ;
+                batch.xmaxArr[i] = (float) aabb.maxX;
+                batch.ymaxArr[i] = (float) aabb.maxY;
+                batch.zmaxArr[i] = (float) aabb.maxZ;
+                batch.boxes[i] = aabb;
+                batch.entities[i] = entity;
+            }
+            
+            VectorizedAABBIntersection.intersectsWithVector(
+                explosionMinX, explosionMinY, explosionMinZ,
+                explosionMaxX, explosionMaxY, explosionMaxZ,
+                batch.xminArr, batch.yminArr, batch.zminArr,
+                batch.xmaxArr, batch.ymaxArr, batch.zmaxArr,
+                batch.boxes, batch.entities,
+                (aabb, entity) -> processEntityDamage(center, radius, entity, bridge)
+            );
+        }
+    }
+    
+    private void calculateEntityDamageTraditional(Vec3 center, double radius,
+                                                   java.util.List<ExplosionSnapshot.EntitySnapshot> entities,
+                                                   org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+        
+        for (ExplosionSnapshot.EntitySnapshot entity : entities) {
+            processEntityDamage(center, radius, entity, bridge);
+        }
+    }
+    
+    private void processEntityDamage(Vec3 center, double radius, 
+                                      ExplosionSnapshot.EntitySnapshot entity,
+                                      org.virgil.akiasync.mixin.bridge.Bridge bridge) {
+        double dx = entity.getPosition().x - center.x;
+        double dy = entity.getPosition().y - center.y;
+        double dz = entity.getPosition().z - center.z;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist >= radius) return;
+
+        double exposure = calculateExposure(center, entity);
+        if (exposure <= 0) return;
+
+        double impact = (1.0 - dist / radius) * exposure;
+
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] Entity damage calculation: " +
+                entity.getUuid() + " dist=" + String.format("%.2f", dist) +
+                " exposure=" + String.format("%.3f", exposure) +
+                " impact=" + String.format("%.3f", impact));
+        }
+
+        if (impact <= 0.0) {
+            if (bridge != null && bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Entity %s impact <= 0, skipping", entity.getUuid());
+            }
+            return;
+        }
+
+        double knockbackX = dx / dist * impact;
+        double knockbackY = Math.max(dy / dist * impact, impact * 0.3);
+        double knockbackZ = dz / dist * impact;
+
+        double maxKnockback = 2.0;
+        double knockbackLength = Math.sqrt(knockbackX * knockbackX + knockbackY * knockbackY + knockbackZ * knockbackZ);
+        if (knockbackLength > maxKnockback) {
+            double scale = maxKnockback / knockbackLength;
+            knockbackX *= scale;
+            knockbackY *= scale;
+            knockbackZ *= scale;
+        }
+
+        Vec3 knockbackVec = new Vec3(knockbackX, knockbackY, knockbackZ);
+        
+        if (bridge != null && bridge.isTNTDebugEnabled()) {
+            bridge.debugLog("[AkiAsync-TNT] Adding entity %s to hurt list", entity.getUuid());
+            bridge.debugLog("[AkiAsync-TNT]   Knockback: %s", knockbackVec);
+        }
+        
+        toHurt.put(entity.getUuid(), knockbackVec);
     }
 
     private double calculateExposure(Vec3 explosionCenter, ExplosionSnapshot.EntitySnapshot entity) {

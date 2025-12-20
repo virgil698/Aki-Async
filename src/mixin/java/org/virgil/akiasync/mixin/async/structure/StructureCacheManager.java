@@ -34,6 +34,7 @@ public class StructureCacheManager {
         this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "AkiAsync-StructureCache-Cleanup");
             t.setDaemon(true);
+            t.setPriority(Thread.NORM_PRIORITY - 2);
             return t;
         });
 

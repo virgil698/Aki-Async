@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.brain;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -6,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.phys.Vec3;
+
 @SuppressWarnings("unused")
 @Mixin(value = Brain.class, priority = 1100)
 public abstract class BrainThrottleMixin<E extends LivingEntity> {

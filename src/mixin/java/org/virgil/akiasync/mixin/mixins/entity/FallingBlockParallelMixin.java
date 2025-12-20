@@ -40,14 +40,34 @@ public abstract class FallingBlockParallelMixin {
 
         ServerLevel level = (ServerLevel) (Object) this;
 
-        List<FallingBlockEntity> fallingBlocks = new ArrayList<>();
-        level.getAllEntities().forEach(entity -> {
-            if (entity instanceof FallingBlockEntity falling) {
-                if (!akiasync$isVirtualEntity(falling)) {
-                    fallingBlocks.add(falling);
+        List<FallingBlockEntity> fallingBlocks = new ArrayList<>(64); 
+        
+        try {
+            
+            final int MAX_FALLING_BLOCKS = 1000;
+            int count = 0;
+            
+            for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
+                count++;
+                if (entity instanceof FallingBlockEntity falling) {
+                    if (!akiasync$isVirtualEntity(falling)) {
+                        fallingBlocks.add(falling);
+                        
+                        if (fallingBlocks.size() >= MAX_FALLING_BLOCKS) {
+                            BridgeConfigCache.debugLog(
+                                "[AkiAsync-FallingBlock] WARNING: Too many falling blocks (%d collected, %d+ total entities), limiting to %d",
+                                fallingBlocks.size(), count, MAX_FALLING_BLOCKS
+                            );
+                            break;
+                        }
+                    }
                 }
             }
-        });
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "FallingBlockParallel", "collectFallingBlocks", e);
+            return;
+        }
 
         if (fallingBlocks.size() < minFallingBlocks) {
             return;
@@ -105,6 +125,10 @@ public abstract class FallingBlockParallelMixin {
             if (executionCount <= 3) {
                 BridgeConfigCache.debugLog("[AkiAsync-FallingBlock] Timeout/Error: " + t.getMessage());
             }
+        } finally {
+            
+            fallingBlocks.clear();
+            batches.clear();
         }
     }
 
@@ -112,10 +136,32 @@ public abstract class FallingBlockParallelMixin {
     }
 
     private List<List<FallingBlockEntity>> akiasync$partitionFallingBlocks(List<FallingBlockEntity> list, int size) {
-        List<List<FallingBlockEntity>> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            result.add(list.subList(i, Math.min(i + size, list.size())));
+        if (list.isEmpty()) {
+            return new ArrayList<>();
         }
+        
+        if (size <= 0) {
+            BridgeConfigCache.debugLog(
+                "[AkiAsync-FallingBlock] WARNING: Invalid batch size (%d), using default 10",
+                size
+            );
+            size = 10; 
+        }
+        
+        int totalSize = list.size();
+        int numBatches = (totalSize + size - 1) / size; 
+        List<List<FallingBlockEntity>> result = new ArrayList<>(numBatches);
+        
+        for (int i = 0; i < totalSize; i += size) {
+            int end = Math.min(i + size, totalSize);
+            
+            List<FallingBlockEntity> batch = new ArrayList<>(end - i);
+            for (int j = i; j < end; j++) {
+                batch.add(list.get(j));
+            }
+            result.add(batch);
+        }
+        
         return result;
     }
 
@@ -161,6 +207,15 @@ public abstract class FallingBlockParallelMixin {
             }
             minFallingBlocks = bridge.getMinFallingBlocksForParallel();
             batchSize = bridge.getFallingBlockBatchSize();
+            
+            if (batchSize <= 0) {
+                BridgeConfigCache.debugLog(
+                    "[AkiAsync-FallingBlock] WARNING: Invalid batch size from config (%d), using default 10",
+                    batchSize
+                );
+                batchSize = 10;
+            }
+            
             dedicatedPool = bridge.getGeneralExecutor();
         } else {
             enabled = false;

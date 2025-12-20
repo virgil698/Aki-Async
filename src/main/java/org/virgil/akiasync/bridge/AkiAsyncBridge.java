@@ -314,6 +314,30 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isPoiSnapshotEnabled() { return config.isPoiSnapshotEnabled(); }
 
     @Override
+    public boolean isAiSensorOptimizationEnabled() { return config.isAiSensorOptimizationEnabled(); }
+
+    @Override
+    public int getAiSensorRefreshInterval() { return config.getAiSensorRefreshInterval(); }
+
+    @Override
+    public boolean isGameEventOptimizationEnabled() { return config.isGameEventOptimizationEnabled(); }
+
+    @Override
+    public boolean isGameEventEarlyFilter() { return config.isGameEventEarlyFilter(); }
+
+    @Override
+    public boolean isGameEventThrottleLowPriority() { return config.isGameEventThrottleLowPriority(); }
+
+    @Override
+    public long getGameEventThrottleIntervalMs() { return config.getGameEventThrottleIntervalMs(); }
+
+    @Override
+    public boolean isGameEventDistanceFilter() { return config.isGameEventDistanceFilter(); }
+
+    @Override
+    public double getGameEventMaxDetectionDistance() { return config.getGameEventMaxDetectionDistance(); }
+
+    @Override
     public boolean isAsyncPathfindingEnabled() { return config.isAsyncPathfindingEnabled(); }
 
     @Override
@@ -449,10 +473,30 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isSpawnerOptimizationEnabled() {return config.isSpawnerOptimizationEnabled();}
 
     @Override
-    public boolean isEntityTrackerEnabled() {return config.isEntityTrackerEnabled();}
+    @Deprecated 
+    public boolean isEntityTrackerEnabled() {
+        
+        return config.isEntityPacketThrottleEnabled();
+    }
 
     @Override
-    public int getEntityTrackerQueueSize() {return config.getMaxQueueSize();}
+    @Deprecated 
+    public int getEntityTrackerQueueSize() {
+        
+        return 10000;
+    }
+    
+    @Override
+    public boolean isMultithreadedTrackerEnabled() {return config.isMultithreadedTrackerEnabled();}
+    
+    @Override
+    public int getMultithreadedTrackerParallelism() {return config.getMultithreadedTrackerParallelism();}
+    
+    @Override
+    public int getMultithreadedTrackerBatchSize() {return config.getMultithreadedTrackerBatchSize();}
+    
+    @Override
+    public int getMultithreadedTrackerAssistBatchSize() {return config.getMultithreadedTrackerAssistBatchSize();}
 
     @Override
     public boolean isPredicateCacheEnabled() {return true;}
@@ -567,6 +611,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isTNTUseSakuraDensityCache() {return config.isTNTUseSakuraDensityCache();}
+
+    @Override
+    public boolean isTNTUseVectorizedAABB() {return config.isTNTUseVectorizedAABB();}
 
     @Override
     public boolean isTNTMergeEnabled() {return config.isTNTMergeEnabled();}
@@ -1472,7 +1519,8 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         }
         
         org.bukkit.World world = level.getWorld();
-        return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(world, pos.getX(), pos.getY(), pos.getZ());
+        boolean debug = config != null && config.isLandProtectionDebugEnabled();
+        return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(world, pos.getX(), pos.getY(), pos.getZ(), debug);
     }
 
     @Override
@@ -1968,6 +2016,61 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
     
     @Override
+    public boolean isVectorizedCollisionEnabled() {
+        return config != null ? config.isVectorizedCollisionEnabled() : true;
+    }
+    
+    @Override
+    public int getVectorizedCollisionThreshold() {
+        return config != null ? config.getVectorizedCollisionThreshold() : 64;
+    }
+    
+    @Override
+    public boolean isCollisionBlockCacheEnabled() {
+        return config != null ? config.isCollisionBlockCacheEnabled() : true;
+    }
+    
+    @Override
+    public int getCollisionBlockCacheSize() {
+        return config != null ? config.getCollisionBlockCacheSize() : 512;
+    }
+    
+    @Override
+    public int getCollisionBlockCacheExpireTicks() {
+        return config != null ? config.getCollisionBlockCacheExpireTicks() : 600;
+    }
+    
+    @Override
+    public boolean isRayCollisionEnabled() {
+        return config != null ? config.isRayCollisionEnabled() : true;
+    }
+    
+    @Override
+    public double getRayCollisionMaxDistance() {
+        return config != null ? config.getRayCollisionMaxDistance() : 64.0;
+    }
+    
+    @Override
+    public boolean isShapeOptimizationEnabled() {
+        return config != null ? config.isShapeOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isShapePrecomputeArrays() {
+        return config != null ? config.isShapePrecomputeArrays() : true;
+    }
+    
+    @Override
+    public boolean isShapeBlockShapeCache() {
+        return config != null ? config.isShapeBlockShapeCache() : true;
+    }
+    
+    @Override
+    public int getShapeBlockShapeCacheSize() {
+        return config != null ? config.getShapeBlockShapeCacheSize() : 512;
+    }
+    
+    @Override
     public boolean isLightingPrioritySchedulingEnabled() {
         return config != null && config.isLightingPrioritySchedulingEnabled();
     }
@@ -2445,5 +2548,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public boolean isEndermanPreventPickup() {
         return config.isEndermanPreventPickup();
+    }
+    
+    @Override
+    public boolean isMultithreadedEntityTrackerEnabled() {
+        return config.isMultithreadedEntityTrackerEnabled();
     }
 }

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.async.villager;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +36,7 @@ public class VillagerBreedExecutor {
             executor = Executors.newFixedThreadPool(4, r -> {
                 Thread t = new Thread(r, "AkiAsync-Villager-Breed-Fallback");
                 t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY - 2);
                 return t;
             });
         }

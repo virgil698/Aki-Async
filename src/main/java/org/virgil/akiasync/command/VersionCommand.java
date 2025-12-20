@@ -32,7 +32,8 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
         source.getSender().sendMessage(prefix + "");
         source.getSender().sendMessage(prefix + "Active Optimizations:");
-        source.getSender().sendMessage(prefix + "  Entity Tracker: " + (plugin.getConfigManager().isEntityTrackerEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Entity Packet Throttle: " + (plugin.getConfigManager().isEntityPacketThrottleEnabled() ? "ON" : "OFF"));
+        source.getSender().sendMessage(prefix + "  Multithreaded Entity Tracker: " + (plugin.getConfigManager().isMultithreadedEntityTrackerEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Mob Spawning: " + (plugin.getConfigManager().isMobSpawningEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Entity Tick Parallel: " + (plugin.getConfigManager().isEntityTickParallel() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Block Entity Parallel: " + (plugin.getConfigManager().isBlockEntityParallelTickEnabled() ? "ON" : "OFF"));

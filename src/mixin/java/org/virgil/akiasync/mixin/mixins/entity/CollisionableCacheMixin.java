@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("unused")
 @Mixin(LivingEntity.class)
-public abstract class CollisionableCacheMixin {
+public abstract class CollisionableCacheMixin implements org.virgil.akiasync.mixin.util.CollisionableCache.CollisionableCacheAccess {
     
     @Unique
     private static volatile boolean enabled = true;
@@ -96,5 +96,12 @@ public abstract class CollisionableCacheMixin {
         }
         
         initialized = true;
+    }
+    
+    @Override
+    public void akiasync$invalidateCache() {
+        lastCollidableCheck = 0;
+        lastHealthState = 0;
+        lastIgnoreClimbing = false;
     }
 }

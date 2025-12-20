@@ -36,6 +36,18 @@ public class WorldUnloadCleanupMixin {
             }
             
             try {
+                org.virgil.akiasync.mixin.util.collision.CollisionBlockCache.clearLevelCache(level);
+            } catch (Exception e) {
+                ExceptionHandler.handleCleanup("WorldUnloadCleanup", "CollisionBlockCache", e);
+            }
+            
+            try {
+                org.virgil.akiasync.mixin.util.collision.RayCollisionDetectorManager.clearAll();
+            } catch (Exception e) {
+                ExceptionHandler.handleCleanup("WorldUnloadCleanup", "RayCollisionDetector", e);
+            }
+            
+            try {
                 org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearLevelCache(level);
             } catch (Exception e) {
                 ExceptionHandler.handleCleanup("WorldUnloadCleanup", "RedstoneNetworkCache", e);

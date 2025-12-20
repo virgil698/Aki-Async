@@ -62,6 +62,7 @@ public class AsyncExecutorManager {
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread thread = new Thread(r, "AkiAsync-Metrics");
                 thread.setDaemon(true);
+                thread.setPriority(Thread.NORM_PRIORITY - 2);
                 return thread;
             }),
             "AkiAsync-Metrics-Executor");

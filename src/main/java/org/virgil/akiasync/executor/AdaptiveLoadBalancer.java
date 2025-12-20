@@ -47,7 +47,7 @@ public class AdaptiveLoadBalancer {
         adjustTaskSubmitRate(mspt);
         
         if (oldLoad != currentLoad) {
-            LOGGER.info(String.format(
+            LOGGER.fine(String.format(
                 "[LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
                 oldLoad, currentLoad, mspt, taskSubmitRate * 100
             ));

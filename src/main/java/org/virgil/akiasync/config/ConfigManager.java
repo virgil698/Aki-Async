@@ -12,10 +12,16 @@ public class ConfigManager {
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
-    private boolean entityTrackerEnabled;
-    private int threadPoolSize;
-    private int updateIntervalTicks;
-    private int maxQueueSize;
+    
+    @Deprecated private boolean entityTrackerEnabled; 
+    @Deprecated private int threadPoolSize; 
+    @Deprecated private int updateIntervalTicks; 
+    @Deprecated private int maxQueueSize; 
+    
+    private boolean multithreadedTrackerEnabled;
+    private int multithreadedTrackerParallelism;
+    private int multithreadedTrackerBatchSize;
+    private int multithreadedTrackerAssistBatchSize;
     
     private boolean mobSpawningEnabled;
     private boolean spawnerOptimizationEnabled;
@@ -56,6 +62,8 @@ public class ConfigManager {
     private int endermanMaxCarrying;
     private boolean endermanCountTowardsMobCap;
     private boolean endermanPreventPickup;
+    
+    private boolean multithreadedEntityTrackerEnabled;
     
     private boolean armadilloOptimizationEnabled;
     private int armadilloTickInterval;
@@ -101,6 +109,16 @@ public class ConfigManager {
     private int asyncPathfindingCacheReuseTolerance;
     private int asyncPathfindingCacheCleanupIntervalSeconds;
     
+    private boolean aiSensorOptimizationEnabled;
+    private int aiSensorRefreshInterval;
+
+    private boolean gameEventOptimizationEnabled;
+    private boolean gameEventEarlyFilter;
+    private boolean gameEventThrottleLowPriority;
+    private long gameEventThrottleIntervalMs;
+    private boolean gameEventDistanceFilter;
+    private double gameEventMaxDetectionDistance;
+    
     private boolean enhancedPathfindingEnabled;
     private int enhancedPathfindingMaxConcurrentRequests;
     private int enhancedPathfindingMaxRequestsPerTick;
@@ -132,8 +150,19 @@ public class ConfigManager {
     private int collisionThreshold;
     private float suffocationDamage;
     private int maxPushIterations;
+    private boolean vectorizedCollisionEnabled;
+    private int vectorizedCollisionThreshold;
+    private boolean collisionBlockCacheEnabled;
+    private int collisionBlockCacheSize;
+    private int collisionBlockCacheExpireTicks;
+    private boolean rayCollisionEnabled;
+    private double rayCollisionMaxDistance;
     private boolean useSectionGrid;
     private boolean sectionGridWarmup;
+    private boolean shapeOptimizationEnabled;
+    private boolean shapePrecomputeArrays;
+    private boolean shapeBlockShapeCache;
+    private int shapeBlockShapeCacheSize;
     private boolean tntCacheEnabled;
     private boolean tntUseOptimizedCache;
     private int tntCacheExpiryTicks;
@@ -239,6 +268,7 @@ public class ConfigManager {
     private boolean tntOptimizationEnabled;
     private boolean tntDebugEnabled;
     private boolean lightingDebugEnabled;
+    private boolean landProtectionDebugEnabled;
     private java.util.Set<String> tntExplosionEntities;
     private int tntThreads;
     private int tntMaxBlocks;
@@ -270,6 +300,7 @@ public class ConfigManager {
     private boolean blockLockerProtectionEnabled;
     
     private boolean tntUseSakuraDensityCache;
+    private boolean tntUseVectorizedAABB;
     private boolean tntMergeEnabled;
     private double tntMergeRadius;
     private int tntMaxFuseDifference;
@@ -460,10 +491,26 @@ public class ConfigManager {
     }
     
     private void loadConfigValues() {
-        entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
-        threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
-        updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
-        maxQueueSize = config.getInt("entity-tracker.max-queue-size", 10000);
+        
+        int configuredThreadPoolSize = config.getInt("general-thread-pool.size", 0);
+        if (configuredThreadPoolSize <= 0) {
+            int cpuCores = Runtime.getRuntime().availableProcessors();
+            threadPoolSize = Math.max(2, cpuCores / 4);  
+        } else {
+            threadPoolSize = configuredThreadPoolSize;
+        }
+        
+        entityTrackerEnabled = true; 
+        updateIntervalTicks = 1; 
+        maxQueueSize = 10000; 
+        
+        multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
+        
+        multithreadedTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
+        multithreadedTrackerParallelism = config.getInt("entity-tracker.parallelism", 
+            Math.max(4, Runtime.getRuntime().availableProcessors()));
+        multithreadedTrackerBatchSize = config.getInt("entity-tracker.batch-size", 10);
+        multithreadedTrackerAssistBatchSize = config.getInt("entity-tracker.assist-batch-size", 5);
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
@@ -538,6 +585,16 @@ public class ConfigManager {
         
         brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
         poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+
+        aiSensorOptimizationEnabled = config.getBoolean("async-ai.sensor-optimization.enabled", true);
+        aiSensorRefreshInterval = config.getInt("async-ai.sensor-optimization.sensing-refresh-interval", 10);
+
+        gameEventOptimizationEnabled = config.getBoolean("async-ai.game-event-optimization.enabled", true);
+        gameEventEarlyFilter = config.getBoolean("async-ai.game-event-optimization.early-filter", true);
+        gameEventThrottleLowPriority = config.getBoolean("async-ai.game-event-optimization.throttle-low-priority", true);
+        gameEventThrottleIntervalMs = config.getLong("async-ai.game-event-optimization.throttle-interval-ms", 50L);
+        gameEventDistanceFilter = config.getBoolean("async-ai.game-event-optimization.distance-filter", true);
+        gameEventMaxDetectionDistance = config.getDouble("async-ai.game-event-optimization.max-detection-distance", 64.0);
         
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
         asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
@@ -656,6 +713,7 @@ public class ConfigManager {
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
         lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
+        landProtectionDebugEnabled = config.getBoolean("performance.debug-logging.modules.land-protection", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -677,6 +735,7 @@ public class ConfigManager {
         blockLockerProtectionEnabled = config.getBoolean("tnt-explosion-optimization.blocklocker-protection.enabled", true);
         
         tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
+        tntUseVectorizedAABB = config.getBoolean("tnt-explosion-optimization.vectorized-aabb.enabled", true);
         tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", false);
         tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
         tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.entity-merge.max-fuse-difference", 5);
@@ -942,10 +1001,19 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
 
-        entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
-        threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
-        updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
-        maxQueueSize = config.getInt("entity-tracker.max-queue-size", 1000);
+        int configuredThreadPoolSize = config.getInt("general-thread-pool.size", 0);
+        if (configuredThreadPoolSize <= 0) {
+            int cpuCores = Runtime.getRuntime().availableProcessors();
+            threadPoolSize = Math.max(2, cpuCores / 4);
+        } else {
+            threadPoolSize = configuredThreadPoolSize;
+        }
+        
+        entityTrackerEnabled = true;
+        updateIntervalTicks = 1;
+        maxQueueSize = 10000;
+        
+        multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
@@ -1003,6 +1071,16 @@ public class ConfigManager {
         
         brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
         poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+
+        aiSensorOptimizationEnabled = config.getBoolean("async-ai.sensor-optimization.enabled", true);
+        aiSensorRefreshInterval = config.getInt("async-ai.sensor-optimization.sensing-refresh-interval", 10);
+
+        gameEventOptimizationEnabled = config.getBoolean("async-ai.game-event-optimization.enabled", true);
+        gameEventEarlyFilter = config.getBoolean("async-ai.game-event-optimization.early-filter", true);
+        gameEventThrottleLowPriority = config.getBoolean("async-ai.game-event-optimization.throttle-low-priority", true);
+        gameEventThrottleIntervalMs = config.getLong("async-ai.game-event-optimization.throttle-interval-ms", 50L);
+        gameEventDistanceFilter = config.getBoolean("async-ai.game-event-optimization.distance-filter", true);
+        gameEventMaxDetectionDistance = config.getDouble("async-ai.game-event-optimization.max-detection-distance", 64.0);
         
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
         asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
@@ -1078,6 +1156,7 @@ public class ConfigManager {
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
         lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
+        landProtectionDebugEnabled = config.getBoolean("performance.debug-logging.modules.land-protection", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -1309,6 +1388,7 @@ public class ConfigManager {
         plugin.getLogger().info("Notified " + ConfigReloader.getListenerCount() + " config reload listeners");
     }
 
+    @Deprecated
     public boolean isEntityTrackerEnabled() {
         return entityTrackerEnabled;
     }
@@ -1317,10 +1397,12 @@ public class ConfigManager {
         return threadPoolSize;
     }
 
+    @Deprecated
     public int getUpdateIntervalTicks() {
         return updateIntervalTicks;
     }
 
+    @Deprecated
     public int getMaxQueueSize() {
         return maxQueueSize;
     }
@@ -1441,6 +1523,13 @@ public class ConfigManager {
     public boolean isEndermanCountTowardsMobCap() { return endermanCountTowardsMobCap; }
     public boolean isEndermanPreventPickup() { return endermanPreventPickup; }
     
+    public boolean isMultithreadedEntityTrackerEnabled() { return multithreadedEntityTrackerEnabled; }
+    
+    public boolean isMultithreadedTrackerEnabled() { return multithreadedTrackerEnabled; }
+    public int getMultithreadedTrackerParallelism() { return multithreadedTrackerParallelism; }
+    public int getMultithreadedTrackerBatchSize() { return multithreadedTrackerBatchSize; }
+    public int getMultithreadedTrackerAssistBatchSize() { return multithreadedTrackerAssistBatchSize; }
+    
     public boolean isArmadilloOptimizationEnabled() { return armadilloOptimizationEnabled; }
     public int getArmadilloTickInterval() { return armadilloTickInterval; }
     public boolean isSnifferOptimizationEnabled() { return snifferOptimizationEnabled; }
@@ -1472,8 +1561,19 @@ public class ConfigManager {
     
     public boolean isBrainMemoryOptimizationEnabled() { return brainMemoryOptimizationEnabled; }
     public boolean isPoiSnapshotEnabled() { return poiSnapshotEnabled; }
+    
+    public boolean isAiSensorOptimizationEnabled() { return aiSensorOptimizationEnabled; }
+    public int getAiSensorRefreshInterval() { return aiSensorRefreshInterval; }
+
+    public boolean isGameEventOptimizationEnabled() { return gameEventOptimizationEnabled; }
+    public boolean isGameEventEarlyFilter() { return gameEventEarlyFilter; }
+    public boolean isGameEventThrottleLowPriority() { return gameEventThrottleLowPriority; }
+    public long getGameEventThrottleIntervalMs() { return gameEventThrottleIntervalMs; }
+    public boolean isGameEventDistanceFilter() { return gameEventDistanceFilter; }
+    public double getGameEventMaxDetectionDistance() { return gameEventMaxDetectionDistance; }
+    
     public boolean isAsyncPathfindingEnabled() { return asyncPathfindingEnabled; }
-    public int getAsyncPathfindingMaxThreads() { return asyncPathfindingMaxThreads; }
+    public int getAsyncPathfindingMaxThreads() { return threadPoolSize; }  
     public int getAsyncPathfindingKeepAliveSeconds() { return asyncPathfindingKeepAliveSeconds; }
     public int getAsyncPathfindingMaxQueueSize() { return asyncPathfindingMaxQueueSize; }
     public int getAsyncPathfindingTimeoutMs() { return asyncPathfindingTimeoutMs; }
@@ -1514,8 +1614,19 @@ public class ConfigManager {
     public int getCollisionThreshold() { return collisionThreshold; }
     public float getSuffocationDamage() { return suffocationDamage; }
     public int getMaxPushIterations() { return maxPushIterations; }
+    public boolean isVectorizedCollisionEnabled() { return vectorizedCollisionEnabled; }
+    public int getVectorizedCollisionThreshold() { return vectorizedCollisionThreshold; }
+    public boolean isCollisionBlockCacheEnabled() { return collisionBlockCacheEnabled; }
+    public int getCollisionBlockCacheSize() { return collisionBlockCacheSize; }
+    public int getCollisionBlockCacheExpireTicks() { return collisionBlockCacheExpireTicks; }
+    public boolean isRayCollisionEnabled() { return rayCollisionEnabled; }
+    public double getRayCollisionMaxDistance() { return rayCollisionMaxDistance; }
     public boolean isUseSectionGrid() { return useSectionGrid; }
     public boolean isSectionGridWarmup() { return sectionGridWarmup; }
+    public boolean isShapeOptimizationEnabled() { return shapeOptimizationEnabled; }
+    public boolean isShapePrecomputeArrays() { return shapePrecomputeArrays; }
+    public boolean isShapeBlockShapeCache() { return shapeBlockShapeCache; }
+    public int getShapeBlockShapeCacheSize() { return shapeBlockShapeCacheSize; }
     public boolean isTntCacheEnabled() { return tntCacheEnabled; }
     public boolean isTntUseOptimizedCache() { return tntUseOptimizedCache; }
     public int getTntCacheExpiryTicks() { return tntCacheExpiryTicks; }
@@ -1544,7 +1655,7 @@ public class ConfigManager {
     public boolean isSimpleEntitiesOptimizationEnabled() { return simpleEntitiesOptimizationEnabled; }
     public boolean isSimpleEntitiesUsePOISnapshot() { return simpleEntitiesUsePOISnapshot; }
     public boolean isEntityTickParallel() { return entityTickParallel; }
-    public int getEntityTickThreads() { return entityTickThreads; }
+    public int getEntityTickThreads() { return threadPoolSize; }  
     public int getMinEntitiesForParallel() { return minEntitiesForParallel; }
     public int getEntityTickBatchSize() { return entityTickBatchSize; }
     public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }
@@ -1574,6 +1685,7 @@ public class ConfigManager {
     public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
     public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
     public boolean isTNTUseSakuraDensityCache() { return tntUseSakuraDensityCache; }
+    public boolean isTNTUseVectorizedAABB() { return tntUseVectorizedAABB; }
     public boolean isTNTMergeEnabled() { return tntMergeEnabled; }
     public double getTNTMergeRadius() { return tntMergeRadius; }
     public int getTNTMaxFuseDifference() { return tntMaxFuseDifference; }
@@ -1581,15 +1693,16 @@ public class ConfigManager {
     
     public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
     public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
-    public int getVillagerBreedThreads() { return villagerBreedThreads; }
+    public int getVillagerBreedThreads() { return threadPoolSize; }  
     public int getVillagerBreedCheckInterval() { return villagerBreedCheckInterval; }
     public boolean isTNTOptimizationEnabled() { return tntOptimizationEnabled; }
     public java.util.Set<String> getTNTExplosionEntities() { return tntExplosionEntities; }
-    public int getTNTThreads() { return tntThreads; }
+    public int getTNTThreads() { return threadPoolSize; }  
     public int getTNTMaxBlocks() { return tntMaxBlocks; }
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
     public boolean isTNTDebugEnabled() { return tntDebugEnabled || enableDebugLogging; }
+    public boolean isLandProtectionDebugEnabled() { return landProtectionDebugEnabled || enableDebugLogging; }
     public boolean isTNTVanillaCompatibilityEnabled() { return tntVanillaCompatibilityEnabled; }
     public boolean isTNTUseVanillaPower() { return tntUseVanillaPower; }
     public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
@@ -1615,7 +1728,7 @@ public class ConfigManager {
     public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
     public boolean isBlockLockerProtectionEnabled() { return blockLockerProtectionEnabled; }
     public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
-    public int getChunkTickThreads() { return chunkTickThreads; }
+    public int getChunkTickThreads() { return threadPoolSize; }  
     public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
     public int getChunkTickAsyncBatchSize() { return chunkTickAsyncBatchSize; }
 
@@ -1624,7 +1737,7 @@ public class ConfigManager {
     }
 
     public boolean isStructureLocationAsyncEnabled() { return structureLocationAsyncEnabled; }
-    public int getStructureLocationThreads() { return structureLocationThreads; }
+    public int getStructureLocationThreads() { return threadPoolSize; }  
     public boolean isLocateCommandEnabled() { return locateCommandEnabled; }
     public int getLocateCommandSearchRadius() { return locateCommandSearchRadius; }
     public boolean isLocateCommandSkipKnownStructures() { return locateCommandSkipKnownStructures; }
@@ -1647,8 +1760,8 @@ public class ConfigManager {
     public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
 
     public boolean isDataPackOptimizationEnabled() { return dataPackOptimizationEnabled; }
-    public int getDataPackFileLoadThreads() { return dataPackFileLoadThreads; }
-    public int getDataPackZipProcessThreads() { return dataPackZipProcessThreads; }
+    public int getDataPackFileLoadThreads() { return threadPoolSize; }  
+    public int getDataPackZipProcessThreads() { return threadPoolSize; }  
     public int getDataPackBatchSize() { return dataPackBatchSize; }
     public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
     public int getDataPackMaxFileCacheSize() { return dataPackMaxFileCacheSize; }
@@ -1736,7 +1849,7 @@ public class ConfigManager {
     public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
     public boolean isFastRayTraceEnabled() { return fastRayTraceEnabled; }
     public boolean isMapRenderingOptimizationEnabled() { return mapRenderingOptimizationEnabled; }
-    public int getMapRenderingThreads() { return mapRenderingThreads; }
+    public int getMapRenderingThreads() { return threadPoolSize; }  
 
     public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
     public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
@@ -1802,8 +1915,19 @@ public class ConfigManager {
         collisionThreshold = config.getInt("collision-optimization.advanced.collision-threshold", 8);
         suffocationDamage = (float) config.getDouble("collision-optimization.advanced.suffocation-damage", 0.5);
         maxPushIterations = config.getInt("collision-optimization.advanced.max-push-iterations", 8);
+        vectorizedCollisionEnabled = config.getBoolean("collision-optimization.vectorized.enabled", true);
+        vectorizedCollisionThreshold = config.getInt("collision-optimization.vectorized.threshold", 64);
+        collisionBlockCacheEnabled = config.getBoolean("collision-optimization.block-cache.enabled", true);
+        collisionBlockCacheSize = config.getInt("collision-optimization.block-cache.cache-size", 512);
+        collisionBlockCacheExpireTicks = config.getInt("collision-optimization.block-cache.expire-ticks", 600);
+        rayCollisionEnabled = config.getBoolean("collision-optimization.ray-collision.enabled", true);
+        rayCollisionMaxDistance = config.getDouble("collision-optimization.ray-collision.max-distance", 64.0);
         useSectionGrid = config.getBoolean("collision-optimization.advanced.use-section-grid", true);
         sectionGridWarmup = config.getBoolean("collision-optimization.advanced.section-grid-warmup", false);
+        shapeOptimizationEnabled = config.getBoolean("collision-optimization.shape-optimization.enabled", true);
+        shapePrecomputeArrays = config.getBoolean("collision-optimization.shape-optimization.precompute-arrays", true);
+        shapeBlockShapeCache = config.getBoolean("collision-optimization.shape-optimization.block-shape-cache", true);
+        shapeBlockShapeCacheSize = config.getInt("collision-optimization.shape-optimization.cache-size", 512);
         tntCacheEnabled = config.getBoolean("tnt-explosion-optimization.cache.enabled", true);
         tntUseOptimizedCache = config.getBoolean("tnt-explosion-optimization.cache.use-optimized-cache", true);
         tntCacheExpiryTicks = config.getInt("tnt-explosion-optimization.cache.cache-expiry-ticks", 600);

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.brain;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +13,7 @@ import org.virgil.akiasync.mixin.brain.piglin.PiglinDiff;
 import org.virgil.akiasync.mixin.brain.piglin.PiglinSnapshot;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.piglin.Piglin;
+
 @SuppressWarnings("unused")
 @Mixin(value = {Piglin.class, net.minecraft.world.entity.monster.piglin.PiglinBrute.class}, priority = 998)
 public abstract class PiglinBrainMixin {

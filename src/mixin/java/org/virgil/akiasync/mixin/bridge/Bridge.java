@@ -108,6 +108,17 @@ public interface Bridge {
     
     boolean isBrainMemoryOptimizationEnabled();
     boolean isPoiSnapshotEnabled();
+    
+    boolean isAiSensorOptimizationEnabled();
+    int getAiSensorRefreshInterval();
+    
+    boolean isGameEventOptimizationEnabled();
+    boolean isGameEventEarlyFilter();
+    boolean isGameEventThrottleLowPriority();
+    long getGameEventThrottleIntervalMs();
+    boolean isGameEventDistanceFilter();
+    double getGameEventMaxDetectionDistance();
+    
     boolean isAsyncPathfindingEnabled();
     int getAsyncPathfindingMaxThreads();
     int getAsyncPathfindingKeepAliveSeconds();
@@ -158,6 +169,11 @@ public interface Bridge {
     boolean isEntityTrackerEnabled();
 
     int getEntityTrackerQueueSize();
+    
+    boolean isMultithreadedTrackerEnabled();
+    int getMultithreadedTrackerParallelism();
+    int getMultithreadedTrackerBatchSize();
+    int getMultithreadedTrackerAssistBatchSize();
 
     boolean isPredicateCacheEnabled();
 
@@ -462,6 +478,7 @@ public interface Bridge {
     int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category);
     
     boolean isTNTUseSakuraDensityCache();
+    boolean isTNTUseVectorizedAABB();
     boolean isTNTMergeEnabled();
     double getTNTMergeRadius();
     int getTNTMaxFuseDifference();
@@ -517,6 +534,21 @@ public interface Bridge {
     int getCollisionThreshold();
     float getSuffocationDamage();
     int getMaxPushIterations();
+    
+    boolean isVectorizedCollisionEnabled();
+    int getVectorizedCollisionThreshold();
+    
+    boolean isCollisionBlockCacheEnabled();
+    int getCollisionBlockCacheSize();
+    int getCollisionBlockCacheExpireTicks();
+    
+    boolean isRayCollisionEnabled();
+    double getRayCollisionMaxDistance();
+    
+    boolean isShapeOptimizationEnabled();
+    boolean isShapePrecomputeArrays();
+    boolean isShapeBlockShapeCache();
+    int getShapeBlockShapeCacheSize();
     
     boolean isLightingPrioritySchedulingEnabled();
     int getLightingHighPriorityRadius();
@@ -614,4 +646,6 @@ public interface Bridge {
     int getEndermanMaxCarrying();
     boolean isEndermanCountTowardsMobCap();
     boolean isEndermanPreventPickup();
+    
+    boolean isMultithreadedEntityTrackerEnabled();
 }

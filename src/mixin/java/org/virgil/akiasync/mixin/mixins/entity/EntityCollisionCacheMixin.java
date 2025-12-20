@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 @Mixin(Level.class)
-public abstract class EntityCollisionCacheMixin {
+public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.mixin.util.EntityCollisionCache.EntityCollisionCacheAccess {
     
     @Unique
     private static volatile boolean enabled = true;
@@ -156,5 +156,18 @@ public abstract class EntityCollisionCacheMixin {
         }
         
         initialized = true;
+    }
+    
+    @Override
+    public void akiasync$clearEntityCache(Entity entity) {
+        if (entity == null) return;
+        
+        int entityId = entity.getId();
+        collisionCache.long2ObjectEntrySet().removeIf(entry -> {
+            long key = entry.getLongKey();
+            
+            int cachedEntityId = (int) (key >>> 44);
+            return cachedEntityId == entityId;
+        });
     }
 }

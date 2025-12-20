@@ -15,7 +15,17 @@
     
     <Match>
         <Class name="~.*Mixin.*"/>
+        <Bug pattern="MS_SHOULD_BE_FINAL"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin.*"/>
         <Bug pattern="BC_IMPOSSIBLE_CAST"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin.*"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
     </Match>
     
     <Match>

@@ -87,7 +87,7 @@ public class ExplosionSnapshot {
 
                         if (chunkProtection != null) {
                             
-                            if (chunkProtection) {
+                            if (!chunkProtection) {
                                 isLandProtected = true;
                             }
                         } else {

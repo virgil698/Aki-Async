@@ -27,7 +27,7 @@ public class AIExecutorManager {
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r, "AkiAI-" + threadNumber.getAndIncrement());
                 thread.setDaemon(true);
-                thread.setPriority(Thread.NORM_PRIORITY);
+                thread.setPriority(Thread.NORM_PRIORITY - 2);
                 return thread;
             }
         };

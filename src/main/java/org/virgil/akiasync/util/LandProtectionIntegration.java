@@ -54,6 +54,10 @@ public class LandProtectionIntegration {
     }
 
     public static boolean canTNTExplode(World world, int x, int y, int z) {
+        return canTNTExplode(world, x, y, z, false);
+    }
+
+    public static boolean canTNTExplode(World world, int x, int y, int z, boolean debug) {
         try {
             
             String cacheKey = getCacheKey(world, x, y, z);
@@ -82,7 +86,7 @@ public class LandProtectionIntegration {
             boolean allowed = true;
 
             if (isResidenceEnabled()) {
-                allowed = checkResidence(location);
+                allowed = checkResidence(location, debug);
             }
 
             if (allowed && isDominionEnabled()) {
@@ -144,7 +148,7 @@ public class LandProtectionIntegration {
         }
     }
 
-    private static boolean checkResidence(Location location) {
+    private static boolean checkResidence(Location location, boolean debug) {
         try {
             if (residenceAPI == null) {
                 com.bekvon.bukkit.residence.Residence residence = 
@@ -164,16 +168,25 @@ public class LandProtectionIntegration {
                 (com.bekvon.bukkit.residence.protection.ResidenceManager) residenceAPI;
             
             com.bekvon.bukkit.residence.protection.ClaimedResidence res = manager.getByLoc(location);
+            
             if (res == null) {
+                
                 return true;
             }
 
-            return res.getPermissions().has("tnt", true);
+            boolean allowed = res.getPermissions().has("tnt", false);
+            if (!allowed && debug) {
+                System.out.println("[LandProtection] Residence claim '" + res.getName() + 
+                    "' denying TNT at " + location.getBlockX() + "," + 
+                    location.getBlockY() + "," + location.getBlockZ());
+            }
+            return allowed;
 
         } catch (Exception e) {
             if (residenceEnabled == null) {
                 residenceEnabled = false;
             }
+            System.err.println("[LandProtection] Error checking Residence: " + e.getMessage());
             return true;
         }
     }

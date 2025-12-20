@@ -1,5 +1,7 @@
 package org.virgil.akiasync.mixin.util;
+
 import java.lang.reflect.Field;
+
 public final class REFLECTIONS {
     public static boolean setField(Object obj, String fieldName, Object value) {
         try {
