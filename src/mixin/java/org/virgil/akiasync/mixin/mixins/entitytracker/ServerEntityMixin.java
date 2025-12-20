@@ -24,20 +24,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-/**
- * ServerEntity Mixin - 确保数据包在主线程发送
- * 
- * 功能：
- * 1. 拦截 removePairing() 中的数据包发送，确保在主线程执行
- * 2. 拦截 addPairing() 中的数据包发送，确保在主线程执行
- * 3. 拦截 sendChanges() 中的数据包发送，确保在主线程执行
- * 
- * 原因：
- * - 数据包发送必须在主线程执行，否则可能导致客户端显示异常
- * - 多线程追踪器在更新玩家时可能在工作线程中调用这些方法
- * 
- * @author AkiAsync
- */
 @Mixin(ServerEntity.class)
 public abstract class ServerEntityMixin {
     

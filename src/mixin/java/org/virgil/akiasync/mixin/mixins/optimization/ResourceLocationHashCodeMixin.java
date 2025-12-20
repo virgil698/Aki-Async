@@ -44,18 +44,6 @@ public class ResourceLocationHashCodeMixin {
         }
     }
     
-    /**
-     * @author AkiAsync (from Nitori/Gale)
-     * @reason 缓存 toString 结果，避免重复字符串拼接
-     * 
-     * toString() 被频繁调用：
-     * - 日志输出（每次都调用）
-     * - 调试信息
-     * - 错误消息
-     * - 序列化
-     * 
-     * 缓存后减少 50-80% 的字符串分配
-     */
     @Overwrite
     public String toString() {
         if (this.akiasync$cachedString != null) {

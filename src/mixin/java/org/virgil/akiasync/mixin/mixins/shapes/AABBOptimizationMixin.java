@@ -23,10 +23,6 @@ public class AABBOptimizationMixin {
     @Unique
     private static volatile boolean initialized = false;
     
-    /**
-     * @author AkiAsync (from Nitori/Lithium)
-     * @reason 避免调用 axis.choose()，使用 ordinal() 直接索引
-     */
     @Overwrite
     public double min(Direction.Axis axis) {
         if (!initialized) {
@@ -45,10 +41,6 @@ public class AABBOptimizationMixin {
         return axis.choose(this.minX, this.minY, this.minZ);
     }
     
-    /**
-     * @author AkiAsync (from Nitori/Lithium)
-     * @reason 避免调用 axis.choose()，使用 ordinal() 直接索引
-     */
     @Overwrite
     public double max(Direction.Axis axis) {
         if (!initialized) {

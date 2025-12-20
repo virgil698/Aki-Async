@@ -21,10 +21,6 @@ public class BlockShapeCacheMixin {
     @Unique
     private static Object2BooleanCacheTable<VoxelShape> FULL_CUBE_CACHE = null;
 
-    /**
-     * @author AkiAsync
-     * @reason 缓存形状检测结果，性能提升 2-3x
-     */
     @Overwrite
     public static boolean isShapeFullBlock(VoxelShape shape) {
         if (!initialized) {

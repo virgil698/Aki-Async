@@ -19,20 +19,6 @@ import org.virgil.akiasync.mixin.entitytracker.MultithreadedEntityTracker;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * ChunkMap Mixin - 集成多线程实体追踪器
- * 
- * 功能：
- * 1. 创建和管理 MultithreadedEntityTracker 实例
- * 2. 提供 runOnTrackerMainThread() 方法确保任务在主线程执行
- * 3. 拦截原版的 processTrackQueue() 方法，使用多线程追踪器
- * 
- * 线程安全：
- * - tracking 标志用于判断是否在追踪过程中
- * - trackerMainThreadTasks 队列存储需要在主线程执行的任务
- * 
- * @author AkiAsync
- */
 @Mixin(ChunkMap.class)
 public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
     

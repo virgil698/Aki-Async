@@ -35,10 +35,6 @@ public class CubePointRangeMixin {
         }
     }
 
-    /**
-     * @author AkiAsync
-     * @reason 使用预计算的缩放因子，将除法转换为乘法
-     */
     @Overwrite
     public double getDouble(int position) {
         if (enabled) {

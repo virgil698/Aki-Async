@@ -13,22 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Set;
 
-/**
- * ServerBossEvent Mixin - 线程安全改造
- * 
- * 功能：
- * 将 players 集合改为线程安全的并发集合
- * 
- * 原因：
- * - 多线程追踪器可能在异步线程中移除玩家
- * - Boss栏的玩家集合需要支持并发访问
- * 
- * 实现：
- * - 使用 Sets.newConcurrentHashSet() 替代 Sets.newHashSet()
- * - 确保所有对 players 的访问都是线程安全的
- * 
- * @author AkiAsync (based on Petal)
- */
 @Mixin(ServerBossEvent.class)
 public abstract class ServerBossEventMixin {
     

@@ -45,10 +45,6 @@ public abstract class CubeVoxelShapeMixin extends VoxelShape {
         }
     }
 
-    /**
-     * @author AkiAsync
-     * @reason 使用预计算的数组，避免重复创建对象
-     */
     @Overwrite
     public DoubleList getCoords(Direction.Axis axis) {
         if (enabled && this.list != null) {
