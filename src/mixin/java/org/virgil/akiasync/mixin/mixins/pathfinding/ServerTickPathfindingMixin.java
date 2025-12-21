@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer;
+import org.virgil.akiasync.mixin.util.GlobalCacheCleanup;
 
 @Mixin(MinecraftServer.class)
 public class ServerTickPathfindingMixin {
@@ -21,6 +22,15 @@ public class ServerTickPathfindingMixin {
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ServerTickPathfinding", "tick", e);
+        }
+        
+        try {
+            long currentTick = MinecraftServer.currentTick;
+            GlobalCacheCleanup.performCleanup(currentTick);
+            GlobalCacheCleanup.logMemoryStats(currentTick);
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "GlobalCacheCleanup", "tick", e);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.virgil.akiasync.mixin.mixins.entity;
 
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -11,8 +12,22 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 @Mixin(value = Entity.class, priority = 900)
 public class EntityThrottlingMixin {
 
+    @Unique
+    private static volatile boolean initialized = false;
+    
+    @Unique
+    private static volatile boolean enabled = true;
+
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void aki$throttleEntityTick(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initEntityThrottling();
+        }
+        
+        if (!enabled) {
+            return;
+        }
+        
         try {
             Entity self = (Entity) (Object) this;
 
@@ -20,10 +35,15 @@ public class EntityThrottlingMixin {
                 return;
             }
 
+            
             if (self instanceof net.minecraft.world.entity.Mob ||
                 self instanceof net.minecraft.world.entity.player.Player ||
+                self instanceof net.minecraft.world.entity.animal.Animal ||
+                self instanceof net.minecraft.world.entity.npc.Npc ||
                 self instanceof net.minecraft.world.entity.decoration.ArmorStand ||
-                self instanceof net.minecraft.world.entity.ExperienceOrb) {
+                self instanceof net.minecraft.world.entity.ExperienceOrb ||
+                self instanceof net.minecraft.world.entity.vehicle.Boat ||
+                self instanceof net.minecraft.world.entity.vehicle.AbstractMinecart) {
                 return;
             }
 
@@ -103,5 +123,20 @@ public class EntityThrottlingMixin {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "EntityThrottling", "throttleCheck", e);
         }
+    }
+    
+    @Unique
+    private static synchronized void akiasync$initEntityThrottling() {
+        if (initialized) return;
+        
+        Bridge bridge = BridgeConfigCache.getBridge();
+        if (bridge != null) {
+            enabled = bridge.isEntityThrottlingEnabled();
+            bridge.debugLog("[AkiAsync] EntityThrottlingMixin initialized: enabled=" + enabled);
+        } else {
+            enabled = true;
+        }
+        
+        initialized = true;
     }
 }

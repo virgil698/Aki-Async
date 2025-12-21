@@ -67,6 +67,10 @@ public class PlayerPathPrewarmer {
         }
     }
     
+    public boolean isActive() {
+        return running && scheduler != null && !scheduler.isShutdown();
+    }
+    
     private void prewarmPaths() {
         try {
             

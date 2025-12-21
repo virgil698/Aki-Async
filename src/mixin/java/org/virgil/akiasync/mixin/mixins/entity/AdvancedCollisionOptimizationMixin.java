@@ -29,8 +29,6 @@ public abstract class AdvancedCollisionOptimizationMixin {
     @Unique
     private static volatile int collisionThreshold = 8;
     
-    @Unique
-    private static volatile float suffocationDamage = 0.5f;
     
     @Unique
     private static volatile int maxPushIterations = 8;
@@ -72,7 +70,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
             if (bridge != null) {
                 enabled = bridge.isAdvancedCollisionOptimizationEnabled();
                 collisionThreshold = bridge.getCollisionThreshold();
-                suffocationDamage = bridge.getSuffocationDamage();
+                
                 maxPushIterations = bridge.getMaxPushIterations();
                 vectorizedEnabled = bridge.isVectorizedCollisionEnabled();
                 vectorizedThreshold = bridge.getVectorizedCollisionThreshold();
@@ -133,12 +131,9 @@ public abstract class AdvancedCollisionOptimizationMixin {
             akiasync$lastCollisionCheck = currentTime;
         }
         
+        
         if (akiasync$cachedCollisionCount >= collisionThreshold) {
             
-            if (currentTime % 20 == 0) { 
-                DamageSources damageSources = self.level().damageSources();
-                self.hurt(damageSources.inWall(), suffocationDamage);
-            }
             
             akiasync$pushIterationCount = 0;
             ci.cancel();

@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.execution.UnboundEntryAction;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.virgil.akiasync.mixin.bridge.Bridge;
@@ -12,12 +13,18 @@ import org.virgil.akiasync.mixin.bridge.BridgeManager;
 @Mixin(targets = "net.minecraft.commands.functions.FunctionBuilder", remap = false)
 public abstract class CommandFunctionDeduplicatorMixin {
     
-    private static volatile boolean initialized = false;
-    private static volatile boolean enabled = false;
-    private static final Object2ObjectOpenHashMap<String, UnboundEntryAction<?>> actionCache = new Object2ObjectOpenHashMap<>();
-    private static int totalCommands = 0;
-    private static long savedMemoryBytes = 0L;
-    private static long usedMemoryBytes = 0L;
+    @Unique
+    private static volatile boolean akiasync$initialized = false;
+    @Unique
+    private static volatile boolean akiasync$enabled = false;
+    @Unique
+    private static final Object2ObjectOpenHashMap<String, UnboundEntryAction<?>> akiasync$actionCache = new Object2ObjectOpenHashMap<>();
+    @Unique
+    private static int akiasync$totalCommands = 0;
+    @Unique
+    private static long akiasync$savedMemoryBytes = 0L;
+    @Unique
+    private static long akiasync$usedMemoryBytes = 0L;
     
     @ModifyVariable(
         method = "addCommand(Lnet/minecraft/commands/execution/UnboundEntryAction;)V",
@@ -28,80 +35,83 @@ public abstract class CommandFunctionDeduplicatorMixin {
     )
     private <T extends ExecutionCommandSource<T>> UnboundEntryAction<T> deduplicateCommand(UnboundEntryAction<T> command) {
         
-        if (!initialized) {
+        if (!akiasync$initialized) {
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
-                enabled = bridge.isCommandDeduplicationEnabled();
+                akiasync$enabled = bridge.isCommandDeduplicationEnabled();
                 
-                if (enabled && bridge.isDebugLoggingEnabled() && bridge.isCommandDeduplicationDebugEnabled()) {
+                if (akiasync$enabled && bridge.isDebugLoggingEnabled() && bridge.isCommandDeduplicationDebugEnabled()) {
                     bridge.debugLog("[AkiAsync] Command deduplication enabled");
                 }
                 
-                initialized = true;
+                akiasync$initialized = true;
             }
         }
         
-        if (!enabled) return command;
+        if (!akiasync$enabled) return command;
         
         if (command == null) return command;
         
         String commandString = command.toString();
         
-        synchronized (actionCache) {
-            totalCommands++;
+        synchronized (akiasync$actionCache) {
+            akiasync$totalCommands++;
             
             @SuppressWarnings("unchecked")
-            UnboundEntryAction<T> cachedAction = (UnboundEntryAction<T>) actionCache.get(commandString);
+            UnboundEntryAction<T> cachedAction = (UnboundEntryAction<T>) akiasync$actionCache.get(commandString);
             
             if (cachedAction != null) {
                 
-                savedMemoryBytes += estimateObjectSize(commandString);
+                akiasync$savedMemoryBytes += akiasync$estimateObjectSize(commandString);
                 
                 Bridge bridge = BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled() && bridge.isCommandDeduplicationDebugEnabled() && totalCommands % 1000 == 0) {
-                    logStatistics();
+                if (bridge != null && bridge.isDebugLoggingEnabled() && bridge.isCommandDeduplicationDebugEnabled() && akiasync$totalCommands % 1000 == 0) {
+                    akiasync$logStatistics();
                 }
                 
                 return cachedAction;
             } else {
                 
-                usedMemoryBytes += estimateObjectSize(commandString);
-                actionCache.put(commandString, command);
+                akiasync$usedMemoryBytes += akiasync$estimateObjectSize(commandString);
+                akiasync$actionCache.put(commandString, command);
                 return command;
             }
         }
     }
     
-    private static long estimateObjectSize(String commandString) {
+    @Unique
+    private static long akiasync$estimateObjectSize(String commandString) {
         
         return commandString.length() * 2L + 24L;
     }
     
-    private static void clearCache() {
-        synchronized (actionCache) {
-            if (totalCommands > 0) {
-                logStatistics();
+    @Unique
+    private static void akiasync$clearCache() {
+        synchronized (akiasync$actionCache) {
+            if (akiasync$totalCommands > 0) {
+                akiasync$logStatistics();
             }
             
-            actionCache.clear();
-            actionCache.trim();
-            totalCommands = 0;
-            savedMemoryBytes = 0L;
-            usedMemoryBytes = 0L;
+            akiasync$actionCache.clear();
+            akiasync$actionCache.trim();
+            akiasync$totalCommands = 0;
+            akiasync$savedMemoryBytes = 0L;
+            akiasync$usedMemoryBytes = 0L;
         }
     }
     
-    private static void logStatistics() {
+    @Unique
+    private static void akiasync$logStatistics() {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isDebugLoggingEnabled()) {
-            int uniqueCommands = actionCache.size();
-            int duplicateCommands = totalCommands - uniqueCommands;
-            double deduplicationRate = totalCommands > 0 ? (duplicateCommands * 100.0 / totalCommands) : 0.0;
-            double savedMemoryMB = savedMemoryBytes / (1024.0 * 1024.0);
-            double totalMemoryMB = (savedMemoryBytes + usedMemoryBytes) / (1024.0 * 1024.0);
+            int uniqueCommands = akiasync$actionCache.size();
+            int duplicateCommands = akiasync$totalCommands - uniqueCommands;
+            double deduplicationRate = akiasync$totalCommands > 0 ? (duplicateCommands * 100.0 / akiasync$totalCommands) : 0.0;
+            double savedMemoryMB = akiasync$savedMemoryBytes / (1024.0 * 1024.0);
+            double totalMemoryMB = (akiasync$savedMemoryBytes + akiasync$usedMemoryBytes) / (1024.0 * 1024.0);
             
             bridge.debugLog("[AkiAsync] Command Deduplication Statistics:");
-            bridge.debugLog("  - Total commands: %d", totalCommands);
+            bridge.debugLog("  - Total commands: %d", akiasync$totalCommands);
             bridge.debugLog("  - Unique commands: %d", uniqueCommands);
             bridge.debugLog("  - Duplicate commands: %d (%.2f%%)", duplicateCommands, deduplicationRate);
             bridge.debugLog("  - Memory saved: %.2f MB / %.2f MB (%.2f%%)", 
@@ -110,16 +120,17 @@ public abstract class CommandFunctionDeduplicatorMixin {
         }
     }
     
-    private static String getStatistics() {
-        synchronized (actionCache) {
-            int uniqueCommands = actionCache.size();
-            int duplicateCommands = totalCommands - uniqueCommands;
-            double deduplicationRate = totalCommands > 0 ? (duplicateCommands * 100.0 / totalCommands) : 0.0;
-            double savedMemoryMB = savedMemoryBytes / (1024.0 * 1024.0);
+    @Unique
+    private static String akiasync$getStatistics() {
+        synchronized (akiasync$actionCache) {
+            int uniqueCommands = akiasync$actionCache.size();
+            int duplicateCommands = akiasync$totalCommands - uniqueCommands;
+            double deduplicationRate = akiasync$totalCommands > 0 ? (duplicateCommands * 100.0 / akiasync$totalCommands) : 0.0;
+            double savedMemoryMB = akiasync$savedMemoryBytes / (1024.0 * 1024.0);
             
             return String.format(
                 "Commands: %d total, %d unique, %d duplicates (%.2f%%), Memory saved: %.2f MB",
-                totalCommands, uniqueCommands, duplicateCommands, deduplicationRate, savedMemoryMB
+                akiasync$totalCommands, uniqueCommands, duplicateCommands, deduplicationRate, savedMemoryMB
             );
         }
     }

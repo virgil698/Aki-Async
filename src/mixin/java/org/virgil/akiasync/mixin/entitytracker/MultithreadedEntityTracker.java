@@ -18,36 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * 多线程实体追踪器
- * 
- * 基于 Petal 的实现，分两个阶段处理实体追踪：
- * 1. UPDATE_PLAYERS: 多线程并行更新玩家追踪状态
- * 2. SEND_CHANGES: 主线程顺序发送数据包
- * 
- * 核心功能：
- * - 多线程并行处理：提升实体追踪性能
- * - 两阶段处理：分离追踪关系管理和数据包发送
- * - 线程安全：确保数据包在主线程发送
- * 
- * 线程安全措施：
- * - 使用 AtomicInteger 管理任务索引和完成计数
- * - 使用 ConcurrentLinkedQueue 存储主线程任务
- * - seenBy 集合使用同步包装
- * - 数据包发送通过 runOnTrackerMainThread() 确保在主线程执行
- * 
- * 性能优化：
- * - 主线程参与处理，避免空闲等待
- * - 线程优先级降低，避免抢占主线程 CPU
- * - 批量处理任务，减少线程切换开销
- * 
- * 重要说明：
- * - updatePlayers() 必须使用完整的玩家列表，不应过滤
- * - 节流等优化应该在 sendChanges() 层面实现，不影响追踪关系
- * 
- * @author Petal (peaches94, Paul Sauve, Kevin Raneri)
- * @author AkiAsync (adapted and enhanced for AkiAsync)
- */
+
 public class MultithreadedEntityTracker {
     
     private enum TrackerStage {

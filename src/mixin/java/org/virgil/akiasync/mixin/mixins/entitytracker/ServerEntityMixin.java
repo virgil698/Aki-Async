@@ -63,11 +63,19 @@ public abstract class ServerEntityMixin {
         Objects.requireNonNull(player.connection);
         
         ChunkMapTrackerAccess chunkMap = aki$getChunkMapAccess();
+        
+        
         chunkMap.aki$runOnTrackerMainThread(() -> {
-            this.sendPairingData(player, playerconnection::send);
+            try {
+                this.sendPairingData(player, playerconnection::send);
+                this.entity.startSeenByPlayer(player);
+            } catch (Exception e) {
+                
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "ServerEntity", "addPairing", e);
+            }
         });
         
-        this.entity.startSeenByPlayer(player);
         ci.cancel();
     }
     

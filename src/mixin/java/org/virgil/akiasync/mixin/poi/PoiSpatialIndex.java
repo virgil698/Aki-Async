@@ -177,6 +177,24 @@ public class PoiSpatialIndex {
         typeQueryCount.set(0);
     }
     
+    public void cleanupChunk(long chunkKey) {
+        List<PoiRecord> removed = chunkPoiMap.remove(chunkKey);
+        if (removed != null) {
+            totalPois.addAndGet(-removed.size());
+            
+            for (Map<Long, List<PoiRecord>> typeMap : typeIndex.values()) {
+                List<PoiRecord> typeRemoved = typeMap.remove(chunkKey);
+                if (typeRemoved != null) {
+                }
+            }
+        }
+    }
+    
+    public void cleanupChunk(int chunkX, int chunkZ) {
+        long chunkKey = net.minecraft.world.level.ChunkPos.asLong(chunkX, chunkZ);
+        cleanupChunk(chunkKey);
+    }
+    
     public boolean isEmpty() {
         return chunkPoiMap.isEmpty();
     }

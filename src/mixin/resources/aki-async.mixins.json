@@ -25,6 +25,14 @@
     "brain.WardenTickMixin",
     "brain.EndermanTickMixin",
     "entity.EndermanBlockCarryLimiterMixin",
+    "entity.ProjectileChunkLoadingMixin",
+    "entity.BatSpookySeasonMixin",
+    "entity.LivingEntityClimbingCacheMixin",
+    "entity.EntityBlockPosPoolMixin",
+    "entity.MobSunBurnOptimizationMixin",
+    "entity.EntitySpeedOptimizationMixin",
+    "entity.EntityFallDamageOptimizationMixin",
+    "entity.EntitySectionStorageOptimizationMixin",
     "brain.HoglinTickMixin",
     "brain.AllayTickMixin",
     "brain.ArmadilloTickMixin",
@@ -37,6 +45,7 @@
     "brain.AiSpatialIndexTrackerMixin",
     "brain.PoiIndexUpdateMixin",
     "ai.SensingCacheOptimizationMixin",
+    "ai.MoveToBlockGoalChunkLoadMixin",
     "gameevent.GameEventOptimizationMixin",
     "entity.VillagerBreedAsyncMixin",
     "entity.EndermanBlockInteractionMixin",
@@ -107,6 +116,8 @@
     "world.WorldUnloadCleanupMixin",
     "chunk.ChunkSaveAsyncMixin",
     "chunk.ServerPlayerFastMovementMixin",
+    "chunk.LevelChunkLightningMixin",
+    "world.ServerLevelLightningMixin",
     "pathfinding.PathNavigationAsyncMixin",
     "pathfinding.PathBatchFlushMixin",
     "pathfinding.ServerTickPathfindingMixin",
@@ -119,7 +130,10 @@
     "recipe.CraftingMenuMixin",
     "crypto.DecorationSeedMixin",
     "crypto.StructureSeedMixin",
-    "crypto.SlimeChunkMixin"
+    "crypto.SlimeChunkMixin",
+    "util.ResourceLocationCacheMixin",
+    "chunk.ChunkPosOptimizationMixin",
+    "worldgen.ImprovedNoiseOptimizationMixin"
   ],
   "injectors": {
     "defaultRequire": 1

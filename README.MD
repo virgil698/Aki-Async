@@ -29,21 +29,25 @@ English | [简体中文](READMECN.MD)
 - **Zero-delay Snapshots** - Snapshot-compute-writeback pattern completes within the same tick
 - **Full Compatibility** - Maintains all vanilla features, compatible with Paper/Spigot/Leaves/Folia/Luminol configs
 
-### Optimization Modules (40+)
-- **Async AI Optimization** (10) - Villager breeding, Piglins, Pillagers, Evokers, Blazes, Guardians, Witches, Universal AI template (65 mobs), AI throttling, Job site claiming
-- **Block Entity Optimization** (1) - Parallel block entity ticking (hoppers, furnaces, chests, brewing stands, beacons, etc.)
+### Optimization Modules (70+ Configurable Optimizations)
+- **Async AI Optimization** (20+) - Villagers, Endermen, Wandering Traders, Wardens, Hoglins, Allays, Armadillos, Sniffers, Camels, Frogs, Goats, Pandas, Piglins, Pillager family, Evokers, Blazes, Guardians, Witches, Universal AI template (65 mobs), async pathfinding, game event optimization, AI sensor optimization, brain throttling, behavior throttling
+- **Entity Performance** (15+) - Smart item merge, item age optimization, item inactive tick, experience orb merge, experience orb inactive tick, advanced collision optimization, collision optimization, entity push optimization, entity throttling, entity travel optimization, mob despawn optimization, entity density control, projectile optimization, parallel entity tick, Nitori entity optimizations (sunburn, speed, fall damage, section storage)
+- **Block Entity Optimization** (5) - Parallel block entity ticking, hopper optimization, minecart optimization, furnace recipe cache, crafting recipe cache
 - **TNT Explosion Optimization** (1) - Three-phase async: snapshot → compute → apply, supports massive simultaneous explosions with vanilla-compatible damage
-- **Parallel Processing** (3) - Async entity tracking, parallel entity ticking, mob spawning optimization
-- **Lighting System** (2) - Async lighting engine, skylight caching
-- **Structure Location** (4) - Async location, dolphin treasure hunting, chest maps, villager trade maps
-- **Secure Seed System** (6) - 1024/2048/4096-bit seed encryption, structure protection, ore protection, slime chunk protection
-- **Datapack Loading** (2) - Multi-threaded ZIP file processing, intelligent caching
-- **Vanilla Bug Fixes** (1) - Bee fixes (7 MC bugs)
-- **Entity Performance** (5) - Push optimization, entity lookup cache, collision detection optimization, entity throttling, async pathfinding
-- **Memory Management** (3) - BlockPos object pool, predicate caching, list pre-allocation
-- **Chunk System** (2) - Async chunk ticking (redstone protection), async chunk saving (Folia compatible)
+- **Collision System** (6) - Collision optimization, advanced collision optimization, push optimization, block shape cache, cube voxel shape optimization, collision cache
+- **Lighting System** (1) - Async lighting engine
+- **Redstone Optimization** (1) - Redstone wire turbo optimization
+- **Structure Location** (4) - Async locate command, dolphin treasure hunting, chest exploration maps, villager trade maps
+- **Secure Seed System** (3) - Decoration seed encryption, structure seed encryption, slime chunk seed encryption
+- **Datapack Optimization** (2) - Command deduplication, execute command inactive skip
+- **Vanilla Bug Fixes** (8) - Bee fixes, End island density fix, portal suffocation check, shulker bullet self-hit fix, minecart cauldron destruction fix, POI index update, lightning generation fix
+- **Memory Management** (7) - BlockPos object pool, entity BlockPos pool, predicate cache, entity lookup cache, list pre-allocation, ResourceLocation cache, ChunkPos optimization
+- **Chunk System** (2) - Async chunk ticking, async villager breeding
+- **World Generation** (3) - Perlin noise optimization, jigsaw placement optimization, structure pool element optimization
+- **Smart Lag Compensation** (3) - Time compensation, item pickup delay compensation, potion effect compensation
+- **Other Optimizations** (5) - Math optimization (sine lookup table), enderman block carry limiter, fast movement chunk loading, map rendering optimization, suffocation optimization, falling block parallel
 
-> **Safety Guarantee**: All optimizations are rigorously tested to ensure no vanilla game mechanics are broken
+> **Safety Guarantee**: All optimization targets are rigorously tested to ensure no vanilla game mechanics are broken
 
 ---
 

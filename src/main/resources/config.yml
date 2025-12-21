@@ -51,6 +51,15 @@ brain:
 suffocation-optimization:
   enabled: true
 
+# 抛射物优化 / Projectile Optimization
+# 限制抛射物加载区块，防止抛射物导致的卡顿
+# Limit chunk loading by projectiles to prevent lag
+# 来源 / Source: Pufferfish (Airplane)
+projectile:
+  enabled: true
+  max-loads-per-tick: 10  # 每tick最多加载区块数 / Max chunks loaded per tick (推荐 / Recommended: 8-15)
+  max-loads-per-projectile: 10  # 每个抛射物生命周期最多加载区块数 / Max chunks loaded per projectile lifetime (推荐 / Recommended: 8-15)
+
 # 虚拟实体兼容性 / Virtual Entity Compatibility
 # 支持FancyNpcs、ZNPCsPlus等虚拟实体插件 / Support for FancyNpcs, ZNPCsPlus and other virtual entity plugins
 # 影响范围：实体包节流、掉落物优化、下落方块优化等 / Affects: entity packet throttle, item entity optimizations, falling block optimizations, etc.
@@ -945,6 +954,24 @@ nitori:
   work-stealing: true  # 工作窃取 / Work-stealing (提升多核利用 / improve multi-core utilization)
   blockpos-cache: true  # BlockPos缓存 / BlockPos cache (预计算减少开销 / pre-compute to reduce overhead)
   optimized-collections: true  # 优化集合类 / Optimized collections (高性能集合类 / high-performance collections)
+  entity-optimizations:  # Nitori/Lithium实体优化 / Nitori/Lithium Entity Optimizations (来源 / Source: Nitori Fabric mod)
+    mob-sunburn-optimization:  # 生物日光燃烧优化 / Mob Sunburn Optimization (缓存BlockPos，提前检查亮度 / Cache BlockPos, early brightness check)
+      enabled: true
+    entity-speed-optimization:  # 实体速度优化 / Entity Speed Optimization (缓存方块速度因子 / Cache block speed factor)
+      enabled: true
+    entity-fall-damage-optimization:  # 实体掉落伤害优化 / Entity Fall Damage Optimization (跳过简单实体的掉落伤害计算 / Skip fall damage for simple entities)
+      enabled: true
+    entity-section-storage-optimization:  # 实体区段快速检索优化 / Entity Section Storage Optimization (小区域使用直接哈希查找 / Use direct hash lookup for small areas)
+      enabled: true
+
+# C2ME优化套件 / C2ME Optimizations (来源 / Source: C2ME Fabric mod)
+c2me-optimizations:
+  resource-location-cache:  # ResourceLocation toString缓存 / ResourceLocation toString Cache (避免重复字符串拼接 / Avoid repeated string concatenation)
+    enabled: true
+  chunk-pos-optimization:  # ChunkPos equals优化 / ChunkPos equals Optimization (使用标准equals实现 / Use standard equals implementation)
+    enabled: true
+  noise-optimization:  # Perlin噪声优化 / Perlin Noise Optimization (优化噪声采样 / Optimize noise sampling)
+    enabled: true
 
 # 数学优化 / Math Optimization
 # 优化三角函数计算性能
@@ -952,7 +979,6 @@ nitori:
 math-optimization:
   enabled: true
   compact-sine-lut: true  # 紧凑型正弦查找表 / Compact sine lookup table (节省75%内存 / saves 75% memory)
-
 
 # 安全种子保护 / Secure Seed Protection
 # 加密世界种子，防止种子泄露和逆向工程

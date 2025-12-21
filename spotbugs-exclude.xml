@@ -369,4 +369,19 @@
         <Class name="~.*Processor"/>
         <Bug pattern="MS_EXPOSE_REP"/>
     </Match>
+
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.mixins.chunk.ChunkPosOptimizationMixin"/>
+        <Bug pattern="EQ_CHECK_FOR_OPERAND_NOT_COMPATIBLE_WITH_THIS"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.mixins.chunk.ChunkPosOptimizationMixin"/>
+        <Bug pattern="HE_EQUALS_USE_HASHCODE"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.mixins.worldgen.ImprovedNoiseOptimizationMixin"/>
+        <Bug pattern="INT_VACUOUS_BIT_OPERATION"/>
+    </Match>
 </FindBugsFilter>

@@ -133,6 +133,10 @@ public class EnhancedPathfindingSystem {
         }
         
         cache.cleanupExpired();
+        
+        if (totalRequests.get() % 6000 == 0) {
+            cleanupStaleData();
+        }
     }
     
     private static void processRequest(PathRequest request) {
@@ -212,6 +216,22 @@ public class EnhancedPathfindingSystem {
         cache.clear();
         playerPrewarmers.values().forEach(PlayerPathPrewarmer::stop);
         playerPrewarmers.clear();
+    }
+    
+    public static void cleanupStaleData() {
+        long now = System.currentTimeMillis();
+        
+        pendingRequests.entrySet().removeIf(entry -> {
+            CompletableFuture<Path> future = entry.getValue();
+            return future.isDone() || future.isCancelled() || future.isCompletedExceptionally();
+        });
+        
+        playerPrewarmers.entrySet().removeIf(entry -> {
+            PlayerPathPrewarmer prewarmer = entry.getValue();
+            return !prewarmer.isActive();
+        });
+        
+        cache.cleanupExpired();
     }
     
     @FunctionalInterface

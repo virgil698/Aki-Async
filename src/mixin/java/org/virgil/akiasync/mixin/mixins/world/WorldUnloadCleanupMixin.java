@@ -20,6 +20,7 @@ public class WorldUnloadCleanupMixin {
         ServerLevel level = (ServerLevel) (Object) this;
         
         try {
+            org.virgil.akiasync.mixin.util.GlobalCacheCleanup.cleanupServerLevel(level);
             
             AiSpatialIndexManager.removeIndex(level);
             

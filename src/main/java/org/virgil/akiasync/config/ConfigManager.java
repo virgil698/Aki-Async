@@ -367,6 +367,14 @@ public class ConfigManager {
     private boolean workStealingEnabled;
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
+    
+    private boolean mobSunBurnOptimizationEnabled;
+    private boolean entitySpeedOptimizationEnabled;
+    private boolean entityFallDamageOptimizationEnabled;
+    private boolean entitySectionStorageOptimizationEnabled;
+    
+    private boolean resourceLocationCacheEnabled;
+    private boolean chunkPosOptimizationEnabled;
 
     private String seedEncryptionScheme;
     private boolean seedEncryptionEnabled;
@@ -408,6 +416,10 @@ public class ConfigManager {
     private boolean fastRayTraceEnabled;
     private boolean mapRenderingOptimizationEnabled;
     private int mapRenderingThreads;
+    
+    private boolean projectileOptimizationEnabled;
+    private int maxProjectileLoadsPerTick;
+    private int maxProjectileLoadsPerProjectile;
 
     private boolean itemEntityMergeOptimizationEnabled;
     private boolean itemEntityCancelVanillaMerge;
@@ -806,6 +818,16 @@ public class ConfigManager {
         workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
+        
+        mobSunBurnOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.mob-sunburn-optimization.enabled", true);
+        entitySpeedOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-speed-optimization.enabled", true);
+        entityFallDamageOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-fall-damage-optimization.enabled", true);
+        entitySectionStorageOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-section-storage-optimization.enabled", true);
+        
+        resourceLocationCacheEnabled = config.getBoolean("c2me-optimizations.resource-location-cache.enabled", true);
+        chunkPosOptimizationEnabled = config.getBoolean("c2me-optimizations.chunk-pos-optimization.enabled", true);
+        noiseOptimizationEnabled = config.getBoolean("c2me-optimizations.noise-optimization.enabled", true);
+        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
 
         if (config.contains("seed-encryption.scheme")) {
 
@@ -892,6 +914,10 @@ public class ConfigManager {
         playerJoinWarmupInitialRate = config.getDouble("fast-movement-chunk-load.player-join-warmup.initial-rate", 0.5);
 
         suffocationOptimizationEnabled = config.getBoolean("suffocation-optimization.enabled", true);
+        
+        projectileOptimizationEnabled = config.getBoolean("projectile.enabled", true);
+        maxProjectileLoadsPerTick = config.getInt("projectile.max-loads-per-tick", 10);
+        maxProjectileLoadsPerProjectile = config.getInt("projectile.max-loads-per-projectile", 10);
         
         fastRayTraceEnabled = config.getBoolean("async-ai.villager-optimization.fast-raytrace.enabled", true);
         asyncVillagerBreedEnabled = config.getBoolean("async-ai.villager-optimization.breed-optimization.async-villager-breed", true);
@@ -1773,6 +1799,15 @@ public class ConfigManager {
     public boolean isWorkStealingEnabled() { return workStealingEnabled; }
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
+    
+    public boolean isMobSunBurnOptimizationEnabled() { return mobSunBurnOptimizationEnabled; }
+    public boolean isEntitySpeedOptimizationEnabled() { return entitySpeedOptimizationEnabled; }
+    public boolean isEntityFallDamageOptimizationEnabled() { return entityFallDamageOptimizationEnabled; }
+    public boolean isEntitySectionStorageOptimizationEnabled() { return entitySectionStorageOptimizationEnabled; }
+    
+    public boolean isResourceLocationCacheEnabled() { return resourceLocationCacheEnabled; }
+    public boolean isChunkPosOptimizationEnabled() { return chunkPosOptimizationEnabled; }
+    public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
 
     public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
     public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
@@ -1849,7 +1884,11 @@ public class ConfigManager {
     public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
     public boolean isFastRayTraceEnabled() { return fastRayTraceEnabled; }
     public boolean isMapRenderingOptimizationEnabled() { return mapRenderingOptimizationEnabled; }
-    public int getMapRenderingThreads() { return threadPoolSize; }  
+    public int getMapRenderingThreads() { return threadPoolSize; }
+    
+    public boolean isProjectileOptimizationEnabled() { return projectileOptimizationEnabled; }
+    public int getMaxProjectileLoadsPerTick() { return maxProjectileLoadsPerTick; }
+    public int getMaxProjectileLoadsPerProjectile() { return maxProjectileLoadsPerProjectile; }
 
     public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
     public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
@@ -1979,6 +2018,5 @@ public class ConfigManager {
     public int getLightingCleanupBatchSize() { return lightingCleanupBatchSize; }
     public long getLightingCleanupDelay() { return lightingCleanupDelay; }
     
-    public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
     public boolean isJigsawOptimizationEnabled() { return jigsawOptimizationEnabled; }
 }

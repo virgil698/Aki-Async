@@ -13,6 +13,20 @@ public interface Bridge {
     boolean isBlockPosCacheEnabled();
 
     boolean isOptimizedCollectionsEnabled();
+    
+    boolean isMobSunBurnOptimizationEnabled();
+    
+    boolean isEntitySpeedOptimizationEnabled();
+    
+    boolean isEntityFallDamageOptimizationEnabled();
+    
+    boolean isEntitySectionStorageOptimizationEnabled();
+    
+    boolean isResourceLocationCacheEnabled();
+    
+    boolean isChunkPosOptimizationEnabled();
+    
+    boolean isNoiseOptimizationEnabled();
 
     boolean isEntityTickParallel();
 
@@ -136,6 +150,9 @@ public interface Bridge {
     int getPathPrewarmMaxMobsPerBatch();
     int getPathPrewarmMaxPoisPerMob();
     boolean shouldThrottleEntity(Object entity);
+    
+    boolean isEntityThrottlingEnabled();
+    
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
     boolean isBlockEntityParallelTickEnabled();
@@ -464,6 +481,10 @@ public interface Bridge {
     boolean isMapRenderingOptimizationEnabled();
     int getMapRenderingThreads();
     
+    boolean isProjectileOptimizationEnabled();
+    int getMaxProjectileLoadsPerTick();
+    int getMaxProjectileLoadsPerProjectile();
+    
     void runOnMainThread(Runnable task);
     
     double getCurrentTPS();
@@ -590,7 +611,6 @@ public interface Bridge {
     int getLightingBatchThresholdMax();
     boolean isLightingAggressiveBatching();
 
-    boolean isNoiseOptimizationEnabled();
     boolean isJigsawOptimizationEnabled();
     
     void initializeJigsawOctree(net.minecraft.world.phys.AABB bounds);

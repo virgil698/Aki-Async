@@ -118,6 +118,19 @@ public class ExceptionHandler {
         lastLogTime.clear();
     }
     
+    public static void cleanupStaleData() {
+        long now = System.currentTimeMillis();
+        long expireTime = now - (LOG_THROTTLE_MS * 10);
+        
+        lastLogTime.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        
+        exceptionCounts.entrySet().removeIf(entry -> {
+            String key = entry.getKey();
+            Long lastLog = lastLogTime.get(key);
+            return lastLog != null && lastLog < expireTime;
+        });
+    }
+    
     public static int getExceptionCount(String component, String type) {
         String key = component + ":" + type;
         AtomicInteger count = exceptionCounts.get(key);

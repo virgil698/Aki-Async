@@ -61,6 +61,11 @@ public abstract class CollisionOptimizationMixin {
     @SuppressWarnings("RedundantIfStatement")
     private boolean akiasync$canSafelyReduceCheckFrequency(Entity entity) {
         
+        
+        if (entity instanceof net.minecraft.world.entity.LivingEntity) {
+            return false;
+        }
+        
         if (entity.getDeltaMovement().lengthSqr() >= minMovementSqr) {
             return false;
         }

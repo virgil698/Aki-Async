@@ -126,6 +126,41 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isOptimizedCollectionsEnabled() {
         return config != null ? config.isOptimizedCollectionsEnabled() : true;
     }
+    
+    @Override
+    public boolean isMobSunBurnOptimizationEnabled() {
+        return config != null ? config.isMobSunBurnOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isEntitySpeedOptimizationEnabled() {
+        return config != null ? config.isEntitySpeedOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isEntityFallDamageOptimizationEnabled() {
+        return config != null ? config.isEntityFallDamageOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isEntitySectionStorageOptimizationEnabled() {
+        return config != null ? config.isEntitySectionStorageOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isResourceLocationCacheEnabled() {
+        return config != null ? config.isResourceLocationCacheEnabled() : true;
+    }
+    
+    @Override
+    public boolean isChunkPosOptimizationEnabled() {
+        return config != null ? config.isChunkPosOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isNoiseOptimizationEnabled() {
+        return config != null ? config.isNoiseOptimizationEnabled() : true;
+    }
 
     @Override
     public boolean isEntityTickParallel() { return config.isEntityTickParallel(); }
@@ -417,6 +452,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
         return plugin.getThrottlingManager().shouldThrottle(bukkitEntity);
     }
+    
+    @Override
+    public boolean isEntityThrottlingEnabled() { return config != null ? config.isEntityThrottlingEnabled() : true; }
 
     @Override
     public boolean isZeroDelayFactoryOptimizationEnabled() { return config.isZeroDelayFactoryOptimizationEnabled(); }
@@ -1760,6 +1798,21 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
     
     @Override
+    public boolean isProjectileOptimizationEnabled() {
+        return config != null && config.isProjectileOptimizationEnabled();
+    }
+    
+    @Override
+    public int getMaxProjectileLoadsPerTick() {
+        return config != null ? config.getMaxProjectileLoadsPerTick() : 10;
+    }
+    
+    @Override
+    public int getMaxProjectileLoadsPerProjectile() {
+        return config != null ? config.getMaxProjectileLoadsPerProjectile() : 10;
+    }
+    
+    @Override
     public int getMapRenderingThreads() {
         return config != null ? config.getMapRenderingThreads() : 2;
     }
@@ -2233,11 +2286,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public boolean isLightingAggressiveBatching() {
         return config != null && config.isLightingAggressiveBatching();
-    }
-
-    @Override
-    public boolean isNoiseOptimizationEnabled() {
-        return config != null && config.isNoiseOptimizationEnabled();
     }
 
     @Override

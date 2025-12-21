@@ -95,6 +95,10 @@ public class SharedPathCache {
         PATH_CACHE.clear();
     }
     
+    public static void cleanupStaleData() {
+        cleanup(false);
+    }
+    
     public static String getStats() {
         int totalPaths = PATH_CACHE.size();
         int expiredPaths = (int) PATH_CACHE.values().stream()

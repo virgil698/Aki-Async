@@ -31,6 +31,8 @@ public abstract class ItemEntityMergeMixin {
     @Unique
     private static volatile double mergeRange;
     @Unique
+    private static volatile int maxQueryResults = 20;
+    @Unique
     private static volatile boolean initialized = false;
 
     @Unique
@@ -57,8 +59,16 @@ public abstract class ItemEntityMergeMixin {
         }
         if (!enabled) return;
 
+        
+        aki$mergeTickCounter++;
+        if (aki$mergeTickCounter % mergeInterval != 0) {
+            return;
+        }
+        aki$mergeTickCounter = 0;
+
         ItemEntity self = (ItemEntity) (Object) this;
 
+        
         if (akiasync$isVirtualEntity(self)) {
             return;
         }
@@ -67,13 +77,6 @@ public abstract class ItemEntityMergeMixin {
             return;
         }
 
-        aki$mergeTickCounter++;
-
-        if (aki$mergeTickCounter % mergeInterval != 0) {
-            return;
-        }
-
-        aki$mergeTickCounter = 0;
         akiasync$smartMerge(self);
     }
 
@@ -119,25 +122,9 @@ public abstract class ItemEntityMergeMixin {
     
     @Unique
     private boolean akiasync$isTickThread(ItemEntity entity) {
-        try {
-            
-            if (entity.level() instanceof net.minecraft.server.level.ServerLevel) {
-                
-                try {
-                    java.lang.reflect.Method method = entity.getClass().getMethod("isOwnedByCurrentRegion");
-                    return (Boolean) method.invoke(entity);
-                } catch (NoSuchMethodException e) {
-                    
-                    return true;
-                } catch (Exception e) {
-                    
-                    return false;
-                }
-            }
-            return true;
-        } catch (Throwable t) {
-            return true; 
-        }
+        
+        
+        return true;
     }
 
     @Unique
@@ -157,12 +144,17 @@ public abstract class ItemEntityMergeMixin {
                 if (searchBox != null) {
                     List<net.minecraft.world.entity.Entity> entities = grid.queryRange(searchBox);
                     
-                    List<ItemEntity> result = new ArrayList<>();
+                    
+                    List<ItemEntity> result = new ArrayList<>(Math.min(entities.size(), maxQueryResults));
                     for (net.minecraft.world.entity.Entity entity : entities) {
                         if (entity instanceof ItemEntity item && 
                             item != self && 
                             !item.isRemoved()) {
                             result.add(item);
+                            
+                            if (result.size() >= maxQueryResults) {
+                                break;
+                            }
                         }
                     }
                     return result;
@@ -179,11 +171,19 @@ public abstract class ItemEntityMergeMixin {
             return java.util.Collections.emptyList();
         }
 
-        return self.level().getEntitiesOfClass(
+        
+        List<ItemEntity> result = self.level().getEntitiesOfClass(
             ItemEntity.class,
             searchBox,
             item -> item != self && !item.isRemoved()
         );
+        
+        
+        if (result.size() > maxQueryResults) {
+            return result.subList(0, maxQueryResults);
+        }
+        
+        return result;
     }
 
     @Unique

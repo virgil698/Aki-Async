@@ -42,10 +42,19 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
     @Unique
     public void aki$runOnTrackerMainThread(final Runnable runnable) {
         
-        if (this.aki$trackerMainThreadTasks == null || !this.aki$tracking) {
+        if (Thread.currentThread() == this.level.getServer().getRunningThread()) {
+            
             runnable.run();
-        } else {
+            return;
+        }
+        
+        
+        if (this.aki$trackerMainThreadTasks != null && this.aki$tracking) {
+            
             this.aki$trackerMainThreadTasks.add(runnable);
+        } else {
+            
+            this.level.getServer().execute(runnable);
         }
     }
     
