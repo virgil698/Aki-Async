@@ -52,7 +52,6 @@
     "entity.GoalSelectorConcurrentMixin",
     "explosion.TNTExplosionMixin",
     "explosion.PrimedTntMergeMixin",
-    "redstone.RedstoneWireOptimizationMixin",
     "entity.EntityTickChunkParallelMixin",
     "entity.EntityThrottlingMixin",
     "entity.PushEntitiesOptimizationMixin",

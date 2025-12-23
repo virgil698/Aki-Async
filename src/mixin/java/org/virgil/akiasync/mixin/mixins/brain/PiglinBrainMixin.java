@@ -12,6 +12,7 @@ import org.virgil.akiasync.mixin.brain.piglin.PiglinCpuCalculator;
 import org.virgil.akiasync.mixin.brain.piglin.PiglinDiff;
 import org.virgil.akiasync.mixin.brain.piglin.PiglinSnapshot;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 
 @SuppressWarnings("unused")
@@ -38,6 +39,20 @@ public abstract class PiglinBrainMixin {
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
+        
+        if (abstractPiglin instanceof Piglin) {
+            Piglin piglin = (Piglin) abstractPiglin;
+            net.minecraft.world.item.ItemStack offhandItem = piglin.getOffhandItem();
+            if (!offhandItem.isEmpty() && 
+                (offhandItem.is(net.minecraft.world.item.Items.GOLD_INGOT) || 
+                 offhandItem.is(net.minecraft.world.item.Items.GOLD_BLOCK))) {
+                return;
+            }
+            
+            if (piglin.getBrain().hasMemoryValue(MemoryModuleType.ADMIRING_ITEM)) {
+                return;
+            }
+        }
         
         boolean shouldSkip = false;
         

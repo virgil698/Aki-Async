@@ -521,49 +521,6 @@ vmp-optimizations:
     range-multiplier: 0.8  # 追踪范围倍数 / Tracking range multiplier (0.8=原版80% / 80% of vanilla)
 
 # ==========================================
-# 红石优化套件 / Redstone Optimizations
-# ==========================================
-redstone-optimizations:
-  # Alternate Current算法 / Alternate Current Algorithm
-  # 优化红石更新顺序，提升红石性能
-  # Optimize redstone update order to boost redstone performance
-  alternate-current:
-    enabled: true
-  
-  # 红石线加速 / Redstone Wire Turbo
-  # 加速红石线更新计算
-  # Accelerate redstone wire update calculations
-  wire-turbo:
-    enabled: true
-  
-  # PandaWire算法 / PandaWire Algorithm
-  # Sakura项目的红石优化算法
-  # Sakura project's redstone optimization algorithm
-  pandawire:
-    enabled: false  # 默认关闭 / Disabled by default
-  
-  # 更新批处理 / Update Batching
-  # 批量处理红石更新，减少计算次数
-  # Batch redstone updates to reduce calculation count
-  update-batching:
-    enabled: true
-    batch-threshold: 50  # 批处理阈值 / Batch threshold
-  
-  # 红石缓存 / Redstone Cache
-  # 缓存红石状态，避免重复计算
-  # Cache redstone states to avoid repeated calculations
-  cache:
-    enabled: true
-    duration-ms: 50  # 缓存持续时间 / Cache duration (毫秒 / milliseconds)
-  
-  # 红石网络缓存 / Redstone Network Cache
-  # 缓存红石线网络模式，用于重复更新
-  # Cache redstone wire network patterns for repeated updates
-  network-cache:
-    enabled: true
-    expire-ticks: 600  # 缓存过期时间 / Cache expiry (tick, 600 = 30秒 / 30 seconds)
-
-# ==========================================
 # 掉落物优化 / Item Entity Optimizations
 # ==========================================
 item-entity-optimizations:

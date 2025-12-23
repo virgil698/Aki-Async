@@ -48,12 +48,6 @@ public class WorldUnloadCleanupMixin {
                 ExceptionHandler.handleCleanup("WorldUnloadCleanup", "RayCollisionDetector", e);
             }
             
-            try {
-                org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearLevelCache(level);
-            } catch (Exception e) {
-                ExceptionHandler.handleCleanup("WorldUnloadCleanup", "RedstoneNetworkCache", e);
-            }
-            
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
                 bridge.debugLog("[AkiAsync] Cleaned up caches for world: " + level.dimension().location());

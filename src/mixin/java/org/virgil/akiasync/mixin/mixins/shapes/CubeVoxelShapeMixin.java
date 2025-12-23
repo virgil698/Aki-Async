@@ -7,11 +7,11 @@ import net.minecraft.world.phys.shapes.CubeVoxelShape;
 import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CubeVoxelShape.class)
 public abstract class CubeVoxelShapeMixin extends VoxelShape {
@@ -45,13 +45,11 @@ public abstract class CubeVoxelShapeMixin extends VoxelShape {
         }
     }
 
-    @Overwrite
-    public DoubleList getCoords(Direction.Axis axis) {
-        if (enabled && this.list != null) {
-            return this.list[axis.ordinal()];
+    @Inject(method = "getCoords", at = @At("HEAD"), cancellable = true)
+    private void cacheGetCoords(Direction.Axis axis, CallbackInfoReturnable<DoubleList> cir) {
+        if (enabled && this.list != null && this.list[axis.ordinal()] != null) {
+            cir.setReturnValue(this.list[axis.ordinal()]);
         }
-        
-        return new CubePointRange(this.shape.getSize(axis));
     }
     
     @Unique

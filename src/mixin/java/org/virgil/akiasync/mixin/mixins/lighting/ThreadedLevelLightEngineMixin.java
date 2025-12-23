@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
@@ -30,18 +31,18 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
     @Unique
     private static volatile boolean initialized = false;
     @Unique
-    private static volatile long updateIntervalNanos = 10_000_000L; 
+    private static volatile long updateIntervalNanos = 10_000_000L;
     
     @Unique
     private final AtomicLong aki$lastLightUpdate = new AtomicLong(0);
     
     @Inject(
-            method = "tryScheduleUpdate",
+            method = "hasLightWork",
             at = @At("HEAD"),
             cancellable = true
     )
     @SuppressWarnings("unused")
-    private void optimizeScheduling(CallbackInfo ci) {
+    private void optimizeHasLightWork(CallbackInfoReturnable<Boolean> cir) {
         if (!initialized) {
             aki$init();
         }
@@ -51,10 +52,12 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         }
         
         try {
-            
             StarLightInterface starlightEngine = this.starlight$getLightEngine();
-            if (starlightEngine != null && starlightEngine.hasUpdates()) {
-                
+            if (starlightEngine == null) {
+                return;
+            }
+            
+            if (starlightEngine.hasUpdates()) {
                 return;
             }
             
@@ -62,16 +65,19 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
             long currentTime = System.nanoTime();
             
             if (currentTime - lastUpdate < updateIntervalNanos) {
-                
-                ci.cancel();
+                cir.setReturnValue(false);
                 return;
             }
             
-            this.aki$lastLightUpdate.compareAndSet(lastUpdate, currentTime);
+            if (this.aki$lastLightUpdate.compareAndSet(lastUpdate, currentTime)) {
+                return;
+            } else {
+                cir.setReturnValue(false);
+            }
             
         } catch (RuntimeException e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                "ThreadedLevelLightEngine", "optimizeScheduling", e);
+                "ThreadedLevelLightEngine", "optimizeHasLightWork", e);
         }
     }
     

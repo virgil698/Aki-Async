@@ -33,6 +33,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             instance = this;
         }
 
+        int pluginId = 28019;
+        org.bstats.bukkit.Metrics metrics = new org.bstats.bukkit.Metrics(this, pluginId);
+        getLogger().info("[AkiAsync] bStats metrics initialized (ID: " + pluginId + ")");
+
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 

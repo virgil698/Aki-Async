@@ -621,33 +621,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public double getEntityTrackingRangeMultiplier() {return config.getEntityTrackingRangeMultiplier();}
 
     @Override
-    public boolean isAlternateCurrentEnabled() {return config.isAlternateCurrentEnabled();}
-
-    @Override
-    public boolean isRedstoneWireTurboEnabled() {return config.isRedstoneWireTurboEnabled();}
-
-    @Override
-    public boolean isRedstoneUpdateBatchingEnabled() {return config.isRedstoneUpdateBatchingEnabled();}
-
-    @Override
-    public int getRedstoneUpdateBatchThreshold() {return config.getRedstoneUpdateBatchThreshold();}
-
-    @Override
-    public boolean isRedstoneCacheEnabled() {return config.isRedstoneCacheEnabled();}
-
-    @Override
-    public int getRedstoneCacheDurationMs() {return config.getRedstoneCacheDurationMs();}
-
-    @Override
-    public boolean isUsePandaWireAlgorithm() {return config.isUsePandaWireAlgorithm();}
-
-    @Override
-    public boolean isRedstoneNetworkCacheEnabled() {return config.isRedstoneNetworkCacheEnabled();}
-
-    @Override
-    public int getRedstoneNetworkCacheExpireTicks() {return config.getRedstoneNetworkCacheExpireTicks();}
-
-    @Override
     public boolean isTNTUseSakuraDensityCache() {return config.isTNTUseSakuraDensityCache();}
 
     @Override
@@ -1316,10 +1289,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public void clearSakuraOptimizationCaches() {
         try {
             org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearAllCaches();
-            org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.clearAllCaches();
             org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.shutdown();
-            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearAllCaches();
-            org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.shutdown();
         } catch (Exception e) {
             errorLog("[AkiAsync] Error clearing Sakura caches: %s", e.getMessage());
         }
@@ -1370,23 +1340,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             }
             stats.put("async_density_cache", asyncStats);
             
-            stats.put("pandawire_evaluators", 
-                org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount());
-            
-            java.util.Map<String, String> networkStats = new java.util.HashMap<>();
-            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
-                try {
-                    net.minecraft.server.level.ServerLevel serverLevel = 
-                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager manager = 
-                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
-                    networkStats.put(world.getName(), manager.getStats());
-                } catch (Exception e) {
-                    networkStats.put(world.getName(), "Error: " + e.getMessage());
-                }
-            }
-            stats.put("network_cache", networkStats);
-            
         } catch (Exception e) {
             errorLog("[AkiAsync] Error getting Sakura cache stats: %s", e.getMessage());
         }
@@ -1409,10 +1362,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
                         org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
                     manager.expire(serverLevel.getGameTime());
-                    
-                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager networkManager = 
-                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
-                    networkManager.expire(serverLevel.getGameTime());
                     
                 } catch (Exception e) {
                     org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
@@ -2475,10 +2424,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             org.virgil.akiasync.mixin.poi.BatchPoiManager.clearLevelCache(level);
             org.virgil.akiasync.mixin.util.EntitySliceGridManager.clearSliceGrid(level);
             org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearLevelCache(level);
-            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearLevelCache(level);
-            org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.clearLevelCache(level);
-            org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.clearLevelCache(level);
-            org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator.clearLevelCache(level);
             org.virgil.akiasync.mixin.async.explosion.TNTBatchCollector.clearLevelCache(level);
         } catch (Exception e) {
             plugin.getLogger().warning("[Bridge] Failed to clear world caches: " + e.getMessage());

@@ -254,16 +254,6 @@ public class ConfigManager {
     private int maxConcurrentChunkLoadsPerPlayer;
     private boolean entityTrackingRangeOptimizationEnabled;
     private double entityTrackingRangeMultiplier;
-    private boolean alternateCurrentEnabled;
-    private boolean redstoneWireTurboEnabled;
-    private boolean redstoneUpdateBatchingEnabled;
-    private int redstoneUpdateBatchThreshold;
-    private boolean redstoneCacheEnabled;
-    private int redstoneCacheDurationMs;
-    
-    private boolean usePandaWireAlgorithm;
-    private boolean redstoneNetworkCacheEnabled;
-    private int redstoneNetworkCacheExpireTicks;
     
     private boolean tntOptimizationEnabled;
     private boolean tntDebugEnabled;
@@ -708,16 +698,6 @@ public class ConfigManager {
         maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
         entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
         entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
-        alternateCurrentEnabled = config.getBoolean("redstone-optimizations.alternate-current.enabled", true);
-        redstoneWireTurboEnabled = config.getBoolean("redstone-optimizations.wire-turbo.enabled", true);
-        redstoneUpdateBatchingEnabled = config.getBoolean("redstone-optimizations.update-batching.enabled", true);
-        redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
-        redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
-        redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
-        
-        usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.pandawire.enabled", false);
-        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.network-cache.enabled", false);
-        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.network-cache.expire-ticks", 600);
         
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
@@ -1172,13 +1152,6 @@ public class ConfigManager {
         entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
         entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
 
-        alternateCurrentEnabled = config.getBoolean("redstone-optimizations.alternate-current.enabled", true);
-        redstoneWireTurboEnabled = config.getBoolean("redstone-optimizations.wire-turbo.enabled", true);
-        redstoneUpdateBatchingEnabled = config.getBoolean("redstone-optimizations.update-batching.enabled", true);
-        redstoneUpdateBatchThreshold = config.getInt("redstone-optimizations.update-batching.batch-threshold", 8);
-        redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
-        redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
-
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
         tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
         lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
@@ -1328,10 +1301,6 @@ public class ConfigManager {
         if (maxConcurrentChunkLoadsPerPlayer > 20) maxConcurrentChunkLoadsPerPlayer = 20;
         if (entityTrackingRangeMultiplier < 0.1) entityTrackingRangeMultiplier = 0.1;
         if (entityTrackingRangeMultiplier > 2.0) entityTrackingRangeMultiplier = 2.0;
-        if (redstoneUpdateBatchThreshold < 1) redstoneUpdateBatchThreshold = 1;
-        if (redstoneUpdateBatchThreshold > 50) redstoneUpdateBatchThreshold = 50;
-        if (redstoneCacheDurationMs < 0) redstoneCacheDurationMs = 0;
-        if (redstoneCacheDurationMs > 1000) redstoneCacheDurationMs = 1000;
         if (tntThreads < 1) {
             plugin.getLogger().warning("TNT threads cannot be less than 1, setting to 1");
             tntThreads = 1;
@@ -1700,16 +1669,7 @@ public class ConfigManager {
     public int getMaxConcurrentChunkLoadsPerPlayer() { return maxConcurrentChunkLoadsPerPlayer; }
     public boolean isEntityTrackingRangeOptimizationEnabled() { return entityTrackingRangeOptimizationEnabled; }
     public double getEntityTrackingRangeMultiplier() { return entityTrackingRangeMultiplier; }
-    public boolean isAlternateCurrentEnabled() { return alternateCurrentEnabled; }
-    public boolean isRedstoneWireTurboEnabled() { return redstoneWireTurboEnabled; }
-    public boolean isRedstoneUpdateBatchingEnabled() { return redstoneUpdateBatchingEnabled; }
-    public int getRedstoneUpdateBatchThreshold() { return redstoneUpdateBatchThreshold; }
-    public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
-    public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
     
-    public boolean isUsePandaWireAlgorithm() { return usePandaWireAlgorithm; }
-    public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
-    public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
     public boolean isTNTUseSakuraDensityCache() { return tntUseSakuraDensityCache; }
     public boolean isTNTUseVectorizedAABB() { return tntUseVectorizedAABB; }
     public boolean isTNTMergeEnabled() { return tntMergeEnabled; }

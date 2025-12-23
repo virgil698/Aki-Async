@@ -47,7 +47,8 @@ public abstract class ItemEntityMergeMixin {
         if (!initialized) {
             akiasync$initMergeOptimization();
         }
-        if (enabled && cancelVanillaMerge) {
+        // 只有在我们的优化正常工作时才取消原版合并
+        if (enabled && cancelVanillaMerge && aki$cachedNearbyItems != null) {
             ci.cancel(); 
         }
     }

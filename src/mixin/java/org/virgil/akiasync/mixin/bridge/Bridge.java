@@ -248,18 +248,6 @@ public interface Bridge {
 
     double getEntityTrackingRangeMultiplier();
 
-    boolean isAlternateCurrentEnabled();
-
-    boolean isRedstoneWireTurboEnabled();
-
-    boolean isRedstoneUpdateBatchingEnabled();
-
-    int getRedstoneUpdateBatchThreshold();
-
-    boolean isRedstoneCacheEnabled();
-
-    int getRedstoneCacheDurationMs();
-
     boolean isTNTOptimizationEnabled();
 
     java.util.Set<String> getTNTExplosionEntities();
@@ -505,8 +493,6 @@ public interface Bridge {
     int getTNTMaxFuseDifference();
     float getTNTMergedPowerMultiplier();
     
-    boolean isUsePandaWireAlgorithm();
-    
     boolean isPortalSuffocationCheckDisabled();
     boolean isShulkerBulletSelfHitFixEnabled();
     
@@ -519,9 +505,6 @@ public interface Bridge {
     
     boolean isCommandDeduplicationEnabled();
     boolean isCommandDeduplicationDebugEnabled();
-    
-    boolean isRedstoneNetworkCacheEnabled();
-    int getRedstoneNetworkCacheExpireTicks();
     
     void clearSakuraOptimizationCaches();
     java.util.Map<String, Object> getSakuraCacheStatistics();

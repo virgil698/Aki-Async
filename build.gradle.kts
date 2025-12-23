@@ -126,6 +126,8 @@ sourceSets {
 val mixinSourceSet: SourceSet = sourceSets["mixin"]
 
 dependencies {
+    implementation("org.bstats:bstats-bukkit:3.1.0")
+
     apply `plugin dependencies`@{
         compileOnly("com.github.Zrips:Residence:6.0.0.1") {
             isTransitive = false
@@ -220,6 +222,9 @@ tasks {
         // Add mixin source set output to the default shadowJar (which already includes main)
         from(mixinSourceSet.output)
         archiveFileName = "${project.name}-${version}.jar"
+        
+        // Relocate bStats to avoid conflicts with other plugins
+        relocate("org.bstats", "org.virgil.akiasync.bstats")
     }
 
     build {
