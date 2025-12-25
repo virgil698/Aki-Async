@@ -97,12 +97,12 @@ public final class BrainMemorySnapshot {
                 }
             } catch (ClassCastException e) {
 
-                System.err.println("[BrainSnapshot] ClassCastException restoring memory type " + type + 
+                org.virgil.akiasync.mixin.util.BridgeConfigCache.errorLog("[BrainSnapshot] ClassCastException restoring memory type " + type + 
                     ": expected compatible type but got " + 
                     memEntry.getValue().getClass().getName());
             } catch (Exception e) {
                 
-                System.err.println("[BrainSnapshot] Error restoring memory type " + type + ": " + 
+                org.virgil.akiasync.mixin.util.BridgeConfigCache.errorLog("[BrainSnapshot] Error restoring memory type " + type + ": " + 
                     e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }

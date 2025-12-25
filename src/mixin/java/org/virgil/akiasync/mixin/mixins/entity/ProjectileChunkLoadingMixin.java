@@ -1,6 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.entity;
 
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -15,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.FoliaUtils;
 
 
 @Mixin(Projectile.class)
@@ -43,7 +43,7 @@ public abstract class ProjectileChunkLoadingMixin extends Entity implements Trac
         }
         
         
-        int currentTick = MinecraftServer.currentTick;
+        int currentTick = (int) FoliaUtils.getCurrentTick();
         if (akiasync$loadedTick != currentTick) {
             akiasync$loadedTick = currentTick;
             akiasync$loadedThisTick = 0;

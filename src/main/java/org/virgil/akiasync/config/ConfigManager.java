@@ -197,6 +197,7 @@ public class ConfigManager {
     private int entityTickBatchSize;
     private boolean asyncLightingEnabled;
     private int lightingThreadPoolSize;
+    private boolean spawnChunkRemovalEnabled;
     private int lightBatchThreshold;
     private int lightUpdateIntervalMs;
     private boolean useLayeredPropagationQueue;
@@ -365,6 +366,9 @@ public class ConfigManager {
     
     private boolean resourceLocationCacheEnabled;
     private boolean chunkPosOptimizationEnabled;
+    private boolean nbtOptimizationEnabled;
+    private boolean bitSetPoolingEnabled;
+    private boolean completableFutureOptimizationEnabled;
 
     private String seedEncryptionScheme;
     private boolean seedEncryptionEnabled;
@@ -641,6 +645,7 @@ public class ConfigManager {
         entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
         asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
+        spawnChunkRemovalEnabled = config.getBoolean("spawn-chunk-removal.enabled", true);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
         lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
         useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
@@ -793,21 +798,25 @@ public class ConfigManager {
         dataPackMaxFileCacheSize = config.getInt("datapack-optimization.max-file-cache-size", 1000);
         dataPackMaxFileSystemCacheSize = config.getInt("datapack-optimization.max-filesystem-cache-size", 50);
 
-        nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
-        virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
-        workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
-        blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
-        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
+        nitoriOptimizationsEnabled = config.getBoolean("advanced-concurrency.enabled", true);
+        virtualThreadEnabled = config.getBoolean("advanced-concurrency.virtual-threads", true);
+        workStealingEnabled = config.getBoolean("advanced-concurrency.work-stealing", true);
         
-        mobSunBurnOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.mob-sunburn-optimization.enabled", true);
-        entitySpeedOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-speed-optimization.enabled", true);
-        entityFallDamageOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-fall-damage-optimization.enabled", true);
-        entitySectionStorageOptimizationEnabled = config.getBoolean("nitori.entity-optimizations.entity-section-storage-optimization.enabled", true);
+        blockPosCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.blockpos-cache", true);
+        optimizedCollectionsEnabled = config.getBoolean("math-optimization.c2me-optimizations.optimized-collections", true);
+        resourceLocationCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.resource-location-cache.enabled", true);
+        bitSetPoolingEnabled = config.getBoolean("math-optimization.c2me-optimizations.bitset-pooling.enabled", true);
+        completableFutureOptimizationEnabled = config.getBoolean("math-optimization.c2me-optimizations.completable-future-optimization.enabled", true);
         
-        resourceLocationCacheEnabled = config.getBoolean("c2me-optimizations.resource-location-cache.enabled", true);
-        chunkPosOptimizationEnabled = config.getBoolean("c2me-optimizations.chunk-pos-optimization.enabled", true);
-        noiseOptimizationEnabled = config.getBoolean("c2me-optimizations.noise-optimization.enabled", true);
-        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
+        mobSunBurnOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.mob-sunburn-optimization.enabled", true);
+        entitySpeedOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-speed-optimization.enabled", true);
+        entityFallDamageOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-fall-damage-optimization.enabled", true);
+        entitySectionStorageOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-section-storage-optimization.enabled", true);
+        
+        chunkPosOptimizationEnabled = config.getBoolean("chunk-generation.c2me-chunk-optimizations.chunk-pos-optimization.enabled", true);
+        noiseOptimizationEnabled = config.getBoolean("chunk-generation.c2me-chunk-optimizations.noise-optimization.enabled", true);
+        
+        nbtOptimizationEnabled = config.getBoolean("recipe-optimization.c2me-nbt-optimization.enabled", true);
 
         if (config.contains("seed-encryption.scheme")) {
 
@@ -1129,14 +1138,16 @@ public class ConfigManager {
         minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 100);
         entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 50);
 
-        nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
-        virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
-        workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
-        blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
-        optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
+        nitoriOptimizationsEnabled = config.getBoolean("advanced-concurrency.enabled", true);
+        virtualThreadEnabled = config.getBoolean("advanced-concurrency.virtual-threads", true);
+        workStealingEnabled = config.getBoolean("advanced-concurrency.work-stealing", true);
+        
+        blockPosCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.blockpos-cache", true);
+        optimizedCollectionsEnabled = config.getBoolean("math-optimization.c2me-optimizations.optimized-collections", true);
 
         asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
         lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
+        spawnChunkRemovalEnabled = config.getBoolean("spawn-chunk-removal.enabled", true);
         lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
         lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
         useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
@@ -1654,7 +1665,6 @@ public class ConfigManager {
     public int getMinEntitiesForParallel() { return minEntitiesForParallel; }
     public int getEntityTickBatchSize() { return entityTickBatchSize; }
     public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }
-    public int getLightingThreadPoolSize() { return lightingThreadPoolSize; }
     public int getLightBatchThreshold() { return lightBatchThreshold; }
     public int getLightUpdateIntervalMs() { return lightUpdateIntervalMs; }
     public boolean useLayeredPropagationQueue() { return useLayeredPropagationQueue; }
@@ -1665,6 +1675,7 @@ public class ConfigManager {
     public boolean isDynamicBatchAdjustmentEnabled() { return dynamicBatchAdjustmentEnabled; }
     public boolean isAdvancedLightingStatsEnabled() { return advancedLightingStatsEnabled; }
     public boolean isLightingDebugEnabled() { return enableDebugLogging && lightingDebugEnabled; }
+    public boolean isSpawnChunkRemovalEnabled() { return spawnChunkRemovalEnabled; }
     public boolean isPlayerChunkLoadingOptimizationEnabled() { return playerChunkLoadingOptimizationEnabled; }
     public int getMaxConcurrentChunkLoadsPerPlayer() { return maxConcurrentChunkLoadsPerPlayer; }
     public boolean isEntityTrackingRangeOptimizationEnabled() { return entityTrackingRangeOptimizationEnabled; }
@@ -1768,6 +1779,9 @@ public class ConfigManager {
     public boolean isResourceLocationCacheEnabled() { return resourceLocationCacheEnabled; }
     public boolean isChunkPosOptimizationEnabled() { return chunkPosOptimizationEnabled; }
     public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
+    public boolean isNbtOptimizationEnabled() { return nbtOptimizationEnabled; }
+    public boolean isBitSetPoolingEnabled() { return bitSetPoolingEnabled; }
+    public boolean isCompletableFutureOptimizationEnabled() { return completableFutureOptimizationEnabled; }
 
     public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
     public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
@@ -1938,6 +1952,7 @@ public class ConfigManager {
         tntBatchUnrollFactor = config.getInt("tnt-explosion-optimization.batch-collision.unroll-factor", 4);
     }
     
+    public int getLightingThreadPoolSize() { return lightingThreadPoolSize; }
     public String getLightingThreadPoolMode() { return lightingThreadPoolMode; }
     public String getLightingThreadPoolCalculation() { return lightingThreadPoolCalculation; }
     public int getLightingMinThreads() { return lightingMinThreads; }

@@ -151,32 +151,40 @@ public class LandProtectionIntegration {
     private static boolean checkResidence(Location location, boolean debug) {
         try {
             if (residenceAPI == null) {
-                com.bekvon.bukkit.residence.Residence residence = 
-                    com.bekvon.bukkit.residence.Residence.getInstance();
+                Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence");
+                Method getInstanceMethod = residenceClass.getMethod("getInstance");
+                Object residence = getInstanceMethod.invoke(null);
+                
                 if (residence == null) {
                     residenceEnabled = false;
                     return true;
                 }
-                residenceAPI = residence.getResidenceManager();
+                
+                Method getResidenceManagerMethod = residenceClass.getMethod("getResidenceManager");
+                residenceAPI = getResidenceManagerMethod.invoke(residence);
+                
                 if (residenceAPI == null) {
                     residenceEnabled = false;
                     return true;
                 }
             }
 
-            com.bekvon.bukkit.residence.protection.ResidenceManager manager = 
-                (com.bekvon.bukkit.residence.protection.ResidenceManager) residenceAPI;
-            
-            com.bekvon.bukkit.residence.protection.ClaimedResidence res = manager.getByLoc(location);
+            Method getByLocMethod = residenceAPI.getClass().getMethod("getByLoc", Location.class);
+            Object res = getByLocMethod.invoke(residenceAPI, location);
             
             if (res == null) {
-                
                 return true;
             }
 
-            boolean allowed = res.getPermissions().has("tnt", false);
+            Method getPermissionsMethod = res.getClass().getMethod("getPermissions");
+            Object permissions = getPermissionsMethod.invoke(res);
+            Method hasMethod = permissions.getClass().getMethod("has", String.class, boolean.class);
+            boolean allowed = (Boolean) hasMethod.invoke(permissions, "tnt", false);
+            
             if (!allowed && debug) {
-                System.out.println("[LandProtection] Residence claim '" + res.getName() + 
+                Method getNameMethod = res.getClass().getMethod("getName");
+                String resName = (String) getNameMethod.invoke(res);
+                org.virgil.akiasync.util.DebugLogger.debug("[LandProtection] Residence claim '" + resName + 
                     "' denying TNT at " + location.getBlockX() + "," + 
                     location.getBlockY() + "," + location.getBlockZ());
             }
@@ -186,7 +194,6 @@ public class LandProtectionIntegration {
             if (residenceEnabled == null) {
                 residenceEnabled = false;
             }
-            System.err.println("[LandProtection] Error checking Residence: " + e.getMessage());
             return true;
         }
     }
@@ -194,17 +201,22 @@ public class LandProtectionIntegration {
     private static boolean checkDominion(Location location) {
         try {
             if (dominionCache == null) {
-                dominionCache = cn.lunadeer.dominion.api.DominionAPI.getInstance();
+                Class<?> dominionClass = Class.forName("cn.lunadeer.dominion.api.DominionAPI");
+                Method getInstanceMethod = dominionClass.getMethod("getInstance");
+                dominionCache = getInstanceMethod.invoke(null);
+                
                 if (dominionCache == null) {
                     dominionEnabled = false;
                     return true;
                 }
             }
 
-            cn.lunadeer.dominion.api.DominionAPI api = 
-                (cn.lunadeer.dominion.api.DominionAPI) dominionCache;
+            Class<?> flagsClass = Class.forName("cn.lunadeer.dominion.api.dtos.flag.Flags");
+            Object tntExplodeFlag = flagsClass.getField("TNT_EXPLODE").get(null);
             
-            return api.checkEnvironmentFlag(location, cn.lunadeer.dominion.api.dtos.flag.Flags.TNT_EXPLODE);
+            Method checkFlagMethod = dominionCache.getClass().getMethod("checkEnvironmentFlag", 
+                Location.class, Class.forName("cn.lunadeer.dominion.api.dtos.flag.Flag"));
+            return (Boolean) checkFlagMethod.invoke(dominionCache, location, tntExplodeFlag);
 
         } catch (Exception e) {
             if (dominionEnabled == null) {

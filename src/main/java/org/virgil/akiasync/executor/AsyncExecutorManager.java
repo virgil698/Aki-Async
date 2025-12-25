@@ -86,53 +86,82 @@ public class AsyncExecutorManager {
         executorService.execute(task);
     }
     public void shutdown() {
-        plugin.getLogger().info("Shutting down async executors...");
+        plugin.getLogger().info("Initiating graceful shutdown of async executors...");
+        long startTime = System.currentTimeMillis();
         
-        boolean generalShutdown = ExecutorLifecycleManager.shutdownGracefully(executorService, 10, TimeUnit.SECONDS);
-        if (!generalShutdown) {
-            plugin.getLogger().warning("General executor did not terminate gracefully");
+        plugin.getLogger().info("Phase 1: Stopping new task submissions...");
+        metricsExecutor.shutdown();
+        collisionExecutor.shutdown();
+        villagerBreedExecutor.shutdown();
+        brainExecutor.shutdown();
+        chunkTickExecutor.shutdown();
+        tntExecutor.shutdown();
+        lightingExecutor.shutdown();
+        executorService.shutdown();
+        
+        plugin.getLogger().info("Phase 2: Waiting for running tasks to complete...");
+        int successCount = 0;
+        int totalExecutors = 8;
+        
+        if (ExecutorLifecycleManager.shutdownGracefully(metricsExecutor, 3, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("Metrics executor did not terminate gracefully, forcing shutdown");
+            metricsExecutor.shutdownNow();
         }
         
-        boolean lightingShutdown = ExecutorLifecycleManager.shutdownGracefully(lightingExecutor, 5, TimeUnit.SECONDS);
-        if (!lightingShutdown) {
-            plugin.getLogger().warning("Lighting executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(collisionExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("Collision executor did not terminate gracefully, forcing shutdown");
         }
         
-        boolean tntShutdown = ExecutorLifecycleManager.shutdownGracefully(tntExecutor, 5, TimeUnit.SECONDS);
-        if (!tntShutdown) {
-            plugin.getLogger().warning("TNT executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(villagerBreedExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("VillagerBreed executor did not terminate gracefully, forcing shutdown");
         }
         
-        boolean chunkTickShutdown = ExecutorLifecycleManager.shutdownGracefully(chunkTickExecutor, 5, TimeUnit.SECONDS);
-        if (!chunkTickShutdown) {
-            plugin.getLogger().warning("ChunkTick executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(brainExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("Brain executor did not terminate gracefully, forcing shutdown");
         }
         
-        boolean villagerBreedShutdown = ExecutorLifecycleManager.shutdownGracefully(villagerBreedExecutor, 5, TimeUnit.SECONDS);
-        if (!villagerBreedShutdown) {
-            plugin.getLogger().warning("VillagerBreed executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(chunkTickExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("ChunkTick executor did not terminate gracefully, forcing shutdown");
         }
         
-        boolean brainShutdown = ExecutorLifecycleManager.shutdownGracefully(brainExecutor, 5, TimeUnit.SECONDS);
-        if (!brainShutdown) {
-            plugin.getLogger().warning("Brain executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(tntExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("TNT executor did not terminate gracefully, forcing shutdown");
         }
         
-        boolean collisionShutdown = ExecutorLifecycleManager.shutdownGracefully(collisionExecutor, 5, TimeUnit.SECONDS);
-        if (!collisionShutdown) {
-            plugin.getLogger().warning("Collision executor did not terminate gracefully");
+        if (ExecutorLifecycleManager.shutdownGracefully(lightingExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("Lighting executor did not terminate gracefully, forcing shutdown");
         }
         
-        metricsExecutor.shutdownNow();
+        if (ExecutorLifecycleManager.shutdownGracefully(executorService, 15, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("General executor did not terminate gracefully, forcing shutdown");
+        }
         
+        plugin.getLogger().info("Phase 3: Cleaning up resources...");
         java.util.List<String> unclosed = ResourceTracker.getUnclosedResources();
         if (!unclosed.isEmpty()) {
-            plugin.getLogger().warning("Found " + unclosed.size() + " unclosed executor resources: " + unclosed);
-            plugin.getLogger().warning("Forcing cleanup of unclosed resources...");
+            plugin.getLogger().info("Cleaning up " + unclosed.size() + " remaining executor resources");
             ResourceTracker.closeAll();
         }
         
-        plugin.getLogger().info("Async executors shut down successfully");
+        long elapsed = System.currentTimeMillis() - startTime;
+        plugin.getLogger().info("Shutdown completed: " + successCount + "/" + totalExecutors + 
+            " executors terminated gracefully in " + elapsed + "ms");
     }
     public ExecutorService getExecutorService() {
         return executorService;

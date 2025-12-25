@@ -161,6 +161,21 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isNoiseOptimizationEnabled() {
         return config != null ? config.isNoiseOptimizationEnabled() : true;
     }
+    
+    @Override
+    public boolean isNbtOptimizationEnabled() {
+        return config != null ? config.isNbtOptimizationEnabled() : true;
+    }
+    
+    @Override
+    public boolean isBitSetPoolingEnabled() {
+        return config != null ? config.isBitSetPoolingEnabled() : true;
+    }
+    
+    @Override
+    public boolean isCompletableFutureOptimizationEnabled() {
+        return config != null ? config.isCompletableFutureOptimizationEnabled() : true;
+    }
 
     @Override
     public boolean isEntityTickParallel() { return config.isEntityTickParallel(); }
@@ -583,6 +598,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getLightUpdateIntervalMs() {return config.getLightUpdateIntervalMs();}
+    
+    @Override
+    public int getLightingParallelism() {
+        int poolSize = config.getThreadPoolSize();
+        if (poolSize <= 0) {
+            return Math.max(1, Runtime.getRuntime().availableProcessors() / 3);
+        }
+        return poolSize;
+    }
 
     @Override
     public boolean useLayeredPropagationQueue() {return config.useLayeredPropagationQueue();}
@@ -607,6 +631,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isLightingDebugEnabled() {return config.isLightingDebugEnabled();}
+    
+    @Override
+    public boolean isSpawnChunkRemovalEnabled() {return config.isSpawnChunkRemovalEnabled();}
 
     @Override
     public boolean isPlayerChunkLoadingOptimizationEnabled() {return config.isPlayerChunkLoadingOptimizationEnabled();}
@@ -940,14 +967,14 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 net.minecraft.core.BlockPos startPos = net.minecraft.core.BlockPos.containing(sourceStack.getPosition());
 
                 if (config.isStructureLocationDebugEnabled()) {
-                    System.out.println("[AkiAsync] Starting async locate command from " + startPos);
+                    org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Starting async locate command from " + startPos);
                 }
 
                 com.mojang.datafixers.util.Pair<net.minecraft.core.BlockPos, net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> result;
 
                 if (config.isStructureAlgorithmOptimizationEnabled()) {
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Using optimized structure search algorithm");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Using optimized structure search algorithm");
                     }
                     result = org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.findNearestStructureOptimized(
                         level, holderSet, startPos,
@@ -964,7 +991,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
                 return result != null ? result.getFirst() : null;
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error in async locate command: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error in async locate command: " + e.getMessage());
                 return null;
             }
         }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
@@ -981,7 +1008,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                         "§a[AkiAsync] Structure location started asynchronously..."), false);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Locate command started asynchronously");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Locate command started asynchronously");
                     }
 
                     FoliaSchedulerAdapter.runTaskLater(plugin, () -> {
@@ -990,7 +1017,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     }, 20L);
 
                 } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error starting async locate command: " + e.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error starting async locate command: " + e.getMessage());
                     e.printStackTrace();
                 }
             });
@@ -1000,7 +1027,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         FoliaSchedulerAdapter.runTask(plugin, () -> {
             try {
                 if (throwable != null) {
-                    System.err.println("[AkiAsync] Locate command failed: " + throwable.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Locate command failed: " + throwable.getMessage());
                     sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Structure location failed: " + throwable.getMessage()));
                     return;
                 }
@@ -1010,17 +1037,17 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                         "The nearest structure is at " + structurePos.getX() + ", " + structurePos.getY() + ", " + structurePos.getZ()), false);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Locate command completed: structure found at " + structurePos);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Locate command completed: structure found at " + structurePos);
                     }
                 } else {
                     sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Could not find that structure nearby"));
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Locate command completed: no structure found");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Locate command completed: no structure found");
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error processing locate command result: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error processing locate command result: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -1035,7 +1062,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     net.minecraft.core.BlockPos startPos = dolphin.blockPosition();
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Starting async dolphin treasure hunt from " + startPos);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Starting async dolphin treasure hunt from " + startPos);
                     }
 
                     net.minecraft.core.BlockPos foundTreasure = level.findNearestMapStructure(
@@ -1047,7 +1074,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
                     return foundTreasure;
                 } catch (Exception e) {
-                    System.err.println("[AkiAsync] Error in async dolphin treasure hunt: " + e.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error in async dolphin treasure hunt: " + e.getMessage());
                     return null;
                 }
             }, generalExecutor).whenComplete((foundTreasure, asyncThrowable) -> {
@@ -1059,7 +1086,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         FoliaEntityAdapter.safeEntityOperation(plugin, (org.bukkit.entity.Entity) dolphin.getBukkitEntity(), (entity) -> {
             try {
                 if (throwable != null) {
-                    System.err.println("[AkiAsync] Dolphin treasure hunt failed: " + throwable.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Dolphin treasure hunt failed: " + throwable.getMessage());
                     return;
                 }
 
@@ -1073,18 +1100,18 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                             dolphin.getX(), dolphin.getY(), dolphin.getZ(), 0.0D, 0.0D, 0.0D);
 
                         if (config.isStructureLocationDebugEnabled()) {
-                            System.out.println("[AkiAsync] Dolphin treasure hunt completed: treasure found at " + treasurePos);
+                            org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Dolphin treasure hunt completed: treasure found at " + treasurePos);
                         }
                     } catch (Exception e) {
-                        System.err.println("[AkiAsync] Error setting dolphin treasure position: " + e.getMessage());
+                        org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error setting dolphin treasure position: " + e.getMessage());
                     }
                 } else {
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Dolphin treasure hunt completed: no treasure found");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Dolphin treasure hunt completed: no treasure found");
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error processing dolphin treasure result: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error processing dolphin treasure result: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -1101,7 +1128,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     net.minecraft.core.BlockPos.containing(origin) : new net.minecraft.core.BlockPos(0, 64, 0);
 
                 if (config.isStructureLocationDebugEnabled()) {
-                    System.out.println("[AkiAsync] Starting async chest exploration map creation from " + startPos + " for " + destination.location());
+                    org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Starting async chest exploration map creation from " + startPos + " for " + destination.location());
                 }
 
                 net.minecraft.core.BlockPos foundStructure = level.findNearestMapStructure(
@@ -1109,15 +1136,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
                 if (config.isStructureLocationDebugEnabled()) {
                     if (foundStructure != null) {
-                        System.out.println("[AkiAsync] Chest exploration map: structure found at " + foundStructure);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Chest exploration map: structure found at " + foundStructure);
                     } else {
-                        System.out.println("[AkiAsync] Chest exploration map: no structure found");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Chest exploration map: no structure found");
                     }
                 }
 
                 return foundStructure;
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error in async chest exploration map creation: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error in async chest exploration map creation: " + e.getMessage());
                 e.printStackTrace();
                 return null;
             }
@@ -1132,7 +1159,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         FoliaSchedulerAdapter.runTask(plugin, () -> {
             try {
                 if (throwable != null) {
-                    System.err.println("[AkiAsync] Chest exploration map creation failed: " + throwable.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Chest exploration map creation failed: " + throwable.getMessage());
                     setReturnValue(cir, stack);
                     return;
                 }
@@ -1148,17 +1175,17 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     setReturnValue(cir, mapStack);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Chest exploration map created for structure at " + structurePos);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Chest exploration map created for structure at " + structurePos);
                     }
                 } else {
                     setReturnValue(cir, stack);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] No structure found for chest exploration map");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] No structure found for chest exploration map");
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error processing chest exploration map result: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error processing chest exploration map result: " + e.getMessage());
                 e.printStackTrace();
                 setReturnValue(cir, stack);
             }
@@ -1173,7 +1200,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 net.minecraft.core.BlockPos startPos = trader.blockPosition();
 
                 if (config.isStructureLocationDebugEnabled()) {
-                    System.out.println("[AkiAsync] Starting async villager trade map creation from " + startPos + " for " + destination.location());
+                    org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Starting async villager trade map creation from " + startPos + " for " + destination.location());
                 }
 
                 int searchRadius = config.getVillagerTradeMapsSearchRadius();
@@ -1184,15 +1211,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
                 if (config.isStructureLocationDebugEnabled()) {
                     if (foundStructure != null) {
-                        System.out.println("[AkiAsync] Villager trade map: structure found at " + foundStructure);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Villager trade map: structure found at " + foundStructure);
                     } else {
-                        System.out.println("[AkiAsync] Villager trade map: no structure found");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Villager trade map: no structure found");
                     }
                 }
 
                 return foundStructure;
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error in async villager trade map creation: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error in async villager trade map creation: " + e.getMessage());
                 e.printStackTrace();
                 return null;
             }
@@ -1207,7 +1234,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         FoliaEntityAdapter.safeEntityOperation(plugin, (org.bukkit.entity.Entity) trader.getBukkitEntity(), (entity) -> {
             try {
                 if (throwable != null) {
-                    System.err.println("[AkiAsync] Villager trade map creation failed: " + throwable.getMessage());
+                    org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Villager trade map creation failed: " + throwable.getMessage());
                     setReturnValue(cir, null);
                     return;
                 }
@@ -1231,17 +1258,17 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     setReturnValue(cir, newOffer);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] Villager trade map created for structure at " + structurePos);
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] Villager trade map created for structure at " + structurePos);
                     }
                 } else {
                     setReturnValue(cir, null);
 
                     if (config.isStructureLocationDebugEnabled()) {
-                        System.out.println("[AkiAsync] No structure found for villager trade map");
+                        org.virgil.akiasync.util.DebugLogger.debug("[AkiAsync] No structure found for villager trade map");
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[AkiAsync] Error processing villager trade map result: " + e.getMessage());
+                org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Error processing villager trade map result: " + e.getMessage());
                 e.printStackTrace();
                 setReturnValue(cir, null);
             }
@@ -1261,7 +1288,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         try {
             cir.getClass().getMethod("setReturnValue", Object.class).invoke(cir, value);
         } catch (Exception e) {
-            System.err.println("[AkiAsync] Failed to set return value: " + e.getMessage());
+            org.virgil.akiasync.util.DebugLogger.error("[AkiAsync] Failed to set return value: " + e.getMessage());
         }
     }
 

@@ -27,6 +27,12 @@ public interface Bridge {
     boolean isChunkPosOptimizationEnabled();
     
     boolean isNoiseOptimizationEnabled();
+    
+    boolean isNbtOptimizationEnabled();
+    
+    boolean isBitSetPoolingEnabled();
+    
+    boolean isCompletableFutureOptimizationEnabled();
 
     boolean isEntityTickParallel();
 
@@ -223,6 +229,8 @@ public interface Bridge {
     int getLightBatchThreshold();
     
     int getLightUpdateIntervalMs();
+    
+    int getLightingParallelism();
 
     boolean useLayeredPropagationQueue();
 
@@ -239,6 +247,8 @@ public interface Bridge {
     boolean isAdvancedLightingStatsEnabled();
     
     boolean isLightingDebugEnabled();
+    
+    boolean isSpawnChunkRemovalEnabled();
 
     boolean isPlayerChunkLoadingOptimizationEnabled();
 

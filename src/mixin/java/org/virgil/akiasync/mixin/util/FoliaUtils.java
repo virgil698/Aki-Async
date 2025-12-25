@@ -17,12 +17,59 @@ public final class FoliaUtils {
     private static volatile Object regionizedServerInstance = null;
     private static volatile Object taskQueue = null;
     private static volatile Method queueMethod = null;
+    private static volatile Method getCurrentTickMethod = null;
+    private static volatile java.lang.reflect.Field paperCurrentTickField = null;
 
     private static final ConcurrentHashMap<String, Method> methodCache = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
     private FoliaUtils() {
         throw new UnsupportedOperationException("Utility class");
+    }
+    
+    public static long getCurrentTick() {
+        if (isFoliaEnvironment()) {
+            if (getCurrentTickMethod == null) {
+                synchronized (FoliaUtils.class) {
+                    if (getCurrentTickMethod == null) {
+                        try {
+                            Class<?> regionizedServer = getOrCacheClass(REGIONIZED_SERVER_CLASS);
+                            getCurrentTickMethod = regionizedServer.getMethod("getCurrentTick");
+                        } catch (Exception e) {
+                        }
+                    }
+                }
+            }
+            
+            if (getCurrentTickMethod != null) {
+                try {
+                    return (long) getCurrentTickMethod.invoke(null);
+                } catch (Exception e) {
+                }
+            }
+        }
+        
+        if (paperCurrentTickField == null) {
+            synchronized (FoliaUtils.class) {
+                if (paperCurrentTickField == null) {
+                    try {
+                        Class<?> mcServerClass = Class.forName("net.minecraft.server.MinecraftServer");
+                        paperCurrentTickField = mcServerClass.getDeclaredField("currentTick");
+                        paperCurrentTickField.setAccessible(true);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+        
+        if (paperCurrentTickField != null) {
+            try {
+                return paperCurrentTickField.getInt(null);
+            } catch (Exception e) {
+            }
+        }
+        
+        return System.currentTimeMillis() / 50L;
     }
 
     public static boolean isFoliaEnvironment() {
@@ -143,6 +190,8 @@ public final class FoliaUtils {
         regionizedServerInstance = null;
         taskQueue = null;
         queueMethod = null;
+        getCurrentTickMethod = null;
+        paperCurrentTickField = null;
         methodCache.clear();
         classCache.clear();
     }

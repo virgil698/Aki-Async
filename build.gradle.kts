@@ -231,7 +231,6 @@ tasks {
         dependsOn(shadowJar)
     }
     
-    // SpotBugs配置
     withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
         reports.create("html") {
             required.set(true)
@@ -243,7 +242,6 @@ tasks {
     }
 }
 
-// SpotBugs全局配置
 spotbugs {
     toolVersion.set("4.8.6")
     effort.set(com.github.spotbugs.snom.Effort.MAX)

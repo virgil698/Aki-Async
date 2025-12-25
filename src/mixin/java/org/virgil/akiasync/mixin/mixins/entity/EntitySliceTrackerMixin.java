@@ -95,8 +95,15 @@ public abstract class EntitySliceTrackerMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeConfigCache.getBridge();
         
         if (bridge != null) {
-            enabled = bridge.isCollisionOptimizationEnabled();
-            BridgeConfigCache.debugLog("[AkiAsync] EntitySliceTrackerMixin initialized: enabled=" + enabled);
+            boolean isFolia = bridge.isFoliaEnvironment();
+            
+            if (isFolia) {
+                enabled = false;
+                BridgeConfigCache.debugLog("[AkiAsync] EntitySliceTrackerMixin disabled in Folia environment");
+            } else {
+                enabled = bridge.isCollisionOptimizationEnabled();
+                BridgeConfigCache.debugLog("[AkiAsync] EntitySliceTrackerMixin initialized: enabled=" + enabled);
+            }
         }
         
         initialized = true;

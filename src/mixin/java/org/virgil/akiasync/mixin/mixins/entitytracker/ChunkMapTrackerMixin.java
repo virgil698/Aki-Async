@@ -41,6 +41,14 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
     
     @Unique
     public void aki$runOnTrackerMainThread(final Runnable runnable) {
+        if (!aki$initialized) {
+            aki$initConfig();
+        }
+        
+        if (!aki$enabled) {
+            runnable.run();
+            return;
+        }
         
         if (Thread.currentThread() == this.level.getServer().getRunningThread()) {
             
@@ -53,8 +61,11 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
             
             this.aki$trackerMainThreadTasks.add(runnable);
         } else {
-            
-            this.level.getServer().execute(runnable);
+            try {
+                this.level.getServer().execute(runnable);
+            } catch (UnsupportedOperationException e) {
+                runnable.run();
+            }
         }
     }
     
@@ -117,8 +128,19 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
             if (bridge != null) {
                 aki$enabled = bridge.isMultithreadedEntityTrackerEnabled();
                 
-                bridge.debugLog("[MultithreadedEntityTracker] Initialized: enabled=%s, parallelism=%d",
-                    aki$enabled, Runtime.getRuntime().availableProcessors());
+                try {
+                    Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+                    aki$enabled = false;
+                    if (bridge != null) {
+                        bridge.debugLog("[MultithreadedEntityTracker] Detected Folia/Luminol environment - disabling multithreaded entity tracker");
+                    }
+                } catch (ClassNotFoundException ignored) {
+                }
+                
+                if (bridge != null) {
+                    bridge.debugLog("[MultithreadedEntityTracker] Initialized: enabled=%s, parallelism=%d",
+                        aki$enabled, Runtime.getRuntime().availableProcessors());
+                }
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(

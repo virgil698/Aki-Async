@@ -7,6 +7,11 @@ public class BridgeConfigCache {
     
     private static volatile boolean debugLoggingEnabled = false;
     
+    private static volatile boolean resourceLocationCacheEnabled = true;
+    private static volatile boolean nbtOptimizationEnabled = true;
+    private static volatile boolean bitSetPoolingEnabled = true;
+    private static volatile boolean completableFutureOptimizationEnabled = true;
+    
     private static volatile boolean initialized = false;
     
     private static volatile long lastRefreshTime = 0;
@@ -36,12 +41,38 @@ public class BridgeConfigCache {
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
                 debugLoggingEnabled = bridge.isDebugLoggingEnabled();
+                
+                resourceLocationCacheEnabled = bridge.isResourceLocationCacheEnabled();
+                nbtOptimizationEnabled = bridge.isNbtOptimizationEnabled();
+                bitSetPoolingEnabled = bridge.isBitSetPoolingEnabled();
+                completableFutureOptimizationEnabled = bridge.isCompletableFutureOptimizationEnabled();
+                
                 initialized = true;
                 lastRefreshTime = System.currentTimeMillis();
             }
         } catch (Exception e) {
             ExceptionHandler.handleUnexpected("BridgeConfigCache", "refreshCache", e);
         }
+    }
+    
+    public static boolean isResourceLocationCacheEnabled() {
+        checkAndRefresh();
+        return resourceLocationCacheEnabled;
+    }
+    
+    public static boolean isNbtOptimizationEnabled() {
+        checkAndRefresh();
+        return nbtOptimizationEnabled;
+    }
+    
+    public static boolean isBitSetPoolingEnabled() {
+        checkAndRefresh();
+        return bitSetPoolingEnabled;
+    }
+    
+    public static boolean isCompletableFutureOptimizationEnabled() {
+        checkAndRefresh();
+        return completableFutureOptimizationEnabled;
     }
     
     public static void checkAndRefresh() {

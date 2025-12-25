@@ -112,6 +112,7 @@
     "memory.BlockPosPoolMixin",
     "memory.EntityListPreallocMixin",
     "lighting.ThreadedLevelLightEngineMixin",
+    "spawn.SpawnChunkRemovalMixin",
     "world.WorldUnloadCleanupMixin",
     "chunk.ChunkSaveAsyncMixin",
     "chunk.ServerPlayerFastMovementMixin",
@@ -132,7 +133,9 @@
     "crypto.SlimeChunkMixin",
     "util.ResourceLocationCacheMixin",
     "chunk.ChunkPosOptimizationMixin",
-    "worldgen.ImprovedNoiseOptimizationMixin"
+    "worldgen.ImprovedNoiseOptimizationMixin",
+    "optimization.ListTagOptimizationMixin",
+    "optimization.UtilCompletableFutureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

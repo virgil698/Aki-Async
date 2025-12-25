@@ -5,23 +5,24 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.virgil.akiasync.mixin.accessor.LevelChunkAccessor;
 
 
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelLightningMixin {
     
-    
-    @Redirect(
+    @ModifyVariable(
         method = "tickThunder",
         at = @At(
-            value = "INVOKE",
+            value = "INVOKE_ASSIGN",
             target = "Lnet/minecraft/util/RandomSource;nextInt(I)I",
             ordinal = 0
-        )
+        ),
+        ordinal = 0
     )
-    private int redirectLightningRandom(RandomSource random, int bound, LevelChunk chunk) {
+    private int modifyLightningRandomResult(int originalResult, LevelChunk chunk) {
+        RandomSource random = ((ServerLevel)(Object)this).random;
         LevelChunkAccessor accessor = (LevelChunkAccessor) chunk;
         return accessor.invokeShouldDoLightning(random) ? 0 : 1;
     }

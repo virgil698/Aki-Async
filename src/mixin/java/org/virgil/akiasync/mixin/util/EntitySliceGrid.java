@@ -8,10 +8,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class EntitySliceGrid {
     
     private final Int2ObjectOpenHashMap<Set<Entity>> entitySlices = new Int2ObjectOpenHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     
     private static final double SMALL_AABB_THRESHOLD = 4.0;
     private static final double MEDIUM_AABB_THRESHOLD = 32.0;
@@ -21,10 +24,9 @@ public class EntitySliceGrid {
     }
     
     public static int calculateIntXYZ(Entity entity) {
-        
-        int x = ((int) Math.round(entity.getX())) & 15;
-        int y = ((int) Math.round(entity.getY())) & 15;
-        int z = ((int) Math.round(entity.getZ())) & 15;
+        int x = Math.floorMod((int) Math.floor(entity.getX()), 16);
+        int y = Math.floorMod((int) Math.floor(entity.getY()), 16);
+        int z = Math.floorMod((int) Math.floor(entity.getZ()), 16);
         return calculateIntXYZ(x, y, z);
     }
     
@@ -34,8 +36,14 @@ public class EntitySliceGrid {
         }
         
         int intXYZ = calculateIntXYZ(entity);
-        Set<Entity> entities = entitySlices.computeIfAbsent(intXYZ, k -> new HashSet<>());
-        entities.add(entity);
+        
+        lock.writeLock().lock();
+        try {
+            Set<Entity> entities = entitySlices.computeIfAbsent(intXYZ, k -> new HashSet<>());
+            entities.add(entity);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
     
     public void removeEntity(Entity entity, int intXYZ) {
@@ -43,19 +51,23 @@ public class EntitySliceGrid {
             return;
         }
         
-        Set<Entity> entities = entitySlices.get(intXYZ);
-        if (entities != null) {
-            entities.remove(entity);
-            
-            if (entities.isEmpty()) {
-                entitySlices.remove(intXYZ);
+        lock.writeLock().lock();
+        try {
+            Set<Entity> entities = entitySlices.get(intXYZ);
+            if (entities != null) {
+                entities.remove(entity);
+                
+                if (entities.isEmpty()) {
+                    entitySlices.remove(intXYZ);
+                }
             }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
     
     public int updateEntitySlice(Entity entity, int oldIntXYZ) {
         if (entity == null || entity.isRemoved()) {
-            
             removeEntity(entity, oldIntXYZ);
             return -1;
         }
@@ -63,10 +75,21 @@ public class EntitySliceGrid {
         int newIntXYZ = calculateIntXYZ(entity);
         
         if (oldIntXYZ != newIntXYZ) {
-            
-            removeEntity(entity, oldIntXYZ);
-            
-            addEntity(entity);
+            lock.writeLock().lock();
+            try {
+                Set<Entity> oldEntities = entitySlices.get(oldIntXYZ);
+                if (oldEntities != null) {
+                    oldEntities.remove(entity);
+                    if (oldEntities.isEmpty()) {
+                        entitySlices.remove(oldIntXYZ);
+                    }
+                }
+                
+                Set<Entity> newEntities = entitySlices.computeIfAbsent(newIntXYZ, k -> new HashSet<>());
+                newEntities.add(entity);
+            } finally {
+                lock.writeLock().unlock();
+            }
         }
         
         return newIntXYZ;
@@ -108,17 +131,22 @@ public class EntitySliceGrid {
         int maxY = ((int) Math.floor(aabb.maxY)) & 15;
         int maxZ = ((int) Math.floor(aabb.maxZ)) & 15;
         
-        for (int y = minY; y <= maxY; y++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                for (int x = minX; x <= maxX; x++) {
-                    int intXYZ = calculateIntXYZ(x, y, z);
-                    Set<Entity> entities = entitySlices.get(intXYZ);
-                    
-                    if (entities != null && !entities.isEmpty()) {
-                        result.addAll(entities);
+        lock.readLock().lock();
+        try {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int x = minX; x <= maxX; x++) {
+                        int intXYZ = calculateIntXYZ(x, y, z);
+                        Set<Entity> entities = entitySlices.get(intXYZ);
+                        
+                        if (entities != null && !entities.isEmpty()) {
+                            result.addAll(entities);
+                        }
                     }
                 }
             }
+        } finally {
+            lock.readLock().unlock();
         }
         
         return result;
@@ -135,25 +163,30 @@ public class EntitySliceGrid {
         int maxY = (int) Math.floor(aabb.maxY);
         int maxZ = (int) Math.floor(aabb.maxZ);
         
-        for (int y = minY; y <= maxY; y++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                for (int x = minX; x <= maxX; x++) {
-                    int localX = x & 15;
-                    int localY = y & 15;
-                    int localZ = z & 15;
-                    int intXYZ = calculateIntXYZ(localX, localY, localZ);
-                    
-                    Set<Entity> entities = entitySlices.get(intXYZ);
-                    if (entities != null && !entities.isEmpty()) {
-                        for (Entity entity : entities) {
-                            if (entity != null && !entity.isRemoved() && 
-                                deduplicatedEntities.add(entity)) {
-                                result.add(entity);
+        lock.readLock().lock();
+        try {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int x = minX; x <= maxX; x++) {
+                        int localX = x & 15;
+                        int localY = y & 15;
+                        int localZ = z & 15;
+                        int intXYZ = calculateIntXYZ(localX, localY, localZ);
+                        
+                        Set<Entity> entities = entitySlices.get(intXYZ);
+                        if (entities != null && !entities.isEmpty()) {
+                            for (Entity entity : entities) {
+                                if (entity != null && !entity.isRemoved() && 
+                                    deduplicatedEntities.add(entity)) {
+                                    result.add(entity);
+                                }
                             }
                         }
                     }
                 }
             }
+        } finally {
+            lock.readLock().unlock();
         }
         
         return result;
@@ -162,44 +195,74 @@ public class EntitySliceGrid {
     private List<Entity> queryRangeLarge(AABB aabb) {
         List<Entity> result = new ArrayList<>();
         
-        for (Set<Entity> entities : entitySlices.values()) {
-            if (entities != null && !entities.isEmpty()) {
-                for (Entity entity : entities) {
-                    if (entity != null && !entity.isRemoved()) {
-                        AABB entityBox = entity.getBoundingBox();
-                        if (entityBox != null && entityBox.intersects(aabb)) {
-                            result.add(entity);
+        lock.readLock().lock();
+        try {
+            for (Set<Entity> entities : entitySlices.values()) {
+                if (entities != null && !entities.isEmpty()) {
+                    for (Entity entity : entities) {
+                        if (entity != null && !entity.isRemoved()) {
+                            AABB entityBox = entity.getBoundingBox();
+                            if (entityBox != null && entityBox.intersects(aabb)) {
+                                result.add(entity);
+                            }
                         }
                     }
                 }
             }
+        } finally {
+            lock.readLock().unlock();
         }
         
         return result;
     }
     
     public Set<Entity> getEntities(int intXYZ) {
-        return entitySlices.get(intXYZ);
+        lock.readLock().lock();
+        try {
+            return entitySlices.get(intXYZ);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     
     public void clear() {
-        entitySlices.clear();
+        lock.writeLock().lock();
+        try {
+            entitySlices.clear();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
     
     public int size() {
-        return entitySlices.size();
+        lock.readLock().lock();
+        try {
+            return entitySlices.size();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     
     public int getTotalEntityCount() {
-        int count = 0;
-        for (Set<Entity> entities : entitySlices.values()) {
-            count += entities.size();
+        lock.readLock().lock();
+        try {
+            int count = 0;
+            for (Set<Entity> entities : entitySlices.values()) {
+                count += entities.size();
+            }
+            return count;
+        } finally {
+            lock.readLock().unlock();
         }
-        return count;
     }
     
     public boolean isEmpty() {
-        return entitySlices.isEmpty();
+        lock.readLock().lock();
+        try {
+            return entitySlices.isEmpty();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     
     public String getStats() {

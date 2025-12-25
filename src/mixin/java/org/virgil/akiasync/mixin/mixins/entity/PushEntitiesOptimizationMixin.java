@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.entity;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -52,8 +53,24 @@ public abstract class PushEntitiesOptimizationMixin {
         double movementSqr = deltaMovement.lengthSqr();
         
         if (movementSqr > 0.0001) { 
-            
             return;
+        }
+        
+        if (self.tickCount % 5 == 0) {
+            try {
+                net.minecraft.world.phys.AABB checkBox = self.getBoundingBox().inflate(0.5);
+                java.util.List<net.minecraft.world.entity.Entity> nearbyEntities = 
+                    self.level().getEntities(self, checkBox);
+                
+                if (nearbyEntities.size() >= 3) {
+                    if (self.tickCount % 2 != 0) {
+                        ci.cancel();
+                    }
+                    return;
+                }
+            } catch (Exception ignored) {
+                return;
+            }
         }
         
         if (movementSqr > 1.0E-10) { 
@@ -64,12 +81,10 @@ public abstract class PushEntitiesOptimizationMixin {
         }
         
         if (self.onGround() && !self.isInWater() && !self.isInLava()) {
-            
             if (self.tickCount % 10 != 0) {
                 ci.cancel();
             }
         } else {
-            
             if (self.tickCount % 2 != 0) {
                 ci.cancel();
             }

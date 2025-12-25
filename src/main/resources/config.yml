@@ -11,7 +11,7 @@ version: 18
 # 0 = 自动分配（CPU核心数/4，最小2）/ Auto-allocate (CPU cores/4, min 2)
 # >0 = 手动指定线程数 / Manually specify thread count
 general-thread-pool:
-  size: 0  # 统一线程池大小 / Unified thread pool size (推荐保持0 / Recommended: keep 0)
+  size: 0  # 统一线程池大小 / Unified thread pool size
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -152,6 +152,18 @@ collision-optimization:
     enabled: true
     cache-size: 512  # 缓存大小 / Cache size (推荐 / Recommended: 256-1024)
     expire-ticks: 600  # 过期时间 / Expire time (ticks, 600 = 30秒 / 30 seconds)
+  
+  # Nitori/Lithium 实体优化 / Nitori/Lithium Entity Optimizations
+  # 来源 / Source: Nitori Fabric mod
+  nitori-entity-optimizations:
+    mob-sunburn-optimization:  # 生物日光燃烧优化 / Mob Sunburn Optimization (缓存BlockPos，提前检查亮度 / Cache BlockPos, early brightness check)
+      enabled: true
+    entity-speed-optimization:  # 实体速度优化 / Entity Speed Optimization (缓存方块速度因子 / Cache block speed factor)
+      enabled: true
+    entity-fall-damage-optimization:  # 实体掉落伤害优化 / Entity Fall Damage Optimization (跳过简单实体的掉落伤害计算 / Skip fall damage for simple entities)
+      enabled: true
+    entity-section-storage-optimization:  # 实体区段快速检索优化 / Entity Section Storage Optimization (小区域使用直接哈希查找 / Use direct hash lookup for small areas)
+      enabled: true
   
   # 射线碰撞检测 / Ray Collision Detection
   # DDA 算法优化射线追踪，性能提升 50-70%
@@ -614,6 +626,12 @@ recipe-optimization:
     apply-to-smoker: true  # 应用于烟熏炉 / Apply to smokers
     fix-burn-time-bug: true  # 修复>32767燃烧时间bug / Fix >32767 burn time bug
   
+  # C2ME NBT优化 / C2ME NBT Optimization
+  # 来源 / Source: C2ME Fabric mod
+  # ListTag使用fastutil，Paper已优化CompoundTag / ListTag uses fastutil, Paper already optimizes CompoundTag
+  c2me-nbt-optimization:
+    enabled: true
+  
   # FastWorkbench工作台缓存 / FastWorkbench Cache
   # 缓存工作台配方，优化批量合成
   # Cache crafting recipes, optimize batch crafting
@@ -767,6 +785,14 @@ chunk-generation:
   # Optimize Jigsaw structure generation to boost village generation speed
   jigsaw-optimization:
     enabled: true
+  
+  # C2ME 区块优化 / C2ME Chunk Optimizations
+  # 来源 / Source: C2ME Fabric mod
+  c2me-chunk-optimizations:
+    chunk-pos-optimization:  # ChunkPos equals优化 / ChunkPos equals Optimization (使用标准equals实现 / Use standard equals implementation)
+      enabled: true
+    noise-optimization:  # Perlin噪声优化 / Perlin Noise Optimization (优化噪声采样 / Optimize noise sampling)
+      enabled: true
 
 # ==========================================
 # 结构查找异步化 / Structure Location Async
@@ -837,6 +863,13 @@ lighting-optimizations:
   enabled: true
   update-interval-ms: 10  # 光照更新间隔 / Light update interval (推荐 10ms / Recommended: 10ms, 5ms=更快 / faster, 20ms=更省CPU / lower CPU)
 
+# 出生区块移除 / Spawn Chunk Removal
+# 移除出生区块以加速世界加载 / Remove spawn chunks to speed up world loading
+# ⚠️ 仅对 1.21.8 有效 / Only effective on 1.21.8
+# 1.21.10+ 版本已默认移除出生区块 / 1.21.10+ already removed spawn chunks by default
+spawn-chunk-removal:
+  enabled: true
+
 # 蜜蜂修复 / Bee Fix
 # 修复7个MC bug / Fixes 7 MC bugs
 # MC-168329/190042/206401/229321/234364/248332/255743
@@ -902,40 +935,24 @@ datapack-optimization:
   command-deduplication:
     enabled: true
 
-# 高级并发优化 / Advanced Concurrency Optimizations
-# Nitori风格的高级优化
-# Nitori-style advanced optimizations
-nitori:
-  enabled: true
-  virtual-threads: true  # 虚拟线程 / Virtual threads (Java 21+, 旧版Java自动降级 / auto-fallback on older Java)
-  work-stealing: true  # 工作窃取 / Work-stealing (提升多核利用 / improve multi-core utilization)
-  blockpos-cache: true  # BlockPos缓存 / BlockPos cache (预计算减少开销 / pre-compute to reduce overhead)
-  optimized-collections: true  # 优化集合类 / Optimized collections (高性能集合类 / high-performance collections)
-  entity-optimizations:  # Nitori/Lithium实体优化 / Nitori/Lithium Entity Optimizations (来源 / Source: Nitori Fabric mod)
-    mob-sunburn-optimization:  # 生物日光燃烧优化 / Mob Sunburn Optimization (缓存BlockPos，提前检查亮度 / Cache BlockPos, early brightness check)
-      enabled: true
-    entity-speed-optimization:  # 实体速度优化 / Entity Speed Optimization (缓存方块速度因子 / Cache block speed factor)
-      enabled: true
-    entity-fall-damage-optimization:  # 实体掉落伤害优化 / Entity Fall Damage Optimization (跳过简单实体的掉落伤害计算 / Skip fall damage for simple entities)
-      enabled: true
-    entity-section-storage-optimization:  # 实体区段快速检索优化 / Entity Section Storage Optimization (小区域使用直接哈希查找 / Use direct hash lookup for small areas)
-      enabled: true
-
-# C2ME优化套件 / C2ME Optimizations (来源 / Source: C2ME Fabric mod)
-c2me-optimizations:
-  resource-location-cache:  # ResourceLocation toString缓存 / ResourceLocation toString Cache (避免重复字符串拼接 / Avoid repeated string concatenation)
-    enabled: true
-  chunk-pos-optimization:  # ChunkPos equals优化 / ChunkPos equals Optimization (使用标准equals实现 / Use standard equals implementation)
-    enabled: true
-  noise-optimization:  # Perlin噪声优化 / Perlin Noise Optimization (优化噪声采样 / Optimize noise sampling)
-    enabled: true
-
 # 数学优化 / Math Optimization
 # 优化三角函数计算性能
 # Optimize trigonometric function performance
 math-optimization:
   enabled: true
   compact-sine-lut: true  # 紧凑型正弦查找表 / Compact sine lookup table (节省75%内存 / saves 75% memory)
+  
+  # C2ME 资源与内存优化 / C2ME Resource & Memory Optimizations
+  # 来源 / Source: C2ME Fabric mod
+  c2me-optimizations:
+    resource-location-cache:  # ResourceLocation toString缓存 / ResourceLocation toString Cache (避免重复字符串拼接 / Avoid repeated string concatenation)
+      enabled: true
+    bitset-pooling:  # BitSet对象池 / BitSet Object Pooling (ThreadLocal缓存BitSet对象 / ThreadLocal cache for BitSet objects)
+      enabled: true
+    completable-future-optimization:  # CompletableFuture优化 / CompletableFuture Optimization (优化异步任务组合 / Optimize async task combining)
+      enabled: true
+    blockpos-cache: true  # BlockPos缓存 / BlockPos cache (预计算减少开销 / pre-compute to reduce overhead)
+    optimized-collections: true  # 优化集合类 / Optimized collections (高性能集合类 / high-performance collections)
 
 # 安全种子保护 / Secure Seed Protection
 # 加密世界种子，防止种子泄露和逆向工程
@@ -1061,6 +1078,14 @@ fast-movement-chunk-load:
   # ⚠️ 实验性功能 / Experimental
   map-rendering:
     enabled: false
+
+# ==========================================
+# 高级并发优化 / Advanced Concurrency Optimizations
+# ==========================================
+# Nitori风格的高级优化 / Nitori-style advanced optimizations
+advanced-concurrency:
+  virtual-threads: true  # 虚拟线程 / Virtual threads (Java 21+, 旧版Java自动降级 / auto-fallback on older Java)
+  work-stealing: true  # 工作窃取 / Work-stealing (提升多核利用 / improve multi-core utilization)
 
 # ==========================================
 # 性能监控与调试 / Performance Monitoring & Debug

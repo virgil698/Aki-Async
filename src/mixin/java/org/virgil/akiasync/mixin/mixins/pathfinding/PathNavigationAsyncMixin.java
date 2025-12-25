@@ -109,13 +109,20 @@ public abstract class PathNavigationAsyncMixin {
                     
                     MinecraftServer server = mob.getServer();
                     if (server != null) {
-                        server.execute(() -> {
-                            
+                        try {
+                            server.execute(() -> {
+                                
+                                if (!mob.isRemoved() && newPath.canReach()) {
+                                    this.path = newPath;
+                                }
+                                akiasync$isComputingPath = false;
+                            });
+                        } catch (UnsupportedOperationException ex) {
                             if (!mob.isRemoved() && newPath.canReach()) {
                                 this.path = newPath;
                             }
                             akiasync$isComputingPath = false;
-                        });
+                        }
                     } else {
                         akiasync$isComputingPath = false;
                     }

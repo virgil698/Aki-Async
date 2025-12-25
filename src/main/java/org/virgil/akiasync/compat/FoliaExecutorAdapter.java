@@ -31,7 +31,7 @@ public class FoliaExecutorAdapter implements ExecutorService {
             globalScheduleMethod = globalScheduler.getClass().getMethod("execute", Plugin.class, Runnable.class);
 
         } catch (Exception e) {
-            System.out.println("[AkiAsync-FoliaExecutorAdapter] Folia not detected, using fallback ThreadPool executor");
+            org.virgil.akiasync.util.DebugLogger.info("[AkiAsync-FoliaExecutorAdapter] Folia not detected, using fallback ThreadPool executor");
         }
     }
 

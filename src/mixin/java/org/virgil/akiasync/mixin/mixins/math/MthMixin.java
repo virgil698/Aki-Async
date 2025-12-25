@@ -30,7 +30,7 @@ public class MthMixin {
                 bridge.debugLog("[AkiAsync-Math] " + CompactSineLUT.getStats());
             }
         } catch (Exception e) {
-            System.err.println("[AkiAsync-Math] Failed to initialize CompactSineLUT: " + e.getMessage());
+            org.virgil.akiasync.mixin.util.BridgeConfigCache.errorLog("[AkiAsync-Math] Failed to initialize CompactSineLUT: " + e.getMessage());
             e.printStackTrace();
         }
     }

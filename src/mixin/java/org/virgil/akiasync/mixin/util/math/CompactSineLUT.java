@@ -32,7 +32,7 @@ public class CompactSineLUT {
             
             initialized = true;
         } catch (Exception e) {
-            System.err.println("[AkiAsync] Failed to initialize CompactSineLUT: " + e.getMessage());
+            org.virgil.akiasync.mixin.util.BridgeConfigCache.errorLog("[AkiAsync] Failed to initialize CompactSineLUT: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("CompactSineLUT initialization failed", e);
         }

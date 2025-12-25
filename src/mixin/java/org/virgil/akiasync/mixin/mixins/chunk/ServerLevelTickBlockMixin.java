@@ -270,7 +270,19 @@ public abstract class ServerLevelTickBlockMixin {
                                 }
                             } catch (Throwable t) {
                                 syncFallbackCount.incrementAndGet();
-                                level.getServer().execute(() -> {
+                                try {
+                                    level.getServer().execute(() -> {
+                                        try {
+                                            BlockState state = level.getBlockState(task.pos);
+                                            if (state.is(task.block)) {
+                                                state.tick(level, task.pos, level.random);
+                                            }
+                                        } catch (Throwable e) {
+                                            BridgeConfigCache.errorLog("[BlockTick-Scheduled] Error in scheduled tick at %s: %s",
+                                                task.pos, e.getMessage());
+                                        }
+                                    });
+                                } catch (UnsupportedOperationException ex) {
                                     try {
                                         BlockState state = level.getBlockState(task.pos);
                                         if (state.is(task.block)) {
@@ -280,7 +292,7 @@ public abstract class ServerLevelTickBlockMixin {
                                         BridgeConfigCache.errorLog("[BlockTick-Scheduled] Error in scheduled tick at %s: %s", 
                                             task.pos, e.getMessage());
                                     }
-                                });
+                                }
                             }
                         });
                 }
@@ -330,7 +342,20 @@ public abstract class ServerLevelTickBlockMixin {
                     
                     syncFallbackCount.incrementAndGet();
                     
-                    level.getServer().execute(() -> {
+                    try {
+                        level.getServer().execute(() -> {
+                            try {
+                                BlockState state = level.getBlockState(task.pos);
+                                if (state.is(task.block)) {
+                                    state.tick(level, task.pos, level.random);
+                                }
+                            } catch (Throwable e) {
+                                BridgeConfigCache.errorLog("[BlockTick-AsyncFallback] Error in async fallback at %s: %s",
+                                    task.pos, e.getMessage());
+                            }
+                        });
+                    } catch (UnsupportedOperationException ex) {
+                        // Folia 环境：直接在当前线程重试
                         try {
                             BlockState state = level.getBlockState(task.pos);
                             if (state.is(task.block)) {
@@ -340,7 +365,7 @@ public abstract class ServerLevelTickBlockMixin {
                             BridgeConfigCache.errorLog("[BlockTick-AsyncFallback] Error in async fallback at %s: %s", 
                                 task.pos, e.getMessage());
                         }
-                    });
+                    }
                 }
             }
         });

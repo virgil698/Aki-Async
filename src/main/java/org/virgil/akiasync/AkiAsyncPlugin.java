@@ -33,6 +33,8 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             instance = this;
         }
 
+        org.virgil.akiasync.util.DebugLogger.setLogger(this);
+
         int pluginId = 28019;
         org.bstats.bukkit.Metrics metrics = new org.bstats.bukkit.Metrics(this, pluginId);
         getLogger().info("[AkiAsync] bStats metrics initialized (ID: " + pluginId + ")");
@@ -198,19 +200,16 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     @SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
     public void onDisable() {
+        getLogger().info("=== AkiAsync Shutdown Sequence Starting ===");
+        long startTime = System.currentTimeMillis();
+        
+        getLogger().info("Phase 1: Disconnecting bridge and stopping new tasks...");
         BridgeManager.clearBridge();
 
+        getLogger().info("Phase 2: Shutting down high-priority components...");
+        
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
-        }
-
-        org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
-        
-        try {
-            org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer.shutdown();
-            getLogger().info("[AkiAsync] EnhancedPathfindingSystem shutdown completed");
-        } catch (Exception e) {
-            getLogger().warning("[AkiAsync] Failed to shutdown EnhancedPathfindingSystem: " + e.getMessage());
         }
 
         if (throttlingManager != null) {
@@ -220,21 +219,32 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (virtualEntityCompatManager != null) {
             virtualEntityCompatManager.shutdown();
         }
+
+        getLogger().info("Phase 3: Shutting down async processors...");
+        
+        org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
+        
+        try {
+            org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer.shutdown();
+            getLogger().info("EnhancedPathfindingSystem shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("Failed to shutdown EnhancedPathfindingSystem: " + e.getMessage());
+        }
         
         try {
             org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.shutdown();
-            getLogger().info("[AkiAsync] AsyncSeedEncryptor shutdown completed");
+            getLogger().info("AsyncSeedEncryptor shutdown completed");
         } catch (Exception e) {
-            getLogger().warning("[AkiAsync] Failed to shutdown AsyncSeedEncryptor: " + e.getMessage());
+            getLogger().warning("Failed to shutdown AsyncSeedEncryptor: " + e.getMessage());
         }
 
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
         try {
             org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.shutdown();
-            getLogger().info("[AkiAsync] OptimizedStructureLocator shutdown completed");
+            getLogger().info("OptimizedStructureLocator shutdown completed");
         } catch (Exception e) {
-            getLogger().warning("[AkiAsync] Failed to shutdown OptimizedStructureLocator: " + e.getMessage());
+            getLogger().warning("Failed to shutdown OptimizedStructureLocator: " + e.getMessage());
         }
         
         org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer = 
@@ -249,10 +259,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             chunkLoadScheduler.shutdown();
         }
 
+        getLogger().info("Phase 4: Shutting down executor manager (waiting for tasks)...");
         if (executorManager != null) {
             executorManager.shutdown();
         }
-        getLogger().info("[AkiAsync] Plugin disabled. All async tasks have been gracefully shut down.");
+        
+        long elapsed = System.currentTimeMillis() - startTime;
+        getLogger().info("=== AkiAsync Shutdown Completed in " + elapsed + "ms ===");
         
         synchronized (AkiAsyncPlugin.class) {
             instance = null;

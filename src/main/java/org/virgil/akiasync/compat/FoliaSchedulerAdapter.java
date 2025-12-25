@@ -32,7 +32,7 @@ public class FoliaSchedulerAdapter {
             locationScheduleMethod = foliaRegionScheduler.getMethod("run", Plugin.class, Location.class, Runnable.class);
 
         } catch (Exception e) {
-            System.out.println("[AkiAsync-FoliaSchedulerAdapter] Folia not detected, using Bukkit scheduler");
+            org.virgil.akiasync.util.DebugLogger.info("[AkiAsync-FoliaSchedulerAdapter] Folia not detected, using Bukkit scheduler");
         }
         IS_FOLIA = foliaDetected;
     }

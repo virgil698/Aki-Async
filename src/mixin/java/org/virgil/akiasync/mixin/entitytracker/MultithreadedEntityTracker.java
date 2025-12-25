@@ -6,8 +6,6 @@ import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
 import org.virgil.akiasync.mixin.util.ExceptionHandler;
 
 import java.util.ArrayList;
@@ -149,7 +147,18 @@ public class MultithreadedEntityTracker {
         
         for (Entity entity : entities) {
             if (entity != null) {
-                ChunkMap.TrackedEntity entityTracker = chunkMap.entityMap.get(entity.getId());
+                ChunkMap.TrackedEntity entityTracker = null;
+                try {
+                    if (entity instanceof ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity) {
+                        entityTracker = ((ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity) entity).moonrise$getTrackedEntity();
+                    }
+                } catch (Exception ignored) {
+                }
+                
+                if (entityTracker == null && chunkMap.entityMap != null) {
+                    entityTracker = chunkMap.entityMap.get(entity.getId());
+                }
+                
                 if (entityTracker != null) {
                     if (trackerStage == TrackerStage.SEND_CHANGES) {
                         
