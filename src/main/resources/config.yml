@@ -54,7 +54,6 @@ suffocation-optimization:
 # 抛射物优化 / Projectile Optimization
 # 限制抛射物加载区块，防止抛射物导致的卡顿
 # Limit chunk loading by projectiles to prevent lag
-# 来源 / Source: Pufferfish (Airplane)
 projectile:
   enabled: true
   max-loads-per-tick: 10  # 每tick最多加载区块数 / Max chunks loaded per tick (推荐 / Recommended: 8-15)
@@ -225,7 +224,7 @@ entity-throttling:
   removal-batch-size: 10  # 移除批量大小 / Removal batch size (每次最多移除N个 / remove at most N per check)
 
 # ==========================================
-# 零延迟异步AI / Zero-Latency Async AI
+# 异步AI / Async AI
 # ==========================================
 async-ai:
   timeout-microseconds: 100  # 全局超时 / Global timeout (100μs = 0.1ms)

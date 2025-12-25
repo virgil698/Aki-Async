@@ -34,6 +34,16 @@
     </Match>
     
     <Match>
+        <Class name="org.virgil.akiasync.mixin.entitytracker.MultithreadedEntityTracker"/>
+        <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.entitytracker.MultithreadedEntityTracker"/>
+        <Bug pattern="SIO_SUPERFLUOUS_INSTANCEOF"/>
+    </Match>
+    
+    <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
     </Match>
