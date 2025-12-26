@@ -2,6 +2,9 @@ package org.virgil.akiasync.mixin.mixins.network;
 
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,6 +13,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.List;
+import java.util.Set;
 
 @Mixin(ServerEntity.class)
 public class ZeroVelocityOptimizationMixin {
@@ -30,7 +36,25 @@ public class ZeroVelocityOptimizationMixin {
     @Unique
     private int ticksSinceLastUpdate = 0;
     @Unique
-    private static final int MAX_TICKS_WITHOUT_UPDATE = 20; 
+    private static final int MAX_TICKS_WITHOUT_UPDATE = 20;
+    
+    @Unique
+    private boolean lastFallFlying = false;
+    @Unique
+    private boolean lastSprinting = false;
+    @Unique
+    private boolean lastOnGround = false;
+    @Unique
+    private boolean lastInWater = false;
+    
+    @Unique
+    private static volatile long totalCalls = 0;
+    @Unique
+    private static volatile long skippedCalls = 0;
+    @Unique
+    private static volatile long dataSyncCalls = 0;
+    @Unique
+    private static volatile long stateChangeCalls = 0; 
     
     @Inject(
         method = "sendDirtyEntityData",
@@ -46,9 +70,62 @@ public class ZeroVelocityOptimizationMixin {
             return;
         }
         
+        totalCalls++;
+        
         try {
+            SynchedEntityData entityData = entity.getEntityData();
+            List<SynchedEntityData.DataValue<?>> dirtyData = entityData.packDirty();
+            
+            if (dirtyData != null && !dirtyData.isEmpty()) {
+                ticksSinceLastUpdate = 0;
+                lastPosition = entity.position();
+                lastVelocity = entity.getDeltaMovement();
+                dataSyncCalls++;
+                return;
+            }
+            
+            if (entity instanceof LivingEntity living) {
+                Set<AttributeInstance> attributesToSync = living.getAttributes().getAttributesToSync();
+                if (!attributesToSync.isEmpty()) {
+                    ticksSinceLastUpdate = 0;
+                    lastPosition = entity.position();
+                    lastVelocity = entity.getDeltaMovement();
+                    dataSyncCalls++;
+                    return;
+                }
+            }
+            
             Vec3 currentPos = entity.position();
             Vec3 currentVelocity = entity.getDeltaMovement();
+            
+            boolean stateChanged = false;
+            if (entity instanceof LivingEntity living) {
+                boolean currentFallFlying = living.isFallFlying();
+                boolean currentSprinting = living.isSprinting();
+                
+                if (currentFallFlying != lastFallFlying || currentSprinting != lastSprinting) {
+                    stateChanged = true;
+                    lastFallFlying = currentFallFlying;
+                    lastSprinting = currentSprinting;
+                }
+            }
+            
+            boolean currentOnGround = entity.onGround();
+            boolean currentInWater = entity.isInWater();
+            
+            if (currentOnGround != lastOnGround || currentInWater != lastInWater) {
+                stateChanged = true;
+                lastOnGround = currentOnGround;
+                lastInWater = currentInWater;
+            }
+            
+            if (stateChanged) {
+                ticksSinceLastUpdate = 0;
+                lastPosition = currentPos;
+                lastVelocity = currentVelocity;
+                stateChangeCalls++;
+                return;
+            }
             
             boolean velocityNearZero = Math.abs(currentVelocity.x) < velocityThreshold &&
                                       Math.abs(currentVelocity.y) < velocityThreshold &&
@@ -62,12 +139,14 @@ public class ZeroVelocityOptimizationMixin {
             
             if (velocityNearZero && positionUnchanged && velocityUnchanged && 
                 ticksSinceLastUpdate < MAX_TICKS_WITHOUT_UPDATE) {
+                skippedCalls++;
                 ci.cancel();
                 return;
             }
             
             if (entity.onGround() && velocityNearZero && positionUnchanged && 
                 ticksSinceLastUpdate < MAX_TICKS_WITHOUT_UPDATE) {
+                skippedCalls++;
                 ci.cancel();
                 return;
             }
@@ -105,5 +184,29 @@ public class ZeroVelocityOptimizationMixin {
         }
         
         initialized = true;
+    }
+    
+    @Unique
+    private static String akiasync$getStats() {
+        if (totalCalls == 0) {
+            return "ZeroVelocityOptimization: No data";
+        }
+        
+        double skipRate = (double) skippedCalls / totalCalls * 100.0;
+        double dataSyncRate = (double) dataSyncCalls / totalCalls * 100.0;
+        double stateChangeRate = (double) stateChangeCalls / totalCalls * 100.0;
+        
+        return String.format(
+            "ZeroVelocityOptimization: total=%d, skipped=%d (%.1f%%), dataSync=%d (%.1f%%), stateChange=%d (%.1f%%)",
+            totalCalls, skippedCalls, skipRate, dataSyncCalls, dataSyncRate, stateChangeCalls, stateChangeRate
+        );
+    }
+    
+    @Unique
+    private static void akiasync$resetStats() {
+        totalCalls = 0;
+        skippedCalls = 0;
+        dataSyncCalls = 0;
+        stateChangeCalls = 0;
     }
 }

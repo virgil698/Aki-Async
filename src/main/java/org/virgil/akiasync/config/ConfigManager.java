@@ -364,7 +364,6 @@ public class ConfigManager {
     private boolean entityFallDamageOptimizationEnabled;
     private boolean entitySectionStorageOptimizationEnabled;
     
-    private boolean resourceLocationCacheEnabled;
     private boolean chunkPosOptimizationEnabled;
     private boolean nbtOptimizationEnabled;
     private boolean bitSetPoolingEnabled;
@@ -804,7 +803,6 @@ public class ConfigManager {
         
         blockPosCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("math-optimization.c2me-optimizations.optimized-collections", true);
-        resourceLocationCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.resource-location-cache.enabled", true);
         bitSetPoolingEnabled = config.getBoolean("math-optimization.c2me-optimizations.bitset-pooling.enabled", true);
         completableFutureOptimizationEnabled = config.getBoolean("math-optimization.c2me-optimizations.completable-future-optimization.enabled", true);
         
@@ -1776,7 +1774,6 @@ public class ConfigManager {
     public boolean isEntityFallDamageOptimizationEnabled() { return entityFallDamageOptimizationEnabled; }
     public boolean isEntitySectionStorageOptimizationEnabled() { return entitySectionStorageOptimizationEnabled; }
     
-    public boolean isResourceLocationCacheEnabled() { return resourceLocationCacheEnabled; }
     public boolean isChunkPosOptimizationEnabled() { return chunkPosOptimizationEnabled; }
     public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
     public boolean isNbtOptimizationEnabled() { return nbtOptimizationEnabled; }

@@ -7,7 +7,6 @@ public class BridgeConfigCache {
     
     private static volatile boolean debugLoggingEnabled = false;
     
-    private static volatile boolean resourceLocationCacheEnabled = true;
     private static volatile boolean nbtOptimizationEnabled = true;
     private static volatile boolean bitSetPoolingEnabled = true;
     private static volatile boolean completableFutureOptimizationEnabled = true;
@@ -42,7 +41,6 @@ public class BridgeConfigCache {
             if (bridge != null) {
                 debugLoggingEnabled = bridge.isDebugLoggingEnabled();
                 
-                resourceLocationCacheEnabled = bridge.isResourceLocationCacheEnabled();
                 nbtOptimizationEnabled = bridge.isNbtOptimizationEnabled();
                 bitSetPoolingEnabled = bridge.isBitSetPoolingEnabled();
                 completableFutureOptimizationEnabled = bridge.isCompletableFutureOptimizationEnabled();
@@ -53,11 +51,6 @@ public class BridgeConfigCache {
         } catch (Exception e) {
             ExceptionHandler.handleUnexpected("BridgeConfigCache", "refreshCache", e);
         }
-    }
-    
-    public static boolean isResourceLocationCacheEnabled() {
-        checkAndRefresh();
-        return resourceLocationCacheEnabled;
     }
     
     public static boolean isNbtOptimizationEnabled() {

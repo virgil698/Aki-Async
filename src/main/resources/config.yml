@@ -944,8 +944,6 @@ math-optimization:
   # C2ME 资源与内存优化 / C2ME Resource & Memory Optimizations
   # 来源 / Source: C2ME Fabric mod
   c2me-optimizations:
-    resource-location-cache:  # ResourceLocation toString缓存 / ResourceLocation toString Cache (避免重复字符串拼接 / Avoid repeated string concatenation)
-      enabled: true
     bitset-pooling:  # BitSet对象池 / BitSet Object Pooling (ThreadLocal缓存BitSet对象 / ThreadLocal cache for BitSet objects)
       enabled: true
     completable-future-optimization:  # CompletableFuture优化 / CompletableFuture Optimization (优化异步任务组合 / Optimize async task combining)

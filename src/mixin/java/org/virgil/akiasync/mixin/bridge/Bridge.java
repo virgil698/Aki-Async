@@ -22,8 +22,6 @@ public interface Bridge {
     
     boolean isEntitySectionStorageOptimizationEnabled();
     
-    boolean isResourceLocationCacheEnabled();
-    
     boolean isChunkPosOptimizationEnabled();
     
     boolean isNoiseOptimizationEnabled();

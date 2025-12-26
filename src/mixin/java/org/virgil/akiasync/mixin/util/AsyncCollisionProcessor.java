@@ -50,7 +50,7 @@ public class AsyncCollisionProcessor {
             List<Entity> nearby = level.getEntities(
                 entity,
                 box,
-                e -> e != null && !e.isRemoved() && e.isPushable()
+                EntitySelectorCache.PUSHABLE
             );
             
             return nearby.size();

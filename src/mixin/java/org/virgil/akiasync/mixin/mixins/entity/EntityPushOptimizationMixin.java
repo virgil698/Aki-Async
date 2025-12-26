@@ -105,9 +105,17 @@ public abstract class EntityPushOptimizationMixin {
             return; 
         }
         
-        double invDistSqr = fixedPushStrength / distSqr;
-        dx *= invDistSqr;
-        dz *= invDistSqr;
+        double distance = Math.sqrt(distSqr);
+        dx /= distance;
+        dz /= distance;
+        
+        double pushFactor = 1.0 / distance;
+        if (pushFactor > 1.0) {
+            pushFactor = 1.0;
+        }
+        
+        dx *= pushFactor * fixedPushStrength;
+        dz *= pushFactor * fixedPushStrength;
         
         Vec3 push = new Vec3(dx, 0, dz);
         akiasync$recordPush(self.getId(), push);

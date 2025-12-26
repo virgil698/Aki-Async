@@ -148,11 +148,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
     
     @Override
-    public boolean isResourceLocationCacheEnabled() {
-        return config != null ? config.isResourceLocationCacheEnabled() : true;
-    }
-    
-    @Override
     public boolean isChunkPosOptimizationEnabled() {
         return config != null ? config.isChunkPosOptimizationEnabled() : true;
     }

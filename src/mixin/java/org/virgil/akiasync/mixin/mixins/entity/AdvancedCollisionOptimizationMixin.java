@@ -162,7 +162,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
             List<Entity> nearbyEntities = self.level().getEntities(
                 self,
                 searchBox,
-                entity -> entity != null && !entity.isRemoved() && entity.isPushable()
+                org.virgil.akiasync.mixin.util.EntitySelectorCache.PUSHABLE
             );
             
             if (nearbyEntities.isEmpty()) {
@@ -211,7 +211,15 @@ public abstract class AdvancedCollisionOptimizationMixin {
             return;
         }
         
-        double force = (0.05 / distance) * multiplier;
+        dx /= distance;
+        dz /= distance;
+        
+        double pushFactor = 1.0 / distance;
+        if (pushFactor > 1.0) {
+            pushFactor = 1.0;
+        }
+        
+        double force = pushFactor * 0.05 * multiplier;
         other.push(dx * force, 0, dz * force);
     }
     
