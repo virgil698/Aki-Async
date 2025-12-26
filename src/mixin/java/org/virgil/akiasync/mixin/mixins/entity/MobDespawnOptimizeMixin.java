@@ -67,8 +67,8 @@ public class MobDespawnOptimizeMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            cached_enabled = true;
-            cached_checkInterval = 20;
+            cached_enabled = bridge.isMobDespawnOptimizationEnabled();
+            cached_checkInterval = bridge.getMobDespawnCheckInterval();
             
             bridge.debugLog("[AkiAsync] MobDespawnOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | interval=" + cached_checkInterval);

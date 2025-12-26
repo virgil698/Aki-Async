@@ -22,8 +22,14 @@ public abstract class ServerLevelLightningMixin {
         ordinal = 0
     )
     private int modifyLightningRandomResult(int originalResult, LevelChunk chunk) {
-        RandomSource random = ((ServerLevel)(Object)this).random;
-        LevelChunkAccessor accessor = (LevelChunkAccessor) chunk;
-        return accessor.invokeShouldDoLightning(random) ? 0 : 1;
+        try {
+            if (chunk instanceof LevelChunkAccessor) {
+                RandomSource random = ((ServerLevel)(Object)this).random;
+                LevelChunkAccessor accessor = (LevelChunkAccessor) chunk;
+                return accessor.invokeShouldDoLightning(random) ? 0 : 1;
+            }
+        } catch (ClassCastException e) {
+        }
+        return originalResult;
     }
 }

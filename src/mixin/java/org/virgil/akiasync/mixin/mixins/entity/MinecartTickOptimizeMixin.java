@@ -22,6 +22,9 @@ public class MinecartTickOptimizeMixin {
     private static volatile double cached_staticThreshold = 0.01;
     
     @Unique
+    private static volatile int cached_tickInterval = 2;
+    
+    @Unique
     private Vec3 aki$lastPosition = Vec3.ZERO;
     
     @Unique
@@ -78,7 +81,7 @@ public class MinecartTickOptimizeMixin {
         if (onRail && isStatic && aki$staticTicks > 40) {
             aki$tickCounter++;
             
-            if (aki$tickCounter % 3 != 0) {
+            if (aki$tickCounter % cached_tickInterval != 0) {
                 ci.cancel();
                 return;
             }
@@ -87,7 +90,7 @@ public class MinecartTickOptimizeMixin {
         else if (!onRail && isStatic && aki$staticTicks > 20) {
             aki$tickCounter++;
             
-            if (aki$tickCounter % 5 != 0) {
+            if (aki$tickCounter % (cached_tickInterval * 2) != 0) {
                 ci.cancel();
                 return;
             }
@@ -95,7 +98,7 @@ public class MinecartTickOptimizeMixin {
         
         if (minecart.getPassengers().isEmpty() && isStatic && aki$staticTicks > 100) {
             
-            if (aki$tickCounter % 10 != 0) {
+            if (aki$tickCounter % (cached_tickInterval * 5) != 0) {
                 ci.cancel();
             }
         }
@@ -107,11 +110,12 @@ public class MinecartTickOptimizeMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            cached_enabled = true;
+            cached_enabled = bridge.isMinecartOptimizationEnabled();
+            cached_tickInterval = bridge.getMinecartTickInterval();
             cached_staticThreshold = 0.01;
             
             bridge.debugLog("[AkiAsync] MinecartTickOptimizeMixin initialized: enabled=" + 
-                cached_enabled + " | threshold=" + cached_staticThreshold);
+                cached_enabled + " | interval=" + cached_tickInterval + " | threshold=" + cached_staticThreshold);
         } else {
             cached_enabled = false;
         }

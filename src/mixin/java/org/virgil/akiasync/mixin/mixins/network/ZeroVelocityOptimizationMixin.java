@@ -73,10 +73,31 @@ public class ZeroVelocityOptimizationMixin {
         totalCalls++;
         
         try {
-            SynchedEntityData entityData = entity.getEntityData();
-            List<SynchedEntityData.DataValue<?>> dirtyData = entityData.packDirty();
+            if (entity.hasImpulse) {
+                ticksSinceLastUpdate = 0;
+                lastPosition = entity.position();
+                lastVelocity = entity.getDeltaMovement();
+                return;
+            }
             
-            if (dirtyData != null && !dirtyData.isEmpty()) {
+            if (entity instanceof net.minecraft.world.entity.player.Player) {
+                return;
+            }
+            
+            if (entity instanceof net.minecraft.world.entity.monster.RangedAttackMob) {
+                return;
+            }
+            
+            if (entity instanceof net.minecraft.world.entity.Mob mob && mob.getTarget() != null) {
+                return;
+            }
+            
+            if (entity instanceof net.minecraft.world.entity.Mob mob && mob.isSunBurnTick()) {
+                return;
+            }
+            
+            SynchedEntityData entityData = entity.getEntityData();
+            if (entityData.isDirty()) {
                 ticksSinceLastUpdate = 0;
                 lastPosition = entity.position();
                 lastVelocity = entity.getDeltaMovement();
@@ -97,6 +118,16 @@ public class ZeroVelocityOptimizationMixin {
             
             Vec3 currentPos = entity.position();
             Vec3 currentVelocity = entity.getDeltaMovement();
+            
+            double positionDelta = currentPos.distanceTo(lastPosition);
+            double POSITION_THRESHOLD = 0.01;
+            
+            if (positionDelta > POSITION_THRESHOLD) {
+                ticksSinceLastUpdate = 0;
+                lastPosition = currentPos;
+                lastVelocity = currentVelocity;
+                return;
+            }
             
             boolean stateChanged = false;
             if (entity instanceof LivingEntity living) {
@@ -131,20 +162,11 @@ public class ZeroVelocityOptimizationMixin {
                                       Math.abs(currentVelocity.y) < velocityThreshold &&
                                       Math.abs(currentVelocity.z) < velocityThreshold;
             
-            boolean positionUnchanged = currentPos.equals(lastPosition);
-            
             boolean velocityUnchanged = currentVelocity.equals(lastVelocity);
             
             ticksSinceLastUpdate++;
             
-            if (velocityNearZero && positionUnchanged && velocityUnchanged && 
-                ticksSinceLastUpdate < MAX_TICKS_WITHOUT_UPDATE) {
-                skippedCalls++;
-                ci.cancel();
-                return;
-            }
-            
-            if (entity.onGround() && velocityNearZero && positionUnchanged && 
+            if (velocityNearZero && velocityUnchanged && 
                 ticksSinceLastUpdate < MAX_TICKS_WITHOUT_UPDATE) {
                 skippedCalls++;
                 ci.cancel();

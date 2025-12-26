@@ -29,6 +29,8 @@ public abstract class AdvancedCollisionOptimizationMixin {
     @Unique
     private static volatile int collisionThreshold = 8;
     
+    @Unique
+    private static volatile double suffocationDamage = 0.5;
     
     @Unique
     private static volatile int maxPushIterations = 8;
@@ -70,7 +72,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
             if (bridge != null) {
                 enabled = bridge.isAdvancedCollisionOptimizationEnabled();
                 collisionThreshold = bridge.getCollisionThreshold();
-                
+                suffocationDamage = bridge.getSuffocationDamage();
                 maxPushIterations = bridge.getMaxPushIterations();
                 vectorizedEnabled = bridge.isVectorizedCollisionEnabled();
                 vectorizedThreshold = bridge.getVectorizedCollisionThreshold();
@@ -133,10 +135,8 @@ public abstract class AdvancedCollisionOptimizationMixin {
         
         
         if (akiasync$cachedCollisionCount >= collisionThreshold) {
-            
-            
+            akiasync$applySuffocationDamage(self, akiasync$cachedCollisionCount);
             akiasync$pushIterationCount = 0;
-            ci.cancel();
             return;
         }
         
@@ -151,6 +151,25 @@ public abstract class AdvancedCollisionOptimizationMixin {
             akiasync$pushIterationCount = 0;
             ci.cancel();
             
+        }
+    }
+    
+    @Unique
+    private void akiasync$applySuffocationDamage(LivingEntity entity, int collisionCount) {
+        if (collisionCount < collisionThreshold * 1.5) {
+            return;
+        }
+        
+        try {
+            double damageMultiplier = (collisionCount - collisionThreshold) / (double) collisionThreshold;
+            double damage = suffocationDamage * damageMultiplier;
+            
+            if (damage > 0 && entity.level().getGameTime() % 20 == 0) {
+                entity.hurt(entity.damageSources().inWall(), (float) damage);
+            }
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AdvancedCollisionOptimization", "applySuffocationDamage", e);
         }
     }
     

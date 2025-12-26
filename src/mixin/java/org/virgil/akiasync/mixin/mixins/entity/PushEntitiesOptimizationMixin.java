@@ -40,6 +40,10 @@ public abstract class PushEntitiesOptimizationMixin {
         
         LivingEntity self = (LivingEntity) (Object) this;
         
+        if (self.isOnPortalCooldown()) {
+            return;
+        }
+        
         if (self instanceof net.minecraft.world.entity.monster.Shulker) {
             ci.cancel();
             return;

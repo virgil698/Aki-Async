@@ -22,6 +22,9 @@ public class LivingEntityTravelOptimizeMixin {
     private static volatile double cached_minMovementThreshold = 0.003;
     
     @Unique
+    private static volatile int cached_skipInterval = 2;
+    
+    @Unique
     private Vec3 aki$lastPosition = Vec3.ZERO;
     
     @Unique
@@ -56,7 +59,7 @@ public class LivingEntityTravelOptimizeMixin {
             if (movement < cached_minMovementThreshold) {
                 aki$staticTicks++;
                 
-                if (aki$staticTicks > 10 && travelVector.lengthSqr() < 0.0001) {
+                if (aki$staticTicks > cached_skipInterval && travelVector.lengthSqr() < 0.0001) {
                     ci.cancel();
                     return;
                 }
@@ -74,11 +77,12 @@ public class LivingEntityTravelOptimizeMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-            cached_enabled = true;
+            cached_enabled = bridge.isLivingEntityTravelOptimizationEnabled();
+            cached_skipInterval = bridge.getLivingEntityTravelSkipInterval();
             cached_minMovementThreshold = 0.003;
             
             bridge.debugLog("[AkiAsync] LivingEntityTravelOptimizeMixin initialized: enabled=" + 
-                cached_enabled + " | threshold=" + cached_minMovementThreshold);
+                cached_enabled + " | skipInterval=" + cached_skipInterval + " | threshold=" + cached_minMovementThreshold);
         } else {
             cached_enabled = false;
         }

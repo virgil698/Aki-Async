@@ -32,7 +32,32 @@ public class EntityDataThrottler {
     public static boolean shouldSendMetadata(ServerPlayer player, Entity entity, int metadataHash) {
         metadataChecks++;
         
+        if (entity instanceof ServerPlayer) {
+            updateMetadataCache(player, entity, metadataHash);
+            return true;
+        }
+        
         if (entity.getId() == player.getId()) {
+            updateMetadataCache(player, entity, metadataHash);
+            return true;
+        }
+        
+        if (entity instanceof net.minecraft.world.entity.Mob mob) {
+            if (mob.getTarget() != null) {
+                updateMetadataCache(player, entity, metadataHash);
+                return true;
+            }
+            if (mob.isSunBurnTick()) {
+                updateMetadataCache(player, entity, metadataHash);
+                return true;
+            }
+            if (mob.hurtTime > 0) {
+                updateMetadataCache(player, entity, metadataHash);
+                return true;
+            }
+        }
+        
+        if (entity.isOnFire() || entity.isInLava()) {
             updateMetadataCache(player, entity, metadataHash);
             return true;
         }
@@ -65,6 +90,12 @@ public class EntityDataThrottler {
     
     public static boolean shouldSendNBT(ServerPlayer player, Entity entity, boolean forceUpdate) {
         nbtChecks++;
+        
+        // Always send NBT for player entities - critical for skin layers and other player data
+        if (entity instanceof ServerPlayer) {
+            updateNBTTimer(player, entity);
+            return true;
+        }
         
         if (entity.getId() == player.getId()) {
             return true;

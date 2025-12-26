@@ -104,9 +104,8 @@ public class HopperOptimizeMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
         if (bridge != null) {
-
-            cached_enabled = true;
-            cached_cacheExpireTime = 100;
+            cached_enabled = bridge.isHopperOptimizationEnabled();
+            cached_cacheExpireTime = bridge.getHopperCacheExpireTime();
             
             bridge.debugLog("[AkiAsync] HopperOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | expireTime=" + cached_cacheExpireTime + "ms");
