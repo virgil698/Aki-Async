@@ -60,8 +60,6 @@ public abstract class ZeroMovementPacketFilterMixin {
             
             float yRot = this.getYRot();
             float xRot = this.getXRot();
-            float yRot = this.getYRot();
-            float xRot = this.getXRot();
             
             boolean isZeroMove = (xa == 0 && ya == 0 && za == 0);
             boolean isZeroRotate = (Math.abs(yRot) < 0.01f && Math.abs(xRot) < 0.01f);

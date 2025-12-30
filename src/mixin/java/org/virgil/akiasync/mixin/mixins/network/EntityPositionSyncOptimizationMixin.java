@@ -60,26 +60,46 @@ public class EntityPositionSyncOptimizationMixin {
                 return;
             }
             
+            if (entity.getEntityData().isDirty()) {
+                totalPackets++;
+                return;
+            }
+            
+            if (entity.hasImpulse) {
+                totalPackets++;
+                return;
+            }
+            
+            if (entity instanceof net.minecraft.world.entity.LivingEntity livingEntity) {
+                if (livingEntity.hurtTime > 0) {
+                    totalPackets++;
+                    return;
+                }
+            }
+            
+            if (tickCount % 60 == 0) {
+                totalPackets++;
+                return;
+            }
+            
             Vec3 currentPosition = entity.position();
             Vec3 currentVelocity = entity.getDeltaMovement();
             
             boolean shouldBroadcast = false;
             
-            if (entity.hasImpulse || entity.getEntityData().isDirty() || tickCount % 60 == 0) {
+            if (lastBroadcastPosition == null) {
                 shouldBroadcast = true;
             } else {
-                if (lastBroadcastPosition != null) {
-                    double positionChange = currentPosition.distanceTo(lastBroadcastPosition);
-                    if (positionChange >= minPositionChange) {
-                        shouldBroadcast = true;
-                    }
+                double positionChange = currentPosition.distanceTo(lastBroadcastPosition);
+                if (positionChange >= minPositionChange) {
+                    shouldBroadcast = true;
                 }
-                
-                if (lastBroadcastVelocity != null && !shouldBroadcast) {
-                    double velocityChange = currentVelocity.distanceTo(lastBroadcastVelocity);
-                    if (velocityChange >= minVelocityChange) {
-                        shouldBroadcast = true;
-                    }
+            }
+            
+            if (lastBroadcastVelocity != null && !shouldBroadcast) {
+                double velocityChange = currentVelocity.distanceTo(lastBroadcastVelocity);
+                if (velocityChange >= minVelocityChange) {
+                    shouldBroadcast = true;
                 }
             }
             
