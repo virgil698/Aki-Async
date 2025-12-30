@@ -194,9 +194,12 @@ public class EntitySelectorInactiveSkipMixin {
     
     @Unique
     private static void cleanExpiredCache(long currentTime) {
-        activityCache.entrySet().removeIf(entry -> 
-            (currentTime - entry.getValue()) > cacheDurationMs * 2
-        );
+        activityCache.entrySet().removeIf(entry -> {
+            if (entry == null || entry.getValue() == null) {
+                return true;
+            }
+            return (currentTime - entry.getValue()) > cacheDurationMs * 2;
+        });
     }
     
     @Unique

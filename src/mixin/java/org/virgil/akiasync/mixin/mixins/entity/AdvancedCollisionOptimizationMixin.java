@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(value = LivingEntity.class, priority = 1000)
+@Mixin(value = LivingEntity.class, priority = 1000) // 最高优先级，最后执行
 public abstract class AdvancedCollisionOptimizationMixin {
     
     @Unique
@@ -39,7 +39,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
     private static volatile boolean vectorizedEnabled = true;
     
     @Unique
-    private static volatile int vectorizedThreshold = 64;
+    private static volatile int vectorizedThreshold = 4; // 修复：原值64太高，改为4（周围4个实体就启用向量化）
     
     @Unique
     private static volatile boolean blockCacheEnabled = true;
@@ -125,6 +125,19 @@ public abstract class AdvancedCollisionOptimizationMixin {
         }
         
         LivingEntity self = (LivingEntity) (Object) this;
+        
+        if (self.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            int maxCramming = serverLevel.getGameRules().getInt(net.minecraft.world.level.GameRules.RULE_MAX_ENTITY_CRAMMING);
+            try {
+                int maxCollisions = serverLevel.paperConfig().collisions.maxEntityCollisions;
+                if (maxCramming <= 0 && maxCollisions <= 0) {
+                    ci.cancel();
+                    return;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        
         long currentTime = self.level().getGameTime();
         
         if (currentTime - akiasync$lastCollisionCheck >= 5) {
@@ -133,10 +146,10 @@ public abstract class AdvancedCollisionOptimizationMixin {
             akiasync$lastCollisionCheck = currentTime;
         }
         
-        
         if (akiasync$cachedCollisionCount >= collisionThreshold) {
             akiasync$applySuffocationDamage(self, akiasync$cachedCollisionCount);
             akiasync$pushIterationCount = 0;
+            ci.cancel();
             return;
         }
         
@@ -149,8 +162,6 @@ public abstract class AdvancedCollisionOptimizationMixin {
         akiasync$pushIterationCount++;
         if (akiasync$pushIterationCount > maxPushIterations) {
             akiasync$pushIterationCount = 0;
-            ci.cancel();
-            
         }
     }
     
@@ -176,7 +187,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
     @Unique
     private void akiasync$handleVectorizedPush(LivingEntity self) {
         try {
-            AABB searchBox = self.getBoundingBox().inflate(0.2);
+            AABB searchBox = self.getBoundingBox();
             
             List<Entity> nearbyEntities = self.level().getEntities(
                 self,
@@ -198,20 +209,15 @@ public abstract class AdvancedCollisionOptimizationMixin {
                 BlockPos feetPos = self.blockPosition();
                 
                 if (!blockCache.isCollidable(feetPos.below())) {
-                    
                     for (Entity entity : collidingEntities) {
-                        if (entity instanceof LivingEntity) {
-                            akiasync$applyPushForce(self, entity, 0.5);
-                        }
+                        akiasync$applyPushForce(self, entity, 0.4);
                     }
                     return;
                 }
             }
             
             for (Entity entity : collidingEntities) {
-                if (entity instanceof LivingEntity) {
-                    akiasync$applyPushForce(self, entity, 1.0);
-                }
+                akiasync$applyPushForce(self, entity, 1.0);
             }
             
         } catch (Exception e) {
@@ -222,24 +228,38 @@ public abstract class AdvancedCollisionOptimizationMixin {
     
     @Unique
     private void akiasync$applyPushForce(LivingEntity self, Entity other, double multiplier) {
-        double dx = other.getX() - self.getX();
-        double dz = other.getZ() - self.getZ();
-        double distance = Math.sqrt(dx * dx + dz * dz);
-        
-        if (distance < 0.01) {
-            return;
+        try {
+            self.push(other);
+            
+            if (Math.abs(multiplier - 1.0) > 0.01) {
+                double dx = other.getX() - self.getX();
+                double dz = other.getZ() - self.getZ();
+                double distance = Math.sqrt(dx * dx + dz * dz);
+                
+                if (distance >= 0.01) {
+                    dx /= distance;
+                    dz /= distance;
+                    
+                    double pushFactor = 1.0 / distance;
+                    if (pushFactor > 1.0) {
+                        pushFactor = 1.0;
+                    }
+                    
+                    double extraForce = 0.05 * pushFactor * (multiplier - 1.0);
+                    
+                    if (!self.isVehicle() && self.isPushable()) {
+                        self.push(-dx * extraForce, 0.0, -dz * extraForce);
+                    }
+                    
+                    if (!other.isVehicle() && other.isPushable()) {
+                        other.push(dx * extraForce, 0.0, dz * extraForce);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "AdvancedCollisionOptimization", "applyPushForce", e);
         }
-        
-        dx /= distance;
-        dz /= distance;
-        
-        double pushFactor = 1.0 / distance;
-        if (pushFactor > 1.0) {
-            pushFactor = 1.0;
-        }
-        
-        double force = pushFactor * 0.05 * multiplier;
-        other.push(dx * force, 0, dz * force);
     }
     
     @Inject(method = "remove", at = @At("HEAD"))

@@ -106,6 +106,7 @@ public class ExceptionHandler {
         
         StringBuilder sb = new StringBuilder("Exception Statistics:\n");
         exceptionCounts.entrySet().stream()
+            .filter(entry -> entry != null && entry.getValue() != null)
             .sorted((a, b) -> b.getValue().get() - a.getValue().get())
             .forEach(entry -> {
                 sb.append(String.format("  %s: %d\n", entry.getKey(), entry.getValue().get()));
@@ -122,9 +123,12 @@ public class ExceptionHandler {
         long now = System.currentTimeMillis();
         long expireTime = now - (LOG_THROTTLE_MS * 10);
         
-        lastLogTime.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        lastLogTime.entrySet().removeIf(entry -> entry != null && entry.getValue() != null && entry.getValue() < expireTime);
         
         exceptionCounts.entrySet().removeIf(entry -> {
+            if (entry == null || entry.getKey() == null) {
+                return true;
+            }
             String key = entry.getKey();
             Long lastLog = lastLogTime.get(key);
             return lastLog != null && lastLog < expireTime;

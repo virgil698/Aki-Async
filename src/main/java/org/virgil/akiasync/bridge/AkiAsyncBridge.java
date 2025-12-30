@@ -700,6 +700,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isEndIslandDensityFixEnabled() {return config.isEndIslandDensityFixEnabled();}
     
     @Override
+    public boolean isLeaderZombieHealthFixEnabled() {return config.isLeaderZombieHealthFixEnabled();}
+    
+    @Override
     public boolean isPortalSuffocationCheckDisabled() {return config.isPortalSuffocationCheckDisabled();}
     
     @Override
@@ -2569,4 +2572,55 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isMultithreadedEntityTrackerEnabled() {
         return config.isMultithreadedEntityTrackerEnabled();
     }
+    
+    @Override
+    public boolean isVelocityCompressionEnabled() {
+        return true; // 默认启用速度压缩优化
+    }
+    
+    @Override
+    public boolean isAdvancedNetworkOptimizationEnabled() {
+        return config != null && config.isAdvancedNetworkOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isFastVarIntEnabled() {
+        return config != null && config.isFastVarIntEnabled();
+    }
+    
+    @Override
+    public boolean isEventLoopAffinityEnabled() {
+        return config != null && config.isEventLoopAffinityEnabled();
+    }
+    
+    @Override
+    public boolean isByteBufOptimizerEnabled() {
+        return config != null && config.isByteBufOptimizerEnabled();
+    }
+    
+    @Override
+    public boolean isStrictEventLoopChecking() {
+        return config != null && config.isStrictEventLoopChecking();
+    }
+    
+    @Override
+    public boolean isPooledByteBufAllocator() {
+        return config != null ? config.isPooledByteBufAllocator() : true;
+    }
+    
+    @Override
+    public boolean isDirectByteBufPreferred() {
+        return config != null ? config.isDirectByteBufPreferred() : true;
+    }
+    
+    @Override
+    public boolean isSkipZeroMovementPacketsEnabled() {
+        return config != null && config.isSkipZeroMovementPacketsEnabled();
+    }
+    
+    @Override
+    public boolean isSkipZeroMovementPacketsStrictMode() {
+        return config != null && config.isSkipZeroMovementPacketsStrictMode();
+    }
 }
+

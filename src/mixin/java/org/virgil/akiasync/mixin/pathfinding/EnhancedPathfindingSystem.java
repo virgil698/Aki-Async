@@ -214,7 +214,11 @@ public class EnhancedPathfindingSystem {
         lowPriorityQueue.clear();
         pendingRequests.clear();
         cache.clear();
-        playerPrewarmers.values().forEach(PlayerPathPrewarmer::stop);
+        playerPrewarmers.values().forEach(prewarmer -> {
+            if (prewarmer != null) {
+                prewarmer.stop();
+            }
+        });
         playerPrewarmers.clear();
     }
     
@@ -223,11 +227,17 @@ public class EnhancedPathfindingSystem {
         
         pendingRequests.entrySet().removeIf(entry -> {
             CompletableFuture<Path> future = entry.getValue();
+            if (future == null) {
+                return true;
+            }
             return future.isDone() || future.isCancelled() || future.isCompletedExceptionally();
         });
         
         playerPrewarmers.entrySet().removeIf(entry -> {
             PlayerPathPrewarmer prewarmer = entry.getValue();
+            if (prewarmer == null) {
+                return true;
+            }
             return !prewarmer.isActive();
         });
         

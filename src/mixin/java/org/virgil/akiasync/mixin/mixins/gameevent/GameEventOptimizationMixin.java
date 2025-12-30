@@ -140,9 +140,12 @@ public class GameEventOptimizationMixin {
     
     @Unique
     private static void aki$cleanupThrottleCache(long now) {
-        EVENT_THROTTLE_CACHE.entrySet().removeIf(entry -> 
-            (now - entry.getValue()) > throttleIntervalMs * 10
-        );
+        EVENT_THROTTLE_CACHE.entrySet().removeIf(entry -> {
+            if (entry == null || entry.getValue() == null) {
+                return true;
+            }
+            return (now - entry.getValue()) > throttleIntervalMs * 10;
+        });
     }
     
     @Unique

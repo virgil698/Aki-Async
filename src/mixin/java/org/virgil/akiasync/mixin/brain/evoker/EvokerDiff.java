@@ -14,7 +14,7 @@ public final class EvokerDiff {
         if (evokerTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(evokerTarget);
             if (player != null && !player.isRemoved()) {
-                org.virgil.akiasync.mixin.util.REFLECTIONS.setField(evoker, "target", player);
+                evoker.setTarget(player);
             }
         }
     }

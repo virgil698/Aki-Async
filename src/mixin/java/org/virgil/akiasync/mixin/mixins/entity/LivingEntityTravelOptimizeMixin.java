@@ -46,8 +46,28 @@ public class LivingEntityTravelOptimizeMixin {
             return;
         }
         
+        if (entity.hasImpulse) {
+            aki$staticTicks = 0;
+            aki$lastPosition = entity.position();
+            return;
+        }
+        
+        if (entity.isOnPortalCooldown()) {
+            aki$staticTicks = 0;
+            aki$lastPosition = entity.position();
+            return;
+        }
+        
         if (entity.isInWater() || entity.isInLava()) {
-            aki$staticTicks = 0; 
+            aki$staticTicks = 0;
+            aki$lastPosition = entity.position();
+            return;
+        }
+
+        Vec3 velocity = entity.getDeltaMovement();
+        if (velocity.lengthSqr() > 0.001) {
+            aki$staticTicks = 0;
+            aki$lastPosition = entity.position();
             return;
         }
         
@@ -59,7 +79,10 @@ public class LivingEntityTravelOptimizeMixin {
             if (movement < cached_minMovementThreshold) {
                 aki$staticTicks++;
                 
-                if (aki$staticTicks > cached_skipInterval && travelVector.lengthSqr() < 0.0001) {
+                if (aki$staticTicks > cached_skipInterval && 
+                    travelVector.lengthSqr() < 0.0001 &&
+                    entity.onGround() &&
+                    !entity.isPassenger()) {
                     ci.cancel();
                     return;
                 }

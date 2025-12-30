@@ -7,8 +7,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
+import net.minecraft.world.entity.monster.Enemy;
 
 public final class UniversalAiCpuCalculator {
     
@@ -29,12 +32,27 @@ public final class UniversalAiCpuCalculator {
     }
     
     private static void analyzeEnvironment(Mob mob, UniversalAiSnapshot snap, UniversalAiDiff diff) {
+        boolean isHostile = mob instanceof Enemy;
+        boolean isAngryNeutral = mob instanceof NeutralMob && 
+            ((NeutralMob) mob).getRemainingPersistentAngerTime() > 0;
+        
+        if (!isHostile && !isAngryNeutral) {
+            return;
+        }
+        
         if (!snap.players().isEmpty()) {
+            double followRange = mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+            double followRangeSq = followRange * followRange;
+            
             UUID target = snap.players().stream()
+                .filter(p -> p.pos().distSqr(mob.blockPosition()) <= followRangeSq)
                 .min(Comparator.comparingDouble(p -> p.pos().distSqr(mob.blockPosition())))
                 .map(UniversalAiSnapshot.PlayerInfo::id)
                 .orElse(null);
-            diff.setTarget(target);
+            
+            if (target != null) {
+                diff.setTarget(target);
+            }
         }
     }
     

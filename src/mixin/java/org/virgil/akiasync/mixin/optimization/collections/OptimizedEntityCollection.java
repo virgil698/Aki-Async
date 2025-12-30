@@ -44,13 +44,21 @@ public class OptimizedEntityCollection<T extends Entity> {
 
         if (iteratorPointer.compareAndSet(null, currentEntities)) {
             try {
-                currentEntities.values().forEach(action);
+                currentEntities.values().forEach(entity -> {
+                    if (entity != null) {
+                        action.accept(entity);
+                    }
+                });
             } finally {
                 iteratorPointer.set(null);
             }
         } else {
             Int2ObjectLinkedOpenHashMap<T> clonedEntities = currentEntities.clone();
-            clonedEntities.values().forEach(action);
+            clonedEntities.values().forEach(entity -> {
+                if (entity != null) {
+                    action.accept(entity);
+                }
+            });
         }
     }
 

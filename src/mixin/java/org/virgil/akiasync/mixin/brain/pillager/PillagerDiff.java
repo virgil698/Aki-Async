@@ -23,14 +23,14 @@ public final class PillagerDiff {
         if (attackTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(attackTarget);
             if (player != null && !player.isRemoved()) {
-                org.virgil.akiasync.mixin.util.REFLECTIONS.setField(illager, "target", player);
+                illager.setTarget(player);
             }
         }
         if (raidTarget != null) {
             org.virgil.akiasync.mixin.util.REFLECTIONS.setField(illager, "raidCenter", raidTarget);
         }
         if (patrolTarget != null) {
-            org.virgil.akiasync.mixin.util.REFLECTIONS.setField(illager, "patrolTarget", patrolTarget);
+            illager.setPatrolTarget(patrolTarget);
         }
     }
     public boolean hasChanges() { return changeCount > 0; }

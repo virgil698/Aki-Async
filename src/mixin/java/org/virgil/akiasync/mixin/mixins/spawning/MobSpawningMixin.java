@@ -75,9 +75,12 @@ public class MobSpawningMixin {
             long currentTime = System.currentTimeMillis();
             long expirationTime = 60000; 
             
-            lastSpawnTimeCache.entrySet().removeIf(entry -> 
-                currentTime - entry.getValue() > expirationTime
-            );
+            lastSpawnTimeCache.entrySet().removeIf(entry -> {
+                if (entry == null || entry.getValue() == null) {
+                    return true;
+                }
+                return currentTime - entry.getValue() > expirationTime;
+            });
             
             BridgeConfigCache.debugLog("[MobSpawn] Cache cleaned, size: " + lastSpawnTimeCache.size());
         }

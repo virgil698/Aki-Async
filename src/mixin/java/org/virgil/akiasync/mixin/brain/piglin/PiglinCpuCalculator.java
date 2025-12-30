@@ -15,11 +15,15 @@ public final class PiglinCpuCalculator {
         try {
             
             List<PiglinSnapshot.PlayerGoldInfo> holdingGoldPlayers = new java.util.ArrayList<>();
+            List<PiglinSnapshot.PlayerGoldInfo> hostilesTargets = new java.util.ArrayList<>();
             BlockPos piglinPos = piglin.blockPosition();
             
             for (PiglinSnapshot.PlayerGoldInfo playerInfo : snapshot.getNearbyPlayers()) {
                 if (playerInfo.holdingGold()) {
                     holdingGoldPlayers.add(playerInfo);
+                }
+                if (!playerInfo.wearingGold()) {
+                    hostilesTargets.add(playerInfo);
                 }
             }
             
@@ -27,6 +31,16 @@ public final class PiglinCpuCalculator {
                 holdingGoldPlayers.sort(Comparator.comparingDouble((PiglinSnapshot.PlayerGoldInfo playerInfo) ->
                     scoreBarterTarget(playerInfo.pos(), snapshot.getInventoryItems(), piglinPos)
                 ).reversed());
+            }
+            
+            PiglinSnapshot.PlayerGoldInfo closestHostile = null;
+            double closestDistSqr = Double.MAX_VALUE;
+            for (PiglinSnapshot.PlayerGoldInfo hostile : hostilesTargets) {
+                double distSqr = piglinPos.distSqr(hostile.pos());
+                if (distSqr < closestDistSqr) {
+                    closestDistSqr = distSqr;
+                    closestHostile = hostile;
+                }
             }
             
             Vec3 avoidVec = Vec3.ZERO;
@@ -49,6 +63,11 @@ public final class PiglinCpuCalculator {
             
             int newTimer = !threats.isEmpty() ? 1 : 0;
             PiglinDiff diff = new PiglinDiff();
+            
+            // Fix: Set attack target for piglins
+            if (closestHostile != null && closestDistSqr < 256.0) { // 16 blocks
+                diff.setAttackTarget(closestHostile.playerId());
+            }
             
             if (!holdingGoldPlayers.isEmpty()) {
                 PiglinSnapshot.PlayerGoldInfo topPlayer = holdingGoldPlayers.get(0);

@@ -10,7 +10,7 @@ import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.world.entity.LivingEntity;
 
 @SuppressWarnings({"unused", "ConstantConditions", "NullableProblems"})
-@Mixin(value = LivingEntity.class, priority = 900)
+@Mixin(value = LivingEntity.class, priority = 800)
 public abstract class PushEntitiesOptimizationMixin {
     @Unique
     private static volatile boolean enabled;
@@ -40,6 +40,29 @@ public abstract class PushEntitiesOptimizationMixin {
         
         LivingEntity self = (LivingEntity) (Object) this;
         
+        if (!self.isPushable()) {
+            ci.cancel();
+            return;
+        }
+        
+        net.minecraft.world.scores.Team team = self.getTeam();
+        if (team != null && team.getCollisionRule() == net.minecraft.world.scores.Team.CollisionRule.NEVER) {
+            ci.cancel();
+            return;
+        }
+        
+        try {
+            if (self.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                if (serverLevel.paperConfig().collisions.onlyPlayersCollide) {
+                    if (!(self instanceof net.minecraft.server.level.ServerPlayer)) {
+                        ci.cancel();
+                        return;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        
         if (self.isOnPortalCooldown()) {
             return;
         }
@@ -51,7 +74,6 @@ public abstract class PushEntitiesOptimizationMixin {
         
         net.minecraft.world.phys.Vec3 deltaMovement = self.getDeltaMovement();
         if (deltaMovement == null) {
-            
             return;
         }
         double movementSqr = deltaMovement.lengthSqr();

@@ -87,6 +87,30 @@ public abstract class CollisionOptimizationMixin {
         if (!initialized) { akiasync$initCollisionOptimization(); }
         if (!enabled) return;
         Entity self = (Entity) (Object) this;
+        
+        if (self.isPassengerOfSameVehicle(other)) {
+            ci.cancel();
+            return;
+        }
+        
+        if (other.noPhysics || self.noPhysics) {
+            ci.cancel();
+            return;
+        }
+        
+        try {
+            if (self.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                if (serverLevel.paperConfig().collisions.onlyPlayersCollide) {
+                    boolean hasPlayer = (other instanceof net.minecraft.server.level.ServerPlayer) || 
+                                      (self instanceof net.minecraft.server.level.ServerPlayer);
+                    if (!hasPlayer) {
+                        ci.cancel();
+                        return;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
 
         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.isAny(self, other)) return;
         

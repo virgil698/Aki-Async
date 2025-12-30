@@ -186,7 +186,7 @@ public class ChunkVisibilityFilter {
         
         long expireTime = currentTick - 1000;
         
-        LAST_UPDATE_TICK.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        LAST_UPDATE_TICK.entrySet().removeIf(entry -> entry != null && entry.getValue() != null && entry.getValue() < expireTime);
         
         Set<String> activePlayerIds = LAST_UPDATE_TICK.keySet();
         VISIBLE_CHUNKS_CACHE.keySet().retainAll(activePlayerIds);

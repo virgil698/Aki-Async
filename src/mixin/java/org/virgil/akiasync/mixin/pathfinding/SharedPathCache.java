@@ -82,12 +82,19 @@ public class SharedPathCache {
     private static void cleanup(boolean force) {
         if (force) {
             
-            PATH_CACHE.entrySet().removeIf(entry -> 
-                entry.getValue().isExpired() || entry.getValue().useCount.get() < 2
-            );
+            PATH_CACHE.entrySet().removeIf(entry -> {
+                CachedPath cached = entry.getValue();
+                if (cached == null) {
+                    return true;
+                }
+                return cached.isExpired() || cached.useCount.get() < 2;
+            });
         } else {
             
-            PATH_CACHE.entrySet().removeIf(entry -> entry.getValue().isExpired());
+            PATH_CACHE.entrySet().removeIf(entry -> {
+                CachedPath cached = entry.getValue();
+                return cached == null || cached.isExpired();
+            });
         }
     }
     
@@ -102,7 +109,7 @@ public class SharedPathCache {
     public static String getStats() {
         int totalPaths = PATH_CACHE.size();
         int expiredPaths = (int) PATH_CACHE.values().stream()
-            .filter(CachedPath::isExpired)
+            .filter(path -> path != null && path.isExpired())
             .count();
         
         return String.format("PathCache: %d paths (%d expired)", totalPaths, expiredPaths);

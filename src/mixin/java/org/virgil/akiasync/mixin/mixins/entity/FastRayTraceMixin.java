@@ -27,6 +27,12 @@ public abstract class FastRayTraceMixin {
     private static volatile int cacheSize = 256;
     
     @Unique
+    private static volatile java.lang.reflect.Field blockField = null;
+    
+    @Unique
+    private static volatile java.lang.reflect.Field fluidField = null;
+    
+    @Unique
     private static final java.util.concurrent.ConcurrentHashMap<Long, RayTraceCacheHolder> aki$rayTraceCache = 
         new java.util.concurrent.ConcurrentHashMap<Long, RayTraceCacheHolder>();
     
@@ -111,30 +117,45 @@ public abstract class FastRayTraceMixin {
         hash = hash * 31 + Double.hashCode(Math.floor(to.x * 10) / 10);
         hash = hash * 31 + Double.hashCode(Math.floor(to.y * 10) / 10);
         hash = hash * 31 + Double.hashCode(Math.floor(to.z * 10) / 10);
+        
         try {
-            java.lang.reflect.Field blockField = ClipContext.class.getDeclaredField("block");
-            blockField.setAccessible(true);
-            Object blockMode = blockField.get(context);
-            hash = hash * 31 + blockMode.hashCode();
+            if (blockField == null || fluidField == null) {
+                synchronized (FastRayTraceMixin.class) {
+                    if (blockField == null) {
+                        blockField = ClipContext.class.getDeclaredField("block");
+                        blockField.setAccessible(true);
+                    }
+                    if (fluidField == null) {
+                        fluidField = ClipContext.class.getDeclaredField("fluid");
+                        fluidField.setAccessible(true);
+                    }
+                }
+            }
             
-            java.lang.reflect.Field fluidField = ClipContext.class.getDeclaredField("fluid");
-            fluidField.setAccessible(true);
+            Object blockMode = blockField.get(context);
             Object fluidMode = fluidField.get(context);
+            hash = hash * 31 + blockMode.hashCode();
             hash = hash * 31 + fluidMode.hashCode();
         } catch (Exception e) {
-            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                "FastRayTraceMixin", "hashRayTrace", e);
+            // 静默失败
         }
+        
         return hash;
     }
     
     @Unique
     private boolean aki$isPlayerInteraction(ClipContext context) {
         try {
-            java.lang.reflect.Field blockField = ClipContext.class.getDeclaredField("block");
-            blockField.setAccessible(true);
-            Object blockMode = blockField.get(context);
+            if (blockField == null) {
+                synchronized (FastRayTraceMixin.class) {
+                    if (blockField == null) {
+                        blockField = ClipContext.class.getDeclaredField("block");
+                        blockField.setAccessible(true);
+                    }
+                }
+            }
             
+            Object blockMode = blockField.get(context);
             if (blockMode == ClipContext.Block.OUTLINE) {
                 Vec3 from = context.getFrom();
                 Vec3 to = context.getTo();

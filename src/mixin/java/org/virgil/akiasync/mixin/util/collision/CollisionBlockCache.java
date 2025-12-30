@@ -95,13 +95,18 @@ public class CollisionBlockCache {
     
     public static void clearAllCaches() {
         for (CollisionBlockCache cache : CACHES.values()) {
-            cache.clear();
+            if (cache != null) {
+                cache.clear();
+            }
         }
         CACHES.clear();
     }
     
     public static void cleanupAllCaches() {
         for (Map.Entry<Level, CollisionBlockCache> entry : CACHES.entrySet()) {
+            if (entry == null || entry.getValue() == null) {
+                continue;
+            }
             Level level = entry.getKey();
             CollisionBlockCache cache = entry.getValue();
             
@@ -115,6 +120,9 @@ public class CollisionBlockCache {
         StringBuilder sb = new StringBuilder("CollisionBlockCache Statistics:\n");
         
         for (Map.Entry<Level, CollisionBlockCache> entry : CACHES.entrySet()) {
+            if (entry == null || entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
             Level level = entry.getKey();
             CollisionBlockCache cache = entry.getValue();
             

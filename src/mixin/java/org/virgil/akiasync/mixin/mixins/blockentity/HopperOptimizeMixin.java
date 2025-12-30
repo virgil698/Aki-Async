@@ -83,7 +83,11 @@ public class HopperOptimizeMixin {
     private static void aki$cleanExpiredCache() {
         long now = System.currentTimeMillis();
         containerCache.entrySet().removeIf(entry -> {
-            long cacheTime = (Long) entry.getValue()[1];
+            Object[] value = entry.getValue();
+            if (value == null || value.length < 2 || value[1] == null) {
+                return true;
+            }
+            long cacheTime = (Long) value[1];
             return now - cacheTime > cached_cacheExpireTime;
         });
     }

@@ -38,6 +38,9 @@ public abstract class ItemEntityInactiveMixin {
     private static volatile int mergeInterval;
     @Unique
     private static volatile boolean initialized = false;
+    
+    @Unique
+    private static volatile java.lang.reflect.Method isOwnedByCurrentRegionMethod = null;
 
     @Unique
     private static final int INFINITE_PICKUP_DELAY = 32767;
@@ -171,18 +174,25 @@ public abstract class ItemEntityInactiveMixin {
     @Unique
     private boolean akiasync$isTickThread(ItemEntity entity) {
         try {
-            
             if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                if (isOwnedByCurrentRegionMethod == null) {
+                    synchronized (ItemEntityInactiveMixin.class) {
+                        if (isOwnedByCurrentRegionMethod == null) {
+                            try {
+                                isOwnedByCurrentRegionMethod = entity.getClass().getMethod("isOwnedByCurrentRegion");
+                            } catch (NoSuchMethodException e) {
+                                return true;
+                            }
+                        }
+                    }
+                }
                 
-                try {
-                    java.lang.reflect.Method method = entity.getClass().getMethod("isOwnedByCurrentRegion");
-                    return (Boolean) method.invoke(entity);
-                } catch (NoSuchMethodException e) {
-                    
-                    return true;
-                } catch (Exception e) {
-                    
-                    return false;
+                if (isOwnedByCurrentRegionMethod != null) {
+                    try {
+                        return (Boolean) isOwnedByCurrentRegionMethod.invoke(entity);
+                    } catch (Exception e) {
+                        return false;
+                    }
                 }
             }
             return true;

@@ -71,10 +71,14 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
                 EntityCollisionCache cache = collisionCache.get(cacheKey);
                 
                 if (cache != null && !cache.isExpired(currentTime)) {
+                    if (cache.entities == null || cache.entities.isEmpty()) {
+                        collisionCache.remove(cacheKey);
+                        return;
+                    }
                     
                     List<Entity> validEntities = new ArrayList<>(cache.entities.size());
                     for (Entity entity : cache.entities) {
-                        if (!entity.isRemoved() && predicate.test(entity)) {
+                        if (entity != null && !entity.isRemoved() && predicate.test(entity)) {
                             validEntities.add(entity);
                         }
                     }
@@ -139,7 +143,12 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
     
     @Unique
     private void akiasync$cleanupCache(long currentTime) {
-        collisionCache.values().removeIf(cache -> cache.isExpired(currentTime));
+        collisionCache.values().removeIf(cache -> {
+            if (cache == null) {
+                return true;
+            }
+            return cache.isExpired(currentTime);
+        });
     }
     
     @Unique
@@ -164,6 +173,9 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
         
         int entityId = entity.getId();
         collisionCache.long2ObjectEntrySet().removeIf(entry -> {
+            if (entry == null || entry.getValue() == null) {
+                return true;
+            }
             long key = entry.getLongKey();
             
             int cachedEntityId = (int) (key >>> 44);

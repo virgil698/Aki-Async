@@ -37,7 +37,8 @@ public final class PiglinSnapshot {
             players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),
-                isHoldingGold(player)
+                isHoldingGold(player),
+                isWearingGold(player)
             ));
         }
         
@@ -81,7 +82,8 @@ public final class PiglinSnapshot {
             players.add(new PlayerGoldInfo(
                 player.getUUID(),
                 player.blockPosition(),
-                isHoldingGold(player)
+                isHoldingGold(player),
+                isWearingGold(player)
             ));
         }
         
@@ -113,6 +115,22 @@ public final class PiglinSnapshot {
         return mainHand.is(net.minecraft.world.item.Items.GOLD_INGOT) ||
                mainHand.is(net.minecraft.world.item.Items.GOLD_BLOCK);
     }
+    
+    private static boolean isWearingGold(net.minecraft.world.entity.player.Player player) {
+        for (net.minecraft.world.entity.EquipmentSlot slot : 
+             new net.minecraft.world.entity.EquipmentSlot[]{
+                 net.minecraft.world.entity.EquipmentSlot.HEAD,
+                 net.minecraft.world.entity.EquipmentSlot.CHEST,
+                 net.minecraft.world.entity.EquipmentSlot.LEGS,
+                 net.minecraft.world.entity.EquipmentSlot.FEET
+             }) {
+            ItemStack armorItem = player.getItemBySlot(slot);
+            if (!armorItem.isEmpty() && armorItem.is(net.minecraft.tags.ItemTags.PIGLIN_LOVED)) {
+                return true;
+            }
+        }
+        return false;
+    }
     public ItemStack[] getInventoryItems() { return inventoryItems; }
     public java.util.List<PlayerGoldInfo> getNearbyPlayers() { return nearbyPlayers; }
     public java.util.List<net.minecraft.core.BlockPos> getNearbyThreats() { return nearbyThreats; }
@@ -121,13 +139,16 @@ public final class PiglinSnapshot {
         final java.util.UUID playerId;
         final net.minecraft.core.BlockPos pos;
         final boolean holdingGold;
-        public PlayerGoldInfo(java.util.UUID id, net.minecraft.core.BlockPos pos, boolean holdingGold) {
+        final boolean wearingGold;
+        public PlayerGoldInfo(java.util.UUID id, net.minecraft.core.BlockPos pos, boolean holdingGold, boolean wearingGold) {
             this.playerId = id;
             this.pos = pos;
             this.holdingGold = holdingGold;
+            this.wearingGold = wearingGold;
         }
         public java.util.UUID playerId() { return playerId; }
         public net.minecraft.core.BlockPos pos() { return pos; }
         public boolean holdingGold() { return holdingGold; }
+        public boolean wearingGold() { return wearingGold; }
     }
 }

@@ -10,6 +10,7 @@ public final class PiglinDiff {
     private java.util.UUID lookPlayerId;
     private BlockPos lookPlayerPos;
     private java.util.UUID barterPlayerId;
+    private java.util.UUID attackTargetId;
     private BlockPos walkTarget;
     private Integer huntedTimer;
     private int changeCount;
@@ -18,6 +19,7 @@ public final class PiglinDiff {
         this.lookPlayerId = null;
         this.lookPlayerPos = null;
         this.barterPlayerId = null;
+        this.attackTargetId = null;
         this.walkTarget = null;
         this.huntedTimer = null;
         this.changeCount = 0;
@@ -31,6 +33,10 @@ public final class PiglinDiff {
         this.barterPlayerId = playerId;
         this.changeCount++;
     }
+    public void setAttackTarget(java.util.UUID targetId) {
+        this.attackTargetId = targetId;
+        this.changeCount++;
+    }
     public void setWalkTarget(BlockPos pos) {
         this.walkTarget = pos;
         this.changeCount++;
@@ -41,6 +47,15 @@ public final class PiglinDiff {
     }
     @SuppressWarnings("unchecked")
     public <E extends LivingEntity> void applyTo(Brain<E> brain, net.minecraft.server.level.ServerLevel level, int lookDist, int barterDist) {
+        if (attackTargetId != null) {
+            LivingEntity target = (LivingEntity) level.getPlayerByUUID(attackTargetId);
+            if (target != null && !target.isRemoved()) {
+                brain.setMemory(MemoryModuleType.ATTACK_TARGET, target);
+            } else {
+                brain.eraseMemory(MemoryModuleType.ATTACK_TARGET);
+            }
+        }
+        
         if (walkTarget != null) {
             WalkTarget wt = new WalkTarget(walkTarget, 1.2f, 1);
             brain.setMemory(MemoryModuleType.WALK_TARGET, wt);
@@ -97,9 +112,10 @@ public final class PiglinDiff {
     }
     @Override
     public String toString() {
-        return String.format("PiglinDiff[look=%s, barter=%s, walk=%s, hunted=%s, changes=%d]",
+        return String.format("PiglinDiff[look=%s, barter=%s, attack=%s, walk=%s, hunted=%s, changes=%d]",
                 lookPlayerId != null ? "UUID" : "null",
                 barterPlayerId != null ? "UUID" : "null",
+                attackTargetId != null ? "UUID" : "null",
                 walkTarget != null ? "set" : "null",
                 huntedTimer != null ? huntedTimer.toString() : "null",
                 changeCount);

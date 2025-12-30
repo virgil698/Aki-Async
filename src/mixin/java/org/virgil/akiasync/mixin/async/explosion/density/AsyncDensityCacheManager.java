@@ -118,7 +118,12 @@ public class AsyncDensityCacheManager {
     public void expire(long currentTime) {
         cache.expire(currentTime);
         
-        pendingCalculations.entrySet().removeIf(entry -> entry.getValue().isDone());
+        pendingCalculations.entrySet().removeIf(entry -> {
+            if (entry == null || entry.getValue() == null) {
+                return true;
+            }
+            return entry.getValue().isDone();
+        });
     }
     
     public void clear() {

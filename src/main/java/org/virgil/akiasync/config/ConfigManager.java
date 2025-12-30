@@ -8,7 +8,7 @@ import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 18;
+    private static final int CURRENT_CONFIG_VERSION = 19;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -64,6 +64,17 @@ public class ConfigManager {
     private boolean endermanPreventPickup;
     
     private boolean multithreadedEntityTrackerEnabled;
+    
+    private boolean advancedNetworkOptimizationEnabled;
+    private boolean fastVarIntEnabled;
+    private boolean eventLoopAffinityEnabled;
+    private boolean byteBufOptimizerEnabled;
+    private boolean strictEventLoopChecking;
+    private boolean pooledByteBufAllocator;
+    private boolean directByteBufPreferred;
+    
+    private boolean skipZeroMovementPacketsEnabled;
+    private boolean skipZeroMovementPacketsStrictMode;
     
     private boolean armadilloOptimizationEnabled;
     private int armadilloTickInterval;
@@ -271,6 +282,7 @@ public class ConfigManager {
     private boolean tntUseVanillaDamageCalculation;
     private boolean beeFixEnabled;
     private boolean endIslandDensityFixEnabled;
+    private boolean leaderZombieHealthFixEnabled;
     private boolean portalSuffocationCheckDisabled;
     private boolean shulkerBulletSelfHitFixEnabled;
     
@@ -511,6 +523,14 @@ public class ConfigManager {
         
         multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         
+        advancedNetworkOptimizationEnabled = config.getBoolean("advanced-network-optimization.enabled", true);
+        fastVarIntEnabled = config.getBoolean("advanced-network-optimization.fast-varint.enabled", true);
+        eventLoopAffinityEnabled = config.getBoolean("advanced-network-optimization.eventloop-affinity.enabled", true);
+        byteBufOptimizerEnabled = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.enabled", true);
+        strictEventLoopChecking = config.getBoolean("advanced-network-optimization.eventloop-affinity.strict-checking", false);
+        pooledByteBufAllocator = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.pooled-allocator", true);
+        directByteBufPreferred = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.prefer-direct", true);
+        
         multithreadedTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         multithreadedTrackerParallelism = config.getInt("entity-tracker.parallelism", 
             Math.max(4, Runtime.getRuntime().availableProcessors()));
@@ -739,6 +759,7 @@ public class ConfigManager {
         
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        leaderZombieHealthFixEnabled = config.getBoolean("leader-zombie-health-fix.enabled", true);
         
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         
@@ -1027,6 +1048,15 @@ public class ConfigManager {
         maxQueueSize = 10000;
         
         multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
+        advancedNetworkOptimizationEnabled = config.getBoolean("advanced-network-optimization.enabled", true);
+        fastVarIntEnabled = config.getBoolean("advanced-network-optimization.fast-varint.enabled", true);
+        eventLoopAffinityEnabled = config.getBoolean("advanced-network-optimization.eventloop-affinity.enabled", true);
+        strictEventLoopChecking = config.getBoolean("advanced-network-optimization.eventloop-affinity.strict-checking", false);
+        byteBufOptimizerEnabled = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.enabled", true);
+        pooledByteBufAllocator = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.pooled-allocator", true);
+        directByteBufPreferred = config.getBoolean("advanced-network-optimization.bytebuf-optimizer.prefer-direct", true);
+        skipZeroMovementPacketsEnabled = config.getBoolean("advanced-network-optimization.skip-zero-movement-packets.enabled", true);
+        skipZeroMovementPacketsStrictMode = config.getBoolean("advanced-network-optimization.skip-zero-movement-packets.strict-mode", false);
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
@@ -1185,6 +1215,7 @@ public class ConfigManager {
 
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        leaderZombieHealthFixEnabled = config.getBoolean("leader-zombie-health-fix.enabled", true);
         portalSuffocationCheckDisabled = config.getBoolean("portal-suffocation-check.disabled", false);
         shulkerBulletSelfHitFixEnabled = config.getBoolean("shulker-bullet-self-hit-fix.enabled", true);
         
@@ -1529,6 +1560,16 @@ public class ConfigManager {
     
     public boolean isMultithreadedEntityTrackerEnabled() { return multithreadedEntityTrackerEnabled; }
     
+    public boolean isAdvancedNetworkOptimizationEnabled() { return advancedNetworkOptimizationEnabled; }
+    public boolean isFastVarIntEnabled() { return fastVarIntEnabled; }
+    public boolean isEventLoopAffinityEnabled() { return eventLoopAffinityEnabled; }
+    public boolean isByteBufOptimizerEnabled() { return byteBufOptimizerEnabled; }
+    public boolean isStrictEventLoopChecking() { return strictEventLoopChecking; }
+    public boolean isPooledByteBufAllocator() { return pooledByteBufAllocator; }
+    public boolean isDirectByteBufPreferred() { return directByteBufPreferred; }
+    public boolean isSkipZeroMovementPacketsEnabled() { return skipZeroMovementPacketsEnabled; }
+    public boolean isSkipZeroMovementPacketsStrictMode() { return skipZeroMovementPacketsStrictMode; }
+    
     public boolean isMultithreadedTrackerEnabled() { return multithreadedTrackerEnabled; }
     public int getMultithreadedTrackerParallelism() { return multithreadedTrackerParallelism; }
     public int getMultithreadedTrackerBatchSize() { return multithreadedTrackerBatchSize; }
@@ -1705,6 +1746,7 @@ public class ConfigManager {
     public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
     public boolean isBeeFixEnabled() { return beeFixEnabled; }
     public boolean isEndIslandDensityFixEnabled() { return endIslandDensityFixEnabled; }
+    public boolean isLeaderZombieHealthFixEnabled() { return leaderZombieHealthFixEnabled; }
     public boolean isPortalSuffocationCheckDisabled() { return portalSuffocationCheckDisabled; }
     public boolean isShulkerBulletSelfHitFixEnabled() { return shulkerBulletSelfHitFixEnabled; }
     

@@ -85,6 +85,23 @@ public final class AkiAsyncPlugin extends JavaPlugin {
 
         getLogger().info("[AkiAsync] Bridge registered successfully");
 
+        if (configManager.isAdvancedNetworkOptimizationEnabled()) {
+            org.virgil.akiasync.network.NetworkOptimizationManager.initialize(
+                true,
+                configManager.isFastVarIntEnabled(),
+                configManager.isEventLoopAffinityEnabled(),
+                configManager.isByteBufOptimizerEnabled(),
+                configManager.isStrictEventLoopChecking(),
+                configManager.isPooledByteBufAllocator(),
+                configManager.isDirectByteBufPreferred()
+            );
+            
+            getLogger().info("[AkiAsync] Network optimization initialized:");
+            getLogger().info("  - FastVarInt: " + (configManager.isFastVarIntEnabled() ? "Enabled" : "Disabled"));
+            getLogger().info("  - EventLoop Affinity: " + (configManager.isEventLoopAffinityEnabled() ? "Enabled (Strict: " + configManager.isStrictEventLoopChecking() + ")" : "Disabled"));
+            getLogger().info("  - ByteBuf Optimizer: " + (configManager.isByteBufOptimizerEnabled() ? "Enabled (Pooled: " + configManager.isPooledByteBufAllocator() + ", Direct: " + configManager.isDirectByteBufPreferred() + ")" : "Disabled"));
+        }
+
         if (configManager.isAsyncPathfindingEnabled()) {
             org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.initialize();
             getLogger().info("[AkiAsync] Async pathfinding enabled with " + configManager.getAsyncPathfindingMaxThreads() + " threads");
@@ -254,6 +271,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         org.virgil.akiasync.mixin.network.EntityPacketThrottler.shutdown();
+
+        try {
+            org.virgil.akiasync.network.NetworkOptimizationManager.shutdown();
+            getLogger().info("NetworkOptimizationManager shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("Failed to shutdown NetworkOptimizationManager: " + e.getMessage());
+        }
 
         if (chunkLoadScheduler != null) {
             chunkLoadScheduler.shutdown();

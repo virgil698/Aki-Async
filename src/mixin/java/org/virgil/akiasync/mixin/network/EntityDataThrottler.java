@@ -166,13 +166,22 @@ public class EntityDataThrottler {
         long expireTime = currentTick - 1200; 
         
         METADATA_CACHE.entrySet().removeIf(entry -> {
+            if (entry == null) {
+                return true;
+            }
             String key = entry.getKey();
             Long lastUpdate = METADATA_UPDATE_TIMERS.get(key);
             return lastUpdate != null && lastUpdate < expireTime;
         });
         
-        METADATA_UPDATE_TIMERS.entrySet().removeIf(entry -> entry.getValue() < expireTime);
-        NBT_UPDATE_TIMERS.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        METADATA_UPDATE_TIMERS.entrySet().removeIf(entry -> {
+            Long value = entry.getValue();
+            return value == null || value < expireTime;
+        });
+        NBT_UPDATE_TIMERS.entrySet().removeIf(entry -> {
+            Long value = entry.getValue();
+            return value == null || value < expireTime;
+        });
     }
     
     public static void clearPlayer(java.util.UUID playerId) {

@@ -11,7 +11,7 @@ public final class GuardianDiff {
         if (guardianTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(guardianTarget);
             if (player != null && !player.isRemoved() && player.isInWater()) {
-                org.virgil.akiasync.mixin.util.REFLECTIONS.setField(guardian, "target", player);
+                guardian.setTarget(player);
             }
         }
     }

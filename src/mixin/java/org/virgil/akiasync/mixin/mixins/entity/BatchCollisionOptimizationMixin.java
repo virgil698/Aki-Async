@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @SuppressWarnings("unused")
-@Mixin(value = LivingEntity.class, priority = 950)
+@Mixin(value = LivingEntity.class, priority = 850)
 public abstract class BatchCollisionOptimizationMixin {
     
     @Unique
@@ -56,6 +56,11 @@ public abstract class BatchCollisionOptimizationMixin {
             return;
         }
         
+        if (self.isVehicle() && self.tickCount % 2 != 0) {
+            ci.cancel();
+            return;
+        }
+        
         ticksSinceLastCollisionCheck++;
         
         if (ticksSinceLastCollisionCheck < slowMovementInterval) {
@@ -76,7 +81,6 @@ public abstract class BatchCollisionOptimizationMixin {
             ticksSinceLastCollisionCheck = 0;
             lastPosition = currentPos;
         } else {
-            
             ticksSinceLastCollisionCheck = 0;
             lastPosition = self.position();
         }

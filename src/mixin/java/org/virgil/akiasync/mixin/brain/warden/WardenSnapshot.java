@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
 import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
@@ -51,7 +52,14 @@ public final class WardenSnapshot {
         BlockPos position = warden.blockPosition();
         long gameTime = level.getGameTime();
         
-        int angerLevel = 0; 
+        int angerLevel = 0;
+        try {
+            var brain = warden.getBrain();
+            if (brain.getMemory(MemoryModuleType.ATTACK_TARGET).isPresent()) {
+                angerLevel = 80;
+            }
+        } catch (Exception e) {
+        }
         
         List<EntityInfo> entities = new ArrayList<>();
         for (LivingEntity entity : AiQueryHelper.getNearbyEntities(warden, LivingEntity.class, 24.0)) {
@@ -75,10 +83,17 @@ public final class WardenSnapshot {
             ));
         }
         
-        boolean isDigging = false; 
-        boolean isEmerging = false; 
+        boolean isDigging = false;
+        boolean isEmerging = false;
+        int attackCooldown = 0;
         
-        int attackCooldown = 0; 
+        try {
+            var brain = warden.getBrain();
+            isDigging = brain.getMemory(MemoryModuleType.IS_EMERGING).isPresent() ||
+                       brain.getMemory(MemoryModuleType.DIG_COOLDOWN).isPresent();
+            attackCooldown = brain.getMemory(MemoryModuleType.SONIC_BOOM_COOLDOWN).isPresent() ? 20 : 0;
+        } catch (Exception e) {
+        } 
         
         return new WardenSnapshot(
             health, position, angerLevel, entities, players,

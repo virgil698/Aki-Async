@@ -8,18 +8,54 @@
 # ==========================================
 # 统一AI优化实体列表 / Universal AI Optimization Entity List
 # ==========================================
+# 说明：以下怪物将使用统一AI优化框架
+# Note: Following entities will use universal AI optimization framework
+#
+# 排除说明：某些怪物有专门的优化模块，不使用统一AI优化
+# Exclusions: Some entities have dedicated optimization modules and don't use universal AI
+#
+# 已排除的怪物（有专用优化）:
+# Excluded entities (have dedicated optimizations):
+#   - Piglin/PiglinBrute (猪灵/猪灵蛮兵) - 使用PiglinBrainMixin
+#   - Pillager/Vindicator/Ravager (掠夺者/卫道士/劫掠兽) - 使用PillagerTickMixin
+#   - Evoker (唤魔者) - 使用EvokerTickMixin
+#   - Blaze (烈焰人) - 使用BlazeTickMixin
+#   - Guardian (守卫者) - 使用GuardianTickMixin
+#   - Witch (女巫) - 使用WitchTickMixin
+#   - EnderMan (末影人) - 使用EndermanTickMixin
+#   - Hoglin (疣猪兽) - 使用HoglinTickMixin
+#   - Warden (监守者) - 使用WardenTickMixin
+#   - Sniffer (嗅探兽) - 使用SnifferTickMixin
+#   - Allay (悦灵) - 使用AllayTickMixin
+#   - Camel (骆驼) - 使用CamelTickMixin
+#   - Frog (青蛙) - 使用FrogTickMixin
+#   - Goat (山羊) - 使用GoatTickMixin
+#   - Panda (熊猫) - 使用PandaTickMixin
+#   - Armadillo (犰狳) - 使用ArmadilloTickMixin
+#   - Villager/WanderingTrader (村民/流浪商人) - 使用VillagerTickMixin
+# ==========================================
 universal-ai-entities:
   # 攻击型生物 / Hostile Mobs
+  # 注意：以下已排除（有专用优化）/ Note: Following are excluded (have dedicated optimizations):
+  #   - piglin, piglin_brute (猪灵) - PiglinBrainMixin
+  #   - pillager, vindicator, ravager (掠夺者系) - PillagerTickMixin
+  #   - evoker (唤魔者) - EvokerTickMixin
+  #   - blaze (烈焰人) - BlazeTickMixin
+  #   - guardian (守卫者) - GuardianTickMixin
+  #   - witch (女巫) - WitchTickMixin
+  #   - enderman (末影人) - EndermanTickMixin
+  #   - hoglin (疣猪兽) - HoglinTickMixin
+  #   - warden (监守者) - WardenTickMixin
   - "minecraft:skeleton"
   - "minecraft:zombie"
   - "minecraft:creeper"
   - "minecraft:spider"
-  - "minecraft:enderman"
+  # - "minecraft:enderman"  # 已排除：使用EndermanTickMixin / Excluded: uses EndermanTickMixin
   - "minecraft:phantom"
   - "minecraft:drowned"
-  - "minecraft:hoglin"
+  # - "minecraft:hoglin"  # 已排除：使用HoglinTickMixin / Excluded: uses HoglinTickMixin
   - "minecraft:zoglin"
-  - "minecraft:warden"
+  # - "minecraft:warden"  # 已排除：使用WardenTickMixin / Excluded: uses WardenTickMixin
   - "minecraft:stray"
   - "minecraft:husk"
   - "minecraft:zombie_villager"
@@ -28,15 +64,30 @@ universal-ai-entities:
   - "minecraft:endermite"
   - "minecraft:cave_spider"
   - "minecraft:wither_skeleton"
-  - "minecraft:witch"
+  # - "minecraft:witch"  # 已排除：使用WitchTickMixin / Excluded: uses WitchTickMixin
   - "minecraft:slime"
   - "minecraft:magma_cube"
+  - "minecraft:vex"  # 恼鬼（袭击怪物） / Vex (Raid mob)
+  - "minecraft:ghast"  # 恶魂（下界飞行怪物） / Ghast (Nether flying mob)
+  - "minecraft:zombified_piglin"  # 僵尸猪灵（中立转敌对） / Zombified Piglin (neutral-to-hostile)
+  - "minecraft:elder_guardian"  # 远古守卫者（Guardian变种） / Elder Guardian (Guardian variant)
+  - "minecraft:bogged"  # 沼骸（1.21新生物，骷髅变种） / Bogged (1.21 new mob, skeleton variant)
+  - "minecraft:breeze"  # 旋风人（1.21新生物） / Breeze (1.21 new mob)
+  - "minecraft:creaking"  # 嘎枝怪（1.21.4新生物） / Creaking (1.21.4 new mob)
   
   # 防御型生物 / Defense Mobs (Golems)
   - "minecraft:iron_golem"
   - "minecraft:snow_golem"
   
   # 被动型生物 / Passive Mobs (Animals)
+  # 注意：以下已排除（有专用优化）/ Note: Following are excluded (have dedicated optimizations):
+  #   - sniffer (嗅探兽) - SnifferTickMixin
+  #   - allay (悦灵) - AllayTickMixin
+  #   - camel (骆驼) - CamelTickMixin
+  #   - frog (青蛙) - FrogTickMixin
+  #   - goat (山羊) - GoatTickMixin
+  #   - panda (熊猫) - PandaTickMixin
+  #   - armadillo (犰狳) - ArmadilloTickMixin
   - "minecraft:pig"
   - "minecraft:cow"
   - "minecraft:sheep"
@@ -45,13 +96,13 @@ universal-ai-entities:
   - "minecraft:bat"
   - "minecraft:fox"
   - "minecraft:strider"
-  - "minecraft:frog"
+  # - "minecraft:frog"  # 已排除：使用FrogTickMixin / Excluded: uses FrogTickMixin
   - "minecraft:tadpole"
-  - "minecraft:camel"
-  - "minecraft:goat"
+  # - "minecraft:camel"  # 已排除：使用CamelTickMixin / Excluded: uses CamelTickMixin
+  # - "minecraft:goat"  # 已排除：使用GoatTickMixin / Excluded: uses GoatTickMixin
   - "minecraft:mushroom_cow"
-  - "minecraft:sniffer"
-  - "minecraft:allay"
+  # - "minecraft:sniffer"  # 已排除：使用SnifferTickMixin / Excluded: uses SnifferTickMixin
+  # - "minecraft:allay"  # 已排除：使用AllayTickMixin / Excluded: uses AllayTickMixin
   
   # 水生生物 / Aquatic Mobs
   - "minecraft:dolphin"
@@ -65,6 +116,7 @@ universal-ai-entities:
   - "minecraft:axolotl"
   
   # 驯服/中立型生物 / Tamed/Neutral Mobs
+  # 注意：panda已排除，使用PandaTickMixin / Note: panda excluded, uses PandaTickMixin
   - "minecraft:wolf"
   - "minecraft:cat"
   - "minecraft:horse"
@@ -73,7 +125,7 @@ universal-ai-entities:
   - "minecraft:llama"
   - "minecraft:parrot"
   - "minecraft:polar_bear"
-  - "minecraft:panda"
+  # - "minecraft:panda"  # 已排除：使用PandaTickMixin / Excluded: uses PandaTickMixin
   - "minecraft:bee"
   - "minecraft:ocelot"
   - "minecraft:trader_llama"

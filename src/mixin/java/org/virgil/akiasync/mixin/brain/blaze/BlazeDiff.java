@@ -11,7 +11,7 @@ public final class BlazeDiff {
         if (blazeTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(blazeTarget);
             if (player != null && !player.isRemoved()) {
-                org.virgil.akiasync.mixin.util.REFLECTIONS.setField(blaze, "target", player);
+                blaze.setTarget(player);
             }
         }
     }

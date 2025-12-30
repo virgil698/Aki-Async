@@ -136,8 +136,8 @@ public class EntityPacketThrottler {
     private static void cleanup() {
         long expireTime = currentTick - 200; 
         
-        PLAYER_ENTITY_TIMERS.entrySet().removeIf(entry -> entry.getValue() < expireTime);
-        ENTITY_UPDATE_TIMERS.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        PLAYER_ENTITY_TIMERS.entrySet().removeIf(entry -> entry != null && entry.getValue() != null && entry.getValue() < expireTime);
+        ENTITY_UPDATE_TIMERS.entrySet().removeIf(entry -> entry != null && entry.getValue() != null && entry.getValue() < expireTime);
     }
     
     public static void clearPlayer(UUID playerId) {

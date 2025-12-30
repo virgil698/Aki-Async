@@ -26,11 +26,29 @@ public final class WardenDiff {
         
         if (targetId != null) {
             Entity target = level.getEntity(targetId);
-            if (target instanceof LivingEntity && target.isAlive()) {
-                brain.setMemory(MemoryModuleType.ATTACK_TARGET, (LivingEntity) target);
+            if (target instanceof LivingEntity living && living.isAlive()) {
+                brain.setMemory(MemoryModuleType.ATTACK_TARGET, living);
+                
+                warden.increaseAngerAt(target);
             }
         }
         
+        if (shouldUseSonicBoom && targetId != null) {
+            Entity target = level.getEntity(targetId);
+            if (target instanceof LivingEntity living && living.isAlive()) {
+                brain.setMemoryWithExpiry(MemoryModuleType.SONIC_BOOM_COOLDOWN, 
+                    net.minecraft.util.Unit.INSTANCE, 40L);
+                brain.setMemoryWithExpiry(MemoryModuleType.SONIC_BOOM_SOUND_COOLDOWN,
+                    net.minecraft.util.Unit.INSTANCE, 60L);
+                
+                warden.increaseAngerAt(target, 35, true);
+            }
+        }
+        
+        if (shouldDig) {
+            brain.setMemoryWithExpiry(MemoryModuleType.DIG_COOLDOWN, 
+                net.minecraft.util.Unit.INSTANCE, 1200L); // 1200 ticks = 60秒冷却
+        }
     }
     
     @Override

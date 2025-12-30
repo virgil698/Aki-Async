@@ -282,6 +282,8 @@ public interface Bridge {
 
     boolean isEndIslandDensityFixEnabled();
     
+    boolean isLeaderZombieHealthFixEnabled();
+    
     boolean isTNTUseFullRaycast();
 
     boolean isTNTUseVanillaBlockDestruction();
@@ -659,4 +661,17 @@ public interface Bridge {
     boolean isEndermanPreventPickup();
     
     boolean isMultithreadedEntityTrackerEnabled();
+    
+    boolean isVelocityCompressionEnabled();
+    
+    boolean isAdvancedNetworkOptimizationEnabled();
+    boolean isFastVarIntEnabled();
+    boolean isEventLoopAffinityEnabled();
+    boolean isByteBufOptimizerEnabled();
+    boolean isStrictEventLoopChecking();
+    boolean isPooledByteBufAllocator();
+    boolean isDirectByteBufPreferred();
+    
+    boolean isSkipZeroMovementPacketsEnabled();
+    boolean isSkipZeroMovementPacketsStrictMode();
 }

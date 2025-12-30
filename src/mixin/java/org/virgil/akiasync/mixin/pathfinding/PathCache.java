@@ -62,9 +62,12 @@ public class PathCache {
     }
     
     private void cleanOldEntries(long currentTick) {
-        pathCache.long2ObjectEntrySet().removeIf(entry -> 
-            currentTick - entry.getValue().createdTick >= CACHE_EXPIRE_TICKS
-        );
+        pathCache.long2ObjectEntrySet().removeIf(entry -> {
+            if (entry == null || entry.getValue() == null) {
+                return true;
+            }
+            return currentTick - entry.getValue().createdTick >= CACHE_EXPIRE_TICKS;
+        });
         
         if (pathCache.size() >= MAX_CACHE_SIZE) {
             long minHits = Long.MAX_VALUE;

@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 900)
 public abstract class SmartCollisionSamplingMixin extends Entity {
     
     public SmartCollisionSamplingMixin(net.minecraft.world.entity.EntityType<?> entityType, net.minecraft.world.level.Level level) {
@@ -67,16 +67,14 @@ public abstract class SmartCollisionSamplingMixin extends Entity {
         }
         
         if (!akiasync$quickSamplingCheck(self)) {
-            
             ci.cancel();
             
             org.virgil.akiasync.mixin.bridge.Bridge bridge = 
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-Collision] Sampling check passed, skipping pushEntities");
+                bridge.debugLog("[AkiAsync-Collision] Sampling check: no collision detected, skipping pushEntities");
             }
         }
-        
     }
     
     @Unique

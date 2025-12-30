@@ -182,9 +182,13 @@ public class MultiLayerPathCache {
         long now = System.currentTimeMillis();
         
         hotCache.entrySet().removeIf(entry -> {
-            if (entry.getValue().isExpired(HOT_EXPIRE_MS)) {
+            CachedPath cached = entry.getValue();
+            if (cached == null) {
+                return true;
+            }
+            if (cached.isExpired(HOT_EXPIRE_MS)) {
                 if (warmCache.size() < WARM_CACHE_SIZE) {
-                    warmCache.put(entry.getKey(), entry.getValue());
+                    warmCache.put(entry.getKey(), cached);
                 }
                 return true;
             }
@@ -192,18 +196,23 @@ public class MultiLayerPathCache {
         });
         
         warmCache.entrySet().removeIf(entry -> {
-            if (entry.getValue().isExpired(WARM_EXPIRE_MS)) {
+            CachedPath cached = entry.getValue();
+            if (cached == null) {
+                return true;
+            }
+            if (cached.isExpired(WARM_EXPIRE_MS)) {
                 if (coldCache.size() < COLD_CACHE_SIZE) {
-                    coldCache.put(entry.getKey(), entry.getValue());
+                    coldCache.put(entry.getKey(), cached);
                 }
                 return true;
             }
             return false;
         });
         
-        coldCache.entrySet().removeIf(entry -> 
-            entry.getValue().isExpired(COLD_EXPIRE_MS)
-        );
+        coldCache.entrySet().removeIf(entry -> {
+            CachedPath cached = entry.getValue();
+            return cached == null || cached.isExpired(COLD_EXPIRE_MS);
+        });
     }
     
     public void clear() {

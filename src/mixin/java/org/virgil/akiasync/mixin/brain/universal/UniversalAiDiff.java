@@ -56,7 +56,7 @@ public final class UniversalAiDiff {
         if (target != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(target);
             if (player != null && !player.isRemoved()) {
-                org.virgil.akiasync.mixin.util.REFLECTIONS.setField(mob, "target", player);
+                mob.setTarget(player);
             }
         }
         

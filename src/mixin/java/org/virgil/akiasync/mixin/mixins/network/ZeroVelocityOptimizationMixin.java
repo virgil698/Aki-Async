@@ -27,7 +27,13 @@ public class ZeroVelocityOptimizationMixin {
     @Unique
     private static volatile boolean enabled = true;
     @Unique
-    private static volatile double velocityThreshold = 0.003;
+    private static volatile double velocityThreshold = 0.001;
+    @Unique
+    private static volatile double velocityDeltaThreshold = 0.0005;
+    @Unique
+    private static volatile boolean velocityCompressionEnabled = true;
+    @Unique
+    private static volatile boolean aggressiveMode = true;
     
     @Unique
     private Vec3 lastPosition = Vec3.ZERO;
@@ -36,7 +42,7 @@ public class ZeroVelocityOptimizationMixin {
     @Unique
     private int ticksSinceLastUpdate = 0;
     @Unique
-    private static final int MAX_TICKS_WITHOUT_UPDATE = 20;
+    private static final int MAX_TICKS_WITHOUT_UPDATE = 40;
     
     @Unique
     private boolean lastFallFlying = false;
@@ -129,6 +135,27 @@ public class ZeroVelocityOptimizationMixin {
                 return;
             }
             
+            if (velocityCompressionEnabled && lastVelocity != null) {
+                double velocityDeltaX = Math.abs(currentVelocity.x - lastVelocity.x);
+                double velocityDeltaY = Math.abs(currentVelocity.y - lastVelocity.y);
+                double velocityDeltaZ = Math.abs(currentVelocity.z - lastVelocity.z);
+                
+                boolean velocityBarelyChanged = 
+                    velocityDeltaX < velocityDeltaThreshold &&
+                    velocityDeltaY < velocityDeltaThreshold &&
+                    velocityDeltaZ < velocityDeltaThreshold;
+                
+                if (velocityBarelyChanged && positionDelta < POSITION_THRESHOLD * 0.5) {
+                    ticksSinceLastUpdate++;
+                    
+                    if (ticksSinceLastUpdate < MAX_TICKS_WITHOUT_UPDATE) {
+                        skippedCalls++;
+                        ci.cancel();
+                        return;
+                    }
+                }
+            }
+            
             boolean stateChanged = false;
             if (entity instanceof LivingEntity living) {
                 boolean currentFallFlying = living.isFallFlying();
@@ -196,9 +223,10 @@ public class ZeroVelocityOptimizationMixin {
             if (bridge != null) {
                 
                 enabled = true;
+                velocityCompressionEnabled = bridge.isVelocityCompressionEnabled();
                 
-                bridge.debugLog("[ZeroVelocityOptimization] Initialized: enabled=%s, threshold=%.4f",
-                    enabled, velocityThreshold);
+                bridge.debugLog("[ZeroVelocityOptimization] Initialized: enabled=%s, threshold=%.4f, velocityCompression=%s, deltaThreshold=%.4f",
+                    enabled, velocityThreshold, velocityCompressionEnabled, velocityDeltaThreshold);
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
