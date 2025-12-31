@@ -254,65 +254,43 @@ entity-tick-parallel:
 </details>
 
 <details>
-<summary><b>/aki-teleport-stats [reset] - Network Statistics</b></summary>
+<summary><b>/aki-network &lt;true|false&gt; - Network Traffic Monitor</b></summary>
 
-**Function**: View detailed statistics for player teleport optimization, monitor teleport performance and packet processing
+**Function**: Toggle real-time network throughput display in ActionBar
 
-**Permission**: `akiasync.teleportstats` (OP only by default)
-
-**Prerequisites**:
-- Network optimization manager must be enabled
-- Teleport optimization feature must be enabled in configuration
+**Permission**: `akiasync.network` (OP only by default)
 
 **Usage**:
 ```bash
-# View statistics
-/aki-teleport-stats
-
-# Reset all statistics
-/aki-teleport-stats reset
+/aki-network true   # Enable network monitor
+/aki-network false  # Disable network monitor
 ```
 
-**Statistics Include**:
-- **Active teleports**: Number of currently ongoing teleports
-- **Total teleports**: Total number of teleports
-- **Successful**: Number of successful teleports and success rate
-- **Failed**: Number of failed teleports
-- **Average delay**: Average teleport delay (milliseconds)
-- **Maximum delay**: Maximum teleport delay (milliseconds)
-- **Bypassed packets**: Number of priority-sent packets
-- **Filtered packets**: Number of filtered non-essential packets
-- **Boost duration**: Teleport boost duration (seconds)
-- **Filter enabled**: Whether packet filtering is enabled
-
-**Example Output**:
-```
-========== Teleport Tracker Statistics ==========
-Active teleports: 2
-Total teleports: 156
-Successful: 154 (98.7%)
-Failed: 2
-Average delay: 245.32ms
-Maximum delay: 1203.45ms
-Bypassed packets: 3421
-Filtered packets: 8932
-Boost duration: 5s
-Filter enabled: true
-================================================
-```
+**Display Content**:
+- Download rate (↓): Server incoming traffic per second
+- Upload rate (↑): Server outgoing traffic per second
+- Displayed in pink-purple gradient colors via ActionBar
 
 **Use Cases**:
-- Monitor teleport optimization effectiveness
-- Diagnose teleport delay issues
-- Evaluate packet filtering efficiency
-- Performance tuning reference data
-- Periodically reset statistics for fresh data
+- Monitor server network load in real-time
+- Diagnose network bottlenecks
+- Observe traffic changes during peak hours
+- Evaluate network optimization effectiveness
 
-**Related Configuration**:
-Statistics are affected by these settings:
-- `network-optimization.teleport-optimization.enabled`
-- `network-optimization.teleport-optimization.boost-duration-seconds`
-- `network-optimization.teleport-optimization.filter-non-essential-packets`
+**Example**:
+```bash
+# Enable network monitor
+/aki-network true
+# ActionBar displays: ↓ 1.25 MB/s | ↑ 3.42 MB/s
+
+# Disable network monitor
+/aki-network false
+```
+
+**Note**:
+- Traffic values are estimated based on packet count
+- Each player can independently toggle their display
+- Does not affect server performance
 
 </details>
 

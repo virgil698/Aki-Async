@@ -254,65 +254,43 @@ entity-tick-parallel:
 </details>
 
 <details>
-<summary><b>/aki-teleport-stats [reset] - 网络统计信息</b></summary>
+<summary><b>/aki-network &lt;true|false&gt; - 网络流量监控</b></summary>
 
-**功能**：查看玩家传送优化的详细统计数据，监控传送性能和网络包处理情况
+**功能**：在 ActionBar 实时显示服务器网络吞吐量
 
-**权限**：`akiasync.teleportstats`（默认仅OP可用）
-
-**前置条件**：
-- 网络优化管理器必须启用
-- 传送优化功能必须在配置中开启
+**权限**：`akiasync.network`（默认仅OP可用）
 
 **使用方法**：
 ```bash
-# 查看统计信息
-/aki-teleport-stats
-
-# 重置所有统计数据
-/aki-teleport-stats reset
+/aki-network true   # 开启网络监控
+/aki-network false  # 关闭网络监控
 ```
 
-**统计信息包含**：
-- **Active teleports**：当前正在进行的传送数量
-- **Total teleports**：总传送次数
-- **Successful**：成功完成的传送次数和成功率
-- **Failed**：失败的传送次数
-- **Average delay**：平均传送延迟（毫秒）
-- **Maximum delay**：最大传送延迟（毫秒）
-- **Bypassed packets**：优先发送的数据包数量
-- **Filtered packets**：被过滤的非必要数据包数量
-- **Boost duration**：传送加速持续时间（秒）
-- **Filter enabled**：是否启用数据包过滤
-
-**示例输出**：
-```
-========== Teleport Tracker Statistics ==========
-Active teleports: 2
-Total teleports: 156
-Successful: 154 (98.7%)
-Failed: 2
-Average delay: 245.32ms
-Maximum delay: 1203.45ms
-Bypassed packets: 3421
-Filtered packets: 8932
-Boost duration: 5s
-Filter enabled: true
-================================================
-```
+**显示内容**：
+- 下行速率（↓）：服务器每秒接收的流量
+- 上行速率（↑）：服务器每秒发送的流量
+- 使用粉紫色渐变颜色在 ActionBar 显示
 
 **使用场景**：
-- 监控传送优化效果
-- 诊断传送延迟问题
-- 评估网络包过滤效率
-- 性能调优参考数据
-- 定期重置统计以获取新数据
+- 实时监控服务器网络负载
+- 诊断网络瓶颈问题
+- 观察高峰期流量变化
+- 评估网络优化效果
 
-**配置关联**：
-此命令的统计数据受以下配置影响：
-- `network-optimization.teleport-optimization.enabled`
-- `network-optimization.teleport-optimization.boost-duration-seconds`
-- `network-optimization.teleport-optimization.filter-non-essential-packets`
+**示例**：
+```bash
+# 开启网络监控
+/aki-network true
+# ActionBar 显示：↓ 1.25 MB/s | ↑ 3.42 MB/s
+
+# 关闭网络监控
+/aki-network false
+```
+
+**说明**：
+- 流量数值基于数据包数量估算
+- 每个玩家可独立开关显示
+- 不影响服务器性能
 
 </details>
 

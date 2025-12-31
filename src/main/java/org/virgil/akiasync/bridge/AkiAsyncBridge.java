@@ -2854,5 +2854,30 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isDeprioritizeSoundsEnabled() {
         return config != null && config.isDeprioritizeSoundsEnabled();
     }
+    
+    @Override
+    public long getNetworkTrafficInRate() {
+        return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getCurrentInRate();
+    }
+    
+    @Override
+    public long getNetworkTrafficOutRate() {
+        return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getCurrentOutRate();
+    }
+    
+    @Override
+    public long getNetworkTrafficTotalIn() {
+        return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getTotalBytesIn();
+    }
+    
+    @Override
+    public long getNetworkTrafficTotalOut() {
+        return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getTotalBytesOut();
+    }
+    
+    @Override
+    public void calculateNetworkTrafficRates() {
+        org.virgil.akiasync.mixin.network.NetworkTrafficTracker.calculateRates();
+    }
 }
 

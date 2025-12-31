@@ -5,6 +5,7 @@ import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import org.virgil.akiasync.cache.CacheManager;
 import org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler;
 import org.virgil.akiasync.command.DebugCommand;
+import org.virgil.akiasync.command.NetworkCommand;
 import org.virgil.akiasync.command.ReloadCommand;
 import org.virgil.akiasync.command.VersionCommand;
 import org.virgil.akiasync.config.ConfigManager;
@@ -175,9 +176,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] /seed command restriction enabled (OP only)");
         }
 
-        registerCommand("aki-reload", new ReloadCommand(this));
-        registerCommand("aki-debug", new DebugCommand(this));
-        registerCommand("aki-version", new VersionCommand(this));
+        registerBasicCommand("aki-reload", new ReloadCommand(this));
+        registerBasicCommand("aki-debug", new DebugCommand(this));
+        registerBasicCommand("aki-version", new VersionCommand(this));
+        registerBasicCommand("aki-network", new NetworkCommand(this));
+        
+        org.virgil.akiasync.network.NetworkTrafficMonitor.getInstance(this);
         
         if (configManager.isEntityPacketThrottleEnabled()) {
             org.virgil.akiasync.mixin.network.EntityPacketThrottler.initialize(this);
@@ -198,7 +202,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
         getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version");
+        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-network");
         getLogger().info("");
         getLogger().info("[+] Core Features:");
         getLogger().info("  [+] Entity Packet Throttle: " + (configManager.isEntityPacketThrottleEnabled() ? "Enabled" : "Disabled"));
@@ -230,6 +234,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         BridgeManager.clearBridge();
 
         getLogger().info("Phase 2: Shutting down high-priority components...");
+        
+        org.virgil.akiasync.network.NetworkTrafficMonitor networkMonitor = 
+            org.virgil.akiasync.network.NetworkTrafficMonitor.getInstance();
+        if (networkMonitor != null) {
+            networkMonitor.shutdown();
+        }
         
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
@@ -414,11 +424,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
     }
 
-    private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
-        org.bukkit.command.PluginCommand command = getCommand(name);
-        if (command != null) {
-            command.setExecutor(executor);
-        }
+    private void registerBasicCommand(String name, io.papermc.paper.command.brigadier.BasicCommand executor) {
+        getLifecycleManager().registerEventHandler(io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(name, executor);
+        });
     }
 
 }

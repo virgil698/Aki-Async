@@ -183,7 +183,8 @@
     "general.TypeFilterableListOptimizationMixin",
     "entitytracker.EntityTrackerLinkedHashMapMixin",
     "worldgen.BiomeAccessOptimizationMixin",
-    "chunk.FastChunkBiomeAccessMixin"
+    "chunk.FastChunkBiomeAccessMixin",
+    "network.NetworkTrafficTrackerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

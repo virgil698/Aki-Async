@@ -741,4 +741,10 @@ public interface Bridge {
     boolean isPrioritizeChunkPacketsEnabled();
     boolean isDeprioritizeParticlesEnabled();
     boolean isDeprioritizeSoundsEnabled();
+    
+    long getNetworkTrafficInRate();
+    long getNetworkTrafficOutRate();
+    long getNetworkTrafficTotalIn();
+    long getNetworkTrafficTotalOut();
+    void calculateNetworkTrafficRates();
 }
