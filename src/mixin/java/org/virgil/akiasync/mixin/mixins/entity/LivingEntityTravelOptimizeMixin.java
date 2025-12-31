@@ -46,6 +46,42 @@ public class LivingEntityTravelOptimizeMixin {
             return;
         }
         
+        if (entity instanceof net.minecraft.world.entity.Mob mob) {
+            if (mob.getTarget() != null) {
+                aki$staticTicks = 0;
+                aki$lastPosition = entity.position();
+                return;
+            }
+            if (mob.getLastHurtByMob() != null) {
+                aki$staticTicks = 0;
+                aki$lastPosition = entity.position();
+                return;
+            }
+            if (mob instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+                if (neutralMob.getRemainingPersistentAngerTime() > 0 || neutralMob.getPersistentAngerTarget() != null) {
+                    aki$staticTicks = 0;
+                    aki$lastPosition = entity.position();
+                    return;
+                }
+            }
+            if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+                aki$staticTicks = 0;
+                aki$lastPosition = entity.position();
+                return;
+            }
+            if (mob.getMoveControl() != null && mob.getMoveControl().hasWanted()) {
+                aki$staticTicks = 0;
+                aki$lastPosition = entity.position();
+                return;
+            }
+        }
+        
+        if (entity.hurtTime > 0 || entity.isOnFire()) {
+            aki$staticTicks = 0;
+            aki$lastPosition = entity.position();
+            return;
+        }
+        
         if (entity.hasImpulse) {
             aki$staticTicks = 0;
             aki$lastPosition = entity.position();

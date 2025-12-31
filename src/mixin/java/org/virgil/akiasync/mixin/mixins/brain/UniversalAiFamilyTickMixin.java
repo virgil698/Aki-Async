@@ -73,6 +73,10 @@ public abstract class UniversalAiFamilyTickMixin {
             return; 
         }
         
+        if (mob instanceof net.minecraft.world.entity.monster.ZombifiedPiglin) {
+            return;
+        }
+        
         if (enabledEntities != null) {
             net.minecraft.world.entity.EntityType<?> type = mob.getType();
             if (type != null && !enabledEntities.contains(type.toString())) {
@@ -84,7 +88,13 @@ public abstract class UniversalAiFamilyTickMixin {
         if (level == null) return;
 
         boolean isNewEntity = aki$next == 0;
-        boolean inDanger = mob.isInLava() || mob.isOnFire() || mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0;
+        boolean hasTarget = mob.getTarget() != null || mob.getLastHurtByMob() != null;
+        boolean isNavigating = mob.getNavigation() != null && mob.getNavigation().isInProgress();
+        boolean isAngryNeutral = false;
+        if (mob instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            isAngryNeutral = neutralMob.getRemainingPersistentAngerTime() > 0 || neutralMob.getPersistentAngerTarget() != null;
+        }
+        boolean inDanger = mob.isInLava() || mob.isOnFire() || mob.getHealth() < mob.getMaxHealth() || mob.hurtTime > 0 || hasTarget || isNavigating || isAngryNeutral;
 
         if (!isNewEntity && !inDanger && level.getGameTime() < aki$next) return;
 
@@ -110,6 +120,20 @@ public abstract class UniversalAiFamilyTickMixin {
 
     @Unique
     private int aki$calculateDynamicTickInterval(Mob mob, ServerLevel level) {
+        
+        if (mob.getTarget() != null || mob.getLastHurtByMob() != null) {
+            return 1;
+        }
+        
+        if (mob instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            if (neutralMob.getRemainingPersistentAngerTime() > 0 || neutralMob.getPersistentAngerTarget() != null) {
+                return 1;
+            }
+        }
+        
+        if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+            return 1;
+        }
         
         if (mob.isInWater() || mob.isInLava()) {
             return 1;
@@ -151,6 +175,43 @@ public abstract class UniversalAiFamilyTickMixin {
         }
         
         if (mob.isInWater() || mob.isInLiquid()) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
+        if (mob.getTarget() != null) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
+        if (mob.getLastHurtByMob() != null) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
+        if (mob instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            if (neutralMob.getRemainingPersistentAngerTime() > 0) {
+                aki$stillTicks = 0;
+                aki$lastPos = mob.position();
+                return false;
+            }
+            if (neutralMob.getPersistentAngerTarget() != null) {
+                aki$stillTicks = 0;
+                aki$lastPos = mob.position();
+                return false;
+            }
+        }
+        
+        if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+            aki$stillTicks = 0;
+            aki$lastPos = mob.position();
+            return false;
+        }
+        
+        if (mob.hurtTime > 0) {
             aki$stillTicks = 0;
             aki$lastPos = mob.position();
             return false;

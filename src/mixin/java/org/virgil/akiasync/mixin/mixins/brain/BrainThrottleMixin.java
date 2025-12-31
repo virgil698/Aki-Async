@@ -34,6 +34,43 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             return;
         }
         
+        if (entity instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            if (neutralMob.getRemainingPersistentAngerTime() > 0) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+            if (neutralMob.getPersistentAngerTarget() != null) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+        }
+        
+        if (entity instanceof net.minecraft.world.entity.Mob mob) {
+            if (mob.getTarget() != null) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+            if (mob.getLastHurtByMob() != null) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+            if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+        }
+        
+        if (entity.hurtTime > 0 || entity.isOnFire()) {
+            akiasync$stillTicks = 0;
+            akiasync$lastPos = entity.position();
+            return;
+        }
+        
         long gameTime = level.getGameTime();
         if (gameTime < this.akiasync$skipUntil) {
             ci.cancel();
