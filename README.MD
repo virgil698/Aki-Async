@@ -394,20 +394,6 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 
 This project is licensed under the [GPL-3.0 License](LICENSE)
 
-### AkiAsync Community Edition
-
-This is a **completely free community version**:
-- ✅ Completely free to use
-- ✅ Commercial use allowed
-- ✅ Open source code
-- ✅ Long-term maintenance and updates
-
-Under GPL-3.0 license:
-- ✅ Free to use, modify, and distribute
-- ✅ Can be used on commercial servers
-- ⚠️ Modified versions must also be open source (GPL-3.0)
-- ⚠️ Must retain original author copyright notice
-
 ---
 
 ## References & Acknowledgments
