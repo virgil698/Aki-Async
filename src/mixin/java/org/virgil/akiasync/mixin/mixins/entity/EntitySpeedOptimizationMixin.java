@@ -86,7 +86,7 @@ public abstract class EntitySpeedOptimizationMixin {
         
         
         Vec3 movement = this.getDeltaMovement();
-        if (movement.x == 0.0 && movement.z == 0.0) {
+        if (movement == null || (movement.x == 0.0 && movement.z == 0.0)) {
             
             BlockPos currentPos = this.blockPosition();
             if (currentPos.equals(akiasync$cachedSpeedFactorPos)) {

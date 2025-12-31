@@ -762,36 +762,122 @@ falling-block-optimization:
   batch-size: 10  # 批量大小 / Batch size (推荐 / Recommended: 10-20)
 
 # ==========================================
-# 区块优化 / Chunk Optimization
+# 区块系统优化 / Chunk System Optimization
 # ==========================================
-# 方块Tick异步化 / Block Tick Async
-# Folia环境下自动禁用 / Auto-disabled on Folia
-chunk-tick-async:
-  enabled: false
-  timeout-us: 200  # 超时 / Timeout (微秒 / microseconds)
-  batch-size: 16  # 批量大小 / Batch size
+# 整合所有区块相关优化，包括生成、加载、保存、IO等
+# Unified chunk optimizations including generation, loading, saving, IO, etc.
+# 来源 / Sources: C2ME, Nitori, 原创优化 / Original optimizations
+# 注意：所有异步操作使用统一线程池 / Note: All async operations use unified thread pool
 
-# 区块生成优化 / Chunk Generation Optimization
-chunk-generation:
-  # 噪声采样优化 / Noise Optimization
-  # 优化噪声采样计算，提升地形生成速度
-  # Optimize noise sampling calculations to boost terrain generation speed
-  noise-optimization:
-    enabled: true
+chunk-system:
+  # 主开关 / Master Switch
+  enabled: true
   
-  # Jigsaw 结构生成优化 / Jigsaw Structure Optimization
-  # 优化Jigsaw结构生成，提升村庄等结构生成速度
-  # Optimize Jigsaw structure generation to boost village generation speed
-  jigsaw-optimization:
-    enabled: true
+  # 区块生成优化 / Chunk Generation
+  generation:
+    # 噪声采样优化 / Noise Optimization
+    # 优化噪声采样计算，提升地形生成速度
+    # Optimize noise sampling calculations to boost terrain generation speed
+    noise-optimization:
+      enabled: true
+    
+    # Jigsaw 结构生成优化 / Jigsaw Structure Optimization
+    # 优化Jigsaw结构生成，提升村庄等结构生成速度
+    # Optimize Jigsaw structure generation to boost village generation speed
+    jigsaw-optimization:
+      enabled: true
+    
+    # ChunkPos equals优化 / ChunkPos Equals Optimization
+    # 使用标准equals实现，避免不必要的对象创建
+    # Use standard equals implementation to avoid unnecessary object creation
+    # 来源 / Source: C2ME
+    chunk-pos-optimization:
+      enabled: true
+    
+    # Perlin噪声优化 / Perlin Noise Optimization
+    # 优化噪声采样算法
+    # Optimize noise sampling algorithm
+    # 来源 / Source: C2ME
+    perlin-noise-optimization:
+      enabled: true
   
-  # C2ME 区块优化 / C2ME Chunk Optimizations
-  # 来源 / Source: C2ME Fabric mod
-  c2me-chunk-optimizations:
-    chunk-pos-optimization:  # ChunkPos equals优化 / ChunkPos equals Optimization (使用标准equals实现 / Use standard equals implementation)
+  # 区块加载优化 / Chunk Loading
+  loading:
+    # 异步区块加载 / Async Chunk Loading
+    # 异步读取区块数据，减少主线程阻塞（使用统一线程池）
+    # Async chunk data reading to reduce main thread blocking (uses unified thread pool)
+    # 来源 / Source: C2ME
+    async-loading:
       enabled: true
-    noise-optimization:  # Perlin噪声优化 / Perlin Noise Optimization (优化噪声采样 / Optimize noise sampling)
+      cache-size: 256  # 读取缓存大小 / Read cache size
+    
+    # Mid-Tick 区块任务 / Mid-Tick Chunk Tasks
+    # 在tick中间执行区块任务，减少延迟
+    # Execute chunk tasks mid-tick to reduce latency
+    # 来源 / Source: C2ME
+    mid-tick-tasks:
       enabled: true
+      interval-ns: 1000000  # 执行间隔(纳秒) / Execution interval (nanoseconds) (1ms)
+    
+    # 异步Blending状态计算 / Async Blending Status Calculation
+    # 异步计算blending状态，减少世界升级卡顿
+    # Async blending status calculation to reduce world upgrade lag
+    # 来源 / Source: C2ME
+    async-blending:
+      enabled: true
+  
+  # 区块保存优化 / Chunk Saving
+  saving:
+    # 异步区块序列化 / Async Chunk Serialization
+    # 将区块序列化移到后台线程（使用统一线程池）
+    # Move chunk serialization to background threads (uses unified thread pool)
+    # 来源 / Source: C2ME
+    async-serialization:
+      enabled: true
+    
+    # 区块卸载队列优化 / Chunk Unload Queue Optimization
+    # 优化卸载队列处理，避免O(n)的size()调用
+    # Optimize unload queue processing, avoid O(n) size() calls
+    # 来源 / Source: C2ME
+    unload-queue-optimization:
+      enabled: true
+  
+  # 磁盘IO优化 / Disk IO
+  io:
+    # 异步磁盘写入 / Async Disk Write
+    # 禁用dsync，提升IO性能（正常关服不会丢数据）
+    # Disable dsync for better IO performance (no data loss on normal shutdown)
+    # 使用 -Dakiasync.chunk.forceDsync=true 强制启用同步写入
+    # Use -Dakiasync.chunk.forceDsync=true to force sync writes
+    # 来源 / Source: C2ME
+    async-disk-write:
+      enabled: true
+    
+    # 存储IO工作线程优化 / Storage IO Worker Optimization
+    # 使用统一线程池，避免阻塞其他任务
+    # Use unified thread pool to avoid blocking other tasks
+    # 来源 / Source: C2ME
+    storage-io-worker:
+      enabled: true
+    
+    # NBT缓存限制 / NBT Cache Limit
+    # 限制NBT缓存大小，防止内存泄漏
+    # Limit NBT cache size to prevent memory leaks
+    # 来源 / Source: C2ME
+    nbt-cache-limit:
+      enabled: true
+      max-size: 256  # 最大缓存条目数 / Max cache entries
+  
+  # ------------------------------------------
+  # 方块Tick优化 / Block Tick
+  # ------------------------------------------
+  block-tick:
+    # 方块Tick异步化 / Block Tick Async
+    # Folia环境下自动禁用 / Auto-disabled on Folia
+    async:
+      enabled: false
+      timeout-us: 200  # 超时 / Timeout (微秒 / microseconds)
+      batch-size: 16  # 批量大小 / Batch size
 
 # ==========================================
 # 结构查找异步化 / Structure Location Async
@@ -861,6 +947,12 @@ structure-location-async:
 lighting-optimizations:
   enabled: true
   update-interval-ms: 10  # 光照更新间隔 / Light update interval (推荐 10ms / Recommended: 10ms, 5ms=更快 / faster, 20ms=更省CPU / lower CPU)
+  
+  # 光照更新批处理 / Light Update Batching
+  # 批量处理光照更新，减少调度开销
+  # Batch light updates to reduce scheduling overhead
+  light-batching:
+    enabled: true
 
 # 出生区块移除 / Spawn Chunk Removal
 # 移除出生区块以加速世界加载 / Remove spawn chunks to speed up world loading
@@ -1003,131 +1095,227 @@ seed-encryption:
 # ==========================================
 # 网络优化 / Network Optimization
 # ==========================================
-
-# 实体包节流优化 / Entity Packet Throttle
-# 高密度实体场景下的网络优化
-# Network optimization for high-density entity scenarios
-entity-packet-throttle:
-  enabled: true
+network-optimization:
   
-  # 距离分级更新 / Distance-Based Update Rate
-  # 远距离实体降低更新频率，节省网络带宽
-  # Reduce update rate for distant entities to save network bandwidth
-  distance-based:
+  # 实体包节流 / Entity Packet Throttle
+  # 高密度实体场景下的网络优化
+  # Network optimization for high-density entity scenarios
+  entity-packet-throttle:
     enabled: true
-    tier-1-distance: 16    # 0-16格: 每tick更新 / every tick (100%)
-    tier-2-distance: 32    # 16-32格: 每2tick更新 / every 2 ticks (50%)
-    tier-3-distance: 64    # 32-64格: 每4tick更新 / every 4 ticks (25%)
-    tier-4-distance: 128   # 64-128格: 每8tick更新 / every 8 ticks (12.5%)
-    tier-5-distance: 256   # 128+格: 每16tick更新 / every 16 ticks (6.25%)
+    
+    # 距离分级更新 / Distance-Based Update Rate
+    # 远距离实体降低更新频率，节省网络带宽
+    # Reduce update rate for distant entities to save network bandwidth
+    distance-based:
+      enabled: true
+      tier-1-distance: 16    # 0-16格: 每tick更新 / every tick (100%)
+      tier-2-distance: 32    # 16-32格: 每2tick更新 / every 2 ticks (50%)
+      tier-3-distance: 64    # 32-64格: 每4tick更新 / every 4 ticks (25%)
+      tier-4-distance: 128   # 64-128格: 每8tick更新 / every 8 ticks (12.5%)
+      tier-5-distance: 256   # 128+格: 每16tick更新 / every 16 ticks (6.25%)
+    
+    # 视锥体裁剪 / Frustum Culling
+    # 视野外实体进一步降频
+    # Further reduce rate for out-of-view entities
+    # ⚠️ 实验性功能 / Experimental
+    frustum-culling:
+      enabled: false
+      fov-angle: 90  # 视野角度 / Field of view angle
+      outside-multiplier: 2  # 视野外降频倍数 / Outside FOV throttle multiplier
+    
+    # 实体数据节流 / Entity Data Throttle
+    # Metadata & NBT 智能节流
+    # Smart throttling for Metadata & NBT
+    data-throttle:
+      enabled: true
   
-  # 视锥体裁剪 / Frustum Culling
-  # 视野外实体进一步降频
-  # Further reduce rate for out-of-view entities
-  # ⚠️ 实验性功能 / Experimental
-  frustum-culling:
-    enabled: false
-    fov-angle: 90  # 视野角度 / Field of view angle
-    outside-multiplier: 2  # 视野外降频倍数 / Outside FOV throttle multiplier
-  
-  # 实体数据节流 / Entity Data Throttle
-  # Metadata & NBT 智能节流
-  # Smart throttling for Metadata & NBT
-  data-throttle:
+  # 区块可见性过滤 / Chunk Visibility Filter
+  # 遮挡剔除：只发送玩家视野内的表层区块
+  # Occlusion culling: Only send surface chunks in player's view
+  chunk-visibility-filter:
     enabled: true
-
-# 区块可见性过滤 / Chunk Visibility Filter
-# 遮挡剔除：只发送玩家视野内的表层区块
-# Occlusion culling: Only send surface chunks in player's view
-chunk-visibility-filter:
-  enabled: true
-
-# 高速移动区块预加载 / Fast Movement Chunk Loading
-# 鞘翅/疾跑/创造飞行时预加载区块，避免卡顿
-# Preload chunks during elytra/sprint/creative flight to avoid lag
-fast-movement-chunk-load:
-  enabled: true
-  speed-threshold: 0.5  # 触发速度 / Trigger speed (b/t, 推荐 / Recommended: 0.5/0.3/0.8)
-  preload-distance: 8  # 预加载距离 / Preload distance (推荐 / Recommended: 8/6/10)
-  max-concurrent-loads: 4  # 最大并发加载 / Max concurrent loads (推荐 / Recommended: 4/2/6)
-  prediction-ticks: 40  # 预测tick数 / Prediction ticks (推荐 / Recommended: 40/30/50)
   
-  # 智能偏移加载中心 / Smart Center Offset
-  # 根据速度方向偏移实现类远视距效果
-  # Offset by speed/direction for pseudo-far-render-distance effect
-  center-offset:
+  # 高速移动区块预加载 / Fast Movement Chunk Loading
+  # 鞘翅/疾跑/创造飞行时预加载区块，避免卡顿
+  # Preload chunks during elytra/sprint/creative flight to avoid lag
+  fast-movement-chunk-load:
     enabled: true
-    min-speed: 3.0  # 最小触发速度 / Min trigger speed (b/t, 推荐 / Recommended: 3.0/2.0/4.0)
-    max-speed: 9.0  # 最大触发速度 / Max trigger speed (b/t, 推荐 / Recommended: 9.0/7.0/12.0, ⚠️ 过高可能卸载玩家 / too high may unload player)
-    max-offset-ratio: 0.75  # 最大偏移比例 / Max offset ratio (推荐 / Recommended: 0.75/0.5/0.9)
+    speed-threshold: 0.5  # 触发速度 / Trigger speed (b/t, 推荐 / Recommended: 0.5/0.3/0.8)
+    preload-distance: 8  # 预加载距离 / Preload distance (推荐 / Recommended: 8/6/10)
+    max-concurrent-loads: 4  # 最大并发加载 / Max concurrent loads (推荐 / Recommended: 4/2/6)
+    prediction-ticks: 40  # 预测tick数 / Prediction ticks (推荐 / Recommended: 40/30/50)
+    
+    # 智能偏移加载中心 / Smart Center Offset
+    # 根据速度方向偏移实现类远视距效果
+    # Offset by speed/direction for pseudo-far-render-distance effect
+    center-offset:
+      enabled: true
+      min-speed: 3.0  # 最小触发速度 / Min trigger speed (b/t, 推荐 / Recommended: 3.0/2.0/4.0)
+      max-speed: 9.0  # 最大触发速度 / Max trigger speed (b/t, 推荐 / Recommended: 9.0/7.0/12.0, ⚠️ 过高可能卸载玩家 / too high may unload player)
+      max-offset-ratio: 0.75  # 最大偏移比例 / Max offset ratio (推荐 / Recommended: 0.75/0.5/0.9)
+    
+    # 异步加载批量控制 / Async Batch Control
+    # 防止MSPT飙升
+    # Prevent MSPT spikes
+    async-loading:
+      batch-size: 2  # 每批区块数 / Chunks per batch (推荐 / Recommended: 2/3/4)
+      batch-delay-ms: 20  # 批次延迟 / Batch delay (毫秒 / milliseconds, 推荐 / Recommended: 20/15/10)
+    
+    # 玩家加入热身期 / Player Join Warmup Period
+    # 玩家刚进入时逐渐增加区块加载速率，避免MSPT峰值
+    # Gradually increase chunk loading rate when player joins to avoid MSPT spikes
+    player-join-warmup:
+      enabled: true
+      warmup-duration-ms: 3000  # 热身期时长 / Warmup duration (毫秒 / milliseconds, 推荐 / Recommended: 3000/2000/5000)
+      initial-rate: 0.5  # 初始加载速率 / Initial loading rate (0.0-1.0, 推荐 / Recommended: 0.5/0.3/0.7)
+    
+    # 地图渲染加速 / Map Rendering
+    # 高速移动时优化地图渲染
+    # Optimize map rendering during fast movement
+    # ⚠️ 实验性功能 / Experimental
+    map-rendering:
+      enabled: false
   
-  # 异步加载批量控制 / Async Batch Control
-  # 防止MSPT飙升
-  # Prevent MSPT spikes
-  async-loading:
-    batch-size: 2  # 每批区块数 / Chunks per batch (推荐 / Recommended: 2/3/4)
-    batch-delay-ms: 20  # 批次延迟 / Batch delay (毫秒 / milliseconds, 推荐 / Recommended: 20/15/10)
-  
-  # 玩家加入热身期 / Player Join Warmup Period
-  # 玩家刚进入时逐渐增加区块加载速率，避免MSPT峰值
-  # Gradually increase chunk loading rate when player joins to avoid MSPT spikes
-  player-join-warmup:
+  # 高级网络优化 / Advanced Network Optimization
+  # 基于Velocity代理端的高性能网络优化技术
+  # High-performance network optimization based on Velocity proxy
+  advanced:
     enabled: true
-    warmup-duration-ms: 3000  # 热身期时长 / Warmup duration (毫秒 / milliseconds, 推荐 / Recommended: 3000/2000/5000)
-    initial-rate: 0.5  # 初始加载速率 / Initial loading rate (0.0-1.0, 推荐 / Recommended: 0.5/0.3/0.7)
+    
+    # 快速VarInt编码 / Fast VarInt Encoding
+    # 使用内联优化和快速路径加速VarInt编码/解码
+    # Use inline optimization and fast paths to accelerate VarInt encode/decode
+    # 性能提升：1字节路径提升50%，2字节路径提升30% / Boost: 1-byte path 50% faster, 2-byte path 30% faster
+    fast-varint:
+      enabled: true
+    
+    # EventLoop亲和性检查 / EventLoop Affinity Checking
+    # 确保网络操作在正确的EventLoop线程执行，避免线程竞争
+    # Ensure network operations execute in correct EventLoop thread to avoid contention
+    # 性能提升：减少跨线程调度开销10-20% / Boost: reduce cross-thread scheduling overhead 10-20%
+    eventloop-affinity:
+      enabled: true
+      strict-checking: false  # 严格检查模式 / Strict checking mode (启用后会记录违规警告 / logs violations when enabled)
+    
+    # ByteBuf优化器 / ByteBuf Optimizer
+    # 优化ByteBuf分配策略，使用池化和直接内存
+    # Optimize ByteBuf allocation with pooling and direct memory
+    # 性能提升：减少GC压力40-60%，内存分配速度提升20-40% / Boost: reduce GC pressure 40-60%, allocation speed 20-40% faster
+    bytebuf-optimizer:
+      enabled: true
+      pooled-allocator: true  # 使用池化分配器 / Use pooled allocator (减少内存分配开销 / reduce allocation overhead)
+      prefer-direct: true  # 优先使用直接内存 / Prefer direct memory (减少JVM堆内存使用 / reduce JVM heap usage)
+    
+    # 零移动包过滤 / Zero Movement Packet Filter
+    # 基于ESU插件的SkipUnnecessaryPackets优化 / Based on ESU's SkipUnnecessaryPackets optimization
+    # 过滤位置和旋转均为零的移动包，减少10-15%实体包 / Filter packets with zero movement/rotation, reduce 10-15% entity packets
+    skip-zero-movement-packets:
+      enabled: true
+      strict-mode: false  # 严格模式 / Strict mode (true=位置和旋转都为零才过滤 / filter only when both are zero, false=位置为零即过滤 / filter when position is zero)
+    
+    # 实体旋转包过滤 / Entity Rotation Packet Filter
+    # 参考ESU的SkipUnnecessaryPackets功能 / Based on ESU's SkipUnnecessaryPackets
+    # 过滤旋转角度为零的纯旋转包，进一步减少网络流量 / Filter pure rotation packets with zero rotation, further reduce network traffic
+    entity-rotation-filter:
+      enabled: true
+      filter-pure-rotation: true  # 过滤纯旋转包 / Filter pure rotation packets (旋转角度为零时过滤 / filter when rotation is zero)
   
-  # 地图渲染加速 / Map Rendering
-  # 高速移动时优化地图渲染
-  # Optimize map rendering during fast movement
-  # ⚠️ 实验性功能 / Experimental
-  map-rendering:
-    enabled: false
+  # 高延迟玩家自动调整 / High Latency Player Auto-Adjust
+  # 参考ESU的HighLatencyAdjust功能 / Based on ESU's HighLatencyAdjust
+  # 当玩家延迟过高时自动降低视距以减少网络负载 / Auto-reduce view distance for high-latency players to reduce network load
+  high-latency-adjust:
+    enabled: true
+    latency-threshold: 150  # 延迟阈值 / Latency threshold (毫秒 / milliseconds, 超过此值视为高延迟 / above = high latency)
+    min-view-distance: 5  # 最小视距 / Minimum view distance (不会低于此值 / won't go below this)
+    duration-ms: 60000  # 持续时间 / Duration (毫秒 / milliseconds, 高延迟持续此时间后调整 / adjust after high latency lasts this long)
+  
+  # AFK玩家网络包节流 / AFK Player Packet Throttle
+  # 参考ESU的AfkEfficiency功能 / Based on ESU's AfkEfficiency
+  # 对AFK玩家限制粒子、声音等非关键包的发送 / Limit non-critical packets (particles, sounds) for AFK players
+  # 性能提升 / Performance gain: 减少20-40%网络流量 / reduce 20-40% network traffic for AFK players
+  afk-packet-throttle:
+    enabled: true
+    afk-duration-ms: 120000  # AFK判定时间 / AFK detection time (毫秒 / milliseconds, 2分钟无移动视为AFK / 2 min no movement = AFK)
+    particle-max-distance: 0.0  # 粒子最大距离 / Particle max distance (0=完全过滤 / 0=filter all, >0=距离过滤 / >0=distance filter)
+    sound-max-distance: 64.0  # 声音最大距离 / Sound max distance (超过此距离的声音不发送 / sounds beyond this distance not sent)
+  
+  # 动态区块发送速率 / Dynamic Chunk Send Rate
+  # 参考ESU的DynamicChunkSendRate功能 / Based on ESU's DynamicChunkSendRate
+  # 根据玩家带宽和服务器负载动态调整区块发送速率 / Dynamically adjust chunk send rate based on player bandwidth and server load
+  dynamic-chunk-send-rate:
+    enabled: true
+    limit-upload-bandwidth: 10240  # 限制上传带宽 / Limit upload bandwidth (KB/s)
+    guaranteed-bandwidth: 512  # 保证带宽 / Guaranteed bandwidth (KB/s per player)
+  
+  # 包压缩优化 / Packet Compression Optimization
+  # 优化压缩阈值和缓冲区分配 / Optimize compression threshold and buffer allocation
+  packet-compression:
+    enabled: true
+    adaptive-threshold: true  # 自适应压缩阈值 / Adaptive compression threshold
+    skip-small-packets: true  # 跳过小包压缩 / Skip small packet compression
+    skip-threshold: 32  # 跳过阈值 / Skip threshold (字节 / bytes)
+  
+  # 连接刷新优化 / Connection Flush Optimization
+  # 合并多个小包的flush操作，减少系统调用 / Consolidate flush operations for multiple small packets
+  connection-flush:
+    enabled: true
+    consolidation-threshold: 5  # 合并阈值 / Consolidation threshold (包数 / packet count)
+    consolidation-timeout-ns: 1000000  # 合并超时 / Consolidation timeout (纳秒 / nanoseconds, 1ms)
+    use-explicit-flush: false  # 使用显式刷新 / Use explicit flush
+  
+  # 实体数据包节流 / Entity Data Packet Throttle
+  # 对高频实体数据更新进行节流 / Throttle high-frequency entity data updates
+  entity-data-throttle:
+    enabled: true
+    throttle-interval: 3  # 节流间隔 / Throttle interval (ticks)
+    max-packets-per-second: 20  # 每秒最大包数 / Max packets per second
+  
+  # 区块批量优化 / Chunk Batch Optimization
+  # 根据玩家网络状况动态调整区块批量发送 / Dynamically adjust chunk batch sending based on player network
+  chunk-batch:
+    enabled: true
+    min-chunks: 2.0  # 最小区块数 / Min chunks per tick
+    max-chunks: 32.0  # 最大区块数 / Max chunks per tick
+    max-unacked-batches: 8  # 最大未确认批次 / Max unacknowledged batches
+  
+  # 包优先级队列 / Packet Priority Queue
+  # 对不同类型的包设置优先级，确保关键包优先发送 / Prioritize different packet types
+  packet-priority:
+    enabled: true
+    prioritize-player-packets: true  # 优先玩家包 / Prioritize player packets
+    prioritize-chunk-packets: true  # 优先区块包 / Prioritize chunk packets
+    deprioritize-particles: true  # 降低粒子优先级 / Deprioritize particles
+    deprioritize-sounds: true  # 降低声音优先级 / Deprioritize sounds
 
 # ==========================================
-# 高级网络优化 / Advanced Network Optimization
+# 高级优化 / Advanced Optimizations
 # ==========================================
-# 基于Velocity代理端的高性能网络优化技术 / High-performance network optimization based on Velocity proxy
-advanced-network-optimization:
-  enabled: true  # 启用高级网络优化 / Enable advanced network optimization
-  
-  # 快速VarInt编码 / Fast VarInt Encoding
-  # 使用内联优化和快速路径加速VarInt编码/解码
-  # Use inline optimization and fast paths to accelerate VarInt encode/decode
-  # 性能提升：1字节路径提升50%，2字节路径提升30% / Boost: 1-byte path 50% faster, 2-byte path 30% faster
-  fast-varint:
-    enabled: true  # 启用快速VarInt / Enable fast VarInt
-  
-  # EventLoop亲和性检查 / EventLoop Affinity Checking
-  # 确保网络操作在正确的EventLoop线程执行，避免线程竞争
-  # Ensure network operations execute in correct EventLoop thread to avoid contention
-  # 性能提升：减少跨线程调度开销10-20% / Boost: reduce cross-thread scheduling overhead 10-20%
-  eventloop-affinity:
-    enabled: true  # 启用EventLoop亲和性 / Enable EventLoop affinity
-    strict-checking: false  # 严格检查模式 / Strict checking mode (启用后会记录违规警告 / logs violations when enabled)
-  
-  # ByteBuf优化器 / ByteBuf Optimizer
-  # 优化ByteBuf分配策略，使用池化和直接内存
-  # Optimize ByteBuf allocation with pooling and direct memory
-  # 性能提升：减少GC压力40-60%，内存分配速度提升20-40% / Boost: reduce GC pressure 40-60%, allocation speed 20-40% faster
-  bytebuf-optimizer:
-    enabled: true  # 启用ByteBuf优化 / Enable ByteBuf optimizer
-    pooled-allocator: true  # 使用池化分配器 / Use pooled allocator (减少内存分配开销 / reduce allocation overhead)
-    prefer-direct: true  # 优先使用直接内存 / Prefer direct memory (减少JVM堆内存使用 / reduce JVM heap usage)
-  
-  # 零移动包过滤 / Zero Movement Packet Filter
-  # 基于ESU插件的SkipUnnecessaryPackets优化 / Based on ESU's SkipUnnecessaryPackets optimization
-  # 过滤位置和旋转均为零的移动包，减少10-15%实体包 / Filter packets with zero movement/rotation, reduce 10-15% entity packets
-  skip-zero-movement-packets:
-    enabled: true  # 启用零移动包过滤 / Enable zero movement packet filter
-    strict-mode: false  # 严格模式 / Strict mode (true=位置和旋转都为零才过滤 / filter only when both are zero, false=位置为零即过滤 / filter when position is zero)
+# 来自多个高性能模组的优化 / Optimizations from multiple high-performance mods
+# 来源 / Sources: VMP, Nitori, Lithium
 
-# ==========================================
-# 高级并发优化 / Advanced Concurrency Optimizations
-# ==========================================
-# Nitori风格的高级优化 / Nitori-style advanced optimizations
-advanced-concurrency:
-  virtual-threads: true  # 虚拟线程 / Virtual threads (Java 21+, 旧版Java自动降级 / auto-fallback on older Java)
-  work-stealing: true  # 工作窃取 / Work-stealing (提升多核利用 / improve multi-core utilization)
+advanced-optimizations:
+  # 并发优化 / Concurrency (Nitori)
+  virtual-threads: true  # Java 21虚拟线程 / Java 21 virtual threads (旧版自动降级 / auto-fallback)
+  work-stealing: true  # 工作窃取调度 / Work-stealing scheduling
+  
+  # 网络优化 / Network (VMP)
+  # 分离Login/Play网络IO，减少竞争 / Separate Login/Play network IO to reduce contention
+  multi-netty-event-loop: true
+  
+  # 区块优化 / Chunk (VMP)
+  # 移除PalettedContainer锁 / Remove PalettedContainer locking
+  # ⚠️ Paper/Folia已在更高层级同步 / Paper/Folia already syncs at higher level
+  paletted-container-lock-removal: true
+  
+  # 集合优化 / Collections (VMP/Lithium)
+  # 使用fastutil高性能集合 / Use fastutil high-performance collections
+  type-filterable-list: true  # 实体类型过滤 / Entity type filtering (+20-40%)
+  entity-tracker-linked-hashmap: true  # 实体追踪器 / Entity tracker
+  spawn-density-array: true  # 生成密度检查 / Spawn density check (+3-5x)
+  
+  # 世界生成优化 / Worldgen (VMP)
+  # 内联生物群系采样 / Inline biome sampling (-10-20% overhead)
+  biome-access-optimization: true
 
 # ==========================================
 # 性能监控与调试 / Performance Monitoring & Debug

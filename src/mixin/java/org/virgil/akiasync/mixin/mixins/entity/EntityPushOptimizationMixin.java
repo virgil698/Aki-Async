@@ -121,6 +121,7 @@ public abstract class EntityPushOptimizationMixin {
         akiasync$recordPush(self.getId(), push);
         
         Vec3 currentDelta = self.getDeltaMovement();
+        if (currentDelta == null) return;
         self.setDeltaMovement(
             currentDelta.x + push.x,
             currentDelta.y,
@@ -186,6 +187,7 @@ public abstract class EntityPushOptimizationMixin {
             }
             
             Vec3 delta = entity.getDeltaMovement();
+            if (delta == null) return false;
             
             double horizontalSpeedSqr = delta.x * delta.x + delta.z * delta.z;
             

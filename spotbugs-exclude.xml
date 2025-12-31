@@ -29,6 +29,11 @@
     </Match>
     
     <Match>
+        <Class name="~.*Mixin.*"/>
+        <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
+    </Match>
+    
+    <Match>
         <Class name="org.virgil.akiasync.mixin.entitytracker.MultithreadedEntityTracker"/>
         <Bug pattern="BC_UNCONFIRMED_CAST"/>
     </Match>

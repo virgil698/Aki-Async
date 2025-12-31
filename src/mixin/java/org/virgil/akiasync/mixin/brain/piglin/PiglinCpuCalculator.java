@@ -64,8 +64,8 @@ public final class PiglinCpuCalculator {
             int newTimer = !threats.isEmpty() ? 1 : 0;
             PiglinDiff diff = new PiglinDiff();
             
-            // Fix: Set attack target for piglins
-            if (closestHostile != null && closestDistSqr < 256.0) { // 16 blocks
+            
+            if (closestHostile != null && closestDistSqr < 256.0) { 
                 diff.setAttackTarget(closestHostile.playerId());
             }
             

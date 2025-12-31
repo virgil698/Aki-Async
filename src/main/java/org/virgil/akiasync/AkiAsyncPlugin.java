@@ -101,6 +101,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("  - EventLoop Affinity: " + (configManager.isEventLoopAffinityEnabled() ? "Enabled (Strict: " + configManager.isStrictEventLoopChecking() + ")" : "Disabled"));
             getLogger().info("  - ByteBuf Optimizer: " + (configManager.isByteBufOptimizerEnabled() ? "Enabled (Pooled: " + configManager.isPooledByteBufAllocator() + ", Direct: " + configManager.isDirectByteBufPreferred() + ")" : "Disabled"));
         }
+        
+        
+        if (configManager.isMultiNettyEventLoopEnabled()) {
+            org.virgil.akiasync.network.MultiNettyEventLoopManager.initialize(true);
+            getLogger().info("[AkiAsync] VMP Multi-Netty Event Loop enabled");
+        }
 
         if (configManager.isAsyncPathfindingEnabled()) {
             org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.initialize();
@@ -277,6 +283,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("NetworkOptimizationManager shutdown completed");
         } catch (Exception e) {
             getLogger().warning("Failed to shutdown NetworkOptimizationManager: " + e.getMessage());
+        }
+        
+        try {
+            org.virgil.akiasync.network.MultiNettyEventLoopManager.shutdown();
+            getLogger().info("MultiNettyEventLoopManager shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("Failed to shutdown MultiNettyEventLoopManager: " + e.getMessage());
         }
 
         if (chunkLoadScheduler != null) {

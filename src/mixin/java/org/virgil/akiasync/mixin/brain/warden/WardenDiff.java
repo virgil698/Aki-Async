@@ -47,7 +47,7 @@ public final class WardenDiff {
         
         if (shouldDig) {
             brain.setMemoryWithExpiry(MemoryModuleType.DIG_COOLDOWN, 
-                net.minecraft.util.Unit.INSTANCE, 1200L); // 1200 ticks = 60秒冷却
+                net.minecraft.util.Unit.INSTANCE, 1200L); 
         }
     }
     

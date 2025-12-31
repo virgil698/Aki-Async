@@ -49,6 +49,7 @@ public class MinecartTickOptimizeMixin {
         AbstractMinecart minecart = (AbstractMinecart) (Object) this;
         Vec3 currentPos = minecart.position();
         Vec3 deltaMovement = minecart.getDeltaMovement();
+        if (deltaMovement == null) return;
         
         net.minecraft.core.BlockPos blockPos = minecart.blockPosition();
         net.minecraft.world.level.block.state.BlockState blockState = minecart.level().getBlockState(blockPos);

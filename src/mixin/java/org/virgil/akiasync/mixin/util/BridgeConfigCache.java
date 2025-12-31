@@ -10,6 +10,8 @@ public class BridgeConfigCache {
     private static volatile boolean nbtOptimizationEnabled = true;
     private static volatile boolean bitSetPoolingEnabled = true;
     private static volatile boolean completableFutureOptimizationEnabled = true;
+    private static volatile boolean chunkOptimizationEnabled = true;
+    private static volatile boolean asyncLightingEnabled = true;
     
     private static volatile boolean initialized = false;
     
@@ -44,6 +46,8 @@ public class BridgeConfigCache {
                 nbtOptimizationEnabled = bridge.isNbtOptimizationEnabled();
                 bitSetPoolingEnabled = bridge.isBitSetPoolingEnabled();
                 completableFutureOptimizationEnabled = bridge.isCompletableFutureOptimizationEnabled();
+                chunkOptimizationEnabled = bridge.isChunkOptimizationEnabled();
+                asyncLightingEnabled = bridge.isAsyncLightingEnabled();
                 
                 initialized = true;
                 lastRefreshTime = System.currentTimeMillis();
@@ -66,6 +70,40 @@ public class BridgeConfigCache {
     public static boolean isCompletableFutureOptimizationEnabled() {
         checkAndRefresh();
         return completableFutureOptimizationEnabled;
+    }
+    
+    public static boolean isChunkOptimizationEnabled() {
+        checkAndRefresh();
+        return chunkOptimizationEnabled;
+    }
+    
+    public static boolean isAsyncLightingEnabled() {
+        checkAndRefresh();
+        return asyncLightingEnabled;
+    }
+    
+    public static int getLightUpdateIntervalMs() {
+        try {
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null) {
+                return bridge.getLightUpdateIntervalMs();
+            }
+        } catch (Exception e) {
+            
+        }
+        return 10; 
+    }
+    
+    public static int getMidTickChunkTasksIntervalMs() {
+        try {
+            Bridge bridge = BridgeManager.getBridge();
+            if (bridge != null) {
+                return bridge.getMidTickChunkTasksIntervalMs();
+            }
+        } catch (Exception e) {
+            
+        }
+        return 1; 
     }
     
     public static void checkAndRefresh() {

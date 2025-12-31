@@ -355,7 +355,7 @@ public abstract class ServerLevelTickBlockMixin {
                             }
                         });
                     } catch (UnsupportedOperationException ex) {
-                        // Folia 环境：直接在当前线程重试
+                        
                         try {
                             BlockState state = level.getBlockState(task.pos);
                             if (state.is(task.block)) {

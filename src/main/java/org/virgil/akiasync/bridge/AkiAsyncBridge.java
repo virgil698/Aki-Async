@@ -171,6 +171,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isCompletableFutureOptimizationEnabled() {
         return config != null ? config.isCompletableFutureOptimizationEnabled() : true;
     }
+    
+    @Override
+    public boolean isChunkOptimizationEnabled() {
+        return config != null ? config.isChunkOptimizationEnabled() : true;
+    }
 
     @Override
     public boolean isEntityTickParallel() { return config.isEntityTickParallel(); }
@@ -2575,7 +2580,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     
     @Override
     public boolean isVelocityCompressionEnabled() {
-        return true; // 默认启用速度压缩优化
+        return true; 
     }
     
     @Override
@@ -2621,6 +2626,233 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public boolean isSkipZeroMovementPacketsStrictMode() {
         return config != null && config.isSkipZeroMovementPacketsStrictMode();
+    }
+    
+    
+    @Override
+    public boolean isHighLatencyAdjustEnabled() {
+        return config != null && config.isHighLatencyAdjustEnabled();
+    }
+    
+    @Override
+    public int getHighLatencyThreshold() {
+        return config != null ? config.getHighLatencyThreshold() : 150;
+    }
+    
+    @Override
+    public int getHighLatencyMinViewDistance() {
+        return config != null ? config.getHighLatencyMinViewDistance() : 5;
+    }
+    
+    @Override
+    public long getHighLatencyDurationMs() {
+        return config != null ? config.getHighLatencyDurationMs() : 60000L;
+    }
+    
+    
+    @Override
+    public boolean isAfkPacketThrottleEnabled() {
+        return config != null && config.isAfkPacketThrottleEnabled();
+    }
+    
+    @Override
+    public long getAfkDurationMs() {
+        return config != null ? config.getAfkDurationMs() : 120000L;
+    }
+    
+    @Override
+    public double getAfkParticleMaxDistance() {
+        return config != null ? config.getAfkParticleMaxDistance() : 0.0;
+    }
+    
+    @Override
+    public double getAfkSoundMaxDistance() {
+        return config != null ? config.getAfkSoundMaxDistance() : 64.0;
+    }
+    
+    
+    @Override
+    public boolean isEntityRotationPacketFilterEnabled() {
+        return config != null && config.isEntityRotationPacketFilterEnabled();
+    }
+    
+    @Override
+    public boolean isFilterPureRotationEnabled() {
+        return config != null && config.isFilterPureRotationEnabled();
+    }
+    
+    
+    @Override
+    public int getMidTickChunkTasksIntervalMs() {
+        
+        return config != null ? config.getMidTickChunkTasksIntervalMs() : 1;
+    }
+    
+    
+    @Override
+    public boolean isMultiNettyEventLoopEnabled() {
+        return config != null && config.isMultiNettyEventLoopEnabled();
+    }
+    
+    @Override
+    public boolean isPalettedContainerLockRemovalEnabled() {
+        return config != null && config.isPalettedContainerLockRemovalEnabled();
+    }
+    
+    @Override
+    public boolean isSpawnDensityArrayEnabled() {
+        return config != null && config.isSpawnDensityArrayEnabled();
+    }
+    
+    @Override
+    public boolean isTypeFilterableListOptimizationEnabled() {
+        return config != null && config.isTypeFilterableListOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isEntityTrackerLinkedHashMapEnabled() {
+        return config != null && config.isEntityTrackerLinkedHashMapEnabled();
+    }
+    
+    @Override
+    public boolean isBiomeAccessOptimizationEnabled() {
+        return config != null && config.isBiomeAccessOptimizationEnabled();
+    }
+    
+    @Override
+    public void handleConnectionProtocolChange(Object connection, int protocolOrdinal) {
+        if (!isMultiNettyEventLoopEnabled()) {
+            return;
+        }
+        
+        try {
+            if (connection instanceof net.minecraft.network.Connection conn) {
+                org.virgil.akiasync.network.MultiNettyEventLoopManager.handleProtocolChange(conn, protocolOrdinal);
+            }
+        } catch (Exception e) {
+            errorLog("[MultiNettyEventLoop] Error handling protocol change: " + e.getMessage());
+        }
+    }
+    
+    
+    @Override
+    public boolean isDynamicChunkSendRateEnabled() {
+        return config != null && config.isDynamicChunkSendRateEnabled();
+    }
+    
+    @Override
+    public long getDynamicChunkLimitBandwidth() {
+        return config != null ? config.getDynamicChunkLimitBandwidth() : 10240L;
+    }
+    
+    @Override
+    public long getDynamicChunkGuaranteedBandwidth() {
+        return config != null ? config.getDynamicChunkGuaranteedBandwidth() : 512L;
+    }
+    
+    
+    @Override
+    public boolean isPacketCompressionOptimizationEnabled() {
+        return config != null && config.isPacketCompressionOptimizationEnabled();
+    }
+    
+    @Override
+    public boolean isAdaptiveCompressionThresholdEnabled() {
+        return config != null && config.isAdaptiveCompressionThresholdEnabled();
+    }
+    
+    @Override
+    public boolean isSkipSmallPacketsEnabled() {
+        return config != null && config.isSkipSmallPacketsEnabled();
+    }
+    
+    @Override
+    public int getSkipSmallPacketsThreshold() {
+        return config != null ? config.getSkipSmallPacketsThreshold() : 32;
+    }
+    
+    
+    @Override
+    public boolean isConnectionFlushOptimizationEnabled() {
+        return config != null && config.isConnectionFlushOptimizationEnabled();
+    }
+    
+    @Override
+    public int getFlushConsolidationThreshold() {
+        return config != null ? config.getFlushConsolidationThreshold() : 5;
+    }
+    
+    @Override
+    public long getFlushConsolidationTimeoutNs() {
+        return config != null ? config.getFlushConsolidationTimeoutNs() : 1000000L;
+    }
+    
+    @Override
+    public boolean isUseExplicitFlush() {
+        return config != null && config.isUseExplicitFlush();
+    }
+    
+    
+    @Override
+    public boolean isEntityDataPacketThrottleEnabled() {
+        return config != null && config.isEntityDataPacketThrottleEnabled();
+    }
+    
+    @Override
+    public int getEntityDataThrottleInterval() {
+        return config != null ? config.getEntityDataThrottleInterval() : 3;
+    }
+    
+    @Override
+    public int getMaxEntityDataPacketsPerSecond() {
+        return config != null ? config.getMaxEntityDataPacketsPerSecond() : 20;
+    }
+    
+    
+    @Override
+    public boolean isChunkBatchOptimizationEnabled() {
+        return config != null && config.isChunkBatchOptimizationEnabled();
+    }
+    
+    @Override
+    public float getChunkBatchMinChunks() {
+        return config != null ? config.getChunkBatchMinChunks() : 2.0f;
+    }
+    
+    @Override
+    public float getChunkBatchMaxChunks() {
+        return config != null ? config.getChunkBatchMaxChunks() : 32.0f;
+    }
+    
+    @Override
+    public int getChunkBatchMaxUnacked() {
+        return config != null ? config.getChunkBatchMaxUnacked() : 8;
+    }
+    
+    
+    @Override
+    public boolean isPacketPriorityQueueEnabled() {
+        return config != null && config.isPacketPriorityQueueEnabled();
+    }
+    
+    @Override
+    public boolean isPrioritizePlayerPacketsEnabled() {
+        return config != null && config.isPrioritizePlayerPacketsEnabled();
+    }
+    
+    @Override
+    public boolean isPrioritizeChunkPacketsEnabled() {
+        return config != null && config.isPrioritizeChunkPacketsEnabled();
+    }
+    
+    @Override
+    public boolean isDeprioritizeParticlesEnabled() {
+        return config != null && config.isDeprioritizeParticlesEnabled();
+    }
+    
+    @Override
+    public boolean isDeprioritizeSoundsEnabled() {
+        return config != null && config.isDeprioritizeSoundsEnabled();
     }
 }
 

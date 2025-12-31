@@ -91,7 +91,7 @@ public class EntityDataThrottler {
     public static boolean shouldSendNBT(ServerPlayer player, Entity entity, boolean forceUpdate) {
         nbtChecks++;
         
-        // Always send NBT for player entities - critical for skin layers and other player data
+        
         if (entity instanceof ServerPlayer) {
             updateNBTTimer(player, entity);
             return true;

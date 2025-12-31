@@ -134,7 +134,8 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
                     if (bridge != null) {
                         bridge.debugLog("[MultithreadedEntityTracker] Detected Folia/Luminol environment - disabling multithreaded entity tracker");
                     }
-                } catch (ClassNotFoundException ignored) {
+                } catch (ClassNotFoundException e) {
+                    
                 }
                 
                 if (bridge != null) {

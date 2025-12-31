@@ -56,7 +56,7 @@ public abstract class SmartCollisionSamplingMixin extends Entity {
         }
         
         Vec3 movement = getDeltaMovement();
-        if (movement.lengthSqr() < 0.0001) {
+        if (movement == null || movement.lengthSqr() < 0.0001) {
             return;
         }
         
@@ -80,6 +80,7 @@ public abstract class SmartCollisionSamplingMixin extends Entity {
     @Unique
     private boolean akiasync$quickSamplingCheck(Entity entity) {
         AABB box = entity.getBoundingBox();
+        if (box == null) return true;
         
         double minX = box.minX;
         double minY = box.minY;
@@ -89,6 +90,7 @@ public abstract class SmartCollisionSamplingMixin extends Entity {
         double maxZ = box.maxZ;
         
         Vec3 movement = entity.getDeltaMovement();
+        if (movement == null) return true;
         double expandX = Math.abs(movement.x) + samplingThreshold;
         double expandY = Math.abs(movement.y) + samplingThreshold;
         double expandZ = Math.abs(movement.z) + samplingThreshold;

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.entity;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +12,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.util.EntitySyncChecker;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityTickList;
+
 @SuppressWarnings({"unused", "CatchMayIgnoreException"})
 @Mixin(value = EntityTickList.class, priority = 1100)
 public abstract class EntityTickChunkParallelMixin {
@@ -89,39 +93,49 @@ public abstract class EntityTickChunkParallelMixin {
         ci.cancel();
         executionCount++;
         
+        
+        List<EntityAccess> syncEntities = new ArrayList<>();
+        List<EntityAccess> asyncEntities = new ArrayList<>();
+        
+        for (EntityAccess entityAccess : cachedList) {
+            if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(entityAccess)) continue;
+            
+            if (entityAccess instanceof Entity realEntity) {
+                if (EntitySyncChecker.shouldTickSynchronously(realEntity)) {
+                    syncEntities.add(entityAccess);
+                } else {
+                    asyncEntities.add(entityAccess);
+                }
+            } else {
+                
+                syncEntities.add(entityAccess);
+            }
+        }
+        
+        
+        for (EntityAccess entity : syncEntities) {
+            try {
+                action.accept(entity);
+            } catch (Throwable t) {
+                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                    "EntityTickParallel", "syncTick", 
+                    t instanceof Exception ? (Exception) t : new RuntimeException(t));
+            }
+        }
+        
+        
+        if (asyncEntities.isEmpty()) return;
+        
         if (smoothingScheduler != null && !isFolia) {
             var bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             if (bridge != null) {
 
                 java.util.Map<Integer, java.util.List<Runnable>> tasksByPriority = new java.util.HashMap<>();
                 
-                for (EntityAccess entity : cachedList) {
+                for (EntityAccess entity : asyncEntities) {
                     int priority = akiasync$determineEntityPriority(entity);
                     tasksByPriority.computeIfAbsent(priority, k -> new java.util.ArrayList<>())
-                        .add(() -> {
-                            try {
-                                if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(entity)) return;
-                                
-                                if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
-                                    if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb orb) {
-                                        int entityId = realEntity.getId();
-                                        if (orb.isRemoved()) return;
-                                        if (!processingExperienceOrbs.add(entityId)) return;
-                                        try {
-                                            action.accept(entity);
-                                        } finally {
-                                            processingExperienceOrbs.remove(entityId);
-                                        }
-                                        return;
-                                    }
-                                }
-                                action.accept(entity);
-                            } catch (Throwable t) {
-                                org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                                    "EntityTickParallel", "smoothSchedulerTask", 
-                                    t instanceof Exception ? (Exception) t : new RuntimeException(t));
-                            }
-                        });
+                        .add(() -> akiasync$tickEntityAsync(entity, action));
                 }
                 
                 for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
@@ -130,7 +144,7 @@ public abstract class EntityTickChunkParallelMixin {
             }
             return;
         }
-        List<List<EntityAccess>> batches = partition(cachedList, batchSize);
+        List<List<EntityAccess>> batches = partition(asyncEntities, batchSize);
         long adaptiveTimeout = calculateAdaptiveTimeout(lastMspt);
         try {
             
@@ -140,68 +154,28 @@ public abstract class EntityTickChunkParallelMixin {
             
             if (executor == null) {
                 
-                batches.forEach(batch -> batch.forEach(entity -> {
-                    try {
-                        if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(entity)) return;
-                        action.accept(entity);
-                    } catch (Exception e) {
-                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                            "EntityTickParallel", "fallbackTick", e);
-                    }
-                }));
+                batches.forEach(batch -> batch.forEach(entity -> akiasync$tickEntityAsync(entity, action)));
                 return;
             }
             
             List<java.util.concurrent.CompletableFuture<Void>> futures = batches.stream()
                 .<java.util.concurrent.CompletableFuture<Void>>map(batch -> java.util.concurrent.CompletableFuture.runAsync(() -> {
-                    batch.forEach(entity -> {
-                        try {
-                            if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.is(entity)) return;
-
-                            if (entity instanceof net.minecraft.world.entity.Entity realEntity) {
-                                
-                                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb orb) {
-                                    int entityId = realEntity.getId();
-                                    
-                                    if (orb.isRemoved()) {
-                                        return;
-                                    }
-                                    
-                                    if (!processingExperienceOrbs.add(entityId)) {
-                                        return; 
-                                    }
-                                    
-                                    try {
-                                        action.accept(entity);
-                                    } finally {
-                                        processingExperienceOrbs.remove(entityId);
-                                    }
-                                    return;
-                                }
-                            }
-
-                            action.accept(entity);
-                        } catch (Throwable t) {
-                            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                                "EntityTickParallel", "batchTick", 
-                                t instanceof Exception ? (Exception) t : new RuntimeException(t));
-                        }
-                    });
+                    batch.forEach(entity -> akiasync$tickEntityAsync(entity, action));
                 }, executor))
                 .collect(java.util.stream.Collectors.toList());
             java.util.concurrent.CompletableFuture.allOf(futures.toArray(java.util.concurrent.CompletableFuture[]::new))
                 .get(adaptiveTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
             if (executionCount % 100 == 0) {
                 BridgeConfigCache.debugLog(
-                    "[AkiAsync-Parallel] Processed %d entities in %d batches (timeout: %dms)",
-                    cachedList.size(), batches.size(), adaptiveTimeout
+                    "[AkiAsync-Parallel] Processed %d entities (%d sync, %d async) in %d batches (timeout: %dms)",
+                    cachedList.size(), syncEntities.size(), asyncEntities.size(), batches.size(), adaptiveTimeout
                 );
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
                 BridgeConfigCache.errorLog("[AkiAsync-Parallel] Timeout/Error, fallback to sequential: " + t.getMessage());
             }
-            for (EntityAccess entity : cachedList) {
+            for (EntityAccess entity : asyncEntities) {
                 try { 
                     action.accept(entity); 
                 } catch (Throwable e) {
@@ -209,6 +183,34 @@ public abstract class EntityTickChunkParallelMixin {
                         entity.getClass().getSimpleName(), e.getMessage());
                 }
             }
+        }
+    }
+    
+    private void akiasync$tickEntityAsync(EntityAccess entity, Consumer<EntityAccess> action) {
+        try {
+            if (entity instanceof Entity realEntity) {
+                
+                if (realEntity instanceof net.minecraft.world.entity.ExperienceOrb orb) {
+                    int entityId = realEntity.getId();
+                    if (orb.isRemoved()) return;
+                    if (!processingExperienceOrbs.add(entityId)) return;
+                    try {
+                        action.accept(entity);
+                    } finally {
+                        processingExperienceOrbs.remove(entityId);
+                    }
+                    return;
+                }
+            }
+            action.accept(entity);
+        } catch (Throwable t) {
+            
+            if (entity instanceof Entity realEntity) {
+                EntitySyncChecker.blacklistEntity(realEntity.getUUID());
+            }
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "EntityTickParallel", "asyncTick", 
+                t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
     }
     private List<List<EntityAccess>> partition(List<EntityAccess> list, int size) {

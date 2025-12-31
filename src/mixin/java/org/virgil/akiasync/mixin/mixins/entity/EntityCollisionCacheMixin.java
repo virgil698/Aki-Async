@@ -65,7 +65,9 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
         }
         
         if (except != null) {
-            double movementSqr = except.getDeltaMovement().lengthSqr();
+            net.minecraft.world.phys.Vec3 movement = except.getDeltaMovement();
+            if (movement == null) return;
+            double movementSqr = movement.lengthSqr();
             if (movementSqr < movementThreshold * movementThreshold) {
                 long cacheKey = akiasync$generateCacheKey(except, box);
                 EntityCollisionCache cache = collisionCache.get(cacheKey);
@@ -106,7 +108,9 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
             return;
         }
         
-        double movementSqr = except.getDeltaMovement().lengthSqr();
+        net.minecraft.world.phys.Vec3 movement = except.getDeltaMovement();
+        if (movement == null) return;
+        double movementSqr = movement.lengthSqr();
         if (movementSqr < movementThreshold * movementThreshold) {
             long cacheKey = akiasync$generateCacheKey(except, box);
             List<Entity> result = cir.getReturnValue();

@@ -152,7 +152,8 @@ public class MultithreadedEntityTracker {
                     if (entity instanceof ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity) {
                         entityTracker = ((ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity) entity).moonrise$getTrackedEntity();
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    
                 }
                 
                 if (entityTracker == null && chunkMap.entityMap != null) {

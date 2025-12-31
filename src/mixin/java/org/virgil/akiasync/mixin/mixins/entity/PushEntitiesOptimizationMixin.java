@@ -60,7 +60,8 @@ public abstract class PushEntitiesOptimizationMixin {
                     }
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            
         }
         
         if (self.isOnPortalCooldown()) {
@@ -94,7 +95,8 @@ public abstract class PushEntitiesOptimizationMixin {
                     }
                     return;
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                
                 return;
             }
         }

@@ -31,6 +31,8 @@ public interface Bridge {
     boolean isBitSetPoolingEnabled();
     
     boolean isCompletableFutureOptimizationEnabled();
+    
+    boolean isChunkOptimizationEnabled();
 
     boolean isEntityTickParallel();
 
@@ -674,4 +676,69 @@ public interface Bridge {
     
     boolean isSkipZeroMovementPacketsEnabled();
     boolean isSkipZeroMovementPacketsStrictMode();
+    
+    
+    boolean isHighLatencyAdjustEnabled();
+    int getHighLatencyThreshold();
+    int getHighLatencyMinViewDistance();
+    long getHighLatencyDurationMs();
+    
+    
+    boolean isAfkPacketThrottleEnabled();
+    long getAfkDurationMs();
+    double getAfkParticleMaxDistance();
+    double getAfkSoundMaxDistance();
+    
+    
+    boolean isEntityRotationPacketFilterEnabled();
+    boolean isFilterPureRotationEnabled();
+    
+    
+    int getMidTickChunkTasksIntervalMs();
+    
+    
+    boolean isMultiNettyEventLoopEnabled();
+    boolean isPalettedContainerLockRemovalEnabled();
+    boolean isSpawnDensityArrayEnabled();
+    boolean isTypeFilterableListOptimizationEnabled();
+    boolean isEntityTrackerLinkedHashMapEnabled();
+    boolean isBiomeAccessOptimizationEnabled();
+    
+    
+    void handleConnectionProtocolChange(Object connection, int protocolOrdinal);
+    
+    
+    boolean isDynamicChunkSendRateEnabled();
+    long getDynamicChunkLimitBandwidth();
+    long getDynamicChunkGuaranteedBandwidth();
+    
+    
+    boolean isPacketCompressionOptimizationEnabled();
+    boolean isAdaptiveCompressionThresholdEnabled();
+    boolean isSkipSmallPacketsEnabled();
+    int getSkipSmallPacketsThreshold();
+    
+    
+    boolean isConnectionFlushOptimizationEnabled();
+    int getFlushConsolidationThreshold();
+    long getFlushConsolidationTimeoutNs();
+    boolean isUseExplicitFlush();
+    
+    
+    boolean isEntityDataPacketThrottleEnabled();
+    int getEntityDataThrottleInterval();
+    int getMaxEntityDataPacketsPerSecond();
+    
+    
+    boolean isChunkBatchOptimizationEnabled();
+    float getChunkBatchMinChunks();
+    float getChunkBatchMaxChunks();
+    int getChunkBatchMaxUnacked();
+    
+    
+    boolean isPacketPriorityQueueEnabled();
+    boolean isPrioritizePlayerPacketsEnabled();
+    boolean isPrioritizeChunkPacketsEnabled();
+    boolean isDeprioritizeParticlesEnabled();
+    boolean isDeprioritizeSoundsEnabled();
 }

@@ -66,7 +66,8 @@ public abstract class CollisionOptimizationMixin {
             return false;
         }
         
-        if (entity.getDeltaMovement().lengthSqr() >= minMovementSqr) {
+        net.minecraft.world.phys.Vec3 movement = entity.getDeltaMovement();
+        if (movement == null || movement.lengthSqr() >= minMovementSqr) {
             return false;
         }
         
@@ -75,7 +76,9 @@ public abstract class CollisionOptimizationMixin {
         }
         
         if (entity instanceof net.minecraft.world.entity.item.FallingBlockEntity falling) {
-            double verticalSpeed = Math.abs(falling.getDeltaMovement().y);
+            net.minecraft.world.phys.Vec3 fallingMovement = falling.getDeltaMovement();
+            if (fallingMovement == null) return true;
+            double verticalSpeed = Math.abs(fallingMovement.y);
             return verticalSpeed < 0.01; 
         }
         
@@ -109,15 +112,20 @@ public abstract class CollisionOptimizationMixin {
                     }
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            
         }
 
         if (org.virgil.akiasync.mixin.util.VirtualEntityCheck.isAny(self, other)) return;
         
         if (akiasync$isExcludedEntity(self) || akiasync$isExcludedEntity(other)) return;
         
-        double selfMovementSqr = self.getDeltaMovement().lengthSqr();
-        double otherMovementSqr = other.getDeltaMovement().lengthSqr();
+        net.minecraft.world.phys.Vec3 selfMovement = self.getDeltaMovement();
+        net.minecraft.world.phys.Vec3 otherMovement = other.getDeltaMovement();
+        if (selfMovement == null || otherMovement == null) return;
+        
+        double selfMovementSqr = selfMovement.lengthSqr();
+        double otherMovementSqr = otherMovement.lengthSqr();
         
         if (selfMovementSqr < minMovementSqr && otherMovementSqr < minMovementSqr) {
             ci.cancel();

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(value = LivingEntity.class, priority = 1000) // 最高优先级，最后执行
+@Mixin(value = LivingEntity.class, priority = 1000) 
 public abstract class AdvancedCollisionOptimizationMixin {
     
     @Unique
@@ -39,7 +39,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
     private static volatile boolean vectorizedEnabled = true;
     
     @Unique
-    private static volatile int vectorizedThreshold = 4; // 修复：原值64太高，改为4（周围4个实体就启用向量化）
+    private static volatile int vectorizedThreshold = 4; 
     
     @Unique
     private static volatile boolean blockCacheEnabled = true;
@@ -134,7 +134,8 @@ public abstract class AdvancedCollisionOptimizationMixin {
                     ci.cancel();
                     return;
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                
             }
         }
         

@@ -16,7 +16,7 @@ public class ServerKeyManager {
     
     private static final Logger LOGGER = Logger.getLogger("AkiAsync-QuantumSeed");
     private static final String KEY_FILE_NAME = "quantum-seed.key";
-    private static final int KEY_SIZE = 64; // 512位密钥
+    private static final int KEY_SIZE = 64; 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     
     private final Path keyFilePath;

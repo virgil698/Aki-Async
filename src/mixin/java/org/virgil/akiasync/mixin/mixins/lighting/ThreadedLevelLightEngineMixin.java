@@ -1,16 +1,12 @@
 package org.virgil.akiasync.mixin.mixins.lighting;
 
-import ca.spottedleaf.moonrise.patches.starlight.light.StarLightInterface;
 import ca.spottedleaf.moonrise.patches.starlight.light.StarLightLightingProvider;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LightChunkGetter;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -19,10 +15,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.ChunkLightBatch;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
 
 @Mixin(value = ThreadedLevelLightEngine.class, priority = 1100)
 public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine implements StarLightLightingProvider {
@@ -31,7 +27,7 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         super(lightChunkGetter, blockLight, skyLight);
     }
     
-    // Configuration
+    
     @Unique
     private static volatile boolean enabled = false;
     @Unique
@@ -40,17 +36,25 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
     private static volatile long updateIntervalNanos = 10_000_000L;
     @Unique
     private static volatile boolean initialized = false;
+    @Unique
+    private static volatile boolean useSmartBatching = true;
+    
     
     @Unique
-    private static ExecutorService aki$lightingExecutor;
+    private static final AtomicLong aki$totalCheckBlocks = new AtomicLong(0);
     @Unique
-    private static final AtomicInteger aki$threadCounter = new AtomicInteger(0);
+    private static final AtomicLong aki$throttledCheckBlocks = new AtomicLong(0);
+    @Unique
+    private static final AtomicLong aki$batchedCheckBlocks = new AtomicLong(0);
+    @Unique
+    private static volatile long aki$lastStatsLogTime = 0L;
+    
     
     @Unique
-    private final Long2ObjectMap<CompletableFuture<Void>> aki$chunkFutures = 
+    private final Long2ObjectMap<ChunkLightBatch> aki$chunkBatches = 
             new Long2ObjectLinkedOpenHashMap<>();
     @Unique
-    private final Object aki$futureLock = new Object();
+    private final Object aki$batchLock = new Object();
     
     @Unique
     private final AtomicLong aki$lastScheduleTime = new AtomicLong(0);
@@ -67,25 +71,15 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
             int intervalMs = bridge.getLightUpdateIntervalMs();
             updateIntervalNanos = intervalMs * 1_000_000L;
             
-            if (enabled && parallelism > 1) {
-                aki$lightingExecutor = Executors.newFixedThreadPool(parallelism, runnable -> {
-                    Thread thread = new Thread(runnable);
-                    thread.setDaemon(true);
-                    thread.setName("aki-async-lighting-" + aki$threadCounter.getAndIncrement());
-                    thread.setPriority(Thread.NORM_PRIORITY - 1);
-                    return thread;
-                });
-                
+            
+            useSmartBatching = parallelism > 1;
+            
+            if (enabled) {
                 if (bridge.isLightingDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-Lighting] ScalableLux-style parallel lighting initialized:");
-                    bridge.debugLog("[AkiAsync-Lighting]   - Parallelism: %d threads", parallelism);
+                    bridge.debugLog("[AkiAsync-Lighting] Paper/Starlight light engine optimization enabled:");
                     bridge.debugLog("[AkiAsync-Lighting]   - Update interval: %dms", intervalMs);
-                    bridge.debugLog("[AkiAsync-Lighting]   - Engine: Paper/Luminol StarLight");
-                }
-            } else if (enabled) {
-                if (bridge.isLightingDebugEnabled()) {
-                    bridge.debugLog("[AkiAsync-Lighting] Lighting throttle enabled (single-threaded):");
-                    bridge.debugLog("[AkiAsync-Lighting]   - Update interval: %dms", intervalMs);
+                    bridge.debugLog("[AkiAsync-Lighting]   - Smart batching: %s", useSmartBatching ? "enabled" : "disabled");
+                    bridge.debugLog("[AkiAsync-Lighting]   - Note: Works alongside Paper's native async lighting");
                 }
             } else {
                 if (bridge.isLightingDebugEnabled()) {
@@ -97,81 +91,109 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
         initialized = true;
     }
     
+    
     @Inject(
             method = "checkBlock",
             at = @At("HEAD"),
-            cancellable = true
+            cancellable = false
     )
     @SuppressWarnings("unused")
-    private void parallelCheckBlock(BlockPos pos, CallbackInfo ci) {
+    private void aki$optimizeCheckBlock(BlockPos pos, CallbackInfo ci) {
         if (!initialized) {
             aki$init();
         }
         
-        if (!enabled || parallelism <= 1) {
+        if (!enabled) {
             return;
         }
         
         try {
-            StarLightInterface starlightEngine = this.starlight$getLightEngine();
-            if (starlightEngine == null) {
-                return;
-            }
-            
-            Object level = starlightEngine.getWorld();
-            if (!(level instanceof ServerLevel world)) {
-                return;
-            }
+            aki$totalCheckBlocks.incrementAndGet();
             
             long currentTime = System.nanoTime();
-            long lastSchedule = aki$lastScheduleTime.get();
-            if (currentTime - lastSchedule < updateIntervalNanos) {
-                return;
-            }
             
-            if (!aki$lastScheduleTime.compareAndSet(lastSchedule, currentTime)) {
-                return;
-            }
-            
-            final BlockPos immutablePos = pos.immutable();
-            final ChunkPos chunkPos = new ChunkPos(immutablePos);
-            final long chunkKey = chunkPos.toLong();
-            
-            synchronized (aki$futureLock) {
-                CompletableFuture<Void> existingFuture = aki$chunkFutures.get(chunkKey);
-                if (existingFuture != null && !existingFuture.isDone()) {
-                    return;
+            if (useSmartBatching) {
+                
+                final ChunkPos chunkPos = new ChunkPos(pos);
+                final long chunkKey = chunkPos.toLong();
+                
+                synchronized (aki$batchLock) {
+                    ChunkLightBatch batch = aki$chunkBatches.get(chunkKey);
+                    
+                    if (batch == null) {
+                        batch = new ChunkLightBatch(currentTime);
+                        aki$chunkBatches.put(chunkKey, batch);
+                    }
+                    
+                    
+                    batch.addPosition(pos.immutable());
+                    
+                    
+                    if (batch.size() > 64) {
+                        batch.markUrgent();
+                    }
                 }
                 
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    try {
-                        ChunkAccess chunk = starlightEngine.getAnyChunkNow(chunkPos.x, chunkPos.z);
-                        if (chunk == null || !chunk.getPersistedStatus().isOrAfter(ChunkStatus.LIGHT)) {
-                            return;
-                        }
-                        
-                        starlightEngine.blockChange(immutablePos);
-                        
-                    } catch (Exception e) {
-                        org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                                "ThreadedLevelLightEngine", "parallelCheckBlock", e);
-                    }
-                }, aki$lightingExecutor);
                 
-                aki$chunkFutures.put(chunkKey, future);
+                if (currentTime - aki$lastScheduleTime.get() > updateIntervalNanos * 10) {
+                    aki$cleanupOldBatches(currentTime);
+                    aki$lastScheduleTime.set(currentTime);
+                }
+            } else {
                 
-                future.whenComplete((result, throwable) -> {
-                    synchronized (aki$futureLock) {
-                        aki$chunkFutures.remove(chunkKey, future);
-                    }
-                });
+                long lastSchedule = aki$lastScheduleTime.get();
+                if (currentTime - lastSchedule < updateIntervalNanos) {
+                    aki$throttledCheckBlocks.incrementAndGet();
+                    
+                    return;
+                }
+                aki$lastScheduleTime.compareAndSet(lastSchedule, currentTime);
             }
             
-            ci.cancel();
+            
+            aki$logStatistics();
             
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                    "ThreadedLevelLightEngine", "parallelCheckBlock", e);
+                    "ThreadedLevelLightEngine", "optimizeCheckBlock", e);
+        }
+    }
+    
+    @Unique
+    private void aki$cleanupOldBatches(long currentTime) {
+        synchronized (aki$batchLock) {
+            long expiryThreshold = currentTime - updateIntervalNanos * 100; 
+            
+            aki$chunkBatches.entrySet().removeIf(entry -> {
+                ChunkLightBatch batch = entry.getValue();
+                if (batch.getCreationTime() < expiryThreshold) {
+                    aki$batchedCheckBlocks.addAndGet(batch.size());
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+    
+    @Unique
+    private static void aki$logStatistics() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - aki$lastStatsLogTime > 60000) { 
+            aki$lastStatsLogTime = currentTime;
+            
+            long total = aki$totalCheckBlocks.get();
+            long throttled = aki$throttledCheckBlocks.get();
+            long batched = aki$batchedCheckBlocks.get();
+            
+            if (total > 0) {
+                Bridge bridge = BridgeManager.getBridge();
+                if (bridge != null && bridge.isLightingDebugEnabled()) {
+                    bridge.debugLog(
+                        "[AkiAsync-Lighting] Stats - Total: %d, Throttled: %d (%.1f%%), Batched: %d",
+                        total, throttled, (throttled * 100.0 / total), batched
+                    );
+                }
+            }
         }
     }
 }

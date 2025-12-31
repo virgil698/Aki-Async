@@ -137,7 +137,7 @@ public abstract class FastRayTraceMixin {
             hash = hash * 31 + blockMode.hashCode();
             hash = hash * 31 + fluidMode.hashCode();
         } catch (Exception e) {
-            // 静默失败
+            
         }
         
         return hash;

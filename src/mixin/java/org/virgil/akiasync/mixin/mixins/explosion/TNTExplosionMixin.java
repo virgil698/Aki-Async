@@ -69,6 +69,9 @@ public class TNTExplosionMixin {
         }
 
         Vec3 velocity = tnt.getDeltaMovement();
+        if (velocity == null) {
+            return; 
+        }
         double speed = velocity.lengthSqr();
         int fuse = tnt.getFuse();
         

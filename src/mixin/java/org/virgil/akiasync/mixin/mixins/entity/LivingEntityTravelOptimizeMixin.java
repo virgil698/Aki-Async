@@ -65,7 +65,7 @@ public class LivingEntityTravelOptimizeMixin {
         }
 
         Vec3 velocity = entity.getDeltaMovement();
-        if (velocity.lengthSqr() > 0.001) {
+        if (velocity == null || velocity.lengthSqr() > 0.001) {
             aki$staticTicks = 0;
             aki$lastPosition = entity.position();
             return;
