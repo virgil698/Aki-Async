@@ -2,7 +2,6 @@ package org.virgil.akiasync.network;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
 import net.kyori.adventure.text.Component;
@@ -11,6 +10,10 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkTrafficMonitor {
     
@@ -20,8 +23,14 @@ public class NetworkTrafficMonitor {
     private final Set<UUID> activeViewers = ConcurrentHashMap.newKeySet();
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     
-    private BukkitTask displayTask;
-    private BukkitTask calculateTask;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "AkiAsync-NetworkMonitor");
+        t.setDaemon(true);
+        return t;
+    });
+    
+    private ScheduledFuture<?> displayTask;
+    private ScheduledFuture<?> calculateTask;
     
     private NetworkTrafficMonitor(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -44,11 +53,15 @@ public class NetworkTrafficMonitor {
     }
     
     private void startCalculateTask() {
-        calculateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if (plugin.getBridge() != null) {
-                plugin.getBridge().calculateNetworkTrafficRates();
+        calculateTask = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                if (plugin.getBridge() != null) {
+                    plugin.getBridge().calculateNetworkTrafficRates();
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("[NetworkMonitor] Calculate task error: " + e.getMessage());
             }
-        }, 20L, 20L);
+        }, 1, 1, TimeUnit.SECONDS);
     }
     
     public void addViewer(Player player) {
@@ -69,13 +82,13 @@ public class NetworkTrafficMonitor {
     
     private void ensureDisplayTaskRunning() {
         if (displayTask == null || displayTask.isCancelled()) {
-            displayTask = Bukkit.getScheduler().runTaskTimer(plugin, this::updateDisplay, 0L, 10L);
+            displayTask = scheduler.scheduleAtFixedRate(this::updateDisplay, 0, 500, TimeUnit.MILLISECONDS);
         }
     }
     
     private void stopDisplayTask() {
         if (displayTask != null && !displayTask.isCancelled()) {
-            displayTask.cancel();
+            displayTask.cancel(false);
             displayTask = null;
         }
     }
@@ -85,31 +98,35 @@ public class NetworkTrafficMonitor {
             return;
         }
         
-        long inRate = 0;
-        long outRate = 0;
-        
-        if (plugin.getBridge() != null) {
-            inRate = plugin.getBridge().getNetworkTrafficInRate();
-            outRate = plugin.getBridge().getNetworkTrafficOutRate();
-        }
-        
-        String inRateStr = formatBytes(inRate);
-        String outRateStr = formatBytes(outRate);
-        
-        String message = String.format(
-            "<gradient:#FF69B4:#9370DB>↓ %s/s</gradient> <gray>|</gray> <gradient:#9370DB:#FF69B4>↑ %s/s</gradient>",
-            inRateStr, outRateStr
-        );
-        
-        Component component = miniMessage.deserialize(message);
-        
-        for (UUID uuid : activeViewers) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null && player.isOnline()) {
-                player.sendActionBar(component);
-            } else {
-                activeViewers.remove(uuid);
+        try {
+            long inRate = 0;
+            long outRate = 0;
+            
+            if (plugin.getBridge() != null) {
+                inRate = plugin.getBridge().getNetworkTrafficInRate();
+                outRate = plugin.getBridge().getNetworkTrafficOutRate();
             }
+            
+            String inRateStr = formatBytes(inRate);
+            String outRateStr = formatBytes(outRate);
+            
+            String message = String.format(
+                "<gradient:#FF69B4:#9370DB>↓ %s/s</gradient> <gray>|</gray> <gradient:#9370DB:#FF69B4>↑ %s/s</gradient>",
+                inRateStr, outRateStr
+            );
+            
+            Component component = miniMessage.deserialize(message);
+            
+            for (UUID uuid : activeViewers) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player != null && player.isOnline()) {
+                    player.sendActionBar(component);
+                } else {
+                    activeViewers.remove(uuid);
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("[NetworkMonitor] Display update error: " + e.getMessage());
         }
     }
     
@@ -127,10 +144,19 @@ public class NetworkTrafficMonitor {
     
     public void shutdown() {
         if (calculateTask != null) {
-            calculateTask.cancel();
+            calculateTask.cancel(false);
         }
         stopDisplayTask();
         activeViewers.clear();
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
     
     public long getCurrentInRate() {
