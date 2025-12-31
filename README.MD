@@ -418,6 +418,7 @@ This project references the following excellent open source projects:
 |---------|--------------|
 | [Starlight](https://github.com/PaperMC/Starlight) / [ScalableLux](https://github.com/RelativityMC/ScalableLux) | Light propagation algorithm |
 | [Lithium](https://github.com/CaffeineMC/lithium) | Performance optimization ideas |
+| [C2ME](https://github.com/RelativityMC/C2ME-fabric) | Chunk system optimization reference |
 | [ServerCore](https://github.com/Wesley1808/ServerCore) | Hotspot optimization solutions |
 | [FerriteCore](https://github.com/malte0811/FerriteCore) | Memory optimization strategies |
 | [Async](https://github.com/AxalotLDev/Async) | Async boundary design |

@@ -92,7 +92,7 @@ public class PacketCompressionOptimizationMixin {
     }
     
     @Unique
-    private static void akiasync$init() {
+    private void akiasync$init() {
         if (initialized) {
             return;
         }
@@ -119,7 +119,7 @@ public class PacketCompressionOptimizationMixin {
     }
     
     @Unique
-    private static void akiasync$recordPacketStats(int bytesIn, int bytesOut, boolean wasCompressed) {
+    private void akiasync$recordPacketStats(int bytesIn, int bytesOut, boolean wasCompressed) {
         totalPackets.incrementAndGet();
         totalBytesIn.addAndGet(bytesIn);
         totalBytesOut.addAndGet(bytesOut);
@@ -129,12 +129,12 @@ public class PacketCompressionOptimizationMixin {
     }
     
     @Unique
-    private static void akiasync$recordSkippedPacket() {
+    private void akiasync$recordSkippedPacket() {
         skippedPackets.incrementAndGet();
     }
     
     @Unique
-    private static boolean akiasync$shouldSkipSmallPacket(int size) {
+    private boolean akiasync$shouldSkipSmallPacket(int size) {
         if (!initialized) {
             akiasync$init();
         }
@@ -142,12 +142,12 @@ public class PacketCompressionOptimizationMixin {
     }
     
     @Unique
-    private static int akiasync$getAdaptiveThreshold() {
+    private int akiasync$getAdaptiveThreshold() {
         return adaptiveThresholdMin + (adaptiveThresholdMax - adaptiveThresholdMin) / 2;
     }
     
     @Unique
-    private static String akiasync$getStatistics() {
+    private String akiasync$getStatistics() {
         long total = totalPackets.get();
         if (total == 0) {
             return "PacketCompressionOptimization: No packets processed";

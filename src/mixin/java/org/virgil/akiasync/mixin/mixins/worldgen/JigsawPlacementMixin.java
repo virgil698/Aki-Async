@@ -52,6 +52,7 @@ public class JigsawPlacementMixin {
         }
     }
 
+    @org.spongepowered.asm.mixin.Unique
     private static boolean akiasync$isJigsawOptimizationEnabled() {
         try {
             org.virgil.akiasync.mixin.bridge.Bridge bridge = 
@@ -62,6 +63,7 @@ public class JigsawPlacementMixin {
         }
     }
 
+    @org.spongepowered.asm.mixin.Unique
     private static void akiasync$debugLog(String message) {
         BridgeConfigCache.debugLog("[AkiAsync-Jigsaw] " + message);
     }

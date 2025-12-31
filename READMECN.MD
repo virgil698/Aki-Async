@@ -418,6 +418,7 @@ build/libs/Aki-Async-2.0.0-SNAPSHOT.jar
 |------|------|
 | [Starlight](https://github.com/PaperMC/Starlight) / [ScalableLux](https://github.com/RelativityMC/ScalableLux) | 光照传播算法 |
 | [Lithium](https://github.com/CaffeineMC/lithium) | 性能优化思路 |
+| [C2ME](https://github.com/RelativityMC/C2ME-fabric) | 区块系统优化参考 |
 | [ServerCore](https://github.com/Wesley1808/ServerCore) | 热点优化方案 |
 | [FerriteCore](https://github.com/malte0811/FerriteCore) | 内存优化策略 |
 | [Async](https://github.com/AxalotLDev/Async) | 异步化边界设计 |
