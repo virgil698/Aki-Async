@@ -85,6 +85,10 @@ public abstract class FastRayTraceMixin {
     @Inject(method = "clip(Lnet/minecraft/world/level/ClipContext;)Lnet/minecraft/world/phys/BlockHitResult;",
             at = @At("RETURN"))
     private void aki$cacheRayTrace(ClipContext context, CallbackInfoReturnable<BlockHitResult> cir) {
+        if (!init) {
+            aki$init();
+        }
+        
         if (!enabled) {
             return;
         }

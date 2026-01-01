@@ -62,10 +62,10 @@ public class ServerLevelTimeCompensationMixin {
             
             bridge.debugLog("[AkiAsync] ServerLevelTimeCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
+        
+            initialized = true;
         } else {
             enabled = false;
         }
-        
-        initialized = true;
     }
 }

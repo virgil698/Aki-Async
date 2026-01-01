@@ -77,10 +77,10 @@ public class VillagerPoiOptimizeMixin {
             
             bridge.debugLog("[AkiAsync] VillagerPoiOptimizeMixin (Upgraded) initialized: enabled=" + 
                 cached_enabled + " | Using AI Spatial Index");
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

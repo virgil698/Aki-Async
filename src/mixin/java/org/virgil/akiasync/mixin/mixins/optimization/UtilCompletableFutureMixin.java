@@ -34,12 +34,12 @@ public abstract class UtilCompletableFutureMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isCompletableFutureOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
     
     @Inject(

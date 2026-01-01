@@ -24,7 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AdvancedCollisionOptimizationMixin {
     
     @Unique
-    private static volatile boolean enabled = true;
+    private static volatile boolean initialized = false;
+    
+    @Unique
+    private static volatile boolean enabled = false;
     
     @Unique
     private static volatile int collisionThreshold = 8;
@@ -59,12 +62,10 @@ public abstract class AdvancedCollisionOptimizationMixin {
     @Unique
     private long akiasync$lastBlockCacheCleanup = 0;
     
-    static {
-        akiasync$initAdvancedCollision();
-    }
-    
     @Unique
-    private static void akiasync$initAdvancedCollision() {
+    private static synchronized void akiasync$initAdvancedCollision() {
+        if (initialized) return;
+        
         try {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -77,6 +78,7 @@ public abstract class AdvancedCollisionOptimizationMixin {
                 vectorizedEnabled = bridge.isVectorizedCollisionEnabled();
                 vectorizedThreshold = bridge.getVectorizedCollisionThreshold();
                 blockCacheEnabled = bridge.isCollisionBlockCacheEnabled();
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
@@ -93,6 +95,9 @@ public abstract class AdvancedCollisionOptimizationMixin {
     
     @Inject(method = "tick", at = @At("HEAD"))
     private void updateSectionGrid(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initAdvancedCollision();
+        }
         
         if (!enabled) {
             return;
@@ -119,6 +124,9 @@ public abstract class AdvancedCollisionOptimizationMixin {
     
     @Inject(method = "pushEntities", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizePushEntities(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initAdvancedCollision();
+        }
         
         if (!enabled) {
             return;
@@ -265,6 +273,10 @@ public abstract class AdvancedCollisionOptimizationMixin {
     
     @Inject(method = "remove", at = @At("HEAD"))
     private void cleanupSectionGrid(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initAdvancedCollision();
+        }
+        
         if (!enabled) {
             return;
         }

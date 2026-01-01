@@ -20,6 +20,8 @@ public abstract class FastRayTraceOptimizationMixin extends LivingEntity {
     
     @Unique
     private static volatile boolean enabled = true;
+    @Unique
+    private static volatile boolean initialized = false;
     
     @Unique
     private static volatile double maxDistance = 64.0;
@@ -33,12 +35,10 @@ public abstract class FastRayTraceOptimizationMixin extends LivingEntity {
     @Unique
     private Vec3 akiasync$lastTargetPos = Vec3.ZERO;
     
-    static {
-        akiasync$initRayTrace();
-    }
-    
     @Unique
-    private static void akiasync$initRayTrace() {
+    private static synchronized void akiasync$initRayTrace() {
+        if (initialized) return;
+        
         try {
             org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
@@ -46,6 +46,8 @@ public abstract class FastRayTraceOptimizationMixin extends LivingEntity {
             if (bridge != null) {
                 enabled = bridge.isRayCollisionEnabled();
                 maxDistance = bridge.getRayCollisionMaxDistance();
+                
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
@@ -60,6 +62,10 @@ public abstract class FastRayTraceOptimizationMixin extends LivingEntity {
         require = 0
     )
     private void optimizeLineOfSight(net.minecraft.world.entity.Entity target, CallbackInfoReturnable<Boolean> cir) {
+        if (!initialized) {
+            akiasync$initRayTrace();
+        }
+        
         if (!enabled) {
             return;
         }

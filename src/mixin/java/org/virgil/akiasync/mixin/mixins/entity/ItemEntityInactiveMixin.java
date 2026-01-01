@@ -304,13 +304,13 @@ public abstract class ItemEntityInactiveMixin {
             enabled = bridge.isItemEntityInactiveTickEnabled();
             inactiveRange = bridge.getItemEntityInactiveRange();
             mergeInterval = bridge.getItemEntityInactiveMergeInterval();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             inactiveRange = 32.0;
             mergeInterval = 100;
         }
-
-        initialized = true;
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ItemEntityInactiveMixin initialized: enabled=" + enabled +

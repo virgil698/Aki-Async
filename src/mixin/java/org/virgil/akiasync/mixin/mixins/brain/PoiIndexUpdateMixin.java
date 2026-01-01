@@ -99,11 +99,11 @@ public abstract class PoiIndexUpdateMixin {
             
             if (akiasync$enabled) {
                 bridge.debugLog("[AkiAsync] POI Index Update Mixin initialized: enabled=true");
+            
+                akiasync$initialized = true;
             }
         } else {
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
 }

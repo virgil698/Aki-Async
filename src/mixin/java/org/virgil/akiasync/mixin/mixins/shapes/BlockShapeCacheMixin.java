@@ -53,6 +53,8 @@ public class BlockShapeCacheMixin {
                         cacheSize,
                         s -> !Shapes.joinIsNotEmpty(Shapes.block(), s, BooleanOp.NOT_SAME)
                     );
+                
+                    initialized = true;
                 }
                 
                 bridge.debugLog("[AkiAsync] BlockShapeCacheMixin initialized: enabled=" + enabled + 
@@ -62,7 +64,5 @@ public class BlockShapeCacheMixin {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "BlockShapeCache", "init", e);
         }
-        
-        initialized = true;
     }
 }

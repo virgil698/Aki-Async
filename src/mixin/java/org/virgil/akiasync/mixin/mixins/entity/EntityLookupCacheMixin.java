@@ -37,6 +37,7 @@ public abstract class EntityLookupCacheMixin {
     }
     @Inject(method = "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;", at = @At("RETURN"))
     private void updateCache(Entity except, AABB box, Predicate<? super Entity> predicate, CallbackInfoReturnable<List<Entity>> cir) {
+        if (!initialized) { akiasync$initLookupCache(); }
         if (!enabled) return;
         cachedEntities = cir.getReturnValue();
         cachedBox = box;
@@ -48,11 +49,12 @@ public abstract class EntityLookupCacheMixin {
         if (bridge != null) {
             enabled = bridge.isEntityLookupCacheEnabled();
             cacheDuration = bridge.getEntityLookupCacheDurationMs();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             cacheDuration = 50;
         }
-        initialized = true;
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] EntityLookupCacheMixin initialized: enabled=" + enabled + ", duration=" + cacheDuration + "ms");
         }

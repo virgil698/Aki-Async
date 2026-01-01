@@ -111,12 +111,12 @@ public abstract class ArmadilloTickMixin {
             BridgeConfigCache.debugLog(
                 "[AkiAsync] ArmadilloTickMixin initialized: enabled=%s, interval=%d, timeout=%d",
                 cached_enabled, cached_tickInterval, cached_timeout);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_tickInterval = 3;
             cached_timeout = 100;
         }
-        
-        initialized = true;
     }
 }

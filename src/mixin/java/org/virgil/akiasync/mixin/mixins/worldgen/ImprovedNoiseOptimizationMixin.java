@@ -37,13 +37,13 @@ public abstract class ImprovedNoiseOptimizationMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isNoiseOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
     
     

@@ -134,12 +134,12 @@ public class BatchNetworkPacketMixin {
                 enabled = bridge.isVelocityCompressionEnabled();
                 
                 bridge.debugLog("[BatchNetworkPacket] Initialized: enabled=%s, batchSize=%d", enabled, batchSize);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "BatchNetworkPacket", "init", e);
         }
-        
-        initialized = true;
     }
 }

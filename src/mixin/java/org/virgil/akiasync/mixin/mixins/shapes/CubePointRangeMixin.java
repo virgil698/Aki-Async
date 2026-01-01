@@ -57,12 +57,12 @@ public class CubePointRangeMixin {
                          bridge.isShapePrecomputeArrays();
                 
                 bridge.debugLog("[AkiAsync] CubePointRangeMixin initialized: enabled=" + enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "CubePointRange", "init", e);
         }
-        
-        initialized = true;
     }
 }

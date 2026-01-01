@@ -83,6 +83,8 @@ public abstract class EntityTickChunkParallelMixin {
             if (bridge != null) {
                 bridge.notifySmoothSchedulerTick(smoothingScheduler);
                 bridge.updateSmoothSchedulerMetrics(smoothingScheduler, bridge.getCurrentTPS(), bridge.getCurrentMSPT());
+            
+                initialized = true;
             }
         }
         if (cachedList == null || System.currentTimeMillis() - lastCacheTick > 50) {
@@ -136,7 +138,9 @@ public abstract class EntityTickChunkParallelMixin {
                     int priority = akiasync$determineEntityPriority(entity);
                     tasksByPriority.computeIfAbsent(priority, k -> new java.util.ArrayList<>())
                         .add(() -> akiasync$tickEntityAsync(entity, action));
-                }
+                
+                        initialized = true;
+                    }
                 
                 for (java.util.Map.Entry<Integer, java.util.List<Runnable>> entry : tasksByPriority.entrySet()) {
                     bridge.submitSmoothTaskBatch(smoothingScheduler, entry.getValue(), entry.getKey(), "EntityTick");
@@ -276,6 +280,8 @@ public abstract class EntityTickChunkParallelMixin {
             if (isFolia) {
                 enabled = false;
                 BridgeConfigCache.debugLog("[AkiAsync] EntityTickParallelMixin disabled in Folia mode (Region threading already handles parallelism)");
+            
+                initialized = true;
             } else {
                 enabled = bridge.isEntityTickParallel();
             }
@@ -290,7 +296,6 @@ public abstract class EntityTickChunkParallelMixin {
             batchSize = 8;
             dedicatedPool = null;
         }
-        initialized = true;
         
         if (bridge != null && enabled && !isFolia) {
             smoothingScheduler = bridge.getEntityTickSmoothingScheduler();

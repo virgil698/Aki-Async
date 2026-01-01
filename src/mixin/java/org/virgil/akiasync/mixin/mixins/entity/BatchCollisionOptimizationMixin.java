@@ -16,6 +16,8 @@ public abstract class BatchCollisionOptimizationMixin {
     
     @Unique
     private static volatile boolean enabled = true;
+    @Unique
+    private static volatile boolean initialized = false;
     
     @Unique
     private static volatile double slowMovementThreshold = 0.01; 
@@ -33,10 +35,6 @@ public abstract class BatchCollisionOptimizationMixin {
     @Unique
     private int ticksSinceLastCollisionCheck = 0;
     
-    static {
-        akiasync$initBatchOptimization();
-    }
-    
     @Inject(
         method = "pushEntities",
         at = @At("HEAD"),
@@ -44,6 +42,9 @@ public abstract class BatchCollisionOptimizationMixin {
         require = 0  
     )
     private void optimizePushEntitiesFrequency(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initBatchOptimization();
+        }
         
         if (!enabled) {
             return;
@@ -124,6 +125,10 @@ public abstract class BatchCollisionOptimizationMixin {
         at = @At("HEAD")
     )
     private void resetCollisionCounter(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initBatchOptimization();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -139,6 +144,8 @@ public abstract class BatchCollisionOptimizationMixin {
     
     @Unique
     private static synchronized void akiasync$initBatchOptimization() {
+        if (initialized) return;
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = 
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         
@@ -150,6 +157,8 @@ public abstract class BatchCollisionOptimizationMixin {
                 ", slowThreshold=" + slowMovementThreshold +
                 ", slowInterval=" + slowMovementInterval +
                 ", fastThreshold=" + fastMovementThreshold);
+            
+            initialized = true;
         }
     }
 }

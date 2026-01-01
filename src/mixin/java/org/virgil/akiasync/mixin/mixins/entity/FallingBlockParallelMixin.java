@@ -217,14 +217,13 @@ public abstract class FallingBlockParallelMixin {
             }
             
             dedicatedPool = bridge.getGeneralExecutor();
+            initialized = true;
         } else {
             enabled = false;
             minFallingBlocks = 20;
             batchSize = 10;
             dedicatedPool = null;
         }
-
-        initialized = true;
 
         BridgeConfigCache.debugLog("[AkiAsync] FallingBlockParallelMixin initialized: enabled=" + enabled +
             ", isFolia=" + isFolia + ", batchSize=" + batchSize +

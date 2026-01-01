@@ -79,10 +79,11 @@ public class ZipFileSystemProviderMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isDataPackOptimizationEnabled();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        initialized = true;
         if (bridge != null && bridge.isDataPackDebugEnabled()) {
             bridge.debugLog("[AkiAsync-DataPack] ZipFileSystemProviderMixin initialized: enabled=" + cached_enabled);
         }

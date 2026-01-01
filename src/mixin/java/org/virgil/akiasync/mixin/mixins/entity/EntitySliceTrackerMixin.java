@@ -71,6 +71,10 @@ public abstract class EntitySliceTrackerMixin {
     
     @Inject(method = "remove", at = @At("HEAD"))
     private void removeEntitySliceOnRemove(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initSliceTracker();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -104,8 +108,8 @@ public abstract class EntitySliceTrackerMixin {
                 enabled = bridge.isCollisionOptimizationEnabled();
                 BridgeConfigCache.debugLog("[AkiAsync] EntitySliceTrackerMixin initialized: enabled=" + enabled);
             }
+            
+            initialized = true;
         }
-        
-        initialized = true;
     }
 }

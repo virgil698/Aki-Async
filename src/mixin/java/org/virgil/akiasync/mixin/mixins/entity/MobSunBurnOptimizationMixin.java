@@ -35,13 +35,13 @@ public class MobSunBurnOptimizationMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isMobSunBurnOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
     
     @Inject(method = "isSunBurnTick", at = @At("HEAD"), cancellable = true)

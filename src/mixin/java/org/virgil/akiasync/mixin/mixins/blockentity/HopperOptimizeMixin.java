@@ -113,11 +113,11 @@ public class HopperOptimizeMixin {
             
             bridge.debugLog("[AkiAsync] HopperOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | expireTime=" + cached_cacheExpireTime + "ms");
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
     
     @Unique

@@ -33,12 +33,8 @@ public abstract class GravityCollisionOptimizationMixin {
     @Unique
     private static volatile long optimizedGravityChecks = 0;
     
-    static {
-        akiasync$initGravityOptimization();
-    }
-    
     @Unique
-    private static void akiasync$initGravityOptimization() {
+    private static synchronized void akiasync$initGravityOptimization() {
         if (initialized) {
             return;
         }
@@ -50,13 +46,13 @@ public abstract class GravityCollisionOptimizationMixin {
             if (bridge != null) {
                 enabled = true;
                 bridge.debugLog("[GravityCollisionOptimization] Initialized: enabled=%s", enabled);
+                
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "GravityCollisionOptimization", "init", e);
         }
-        
-        initialized = true;
     }
     
     @Inject(
@@ -65,6 +61,10 @@ public abstract class GravityCollisionOptimizationMixin {
         cancellable = true
     )
     private void optimizeGravityCollision(MoverType type, Vec3 movement, CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initGravityOptimization();
+        }
+        
         if (!enabled) {
             return;
         }

@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
@@ -24,17 +26,17 @@ public abstract class ZeroMovementPacketFilterMixin {
     private static volatile boolean initialized = false;
     @Unique
     private static volatile boolean enabled = true;
+    
     @Unique
-    private static volatile boolean strictMode = false;
+    private static volatile int skipInterval = 3;
+    
+    @Unique
+    private int akiasync$zeroMoveCounter = 0;
     
     @Unique
     private static volatile long totalPackets = 0;
     @Unique
     private static volatile long filteredPackets = 0;
-    @Unique
-    private static volatile long zeroMovePackets = 0;
-    @Unique
-    private static volatile long zeroRotatePackets = 0;
     
     @Inject(
         method = "write(Lnet/minecraft/network/FriendlyByteBuf;)V",
@@ -62,28 +64,21 @@ public abstract class ZeroMovementPacketFilterMixin {
             float xRot = this.getXRot();
             
             boolean isZeroMove = (xa == 0 && ya == 0 && za == 0);
-            boolean isZeroRotate = (Math.abs(yRot) < 0.01f && Math.abs(xRot) < 0.01f);
             
-            if (strictMode) {
-                if (isZeroMove && isZeroRotate) {
-                    filteredPackets++;
-                    ci.cancel();
-                    return;
-                }
-            } else {
-                if (isZeroMove) {
-                    zeroMovePackets++;
+            boolean hasRotation = (Math.abs(yRot) > 0.1f || Math.abs(xRot) > 0.1f);
+            
+            if (isZeroMove && !hasRotation) {
+                akiasync$zeroMoveCounter++;
+                
+                if (akiasync$zeroMoveCounter < skipInterval) {
                     filteredPackets++;
                     ci.cancel();
                     return;
                 }
                 
-                if (isZeroRotate && Math.abs(xa) <= 1 && Math.abs(ya) <= 1 && Math.abs(za) <= 1) {
-                    zeroRotatePackets++;
-                    filteredPackets++;
-                    ci.cancel();
-                    return;
-                }
+                akiasync$zeroMoveCounter = 0;
+            } else {
+                akiasync$zeroMoveCounter = 0;
             }
             
         } catch (Exception e) {
@@ -93,7 +88,7 @@ public abstract class ZeroMovementPacketFilterMixin {
     }
     
     @Unique
-    private static void akiasync$init() {
+    private static synchronized void akiasync$init() {
         if (initialized) {
             return;
         }
@@ -104,17 +99,17 @@ public abstract class ZeroMovementPacketFilterMixin {
             
             if (bridge != null) {
                 enabled = bridge.isSkipZeroMovementPacketsEnabled();
-                strictMode = bridge.isSkipZeroMovementPacketsStrictMode();
+                skipInterval = 3;
                 
-                bridge.debugLog("[ZeroMovementPacketFilter] Initialized - enabled=%s, strictMode=%s", 
-                    enabled, strictMode);
+                bridge.debugLog("[ZeroMovementPacketFilter] Initialized - enabled=%s, skipInterval=%d", 
+                    enabled, skipInterval);
+                
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ZeroMovementPacketFilter", "init", e);
         }
-        
-        initialized = true;
     }
     
     @Unique
@@ -126,8 +121,8 @@ public abstract class ZeroMovementPacketFilterMixin {
         double filterRate = (double) filteredPackets / totalPackets * 100.0;
         
         return String.format(
-            "ZeroMovementPacketFilter: total=%d, filtered=%d (%.2f%%), zeroMove=%d, zeroRotate=%d",
-            totalPackets, filteredPackets, filterRate, zeroMovePackets, zeroRotatePackets
+            "ZeroMovementPacketFilter: total=%d, filtered=%d (%.2f%%)",
+            totalPackets, filteredPackets, filterRate
         );
     }
     
@@ -135,8 +130,6 @@ public abstract class ZeroMovementPacketFilterMixin {
     private static void akiasync$resetStatistics() {
         totalPackets = 0;
         filteredPackets = 0;
-        zeroMovePackets = 0;
-        zeroRotatePackets = 0;
     }
     
     @Unique

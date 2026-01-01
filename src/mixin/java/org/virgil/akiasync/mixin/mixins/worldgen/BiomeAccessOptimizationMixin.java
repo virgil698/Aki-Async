@@ -164,12 +164,12 @@ public class BiomeAccessOptimizationMixin {
             if (bridge != null) {
                 enabled = bridge.isBiomeAccessOptimizationEnabled();
                 bridge.debugLog("[BiomeAccessOptimization] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "BiomeAccessOptimization", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

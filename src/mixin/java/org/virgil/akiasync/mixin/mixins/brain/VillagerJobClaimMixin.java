@@ -77,10 +77,11 @@ public abstract class VillagerJobClaimMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isVillagerOptimizationEnabled();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        initialized = true;
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] VillagerJobClaimMixin initialized (atomic claim): enabled=" + cached_enabled);
         }

@@ -33,10 +33,11 @@ public abstract class BlockPosPoolMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isBlockPosPoolEnabled();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);
         }

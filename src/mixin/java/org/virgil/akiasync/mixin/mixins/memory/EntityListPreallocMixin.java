@@ -50,11 +50,12 @@ public abstract class EntityListPreallocMixin {
         if (bridge != null) {
             enabled = bridge.isListPreallocEnabled();
             defaultCapacity = bridge.getListPreallocCapacity();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             defaultCapacity = 32;
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] EntityListPreallocMixin initialized: enabled=" + enabled + ", capacity=" + defaultCapacity);
         }

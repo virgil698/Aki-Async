@@ -166,8 +166,9 @@ public abstract class SpatialCollisionOptimizationMixin {
         if (bridge != null) {
             enabled = bridge.isCollisionOptimizationEnabled();
             BridgeConfigCache.debugLog("[AkiAsync] SpatialCollisionOptimizationMixin initialized: enabled=" + enabled);
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
 }

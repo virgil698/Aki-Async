@@ -221,8 +221,9 @@ public abstract class SpatialEntityPartitionMixin {
             enabled = bridge.isCollisionOptimizationEnabled();
             bridge.debugLog("[AkiAsync] SpatialEntityPartitionMixin initialized: enabled=" + enabled + 
                 ", gridSize=" + gridSize + ", densityThreshold=" + densityThreshold);
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
 }

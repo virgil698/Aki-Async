@@ -87,7 +87,9 @@ public class BlockPosIterationOptimizationMixin {
                 
                 bridge.debugLog("[BlockPosIterationOptimization] Initialized: enabled=%s, capacity=256",
                     enabled);
-            } else {
+            
+                    initialized = true;
+                } else {
                 
                 cache = new BlockPosIterationCache(256);
             }
@@ -97,8 +99,6 @@ public class BlockPosIterationOptimizationMixin {
             
             cache = new BlockPosIterationCache(256);
         }
-        
-        initialized = true;
     }
     
     @Unique

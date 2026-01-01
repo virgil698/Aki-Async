@@ -99,9 +99,11 @@ public class MobSpawningMixin {
             BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Cache enabled: " + cacheEnabled);
             BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Strategy: Sync with caching and pre-checks");
             BridgeConfigCache.debugLog("[AkiAsync-MobSpawn]   Reference: Luminol (avoid chunk loading)");
+            
+            initialized = true;
+        } else {
+            optimizationEnabled = false;
         }
-        
-        initialized = true;
     }
     
     @Unique

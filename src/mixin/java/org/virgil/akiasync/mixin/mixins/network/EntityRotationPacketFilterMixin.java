@@ -77,12 +77,12 @@ public class EntityRotationPacketFilterMixin {
                 
                 bridge.debugLog("[EntityRotationPacketFilter] Initialized: enabled=%s, filterPureRotation=%s",
                     enabled, filterPureRotation);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "EntityRotationPacketFilter", "init", e);
         }
-        
-        initialized = true;
     }
 }

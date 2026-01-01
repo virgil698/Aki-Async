@@ -106,10 +106,10 @@ public class AllayTickMixin {
                 "[AkiAsync] AllayTickMixin initialized: enabled=%s | Using AI Spatial Index",
                 cached_enabled
             );
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

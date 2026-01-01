@@ -43,13 +43,13 @@ public abstract class EntityFallDamageOptimizationMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isEntityFallDamageOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
 
     

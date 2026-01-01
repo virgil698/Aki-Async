@@ -64,6 +64,10 @@ public abstract class CollisionableCacheMixin implements org.virgil.akiasync.mix
         remap = false
     )
     private void updateCollidableCache(boolean ignoreClimbing, CallbackInfoReturnable<Boolean> cir) {
+        if (!initialized) {
+            akiasync$initCollidableCache();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -93,9 +97,10 @@ public abstract class CollisionableCacheMixin implements org.virgil.akiasync.mix
             cacheLifetimeMs = bridge.getCollisionCacheLifetimeMs();
             bridge.debugLog("[AkiAsync] CollisionableCacheMixin initialized: enabled=" + enabled + 
                 ", cacheLifetime=" + cacheLifetimeMs + "ms (caching isCollidable)");
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
     
     @Override

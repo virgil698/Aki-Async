@@ -205,12 +205,12 @@ public class AfkPlayerPacketThrottleMixin {
                 
                 bridge.debugLog("[AfkPlayerPacketThrottle] Initialized: enabled=%s, afkDuration=%dms",
                     enabled, afkDurationMs);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "AfkPlayerPacketThrottle", "init", e);
         }
-        
-        initialized = true;
     }
 }

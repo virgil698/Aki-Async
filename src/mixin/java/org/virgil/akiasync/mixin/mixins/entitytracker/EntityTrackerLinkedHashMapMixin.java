@@ -91,6 +91,8 @@ public class EntityTrackerLinkedHashMapMixin {
                         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
                     if (bridge != null) {
                         bridge.debugLog("[EntityTrackerLinkedHashMap] Disabled: entityMap field not found (Folia/Luminol environment)");
+                    
+                        initialized = true;
                     }
                 } catch (Exception e) {
                     
@@ -102,13 +104,13 @@ public class EntityTrackerLinkedHashMapMixin {
                 if (bridge != null) {
                     enabled = bridge.isEntityTrackerLinkedHashMapEnabled();
                     bridge.debugLog("[EntityTrackerLinkedHashMap] Initialized: enabled=%s", enabled);
+                
+                    initialized = true;
                 }
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "EntityTrackerLinkedHashMap", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

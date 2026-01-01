@@ -64,12 +64,13 @@ public class LocateCommandMixin {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isLocateCommandEnabled();
             searchRadius = bridge.getLocateCommandSearchRadius();
             skipKnownStructures = bridge.isLocateCommandSkipKnownStructures();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             searchRadius = 0;
             skipKnownStructures = false;
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] LocateCommandMixin initialized: enabled=" + cached_enabled + ", radius=" + searchRadius + ", skipKnown=" + skipKnownStructures);
         }

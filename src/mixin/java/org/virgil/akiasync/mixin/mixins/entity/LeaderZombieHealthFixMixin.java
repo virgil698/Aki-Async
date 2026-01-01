@@ -35,7 +35,6 @@ public class LeaderZombieHealthFixMixin {
             } catch (Exception e) {
                 BridgeConfigCache.debugLog("[AkiAsync-LeaderZombieFix] Init failed, using default: " + e.getMessage());
             }
-            initialized = true;
         }
     }
     

@@ -140,10 +140,10 @@ public abstract class CraftingMenuMixin {
             BridgeConfigCache.debugLog("  - Cache size: " + cacheSize);
             BridgeConfigCache.debugLog("  - Optimize batch crafting: " + optimizeBatchCrafting);
             BridgeConfigCache.debugLog("  - Reduce network traffic: " + reduceNetworkTraffic);
+        
+            initialized = true;
         } else {
             enabled = false;
         }
-
-        initialized = true;
     }
 }

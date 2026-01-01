@@ -38,12 +38,12 @@ public abstract class ListTagOptimizationMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isNbtOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
     
     @Overwrite

@@ -42,10 +42,11 @@ public abstract class PredicateCacheMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isPredicateCacheEnabled();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);
         }

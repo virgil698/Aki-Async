@@ -83,6 +83,8 @@ public abstract class AiSpatialIndexTrackerMixin {
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
                 bridge.clearEntityThrottleCache(entity.getId());
+            
+                initialized = true;
             }
         } catch (Exception e) {
             ExceptionHandler.handleCleanup("AiSpatialIndexTracker", "entityThrottleCache", e);
@@ -102,11 +104,11 @@ public abstract class AiSpatialIndexTrackerMixin {
             
             if (enabled) {
                 bridge.debugLog("[AkiAsync] AI Spatial Index Tracker initialized: enabled=true");
+            
+                initialized = true;
             }
         } else {
-            enabled = true; 
+            enabled = false; 
         }
-        
-        initialized = true;
     }
 }

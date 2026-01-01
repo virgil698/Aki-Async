@@ -56,10 +56,10 @@ public class WardenTickMixin {
             bridge.debugLog(
                 "[AkiAsync] WardenTickMixin initialized: Vanilla behavior preserved (anger, darkness, vibrations)"
             );
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

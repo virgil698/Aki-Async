@@ -117,10 +117,10 @@ public class MinecartTickOptimizeMixin {
             
             bridge.debugLog("[AkiAsync] MinecartTickOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | interval=" + cached_tickInterval + " | threshold=" + cached_staticThreshold);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

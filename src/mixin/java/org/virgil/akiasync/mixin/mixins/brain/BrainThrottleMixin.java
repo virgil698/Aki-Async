@@ -34,20 +34,11 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             return;
         }
         
-        if (entity instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
-            if (neutralMob.getRemainingPersistentAngerTime() > 0) {
-                akiasync$stillTicks = 0;
-                akiasync$lastPos = entity.position();
-                return;
-            }
-            if (neutralMob.getPersistentAngerTarget() != null) {
-                akiasync$stillTicks = 0;
-                akiasync$lastPos = entity.position();
-                return;
-            }
-        }
-        
         if (entity instanceof net.minecraft.world.entity.Mob mob) {
+            if (mob instanceof net.minecraft.world.entity.monster.Monster) {
+                return;
+            }
+            
             if (mob.getTarget() != null) {
                 akiasync$stillTicks = 0;
                 akiasync$lastPos = entity.position();
@@ -59,6 +50,19 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
                 return;
             }
             if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+        }
+        
+        if (entity instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            if (neutralMob.getRemainingPersistentAngerTime() > 0) {
+                akiasync$stillTicks = 0;
+                akiasync$lastPos = entity.position();
+                return;
+            }
+            if (neutralMob.getPersistentAngerTarget() != null) {
                 akiasync$stillTicks = 0;
                 akiasync$lastPos = entity.position();
                 return;
@@ -112,11 +116,12 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
         if (bridge != null) {
             cached_enabled = bridge.isBrainThrottleEnabled();
             cached_interval = bridge.getBrainThrottleInterval();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_interval = 10;
         }
-        initialized = true;
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] BrainThrottleMixin initialized: enabled=" + cached_enabled + ", interval=" + cached_interval);
         }

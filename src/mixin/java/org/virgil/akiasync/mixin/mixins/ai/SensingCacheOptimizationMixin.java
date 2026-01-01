@@ -89,12 +89,12 @@ public class SensingCacheOptimizationMixin {
                 
                 bridge.debugLog("[SensingCacheOptimization] Initialized: enabled=%s, clearInterval=%d ticks",
                     enabled, clearInterval);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "SensingCacheOptimizationMixin", "initConfig", e);
         }
-        
-        initialized = true;
     }
 }

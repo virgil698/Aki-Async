@@ -43,10 +43,11 @@ public class DolphinMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isDolphinTreasureHuntEnabled();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] DolphinMixin initialized: enabled=" + cached_enabled + ", skipKnown=" + false);
         }

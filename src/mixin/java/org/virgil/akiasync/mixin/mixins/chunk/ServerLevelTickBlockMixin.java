@@ -91,6 +91,8 @@ public abstract class ServerLevelTickBlockMixin {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             bridge.tickEntityPacketThrottler();
+        
+            initialized = true;
         }
         
         if (!cached_enabled) {
@@ -108,6 +110,8 @@ public abstract class ServerLevelTickBlockMixin {
             bridge.tickEntityPacketThrottler();
             bridge.tickEntityDataThrottler();
             bridge.tickChunkVisibilityFilter();
+        
+            initialized = true;
         }
         
         ServerLevel level = (ServerLevel) (Object) this;
@@ -153,9 +157,8 @@ public abstract class ServerLevelTickBlockMixin {
                     BridgeConfigCache.debugLog("[AkiAsync-BlockTick] TaskSmoothingScheduler obtained from Bridge");
                 }
             }
+            initialized = true;
         }
-
-        initialized = true;
         
         if (wasInitialized) {
             BridgeConfigCache.debugLog("[AkiAsync-BlockTick] Reloading...");
@@ -267,6 +270,8 @@ public abstract class ServerLevelTickBlockMixin {
                                 BlockState currentState = level.getBlockState(task.pos);
                                 if (currentState.is(task.block)) {
                                     currentState.tick(level, task.pos, level.random);
+                                
+                                    initialized = true;
                                 }
                             } catch (Throwable t) {
                                 syncFallbackCount.incrementAndGet();

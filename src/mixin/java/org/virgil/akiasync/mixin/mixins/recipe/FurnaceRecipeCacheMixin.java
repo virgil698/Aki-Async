@@ -105,6 +105,10 @@ public abstract class FurnaceRecipeCacheMixin {
                                          RecipeType<? extends AbstractCookingRecipe> recipeType,
                                          double cookSpeedMultiplier,
                                          CallbackInfoReturnable<Integer> cir) {
+        if (!initialized) {
+            akiasync$initFurnaceCache();
+        }
+        
         if (!enabled) return;
         if (!akiasync$shouldApplyCacheStatic(furnace)) return;
 
@@ -133,6 +137,10 @@ public abstract class FurnaceRecipeCacheMixin {
 
     @Inject(method = "setItem", at = @At("HEAD"))
     private void clearCacheOnItemChange(int slot, ItemStack stack, CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initFurnaceCache();
+        }
+        
         if (!enabled) return;
 
         if (slot == 0) {
@@ -228,10 +236,10 @@ public abstract class FurnaceRecipeCacheMixin {
             BridgeConfigCache.debugLog("  - Apply to blast furnace: " + applyToBlastFurnace);
             BridgeConfigCache.debugLog("  - Apply to smoker: " + applyToSmoker);
             BridgeConfigCache.debugLog("  - Fix burn time bug: " + fixBurnTimeBug);
+        
+            initialized = true;
         } else {
             enabled = false;
         }
-
-        initialized = true;
     }
 }

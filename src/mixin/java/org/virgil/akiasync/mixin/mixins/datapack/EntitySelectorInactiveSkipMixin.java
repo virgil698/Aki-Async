@@ -78,10 +78,10 @@ public class EntitySelectorInactiveSkipMixin {
                         bridge.debugLog("  - Simulation distance multiplier: %.2f", simulationDistanceMultiplier);
                         bridge.debugLog("  - Cache duration: %d ms", cacheDurationMs);
                         bridge.debugLog("  - Whitelist types: %d", whitelistTypes.size());
+                    
+                        initialized = true;
                     }
                 }
-                
-                initialized = true;
             }
         }
         

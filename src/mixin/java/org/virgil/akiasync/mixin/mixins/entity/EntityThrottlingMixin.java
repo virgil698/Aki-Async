@@ -133,10 +133,10 @@ public class EntityThrottlingMixin {
         if (bridge != null) {
             enabled = bridge.isEntityThrottlingEnabled();
             bridge.debugLog("[AkiAsync] EntityThrottlingMixin initialized: enabled=" + enabled);
-        } else {
-            enabled = true;
-        }
         
-        initialized = true;
+            initialized = true;
+        } else {
+            enabled = false; 
+        }
     }
 }

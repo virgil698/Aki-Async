@@ -32,13 +32,13 @@ public class ChunkPosOptimizationMixin {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isChunkPosOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
     
     

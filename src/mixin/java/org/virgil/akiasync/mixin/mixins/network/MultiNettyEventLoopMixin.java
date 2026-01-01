@@ -38,6 +38,8 @@ public class MultiNettyEventLoopMixin {
             
             if (bridge != null) {
                 bridge.handleConnectionProtocolChange((Connection)(Object)this, protocol.ordinal());
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
@@ -58,12 +60,12 @@ public class MultiNettyEventLoopMixin {
             if (bridge != null) {
                 enabled = bridge.isMultiNettyEventLoopEnabled();
                 bridge.debugLog("[MultiNettyEventLoop] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "MultiNettyEventLoop", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

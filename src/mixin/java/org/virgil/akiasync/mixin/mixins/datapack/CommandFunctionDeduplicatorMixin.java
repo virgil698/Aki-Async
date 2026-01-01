@@ -42,9 +42,9 @@ public abstract class CommandFunctionDeduplicatorMixin {
                 
                 if (akiasync$enabled && bridge.isDebugLoggingEnabled() && bridge.isCommandDeduplicationDebugEnabled()) {
                     bridge.debugLog("[AkiAsync] Command deduplication enabled");
-                }
                 
-                akiasync$initialized = true;
+                    akiasync$initialized = true;
+                }
             }
         }
         

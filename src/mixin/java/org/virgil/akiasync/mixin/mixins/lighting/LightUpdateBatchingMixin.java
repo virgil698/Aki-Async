@@ -200,8 +200,6 @@ public abstract class LightUpdateBatchingMixin {
         } catch (Exception e) {
             
         }
-        
-        initialized = true;
     }
     
     @Unique

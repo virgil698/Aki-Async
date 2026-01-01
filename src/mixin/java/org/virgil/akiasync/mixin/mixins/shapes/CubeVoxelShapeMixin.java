@@ -47,6 +47,10 @@ public abstract class CubeVoxelShapeMixin extends VoxelShape {
 
     @Inject(method = "getCoords", at = @At("HEAD"), cancellable = true)
     private void cacheGetCoords(Direction.Axis axis, CallbackInfoReturnable<DoubleList> cir) {
+        if (!initialized) {
+            akiasync$initConfig();
+        }
+        
         if (enabled && this.list != null && this.list[axis.ordinal()] != null) {
             cir.setReturnValue(this.list[axis.ordinal()]);
         }
@@ -65,12 +69,12 @@ public abstract class CubeVoxelShapeMixin extends VoxelShape {
                          bridge.isShapePrecomputeArrays();
                 
                 bridge.debugLog("[AkiAsync] CubeVoxelShapeMixin initialized: enabled=" + enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "CubeVoxelShape", "init", e);
         }
-        
-        initialized = true;
     }
 }

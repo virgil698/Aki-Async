@@ -131,23 +131,21 @@ public abstract class ChunkMapTrackerMixin implements ChunkMapTrackerAccess {
                 try {
                     Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
                     aki$enabled = false;
-                    if (bridge != null) {
-                        bridge.debugLog("[MultithreadedEntityTracker] Detected Folia/Luminol environment - disabling multithreaded entity tracker");
-                    }
+                    bridge.debugLog("[MultithreadedEntityTracker] Detected Folia/Luminol environment - disabling multithreaded entity tracker");
                 } catch (ClassNotFoundException e) {
-                    
                 }
                 
-                if (bridge != null) {
-                    bridge.debugLog("[MultithreadedEntityTracker] Initialized: enabled=%s, parallelism=%d",
-                        aki$enabled, Runtime.getRuntime().availableProcessors());
-                }
+                bridge.debugLog("[MultithreadedEntityTracker] Initialized: enabled=%s, parallelism=%d",
+                    aki$enabled, Runtime.getRuntime().availableProcessors());
+                
+                aki$initialized = true;
+            } else {
+                aki$enabled = false; 
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ChunkMapTrackerMixin", "initConfig", e);
+            aki$enabled = false;
         }
-        
-        aki$initialized = true;
     }
 }

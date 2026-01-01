@@ -58,10 +58,11 @@ public class ChestLootMixin {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             cached_enabled = bridge.isStructureLocationAsyncEnabled() && bridge.isChestExplorationMapsEnabled();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] ChestLootMixin initialized: enabled=" + cached_enabled);
         }

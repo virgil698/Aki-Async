@@ -163,13 +163,13 @@ public abstract class ItemEntityAgeMixin {
             enabled = bridge.isItemEntityAgeOptimizationEnabled();
             ageIncrementInterval = bridge.getItemEntityAgeInterval();
             playerDetectionRange = bridge.getItemEntityPlayerDetectionRange();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             ageIncrementInterval = 10;
             playerDetectionRange = 8.0;
         }
-
-        initialized = true;
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ItemEntityAgeMixin initialized: enabled=" + enabled +

@@ -195,8 +195,9 @@ public abstract class SmartCollisionSamplingMixin extends Entity {
             
             bridge.debugLog("[AkiAsync] SmartCollisionSamplingMixin initialized: enabled=" + enabled + 
                 ", samplingThreshold=" + samplingThreshold);
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
 }

@@ -77,9 +77,10 @@ public abstract class EndermanBlockCarryLimiterMixin extends Monster {
             BridgeConfigCache.debugLog("  - Max carrying endermen: " + aki$maxCarryingEndermen);
             BridgeConfigCache.debugLog("  - Count towards mob cap: " + aki$countTowardsMobCap);
             BridgeConfigCache.debugLog("  - Prevent pickup when limit reached: " + aki$preventPickup);
+        
+            aki$initialized = true;
         }
 
-        aki$initialized = true;
     }
 
     @Mixin(targets = "net.minecraft.world.entity.monster.EnderMan$EndermanTakeBlockGoal")

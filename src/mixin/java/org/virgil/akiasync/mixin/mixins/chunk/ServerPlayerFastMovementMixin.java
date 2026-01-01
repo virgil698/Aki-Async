@@ -102,6 +102,8 @@ public abstract class ServerPlayerFastMovementMixin {
             
             if (bridge != null) {
                 aki$processChunkLoadingAsync(self, speed, bridge);
+            
+                initialized = true;
             }
 
         } catch (Exception e) {
@@ -110,6 +112,8 @@ public abstract class ServerPlayerFastMovementMixin {
                 Bridge bridge = BridgeManager.getBridge();
                 if (bridge != null) {
                     bridge.errorLog("[FastChunk] Error in fast movement detection: %s", e.getMessage());
+                
+                    initialized = true;
                 }
             }
         }
@@ -268,6 +272,8 @@ public abstract class ServerPlayerFastMovementMixin {
 
                 if (isFolia) {
                     bridge.debugLog("[FastChunk] Initialized in Folia mode with region safety checks");
+                
+                    initialized = true;
                 }
                 if (centerOffsetEnabled) {
                     bridge.debugLog("[FastChunk] Center offset enabled: speed range %.1f-%.1f b/t, max offset ratio %.1f%%",
@@ -278,7 +284,6 @@ public abstract class ServerPlayerFastMovementMixin {
                         warmupDurationMs, warmupInitialRate * 100);
                 }
             }
-            initialized = true;
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ServerPlayerFastMovementMixin", "initConfig", e);
@@ -353,6 +358,8 @@ public abstract class ServerPlayerFastMovementMixin {
                     speedRatio * 100,
                     offsetCenter.x, offsetCenter.z
                 );
+            
+                initialized = true;
             }
         }
         
@@ -511,6 +518,8 @@ public abstract class ServerPlayerFastMovementMixin {
                         chunkPos.x, chunkPos.z,
                         player.getScoreboardName()
                     );
+                
+                    initialized = true;
                 }
             }
         } catch (Exception ex) {
@@ -522,6 +531,8 @@ public abstract class ServerPlayerFastMovementMixin {
                         chunkPos.x, chunkPos.z,
                         ex.getMessage()
                     );
+                
+                    initialized = true;
                 }
             }
         }

@@ -111,13 +111,13 @@ public class ConnectionFlushOptimizationMixin {
                 
                 bridge.debugLog("[ConnectionFlushOptimization] Initialized: enabled=%s, threshold=%d, timeout=%dns",
                     enabled, flushConsolidationThreshold, flushConsolidationTimeoutNs);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ConnectionFlushOptimization", "init", e);
         }
-        
-        initialized = true;
     }
     
     @Unique

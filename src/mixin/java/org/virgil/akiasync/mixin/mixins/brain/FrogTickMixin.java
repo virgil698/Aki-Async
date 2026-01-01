@@ -111,12 +111,12 @@ public abstract class FrogTickMixin {
             BridgeConfigCache.debugLog(
                 "[AkiAsync] FrogTickMixin initialized: enabled=%s, interval=%d, timeout=%d",
                 cached_enabled, cached_tickInterval, cached_timeout);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_tickInterval = 3;
             cached_timeout = 100;
         }
-        
-        initialized = true;
     }
 }

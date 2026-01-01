@@ -266,15 +266,15 @@ public abstract class ItemEntityMergeMixin {
             mergeInterval = bridge.getItemEntityMergeInterval();
             minNearbyItems = bridge.getItemEntityMinNearbyItems();
             mergeRange = bridge.getItemEntityMergeRange();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             cancelVanillaMerge = true;
             mergeInterval = 3; 
             minNearbyItems = 2; 
             mergeRange = 2.0; 
         }
-
-        initialized = true;
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ItemEntityMergeMixin initialized: enabled=" + enabled +

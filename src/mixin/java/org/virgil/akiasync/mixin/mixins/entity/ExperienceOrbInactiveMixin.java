@@ -168,13 +168,13 @@ public abstract class ExperienceOrbInactiveMixin {
             enabled = bridge.isExperienceOrbInactiveTickEnabled();
             inactiveRange = bridge.getExperienceOrbInactiveRange();
             mergeInterval = bridge.getExperienceOrbInactiveMergeInterval();
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
             inactiveRange = 32.0;
             mergeInterval = 100;
         }
-
-        initialized = true;
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ExperienceOrbInactiveMixin initialized: enabled=" + enabled +

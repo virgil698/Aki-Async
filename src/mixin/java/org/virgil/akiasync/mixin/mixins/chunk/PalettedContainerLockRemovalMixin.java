@@ -50,12 +50,12 @@ public class PalettedContainerLockRemovalMixin {
             if (bridge != null) {
                 enabled = bridge.isPalettedContainerLockRemovalEnabled();
                 bridge.debugLog("[PalettedContainerLockRemoval] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "PalettedContainerLockRemoval", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

@@ -30,10 +30,10 @@ public class SpawnChunkRemovalMixin {
             if (bridge.isDebugLoggingEnabled() && enabled) {
                 bridge.debugLog("[AkiAsync-SpawnChunks] Spawn chunk removal enabled (Ksyxis-style)");
                 bridge.debugLog("[AkiAsync-SpawnChunks]   - Target: Minecraft 1.21.8 / 1.21.10");
+            
+                initialized = true;
             }
         }
-        
-        initialized = true;
     }
     
     @ModifyVariable(

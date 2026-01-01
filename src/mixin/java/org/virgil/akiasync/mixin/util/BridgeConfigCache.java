@@ -19,17 +19,16 @@ public class BridgeConfigCache {
     
     private static final long REFRESH_INTERVAL_MS = 5000;
     
-    static {
-        
-        Thread initThread = new Thread(() -> {
-            try {
-                refreshCache();
-            } catch (Exception e) {
-                ExceptionHandler.handleInitialization("BridgeConfigCache", e);
-            }
-        }, "BridgeConfigCache-Init");
-        initThread.setDaemon(true);
-        initThread.start();
+    public static boolean isBridgeReady() {
+        return BridgeManager.getBridge() != null;
+    }
+    
+    public static Bridge getBridgeSafe() {
+        try {
+            return BridgeManager.getBridge();
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     public static boolean isDebugLoggingEnabled() {

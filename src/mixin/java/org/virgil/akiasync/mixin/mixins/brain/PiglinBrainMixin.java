@@ -160,6 +160,8 @@ public abstract class PiglinBrainMixin {
             cached_barterDistance = bridge.getPiglinBarterDistance();
             cached_skipChance = 40; 
             AsyncBrainExecutor.setExecutor(bridge.getGeneralExecutor());
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_timeoutMicros = 100;
@@ -168,7 +170,6 @@ public abstract class PiglinBrainMixin {
             cached_barterDistance = 16;
             cached_skipChance = 0;
         }
-        initialized = true;
         org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge2 != null) {
             bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + 

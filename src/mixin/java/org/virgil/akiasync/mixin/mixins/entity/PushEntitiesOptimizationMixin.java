@@ -13,27 +13,19 @@ import net.minecraft.world.entity.LivingEntity;
 @Mixin(value = LivingEntity.class, priority = 800)
 public abstract class PushEntitiesOptimizationMixin {
     @Unique
-    private static volatile boolean enabled;
+    private static volatile boolean enabled = false;
+    @Unique
+    private static volatile boolean initialized = false;
     @Unique
     private static volatile int interval = 2;
-    
-    static {
-        
-        Thread initThread = new Thread(() -> {
-            try {
-                akiasync$initPushOptimization();
-            } catch (Exception e) {
-                
-                enabled = true;
-            }
-        }, "PushOptimization-Init");
-        initThread.setDaemon(true);
-        initThread.start();
-    }
     
     @Inject(method = "pushEntities", at = @At("HEAD"), cancellable = true)
     @SuppressWarnings({"ConstantConditions", "ConstantValue"}) 
     private void optimizePush(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initPushOptimization();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -121,13 +113,14 @@ public abstract class PushEntitiesOptimizationMixin {
     
     @Unique
     private static synchronized void akiasync$initPushOptimization() {
+        if (initialized) return;
+        
         org.virgil.akiasync.mixin.bridge.Bridge bridge = BridgeConfigCache.getBridge();
         
         if (bridge != null) {
             enabled = bridge.isPushOptimizationEnabled();
             BridgeConfigCache.debugLog("[AkiAsync] PushOptimizationMixin initialized: enabled=" + enabled);
-        } else {
-            enabled = true;
+            initialized = true;
         }
     }
 }

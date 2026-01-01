@@ -104,6 +104,10 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
         Predicate<? super Entity> predicate,
         CallbackInfoReturnable<List<Entity>> cir
     ) {
+        if (!initialized) {
+            akiasync$initCollisionCache();
+        }
+        
         if (!enabled || except == null) {
             return;
         }
@@ -166,9 +170,10 @@ public abstract class EntityCollisionCacheMixin implements org.virgil.akiasync.m
             enabled = bridge.isCollisionOptimizationEnabled();
             EntityCollisionCache.setCacheLifetime(cacheLifetimeMs);
             bridge.debugLog("[AkiAsync] EntityCollisionCacheMixin initialized: enabled=" + enabled);
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
     
     @Override

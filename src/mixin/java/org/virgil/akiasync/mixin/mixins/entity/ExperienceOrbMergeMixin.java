@@ -148,9 +148,10 @@ public abstract class ExperienceOrbMergeMixin {
             maxAllowedCount = 100;
 
             BridgeConfigCache.debugLog("[AkiAsync] ExperienceOrbMergeMixin initialized: fixEnabled=" + fixEnabled + ", maxAllowedCount=" + maxAllowedCount);
+        
+            initialized = true;
         }
 
-        initialized = true;
     }
 
     @Unique

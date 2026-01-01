@@ -39,13 +39,13 @@ public abstract class EntitySectionStorageOptimizationMixin<T extends EntityAcce
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isEntitySectionStorageOptimizationEnabled();
+            
+                akiasync$initialized = true;
             }
         } catch (Exception e) {
             
             akiasync$enabled = true;
         }
-        
-        akiasync$initialized = true;
     }
 
     

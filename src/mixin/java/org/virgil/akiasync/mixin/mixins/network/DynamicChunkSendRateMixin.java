@@ -117,12 +117,12 @@ public class DynamicChunkSendRateMixin {
                 
                 bridge.debugLog("[DynamicChunkSendRate] Initialized: enabled=%s, limit=%dKB/s, guaranteed=%dKB/s",
                     enabled, limitUploadBandwidth, guaranteedBandwidth);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "DynamicChunkSendRate", "init", e);
         }
-        
-        initialized = true;
     }
 }

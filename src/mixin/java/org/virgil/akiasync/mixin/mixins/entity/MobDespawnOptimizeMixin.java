@@ -72,10 +72,10 @@ public class MobDespawnOptimizeMixin {
             
             bridge.debugLog("[AkiAsync] MobDespawnOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | interval=" + cached_checkInterval);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

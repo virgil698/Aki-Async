@@ -80,6 +80,8 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
                     bridge.debugLog("[AkiAsync-Lighting]   - Update interval: %dms", intervalMs);
                     bridge.debugLog("[AkiAsync-Lighting]   - Smart batching: %s", useSmartBatching ? "enabled" : "disabled");
                     bridge.debugLog("[AkiAsync-Lighting]   - Note: Works alongside Paper's native async lighting");
+                
+                    initialized = true;
                 }
             } else {
                 if (bridge.isLightingDebugEnabled()) {
@@ -87,8 +89,6 @@ public abstract class ThreadedLevelLightEngineMixin extends LevelLightEngine imp
                 }
             }
         }
-        
-        initialized = true;
     }
     
     

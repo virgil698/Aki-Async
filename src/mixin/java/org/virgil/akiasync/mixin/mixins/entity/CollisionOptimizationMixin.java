@@ -147,9 +147,10 @@ public abstract class CollisionOptimizationMixin {
             bridge.debugLog("[AkiAsync]   - checkInsideBlocks: Frequency reduction for static non-critical entities");
             bridge.debugLog("[AkiAsync]   - push: Skip for completely static entities");
             bridge.debugLog("[AkiAsync]   - TNT and players are excluded from optimizations");
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
         }
-        initialized = true;
     }
 }

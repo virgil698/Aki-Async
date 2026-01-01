@@ -128,8 +128,9 @@ public abstract class MinecartCauldronMixin {
         if (bridge != null) {
             enabled = bridge.isMinecartCauldronDestructionEnabled();
             BridgeConfigCache.debugLog("[AkiAsync] MinecartCauldronMixin initialized: enabled=" + enabled);
+        
+            initialized = true;
         }
 
-        initialized = true;
     }
 }

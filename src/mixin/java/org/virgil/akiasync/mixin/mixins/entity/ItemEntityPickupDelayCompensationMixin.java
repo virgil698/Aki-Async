@@ -65,10 +65,10 @@ public class ItemEntityPickupDelayCompensationMixin {
             
             bridge.debugLog("[AkiAsync] ItemEntityPickupDelayCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
+        
+            initialized = true;
         } else {
             enabled = false;
         }
-        
-        initialized = true;
     }
 }

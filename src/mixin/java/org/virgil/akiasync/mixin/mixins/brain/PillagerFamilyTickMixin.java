@@ -60,11 +60,12 @@ public abstract class PillagerFamilyTickMixin {
         if (bridge != null) {
             cached_enabled = bridge.isPillagerFamilyOptimizationEnabled();
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_timeoutMicros = 100;
         }
-        initialized = true;
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] PillagerFamilyTickMixin initialized: enabled=" + cached_enabled);
         }

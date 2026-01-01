@@ -45,6 +45,8 @@ public abstract class BlockEntityTickParallelMixin {
             if (bridge != null) {
                 bridge.notifySmoothSchedulerTick(smoothingScheduler);
                 bridge.updateSmoothSchedulerMetrics(smoothingScheduler, bridge.getCurrentTPS(), bridge.getCurrentMSPT());
+            
+                initialized = true;
             }
         }
 
@@ -131,7 +133,9 @@ public abstract class BlockEntityTickParallelMixin {
                                 if (bridge != null) {
                                     bridge.errorLog("[AkiAsync-BlockEntity] Error ticking block entity: " +
                                         blockEntity.getType() + " at " + blockEntity.getPos());
-                                }
+                                
+                                        initialized = true;
+                                    }
                             }
                         }
                     }
@@ -167,6 +171,8 @@ public abstract class BlockEntityTickParallelMixin {
                         "[AkiAsync-BlockEntity] Processed %d block entities in %d batches",
                         blockEntityTickers.size(), batches.size()
                     );
+                
+                    initialized = true;
                 }
             }
 
@@ -177,7 +183,9 @@ public abstract class BlockEntityTickParallelMixin {
                 if (bridge != null) {
                     bridge.errorLog("[AkiAsync-BlockEntity] Parallel execution failed, falling back to sync: " +
                         t.getMessage());
-                }
+                
+                        initialized = true;
+                    }
             }
 
             for (TickingBlockEntity blockEntity : blockEntityTickers) {
@@ -295,6 +303,7 @@ public abstract class BlockEntityTickParallelMixin {
             if (isFolia) {
                 enabled = false;
                 bridge.debugLog("[AkiAsync] BlockEntityTickParallel disabled in Folia mode");
+                initialized = true;
             } else {
                 enabled = bridge.isBlockEntityParallelTickEnabled();
                 minBlockEntities = bridge.getBlockEntityParallelMinBlockEntities();
@@ -309,12 +318,11 @@ public abstract class BlockEntityTickParallelMixin {
                 bridge.debugLog("  - Batch size: " + batchSize);
                 bridge.debugLog("  - Protect containers: " + protectContainers);
                 bridge.debugLog("  - Timeout: " + timeoutMs + "ms");
+                initialized = true;
             }
         } else {
             enabled = false;
         }
-
-        initialized = true;
         
         if (bridge != null && enabled && !isFolia) {
             smoothingScheduler = bridge.getBlockEntitySmoothingScheduler();

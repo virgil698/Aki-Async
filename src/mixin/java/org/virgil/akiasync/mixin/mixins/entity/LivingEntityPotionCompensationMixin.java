@@ -67,10 +67,10 @@ public abstract class LivingEntityPotionCompensationMixin {
             
             bridge.debugLog("[AkiAsync] LivingEntityPotionCompensationMixin initialized: enabled=%s, threshold=%.1f",
                 enabled, tpsThreshold);
+        
+            initialized = true;
         } else {
             enabled = false;
         }
-        
-        initialized = true;
     }
 }

@@ -131,13 +131,13 @@ public class PacketPriorityQueueMixin {
                 deprioritizeSounds = bridge.isDeprioritizeSoundsEnabled();
                 
                 bridge.debugLog("[PacketPriorityQueue] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "PacketPriorityQueue", "init", e);
         }
-        
-        initialized = true;
     }
     
     @Unique

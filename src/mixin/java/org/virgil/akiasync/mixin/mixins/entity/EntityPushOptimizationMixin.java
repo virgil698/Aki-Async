@@ -136,6 +136,10 @@ public abstract class EntityPushOptimizationMixin {
         at = @At("HEAD")
     )
     private void resetPushAccumulator(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initPushOptimization();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -260,8 +264,9 @@ public abstract class EntityPushOptimizationMixin {
                 ", fixedPushStrength=" + fixedPushStrength +
                 " (density detection disabled for performance)");
             bridge.debugLog("[AkiAsync] TNT and TNT minecarts are excluded from push optimization for redstone machines");
-        }
         
-        initialized = true;
+            initialized = true;
+        }
+
     }
 }

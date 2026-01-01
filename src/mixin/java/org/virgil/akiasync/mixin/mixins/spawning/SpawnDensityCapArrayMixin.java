@@ -43,6 +43,10 @@ public class SpawnDensityCapArrayMixin {
 
     @Inject(method = "add", at = @At("HEAD"), cancellable = true)
     private void onAdd(MobCategory category, CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initConfig();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -55,6 +59,10 @@ public class SpawnDensityCapArrayMixin {
 
     @Inject(method = "canSpawn", at = @At("HEAD"), cancellable = true)
     private void onCanSpawn(MobCategory category, CallbackInfoReturnable<Boolean> cir) {
+        if (!initialized) {
+            akiasync$initConfig();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -77,12 +85,12 @@ public class SpawnDensityCapArrayMixin {
             if (bridge != null) {
                 enabled = bridge.isSpawnDensityArrayEnabled();
                 bridge.debugLog("[SpawnDensityCapArray] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "SpawnDensityCapArray", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

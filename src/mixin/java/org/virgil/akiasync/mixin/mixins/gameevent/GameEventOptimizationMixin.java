@@ -199,12 +199,12 @@ public class GameEventOptimizationMixin {
                     "throttleLowPriority=%s, throttleInterval=%dms, distanceFilter=%s, maxDistance=%.1f",
                     enabled, earlyFilter, throttleLowPriority, throttleIntervalMs, 
                     distanceFilter, maxDetectionDistance);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "GameEventOptimizationMixin", "initConfig", e);
         }
-        
-        initialized = true;
     }
 }

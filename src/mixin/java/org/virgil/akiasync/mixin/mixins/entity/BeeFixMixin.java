@@ -145,10 +145,10 @@ public abstract class BeeFixMixin {
             enabled = bridge.isBeeFixEnabled();
             bridge.debugLog("[AkiAsync] BeeFixMixin initialized: enabled=" + enabled);
             bridge.debugLog("[AkiAsync]   Fixed bugs: MC-168329, MC-190042, MC-206401, MC-229321, MC-234364, MC-248332, MC-255743");
+        
+            initialized = true;
         } else {
-            enabled = true;
+            enabled = false; 
         }
-
-        initialized = true;
     }
 }

@@ -433,12 +433,13 @@ public class VillagerBreedAsyncMixin {
             cached_enabled = bridge.isAsyncVillagerBreedEnabled();
             cached_ageThrottle = bridge.isVillagerAgeThrottleEnabled();
             cached_interval = bridge.getVillagerBreedCheckInterval();
+        
+            initialized = true;
         } else {
             cached_enabled = false;
             cached_ageThrottle = false;
             cached_interval = 5;
         }
-        initialized = true;
         lastInitTime = System.currentTimeMillis();
 
         BridgeConfigCache.debugLog("[AkiAsync] VillagerBreedAsyncMixin initialized (upgrade-safe): enabled=" + cached_enabled + " | ageThrottle=" + cached_ageThrottle + " | interval=" + cached_interval);

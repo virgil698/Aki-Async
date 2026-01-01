@@ -142,10 +142,10 @@ public class LivingEntityTravelOptimizeMixin {
             
             bridge.debugLog("[AkiAsync] LivingEntityTravelOptimizeMixin initialized: enabled=" + 
                 cached_enabled + " | skipInterval=" + cached_skipInterval + " | threshold=" + cached_minMovementThreshold);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }

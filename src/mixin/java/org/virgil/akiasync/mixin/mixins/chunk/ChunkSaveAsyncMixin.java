@@ -33,7 +33,6 @@ public class ChunkSaveAsyncMixin {
                         isFolia = false;
                         logFoliaDetection(false);
                     }
-                    initialized = true;
                 }
             }
         }

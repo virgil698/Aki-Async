@@ -165,12 +165,12 @@ public class HighLatencyPlayerAdjustMixin {
                 
                 bridge.debugLog("[HighLatencyPlayerAdjust] Initialized: enabled=%s, threshold=%d, minVD=%d",
                     enabled, latencyThreshold, minViewDistance);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "HighLatencyPlayerAdjust", "init", e);
         }
-        
-        initialized = true;
     }
 }

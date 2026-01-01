@@ -72,12 +72,12 @@ public class AABBOptimizationMixin {
                 
                 bridge.debugLog("[AkiAsync] AABBOptimizationMixin initialized: enabled=" + enabled + 
                     " (from Nitori/Lithium)");
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "AABBOptimization", "init", e);
         }
-        
-        initialized = true;
     }
 }

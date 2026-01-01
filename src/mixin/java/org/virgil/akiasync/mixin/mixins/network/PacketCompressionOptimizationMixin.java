@@ -109,13 +109,13 @@ public class PacketCompressionOptimizationMixin {
                 
                 bridge.debugLog("[PacketCompressionOptimization] Initialized: enabled=%s, adaptive=%s, skipSmall=%s",
                     enabled, useAdaptiveThreshold, skipSmallPackets);
-            }
+            
+                    initialized = true;
+                }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "PacketCompressionOptimization", "init", e);
         }
-        
-        initialized = true;
     }
     
     @Unique

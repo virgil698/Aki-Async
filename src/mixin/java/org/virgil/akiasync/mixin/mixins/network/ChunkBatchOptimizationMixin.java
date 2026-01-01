@@ -86,6 +86,10 @@ public class ChunkBatchOptimizationMixin {
     
     @Inject(method = "onChunkBatchReceivedByClient", at = @At("RETURN"), require = 0)
     private void trackBatchAck(float desiredBatchSize, CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$init();
+        }
+        
         if (!enabled) {
             return;
         }
@@ -124,7 +128,7 @@ public class ChunkBatchOptimizationMixin {
     }
     
     @Unique
-    private static void akiasync$init() {
+    private static synchronized void akiasync$init() {
         if (initialized) {
             return;
         }
@@ -141,12 +145,12 @@ public class ChunkBatchOptimizationMixin {
                 
                 bridge.debugLog("[ChunkBatchOptimization] Initialized: enabled=%s, min=%.1f, max=%.1f",
                     enabled, adaptiveMinChunks, adaptiveMaxChunks);
+                
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "ChunkBatchOptimization", "init", e);
         }
-        
-        initialized = true;
     }
 }

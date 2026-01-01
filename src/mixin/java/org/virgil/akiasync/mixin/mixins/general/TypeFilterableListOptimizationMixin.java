@@ -137,12 +137,12 @@ public abstract class TypeFilterableListOptimizationMixin<T> extends AbstractCol
             if (bridge != null) {
                 enabled = bridge.isTypeFilterableListOptimizationEnabled();
                 bridge.debugLog("[TypeFilterableListOptimization] Initialized: enabled=%s", enabled);
+            
+                initialized = true;
             }
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "TypeFilterableListOptimization", "initConfig", e);
         }
-
-        initialized = true;
     }
 }

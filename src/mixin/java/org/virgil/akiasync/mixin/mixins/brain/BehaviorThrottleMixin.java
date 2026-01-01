@@ -53,10 +53,10 @@ public class BehaviorThrottleMixin<E extends LivingEntity> {
             
             bridge.debugLog("[AkiAsync] BehaviorThrottleMixin initialized: enabled=" + 
                 cached_enabled + " | interval=" + cached_throttleInterval);
+        
+            initialized = true;
         } else {
             cached_enabled = false;
         }
-        
-        initialized = true;
     }
 }
