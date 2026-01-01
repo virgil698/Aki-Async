@@ -64,6 +64,11 @@ public class LivingEntityTravelOptimizeMixin {
                     return;
                 }
             }
+            if (mob instanceof net.minecraft.world.entity.monster.Monster) {
+                aki$staticTicks = 0;
+                aki$lastPosition = entity.position();
+                return;
+            }
             if (mob.getNavigation() != null && mob.getNavigation().isInProgress()) {
                 aki$staticTicks = 0;
                 aki$lastPosition = entity.position();

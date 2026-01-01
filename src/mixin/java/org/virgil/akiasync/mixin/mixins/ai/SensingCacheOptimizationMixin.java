@@ -64,6 +64,24 @@ public class SensingCacheOptimizationMixin {
             return true;
         }
         
+        if (mob.getTarget() != null && aki$ticksSinceLastClear >= 2) {
+            return true;
+        }
+        
+        if (mob.getLastHurtByMob() != null && aki$ticksSinceLastClear >= 1) {
+            return true;
+        }
+        
+        if (mob instanceof net.minecraft.world.entity.NeutralMob neutralMob) {
+            if (neutralMob.getRemainingPersistentAngerTime() > 0 || neutralMob.getPersistentAngerTarget() != null) {
+                return true;
+            }
+        }
+        
+        if (mob instanceof net.minecraft.world.entity.monster.Monster && aki$ticksSinceLastClear >= 2) {
+            return true;
+        }
+        
         if (mob.getDeltaMovement().lengthSqr() > 0.001 && aki$ticksSinceLastClear >= 3) {
             return true;
         }

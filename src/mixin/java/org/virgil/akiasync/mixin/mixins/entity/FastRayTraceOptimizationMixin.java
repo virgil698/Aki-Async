@@ -78,6 +78,15 @@ public abstract class FastRayTraceOptimizationMixin extends LivingEntity {
                 return;
             }
             
+            Mob self = (Mob) (Object) this;
+            if (self.getTarget() == target || self.getLastHurtByMob() == target) {
+                return;
+            }
+            
+            if (self instanceof net.minecraft.world.entity.monster.Monster && distance < 256) {
+                return;
+            }
+            
             long currentTime = this.level().getGameTime();
             Vec3 targetPos = target.position();
             
