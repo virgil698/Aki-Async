@@ -1,6 +1,6 @@
 [versions]
-leavesApi = "1.21.8-R0.1-SNAPSHOT"
-leavesweightUserdev = "2.0.0-SNAPSHOT"
+leavesApi = "1.21.11-R0.1-SNAPSHOT"
+leavesweightUserdev = "2.1.0-SNAPSHOT"
 shadow = "9.0.0-rc1"
 runPaper = "2.3.1"
 resourceFactory = "1.0.0"
@@ -11,8 +11,8 @@ accessWiden = "1.0.0"
 fastutil = "8.5.12"
 
 [libraries]
-leavesApi = { group = "org.leavesmc.leaves", name = "leaves-api", version.ref = "leavesApi" }
-leavesDevBundle = { group = "org.leavesmc.leaves", name = "dev-bundle", version.ref = "leavesApi" }
+leavesApi = { group = "io.papermc.paper", name = "paper-api", version.ref = "leavesApi" }
+leavesDevBundle = { group = "io.papermc.paper", name = "dev-bundle", version.ref = "leavesApi" }
 spongeMixin = { group = "net.fabricmc", name = "sponge-mixin", version.ref = "spongeMixin" }
 mixinExtras = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
 mixinCondition = { group = "org.leavesmc", name = "leaves-plugin-mixin-condition", version.ref = "mixinCondition" }
