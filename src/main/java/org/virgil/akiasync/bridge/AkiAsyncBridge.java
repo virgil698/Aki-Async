@@ -528,14 +528,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     @Deprecated 
     public boolean isEntityTrackerEnabled() {
-        
-        return config.isEntityPacketThrottleEnabled();
+        return false;
     }
 
     @Override
     @Deprecated 
     public int getEntityTrackerQueueSize() {
-        
         return 10000;
     }
     
@@ -1328,8 +1326,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public void clearEntityThrottleCache(int entityId) {
         try {
-            org.virgil.akiasync.mixin.network.EntityDataThrottler.clearEntity(entityId);
-            org.virgil.akiasync.mixin.network.EntityPacketThrottler.clearEntity(entityId);
+
         } catch (Exception e) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "AkiAsyncBridge", "clearEntityThrottleCache", e);
@@ -1956,105 +1953,16 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public java.util.Set<String> getCollisionExcludedEntities() {
         return config != null ? config.getCollisionExcludedEntities() : java.util.Collections.emptySet();
     }
-
+    
+    
     @Override
-    public boolean isCollisionCacheEnabled() {
-        return config != null ? config.isCollisionCacheEnabled() : true;
-    }
-
-    @Override
-    public int getCollisionCacheLifetimeMs() {
-        return config != null ? config.getCollisionCacheLifetimeMs() : 50;
-    }
-
-    @Override
-    public double getCollisionCacheMovementThreshold() {
-        return config != null ? config.getCollisionCacheMovementThreshold() : 0.01;
-    }
-
-    @Override
-    public boolean isCollisionSpatialPartitionEnabled() {
-        return config != null ? config.isCollisionSpatialPartitionEnabled() : true;
-    }
-
-    @Override
-    public int getCollisionSpatialGridSize() {
-        return config != null ? config.getCollisionSpatialGridSize() : 4;
-    }
-
-    @Override
-    public int getCollisionSpatialDensityThreshold() {
-        return config != null ? config.getCollisionSpatialDensityThreshold() : 50;
-    }
-
-    @Override
-    public int getCollisionSpatialUpdateIntervalMs() {
-        return config != null ? config.getCollisionSpatialUpdateIntervalMs() : 100;
-    }
-
-    @Override
-    public double getCollisionSkipMinMovement() {
-        return config != null ? config.getCollisionSkipMinMovement() : 0.001;
-    }
-
-    @Override
-    public int getCollisionSkipCheckIntervalMs() {
-        return config != null ? config.getCollisionSkipCheckIntervalMs() : 50;
+    public boolean isNativeCollisionsEnabled() {
+        return config != null ? config.isNativeCollisionsEnabled() : true;
     }
     
     @Override
-    public boolean isPushOptimizationEnabled() {
-        return config != null ? config.isPushOptimizationEnabled() : true;
-    }
-    
-    @Override
-    public double getPushMaxPushPerTick() {
-        return config != null ? config.getPushMaxPushPerTick() : 0.5;
-    }
-    
-    @Override
-    public double getPushDampingFactor() {
-        return config != null ? config.getPushDampingFactor() : 0.7;
-    }
-    
-    @Override
-    public int getPushHighDensityThreshold() {
-        return config != null ? config.getPushHighDensityThreshold() : 10;
-    }
-    
-    @Override
-    public double getPushHighDensityMultiplier() {
-        return config != null ? config.getPushHighDensityMultiplier() : 0.3;
-    }
-    
-    @Override
-    public boolean isAdvancedCollisionOptimizationEnabled() {
-        return config != null ? config.isAdvancedCollisionOptimizationEnabled() : true;
-    }
-    
-    @Override
-    public int getCollisionThreshold() {
-        return config != null ? config.getCollisionThreshold() : 8;
-    }
-    
-    @Override
-    public float getSuffocationDamage() {
-        return config != null ? config.getSuffocationDamage() : 0.5f;
-    }
-    
-    @Override
-    public int getMaxPushIterations() {
-        return config != null ? config.getMaxPushIterations() : 8;
-    }
-    
-    @Override
-    public boolean isVectorizedCollisionEnabled() {
-        return config != null ? config.isVectorizedCollisionEnabled() : true;
-    }
-    
-    @Override
-    public int getVectorizedCollisionThreshold() {
-        return config != null ? config.getVectorizedCollisionThreshold() : 64;
+    public boolean isNativeCollisionsFallbackEnabled() {
+        return config != null ? config.isNativeCollisionsFallbackEnabled() : true;
     }
     
     @Override
@@ -2318,92 +2226,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     }
     
     @Override
-    public boolean isEntityPacketThrottleEnabled() {
-        return config != null && config.isEntityPacketThrottleEnabled();
-    }
-    
-    @Override
-    public boolean shouldSendEntityUpdate(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity) {
-        if (!isEntityPacketThrottleEnabled() || player == null || entity == null) {
-            return true;
-        }
-        
-        try {
-            if (!org.virgil.akiasync.mixin.network.EntityPacketThrottler.isInitialized()) {
-                return true;
-            }
-            
-            return org.virgil.akiasync.mixin.network.EntityPacketThrottler.shouldSendUpdateSimple(player, entity);
-        } catch (Exception e) {
-            
-            return true;
-        }
-    }
-    
-    @Override
-    public void tickEntityPacketThrottler() {
-        if (!isEntityPacketThrottleEnabled()) {
-            return;
-        }
-        
-        try {
-            if (org.virgil.akiasync.mixin.network.EntityPacketThrottler.isInitialized()) {
-                org.virgil.akiasync.mixin.network.EntityPacketThrottler.tick();
-            }
-        } catch (Exception e) {
-            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                "AkiAsyncBridge", "tickEntityPacketThrottler", e);
-        }
-    }
-    
-    @Override
-    public boolean isEntityDataThrottleEnabled() {
-        return config != null && config.isEntityDataThrottleEnabled();
-    }
-    
-    @Override
-    public boolean shouldSendMetadata(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, int metadataHash) {
-        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
-            return true;
-        }
-        
-        try {
-            return org.virgil.akiasync.mixin.network.EntityDataThrottler.shouldSendMetadata(player, entity, metadataHash);
-        } catch (Exception e) {
-            
-            return true;
-        }
-    }
-    
-    @Override
-    public boolean shouldSendNBT(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, boolean forceUpdate) {
-        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
-            return true;
-        }
-        
-        try {
-            return org.virgil.akiasync.mixin.network.EntityDataThrottler.shouldSendNBT(player, entity, forceUpdate);
-        } catch (Exception e) {
-            
-            return true;
-        }
-    }
-    
-    @Override
-    public void tickEntityDataThrottler() {
-        if (!isEntityDataThrottleEnabled()) {
-            return;
-        }
-        
-        try {
-            org.virgil.akiasync.mixin.network.EntityDataThrottler.tick();
-        } catch (Exception e) {
-            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                "AkiAsyncBridge", "tickEntityDataThrottler", e);
-        }
-    }
-    
-    @Override
     public boolean isChunkVisibilityFilterEnabled() {
         return config != null && config.isChunkVisibilityFilterEnabled();
     }
@@ -2475,7 +2297,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             
             org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem.prewarmPlayerPathsMainThread(serverPlayer);
         } catch (Exception e) {
-            plugin.getLogger().warning("[Bridge] Failed to prewarm player paths: " + e.getMessage());
+            plugin.getLogger().warning("[Bridge] Failed to prewarm player paths: " + 
+                (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+            if (config != null && config.isDebugLoggingEnabled()) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -2630,11 +2456,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     
     
     @Override
-    public boolean isHighLatencyAdjustEnabled() {
-        return config != null && config.isHighLatencyAdjustEnabled();
-    }
-    
-    @Override
     public int getHighLatencyThreshold() {
         return config != null ? config.getHighLatencyThreshold() : 150;
     }
@@ -2668,17 +2489,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public double getAfkSoundMaxDistance() {
         return config != null ? config.getAfkSoundMaxDistance() : 64.0;
-    }
-    
-    
-    @Override
-    public boolean isEntityRotationPacketFilterEnabled() {
-        return config != null && config.isEntityRotationPacketFilterEnabled();
-    }
-    
-    @Override
-    public boolean isFilterPureRotationEnabled() {
-        return config != null && config.isFilterPureRotationEnabled();
     }
     
     
@@ -2769,43 +2579,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public int getSkipSmallPacketsThreshold() {
         return config != null ? config.getSkipSmallPacketsThreshold() : 32;
-    }
-    
-    
-    @Override
-    public boolean isConnectionFlushOptimizationEnabled() {
-        return config != null && config.isConnectionFlushOptimizationEnabled();
-    }
-    
-    @Override
-    public int getFlushConsolidationThreshold() {
-        return config != null ? config.getFlushConsolidationThreshold() : 5;
-    }
-    
-    @Override
-    public long getFlushConsolidationTimeoutNs() {
-        return config != null ? config.getFlushConsolidationTimeoutNs() : 1000000L;
-    }
-    
-    @Override
-    public boolean isUseExplicitFlush() {
-        return config != null && config.isUseExplicitFlush();
-    }
-    
-    
-    @Override
-    public boolean isEntityDataPacketThrottleEnabled() {
-        return config != null && config.isEntityDataPacketThrottleEnabled();
-    }
-    
-    @Override
-    public int getEntityDataThrottleInterval() {
-        return config != null ? config.getEntityDataThrottleInterval() : 3;
-    }
-    
-    @Override
-    public int getMaxEntityDataPacketsPerSecond() {
-        return config != null ? config.getMaxEntityDataPacketsPerSecond() : 20;
     }
     
     

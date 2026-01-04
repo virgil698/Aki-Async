@@ -90,8 +90,6 @@ public abstract class ServerLevelTickBlockMixin {
         
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.tickEntityPacketThrottler();
-        
             initialized = true;
         }
         
@@ -107,8 +105,6 @@ public abstract class ServerLevelTickBlockMixin {
         }
         
         if (bridge != null) {
-            bridge.tickEntityPacketThrottler();
-            bridge.tickEntityDataThrottler();
             bridge.tickChunkVisibilityFilter();
         
             initialized = true;

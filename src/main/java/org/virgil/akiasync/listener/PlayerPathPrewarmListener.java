@@ -39,7 +39,11 @@ public class PlayerPathPrewarmListener implements Listener {
             }, 100L);
             
         } catch (Exception e) {
-            plugin.getLogger().warning("[PathPrewarm] Error on player join: " + e.getMessage());
+            plugin.getLogger().warning("[PathPrewarm] Error on player join: " + 
+                (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+            if (plugin.getConfigManager().isDebugLoggingEnabled()) {
+                e.printStackTrace();
+            }
         }
     }
     

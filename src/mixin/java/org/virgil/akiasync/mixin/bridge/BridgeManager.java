@@ -49,8 +49,8 @@ public final class BridgeManager {
             bridge.debugLog("  [Entity] TickParallel: enabled=" + bridge.isEntityTickParallel() +
                 ", threads=" + bridge.getEntityTickThreads() +
                 ", minEntities=" + bridge.getMinEntitiesForParallel());
-            bridge.debugLog("  [Entity] Collision: enabled=" + bridge.isCollisionOptimizationEnabled());
-            bridge.debugLog("  [Entity] Push: enabled=" + bridge.isPushOptimizationEnabled());
+            bridge.debugLog("  [Entity] Collision: enabled=" + bridge.isCollisionOptimizationEnabled() +
+                ", native=" + bridge.isNativeCollisionsEnabled());
             bridge.debugLog("  [Entity] LookupCache: enabled=" + bridge.isEntityLookupCacheEnabled() +
                 ", duration=" + bridge.getEntityLookupCacheDurationMs() + "ms");
             bridge.debugLog("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() +

@@ -74,8 +74,9 @@ public abstract class PathNavigationAsyncMixin {
         }
 
         if (akiasync$isComputingPath) {
-            
-            return null;
+            if (this.path != null) {
+                return this.path;
+            }
         }
 
         return akiasync$computePathSync(finder, region, mob, targets, maxRange, accuracy, depth);

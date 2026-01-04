@@ -65,14 +65,18 @@ public final class EndermanSnapshot {
             level.getEntitiesOfClass(
                 net.minecraft.world.entity.player.Player.class,
                 enderman.getBoundingBox().inflate(64.0),
-                p -> !p.isSpectator() && p.isAlive()
+                p -> !p.isSpectator() && p.isAlive() && !p.isCreative()
             );
         
         for (net.minecraft.world.entity.player.Player player : nearbyPlayers) {
+            Vec3 viewVector = player.getViewVector(1.0F).normalize();
+            double eyeY = player.getEyeY();
             players.add(new PlayerInfo(
                 player.getUUID(),
                 player.position(),
-                player.distanceToSqr(enderman)
+                player.distanceToSqr(enderman),
+                viewVector,
+                eyeY
             ));
         }
         
@@ -96,5 +100,5 @@ public final class EndermanSnapshot {
     public boolean hasTarget() { return hasTarget; }
     public List<PlayerInfo> nearbyPlayers() { return nearbyPlayers; }
     
-    public record PlayerInfo(java.util.UUID id, Vec3 pos, double distanceSq) {}
+    public record PlayerInfo(java.util.UUID id, Vec3 pos, double distanceSq, Vec3 viewVector, double eyeY) {}
 }

@@ -32,7 +32,6 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
         source.getSender().sendMessage(prefix + "");
         source.getSender().sendMessage(prefix + "Active Optimizations:");
-        source.getSender().sendMessage(prefix + "  Entity Packet Throttle: " + (plugin.getConfigManager().isEntityPacketThrottleEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Multithreaded Entity Tracker: " + (plugin.getConfigManager().isMultithreadedEntityTrackerEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Mob Spawning: " + (plugin.getConfigManager().isMobSpawningEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Entity Tick Parallel: " + (plugin.getConfigManager().isEntityTickParallel() ? "ON" : "OFF"));
@@ -63,7 +62,6 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Item Entity Age Optimization: " + (plugin.getConfigManager().isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Item Entity Inactive Tick: " + (plugin.getConfigManager().isItemEntityInactiveTickEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
-        source.getSender().sendMessage(prefix + "  Entity Packet Throttle: " + (plugin.getConfigManager().isEntityPacketThrottleEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Fast Movement Chunk Load: " + (plugin.getConfigManager().isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Center Offset Loading: " + (plugin.getConfigManager().isCenterOffsetEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "========================================");

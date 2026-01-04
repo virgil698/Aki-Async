@@ -70,13 +70,7 @@ public abstract class EndermanTickMixin {
         
         if (currentTick < aki$nextTick) {
             
-            if (aki$pendingDiff != null && aki$pendingDiff.hasChanges()) {
-                if (aki$pendingDiff.shouldTeleport()) {
-                    
-                    enderman.teleport();
-                }
-                aki$pendingDiff = null;
-            }
+            
             return;
         }
         
@@ -99,8 +93,9 @@ public abstract class EndermanTickMixin {
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(enderman, level);
                 
+                
                 if (diff.shouldTeleport()) {
-                    aki$pendingDiff = diff;
+                    enderman.teleport();
                 }
                 
                 if (cached_debugEnabled) {

@@ -21,7 +21,7 @@ public abstract class WitchTickMixin {
     @Unique private static volatile boolean init = false;
     @Unique private WitchSnapshot aki$snap;
     @Unique private long aki$next = 0;
-    @Inject(method = "aiStep", at = @At("TAIL"))
+    @Inject(method = "aiStep", at = @At("HEAD"))
     private void aki$witch(CallbackInfo ci) {
         if (!init) { aki$init(); }
         if (!enabled) return;

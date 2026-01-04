@@ -42,7 +42,7 @@ public abstract class UniversalAiFamilyTickMixin {
     @Unique private long aki$next = 0;
     @Unique private Vec3 aki$lastPos;
     @Unique private int aki$stillTicks = 0;
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(method = "tick", at = @At("HEAD"))
     private void aki$universal(CallbackInfo ci) {
         if (!init) { aki$init(); }
         if (!enabled) return;

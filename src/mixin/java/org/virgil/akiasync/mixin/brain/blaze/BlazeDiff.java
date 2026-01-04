@@ -2,6 +2,7 @@ package org.virgil.akiasync.mixin.brain.blaze;
 import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Blaze;
+import org.virgil.akiasync.mixin.util.SafeTargetSetter;
 public final class BlazeDiff {
     private UUID blazeTarget;
     private int changeCount;
@@ -11,7 +12,7 @@ public final class BlazeDiff {
         if (blazeTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(blazeTarget);
             if (player != null && !player.isRemoved()) {
-                blaze.setTarget(player);
+                SafeTargetSetter.setClosestPlayer(blaze, player);
             }
         }
     }

@@ -33,6 +33,17 @@
         <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
     </Match>
     
+    <!-- NativeCollisionPusher uses Mixin Accessor interfaces that only work at runtime -->
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.util.collision.NativeCollisionPusher"/>
+        <Bug pattern="BC_IMPOSSIBLE_CAST"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.util.collision.NativeCollisionPusher"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
+    </Match>
+    
     <Match>
         <Class name="org.virgil.akiasync.mixin.entitytracker.MultithreadedEntityTracker"/>
         <Bug pattern="BC_UNCONFIRMED_CAST"/>
@@ -56,6 +67,16 @@
     <Match>
         <Class name="~.*Mixin.*"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin.*"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin.*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     
     <Match>

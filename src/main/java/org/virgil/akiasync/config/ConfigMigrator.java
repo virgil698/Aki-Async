@@ -42,19 +42,6 @@ public class ConfigMigrator {
         KEY_RENAMES.put("chunk-generation.c2me-chunk-optimizations.noise-optimization.enabled", "chunk-system.generation.perlin-noise-optimization.enabled");
         
         
-        KEY_RENAMES.put("entity-packet-throttle.enabled", "network-optimization.entity-packet-throttle.enabled");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.enabled", "network-optimization.entity-packet-throttle.distance-based.enabled");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.tier-1-distance", "network-optimization.entity-packet-throttle.distance-based.tier-1-distance");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.tier-2-distance", "network-optimization.entity-packet-throttle.distance-based.tier-2-distance");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.tier-3-distance", "network-optimization.entity-packet-throttle.distance-based.tier-3-distance");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.tier-4-distance", "network-optimization.entity-packet-throttle.distance-based.tier-4-distance");
-        KEY_RENAMES.put("entity-packet-throttle.distance-based.tier-5-distance", "network-optimization.entity-packet-throttle.distance-based.tier-5-distance");
-        KEY_RENAMES.put("entity-packet-throttle.frustum-culling.enabled", "network-optimization.entity-packet-throttle.frustum-culling.enabled");
-        KEY_RENAMES.put("entity-packet-throttle.frustum-culling.fov-angle", "network-optimization.entity-packet-throttle.frustum-culling.fov-angle");
-        KEY_RENAMES.put("entity-packet-throttle.frustum-culling.outside-multiplier", "network-optimization.entity-packet-throttle.frustum-culling.outside-multiplier");
-        KEY_RENAMES.put("entity-packet-throttle.data-throttle.enabled", "network-optimization.entity-packet-throttle.data-throttle.enabled");
-        
-        
         KEY_RENAMES.put("chunk-visibility-filter.enabled", "network-optimization.chunk-visibility-filter.enabled");
         
         

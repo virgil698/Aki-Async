@@ -9,6 +9,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+import org.virgil.akiasync.mixin.util.SafeTargetSetter;
 
 public final class UniversalAiDiff {
     
@@ -56,7 +57,16 @@ public final class UniversalAiDiff {
         if (target != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(target);
             if (player != null && !player.isRemoved()) {
-                mob.setTarget(player);
+                SafeTargetSetter.setCustomTarget(mob, player);
+                
+                
+                Brain<?> brain = mob.getBrain();
+                if (brain != null) {
+                    
+                    brain.setMemory(MemoryModuleType.ATTACK_TARGET, player);
+                }
+                
+                
             }
         }
         

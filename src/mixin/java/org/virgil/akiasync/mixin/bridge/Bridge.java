@@ -530,29 +530,10 @@ public interface Bridge {
     boolean isCollisionOptimizationEnabled();
     boolean isCollisionAggressiveMode();
     java.util.Set<String> getCollisionExcludedEntities();
-    boolean isCollisionCacheEnabled();
-    int getCollisionCacheLifetimeMs();
-    double getCollisionCacheMovementThreshold();
-    boolean isCollisionSpatialPartitionEnabled();
-    int getCollisionSpatialGridSize();
-    int getCollisionSpatialDensityThreshold();
-    int getCollisionSpatialUpdateIntervalMs();
-    double getCollisionSkipMinMovement();
-    int getCollisionSkipCheckIntervalMs();
     
-    boolean isPushOptimizationEnabled();
-    double getPushMaxPushPerTick();
-    double getPushDampingFactor();
-    int getPushHighDensityThreshold();
-    double getPushHighDensityMultiplier();
     
-    boolean isAdvancedCollisionOptimizationEnabled();
-    int getCollisionThreshold();
-    float getSuffocationDamage();
-    int getMaxPushIterations();
-    
-    boolean isVectorizedCollisionEnabled();
-    int getVectorizedCollisionThreshold();
+    boolean isNativeCollisionsEnabled();
+    boolean isNativeCollisionsFallbackEnabled();
     
     boolean isCollisionBlockCacheEnabled();
     int getCollisionBlockCacheSize();
@@ -615,15 +596,6 @@ public interface Bridge {
     void clearJigsawOctree();
     String getJigsawOctreeStats();
     
-    boolean isEntityPacketThrottleEnabled();
-    boolean shouldSendEntityUpdate(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity);
-    void tickEntityPacketThrottler();
-    
-    boolean isEntityDataThrottleEnabled();
-    boolean shouldSendMetadata(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, int metadataHash);
-    boolean shouldSendNBT(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, boolean forceUpdate);
-    void tickEntityDataThrottler();
-    
     boolean isChunkVisibilityFilterEnabled();
     boolean isChunkVisible(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, net.minecraft.server.level.ServerLevel level);
     void tickChunkVisibilityFilter();
@@ -678,7 +650,6 @@ public interface Bridge {
     boolean isSkipZeroMovementPacketsStrictMode();
     
     
-    boolean isHighLatencyAdjustEnabled();
     int getHighLatencyThreshold();
     int getHighLatencyMinViewDistance();
     long getHighLatencyDurationMs();
@@ -688,11 +659,6 @@ public interface Bridge {
     long getAfkDurationMs();
     double getAfkParticleMaxDistance();
     double getAfkSoundMaxDistance();
-    
-    
-    boolean isEntityRotationPacketFilterEnabled();
-    boolean isFilterPureRotationEnabled();
-    
     
     int getMidTickChunkTasksIntervalMs();
     
@@ -717,17 +683,6 @@ public interface Bridge {
     boolean isAdaptiveCompressionThresholdEnabled();
     boolean isSkipSmallPacketsEnabled();
     int getSkipSmallPacketsThreshold();
-    
-    
-    boolean isConnectionFlushOptimizationEnabled();
-    int getFlushConsolidationThreshold();
-    long getFlushConsolidationTimeoutNs();
-    boolean isUseExplicitFlush();
-    
-    
-    boolean isEntityDataPacketThrottleEnabled();
-    int getEntityDataThrottleInterval();
-    int getMaxEntityDataPacketsPerSecond();
     
     
     boolean isChunkBatchOptimizationEnabled();

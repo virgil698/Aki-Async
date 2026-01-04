@@ -28,3 +28,10 @@ accessible field net/minecraft/world/level/Level isClientSide Z
 # Math optimization - Sine lookup table access
 accessible field net/minecraft/util/Mth SIN [F
 
+# Moonrise ChunkEntitySlices Access (for native collision optimization)
+accessible class ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices$BasicEntityList
+accessible field ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices$BasicEntityList storage [Lnet/minecraft/world/entity/Entity;
+accessible field ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices$BasicEntityList sectionY I
+accessible method ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices getEntityBasicListFromAllEntity (Lnet/minecraft/world/phys/AABB;)[Lca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices$BasicEntityList;
+accessible method ca/spottedleaf/moonrise/patches/chunk_system/level/entity/EntityLookup getSlicesUnsafe (Lnet/minecraft/world/phys/AABB;)[Lca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices;
+

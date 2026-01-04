@@ -68,6 +68,25 @@ public class AsyncBrainExecutor {
     }
     public static <T> T getWithTimeoutOrRunSync(CompletableFuture<T> future, long timeout, TimeUnit unit, Callable<T> fallbackTask) {
         try {
+            
+            
+            if (future.isDone() && !future.isCancelled() && !future.isCompletedExceptionally()) {
+                try {
+                    T result = future.get();
+                    successCount.incrementAndGet();
+                    return result;
+                } catch (Exception ignored) {
+                    
+                }
+            }
+            
+            
+            if (!future.isDone() && timeout < 50) { 
+                timeoutCount.incrementAndGet();
+                return fallbackTask != null ? fallbackTask.call() : null;
+            }
+            
+            
             T result = future.get(timeout, unit);
             successCount.incrementAndGet();
             return result;

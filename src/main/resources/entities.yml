@@ -35,27 +35,13 @@
 #   - Villager/WanderingTrader (村民/流浪商人) - 使用VillagerTickMixin
 # ==========================================
 universal-ai-entities:
-  # 攻击型生物 / Hostile Mobs
-  # 注意：以下已排除（有专用优化）/ Note: Following are excluded (have dedicated optimizations):
-  #   - piglin, piglin_brute (猪灵) - PiglinBrainMixin
-  #   - pillager, vindicator, ravager (掠夺者系) - PillagerTickMixin
-  #   - evoker (唤魔者) - EvokerTickMixin
-  #   - blaze (烈焰人) - BlazeTickMixin
-  #   - guardian (守卫者) - GuardianTickMixin
-  #   - witch (女巫) - WitchTickMixin
-  #   - enderman (末影人) - EndermanTickMixin
-  #   - hoglin (疣猪兽) - HoglinTickMixin
-  #   - warden (监守者) - WardenTickMixin
   - "minecraft:skeleton"
   - "minecraft:zombie"
   - "minecraft:creeper"
   - "minecraft:spider"
-  # - "minecraft:enderman"  # 已排除：使用EndermanTickMixin / Excluded: uses EndermanTickMixin
   - "minecraft:phantom"
   - "minecraft:drowned"
-  # - "minecraft:hoglin"  # 已排除：使用HoglinTickMixin / Excluded: uses HoglinTickMixin
   - "minecraft:zoglin"
-  # - "minecraft:warden"  # 已排除：使用WardenTickMixin / Excluded: uses WardenTickMixin
   - "minecraft:stray"
   - "minecraft:husk"
   - "minecraft:zombie_villager"
@@ -64,7 +50,6 @@ universal-ai-entities:
   - "minecraft:endermite"
   - "minecraft:cave_spider"
   - "minecraft:wither_skeleton"
-  # - "minecraft:witch"  # 已排除：使用WitchTickMixin / Excluded: uses WitchTickMixin
   - "minecraft:slime"
   - "minecraft:magma_cube"
   - "minecraft:vex"  # 恼鬼（袭击怪物） / Vex (Raid mob)
@@ -74,20 +59,8 @@ universal-ai-entities:
   - "minecraft:bogged"  # 沼骸（1.21新生物，骷髅变种） / Bogged (1.21 new mob, skeleton variant)
   - "minecraft:breeze"  # 旋风人（1.21新生物） / Breeze (1.21 new mob)
   - "minecraft:creaking"  # 嘎枝怪（1.21.4新生物） / Creaking (1.21.4 new mob)
-  
-  # 防御型生物 / Defense Mobs (Golems)
   - "minecraft:iron_golem"
   - "minecraft:snow_golem"
-  
-  # 被动型生物 / Passive Mobs (Animals)
-  # 注意：以下已排除（有专用优化）/ Note: Following are excluded (have dedicated optimizations):
-  #   - sniffer (嗅探兽) - SnifferTickMixin
-  #   - allay (悦灵) - AllayTickMixin
-  #   - camel (骆驼) - CamelTickMixin
-  #   - frog (青蛙) - FrogTickMixin
-  #   - goat (山羊) - GoatTickMixin
-  #   - panda (熊猫) - PandaTickMixin
-  #   - armadillo (犰狳) - ArmadilloTickMixin
   - "minecraft:pig"
   - "minecraft:cow"
   - "minecraft:sheep"
@@ -96,15 +69,8 @@ universal-ai-entities:
   - "minecraft:bat"
   - "minecraft:fox"
   - "minecraft:strider"
-  # - "minecraft:frog"  # 已排除：使用FrogTickMixin / Excluded: uses FrogTickMixin
   - "minecraft:tadpole"
-  # - "minecraft:camel"  # 已排除：使用CamelTickMixin / Excluded: uses CamelTickMixin
-  # - "minecraft:goat"  # 已排除：使用GoatTickMixin / Excluded: uses GoatTickMixin
   - "minecraft:mushroom_cow"
-  # - "minecraft:sniffer"  # 已排除：使用SnifferTickMixin / Excluded: uses SnifferTickMixin
-  # - "minecraft:allay"  # 已排除：使用AllayTickMixin / Excluded: uses AllayTickMixin
-  
-  # 水生生物 / Aquatic Mobs
   - "minecraft:dolphin"
   - "minecraft:squid"
   - "minecraft:glow_squid"
@@ -114,9 +80,6 @@ universal-ai-entities:
   - "minecraft:cod"
   - "minecraft:salmon"
   - "minecraft:axolotl"
-  
-  # 驯服/中立型生物 / Tamed/Neutral Mobs
-  # 注意：panda已排除，使用PandaTickMixin / Note: panda excluded, uses PandaTickMixin
   - "minecraft:wolf"
   - "minecraft:cat"
   - "minecraft:horse"
@@ -125,16 +88,9 @@ universal-ai-entities:
   - "minecraft:llama"
   - "minecraft:parrot"
   - "minecraft:polar_bear"
-  # - "minecraft:panda"  # 已排除：使用PandaTickMixin / Excluded: uses PandaTickMixin
   - "minecraft:bee"
   - "minecraft:ocelot"
   - "minecraft:trader_llama"
-  
-  # 村民相关 / Villager Related
-  # 注意：村民和流浪商人有专门的优化模块，通常不需要在这里启用
-  # Note: Villagers and wandering traders have dedicated optimization modules
-  # - "minecraft:villager"
-  # - "minecraft:wandering_trader"
 
 # ==========================================
 # 零延迟工厂实体列表 / Zero-Delay Factory Entity List
@@ -168,17 +124,5 @@ zero-delay-factory-entities:
 # 注意：排除实体会略微降低性能，但对于精密机器是必需的
 # Note: Excluding entities slightly reduces performance, but is necessary for precision machines
 collision-optimization-excluded-entities:
-  # TNT相关 / TNT Related
   - "minecraft:tnt"  # TNT实体（TNT复制机必需） / TNT entity (required for TNT duplicators)
   - "minecraft:tnt_minecart"  # TNT矿车 / TNT minecart
-  
-  # 下落方块 / Falling Blocks
-  # 注意：某些精密机器需要排除下落方块，但会影响性能
-  # Note: Some precision machines need falling blocks excluded, but affects performance
-  # - "minecraft:falling_block"  # 下落方块（可选，默认不排除） / Falling block (optional, not excluded by default)
-  
-  # 其他精密机器实体 / Other Precision Machine Entities
-  # 根据需要添加更多实体 / Add more entities as needed
-  # - "minecraft:minecart"  # 普通矿车（可选） / Regular minecart (optional)
-  # - "minecraft:chest_minecart"  # 箱子矿车（可选） / Chest minecart (optional)
-  # - "minecraft:hopper_minecart"  # 漏斗矿车（可选） / Hopper minecart (optional)

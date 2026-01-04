@@ -77,7 +77,6 @@ public class ConfigManager {
     private boolean skipZeroMovementPacketsStrictMode;
     
     
-    private boolean highLatencyAdjustEnabled;
     private int highLatencyThreshold;
     private int highLatencyMinViewDistance;
     private long highLatencyDurationMs;
@@ -88,9 +87,6 @@ public class ConfigManager {
     private double afkParticleMaxDistance;
     private double afkSoundMaxDistance;
     
-    
-    private boolean entityRotationPacketFilterEnabled;
-    private boolean filterPureRotationEnabled;
     
     private boolean armadilloOptimizationEnabled;
     private int armadilloTickInterval;
@@ -159,33 +155,15 @@ public class ConfigManager {
     private boolean collisionAggressiveMode;
     private String collisionExclusionListFile;
     private java.util.Set<String> collisionExcludedEntities;
-    private boolean collisionCacheEnabled;
-    private int collisionCacheLifetimeMs;
-    private double collisionCacheMovementThreshold;
-    private boolean collisionSpatialPartitionEnabled;
-    private int collisionSpatialGridSize;
-    private int collisionSpatialDensityThreshold;
-    private int collisionSpatialUpdateIntervalMs;
-    private double collisionSkipMinMovement;
-    private int collisionSkipCheckIntervalMs;
-    private boolean pushOptimizationEnabled;
-    private double pushMaxPushPerTick;
-    private double pushDampingFactor;
-    private int pushHighDensityThreshold;
-    private double pushHighDensityMultiplier;
-    private boolean advancedCollisionOptimizationEnabled;
-    private int collisionThreshold;
-    private float suffocationDamage;
-    private int maxPushIterations;
-    private boolean vectorizedCollisionEnabled;
-    private int vectorizedCollisionThreshold;
+    
+    
+    private boolean nativeCollisionsEnabled;
+    private boolean nativeCollisionsFallbackEnabled;
     private boolean collisionBlockCacheEnabled;
     private int collisionBlockCacheSize;
     private int collisionBlockCacheExpireTicks;
     private boolean rayCollisionEnabled;
     private double rayCollisionMaxDistance;
-    private boolean useSectionGrid;
-    private boolean sectionGridWarmup;
     private boolean shapeOptimizationEnabled;
     private boolean shapePrecomputeArrays;
     private boolean shapeBlockShapeCache;
@@ -428,9 +406,6 @@ public class ConfigManager {
     private boolean fallingBlockParallelEnabled;
     private int minFallingBlocksForParallel;
     private int fallingBlockBatchSize;
-
-    private boolean entityPacketThrottleEnabled;
-    private boolean entityDataThrottleEnabled;
     
     private boolean chunkVisibilityFilterEnabled;
     
@@ -493,17 +468,6 @@ public class ConfigManager {
     private boolean adaptiveCompressionThresholdEnabled;
     private boolean skipSmallPacketsEnabled;
     private int skipSmallPacketsThreshold;
-    
-    
-    private boolean connectionFlushOptimizationEnabled;
-    private int flushConsolidationThreshold;
-    private long flushConsolidationTimeoutNs;
-    private boolean useExplicitFlush;
-    
-    
-    private boolean entityDataPacketThrottleEnabled;
-    private int entityDataThrottleInterval;
-    private int maxEntityDataPacketsPerSecond;
     
     
     private boolean chunkBatchOptimizationEnabled;
@@ -958,10 +922,6 @@ public class ConfigManager {
         itemEntityInactiveRange = config.getDouble("item-entity-optimizations.inactive-tick.inactive-range", 32.0);
         itemEntityInactiveMergeInterval = config.getInt("item-entity-optimizations.inactive-tick.merge-interval", 100);
 
-        entityPacketThrottleEnabled = config.getBoolean("network-optimization.entity-packet-throttle.enabled", true);
-        
-        entityDataThrottleEnabled = config.getBoolean("network-optimization.entity-packet-throttle.data-throttle.enabled", true);
-        
         chunkVisibilityFilterEnabled = config.getBoolean("network-optimization.chunk-visibility-filter.enabled", true);
 
         fastMovementChunkLoadEnabled = config.getBoolean("network-optimization.fast-movement-chunk-load.enabled", false);
@@ -1137,7 +1097,6 @@ public class ConfigManager {
         skipZeroMovementPacketsStrictMode = config.getBoolean("network-optimization.advanced.skip-zero-movement-packets.strict-mode", false);
         
         
-        highLatencyAdjustEnabled = config.getBoolean("network-optimization.high-latency-adjust.enabled", true);
         highLatencyThreshold = config.getInt("network-optimization.high-latency-adjust.latency-threshold", 150);
         highLatencyMinViewDistance = config.getInt("network-optimization.high-latency-adjust.min-view-distance", 5);
         highLatencyDurationMs = config.getLong("network-optimization.high-latency-adjust.duration-ms", 60000L);
@@ -1149,10 +1108,6 @@ public class ConfigManager {
         afkSoundMaxDistance = config.getDouble("network-optimization.afk-packet-throttle.sound-max-distance", 64.0);
         
         
-        entityRotationPacketFilterEnabled = config.getBoolean("network-optimization.advanced.entity-rotation-filter.enabled", true);
-        filterPureRotationEnabled = config.getBoolean("network-optimization.advanced.entity-rotation-filter.filter-pure-rotation", true);
-        
-        
         dynamicChunkSendRateEnabled = config.getBoolean("network-optimization.dynamic-chunk-send-rate.enabled", true);
         dynamicChunkLimitBandwidth = config.getLong("network-optimization.dynamic-chunk-send-rate.limit-upload-bandwidth", 10240L);
         dynamicChunkGuaranteedBandwidth = config.getLong("network-optimization.dynamic-chunk-send-rate.guaranteed-bandwidth", 512L);
@@ -1162,17 +1117,6 @@ public class ConfigManager {
         adaptiveCompressionThresholdEnabled = config.getBoolean("network-optimization.packet-compression.adaptive-threshold", true);
         skipSmallPacketsEnabled = config.getBoolean("network-optimization.packet-compression.skip-small-packets", true);
         skipSmallPacketsThreshold = config.getInt("network-optimization.packet-compression.skip-threshold", 32);
-        
-        
-        connectionFlushOptimizationEnabled = config.getBoolean("network-optimization.connection-flush.enabled", true);
-        flushConsolidationThreshold = config.getInt("network-optimization.connection-flush.consolidation-threshold", 5);
-        flushConsolidationTimeoutNs = config.getLong("network-optimization.connection-flush.consolidation-timeout-ns", 1000000L);
-        useExplicitFlush = config.getBoolean("network-optimization.connection-flush.use-explicit-flush", false);
-        
-        
-        entityDataPacketThrottleEnabled = config.getBoolean("network-optimization.entity-data-throttle.enabled", true);
-        entityDataThrottleInterval = config.getInt("network-optimization.entity-data-throttle.throttle-interval", 3);
-        maxEntityDataPacketsPerSecond = config.getInt("network-optimization.entity-data-throttle.max-packets-per-second", 20);
         
         
         chunkBatchOptimizationEnabled = config.getBoolean("network-optimization.chunk-batch.enabled", true);
@@ -1691,7 +1635,6 @@ public class ConfigManager {
     public boolean isSkipZeroMovementPacketsStrictMode() { return skipZeroMovementPacketsStrictMode; }
     
     
-    public boolean isHighLatencyAdjustEnabled() { return highLatencyAdjustEnabled; }
     public int getHighLatencyThreshold() { return highLatencyThreshold; }
     public int getHighLatencyMinViewDistance() { return highLatencyMinViewDistance; }
     public long getHighLatencyDurationMs() { return highLatencyDurationMs; }
@@ -1703,10 +1646,6 @@ public class ConfigManager {
     public double getAfkSoundMaxDistance() { return afkSoundMaxDistance; }
     
     
-    public boolean isEntityRotationPacketFilterEnabled() { return entityRotationPacketFilterEnabled; }
-    public boolean isFilterPureRotationEnabled() { return filterPureRotationEnabled; }
-    
-    
     public boolean isDynamicChunkSendRateEnabled() { return dynamicChunkSendRateEnabled; }
     public long getDynamicChunkLimitBandwidth() { return dynamicChunkLimitBandwidth; }
     public long getDynamicChunkGuaranteedBandwidth() { return dynamicChunkGuaranteedBandwidth; }
@@ -1716,17 +1655,6 @@ public class ConfigManager {
     public boolean isAdaptiveCompressionThresholdEnabled() { return adaptiveCompressionThresholdEnabled; }
     public boolean isSkipSmallPacketsEnabled() { return skipSmallPacketsEnabled; }
     public int getSkipSmallPacketsThreshold() { return skipSmallPacketsThreshold; }
-    
-    
-    public boolean isConnectionFlushOptimizationEnabled() { return connectionFlushOptimizationEnabled; }
-    public int getFlushConsolidationThreshold() { return flushConsolidationThreshold; }
-    public long getFlushConsolidationTimeoutNs() { return flushConsolidationTimeoutNs; }
-    public boolean isUseExplicitFlush() { return useExplicitFlush; }
-    
-    
-    public boolean isEntityDataPacketThrottleEnabled() { return entityDataPacketThrottleEnabled; }
-    public int getEntityDataThrottleInterval() { return entityDataThrottleInterval; }
-    public int getMaxEntityDataPacketsPerSecond() { return maxEntityDataPacketsPerSecond; }
     
     
     public boolean isChunkBatchOptimizationEnabled() { return chunkBatchOptimizationEnabled; }
@@ -1812,33 +1740,15 @@ public class ConfigManager {
     public boolean isCollisionOptimizationEnabled() { return collisionOptimizationEnabled; }
     public boolean isCollisionAggressiveMode() { return collisionAggressiveMode; }
     public java.util.Set<String> getCollisionExcludedEntities() { return collisionExcludedEntities; }
-    public boolean isCollisionCacheEnabled() { return collisionCacheEnabled; }
-    public int getCollisionCacheLifetimeMs() { return collisionCacheLifetimeMs; }
-    public double getCollisionCacheMovementThreshold() { return collisionCacheMovementThreshold; }
-    public boolean isCollisionSpatialPartitionEnabled() { return collisionSpatialPartitionEnabled; }
-    public int getCollisionSpatialGridSize() { return collisionSpatialGridSize; }
-    public int getCollisionSpatialDensityThreshold() { return collisionSpatialDensityThreshold; }
-    public int getCollisionSpatialUpdateIntervalMs() { return collisionSpatialUpdateIntervalMs; }
-    public double getCollisionSkipMinMovement() { return collisionSkipMinMovement; }
-    public int getCollisionSkipCheckIntervalMs() { return collisionSkipCheckIntervalMs; }
-    public boolean isPushOptimizationEnabled() { return pushOptimizationEnabled; }
-    public double getPushMaxPushPerTick() { return pushMaxPushPerTick; }
-    public double getPushDampingFactor() { return pushDampingFactor; }
-    public int getPushHighDensityThreshold() { return pushHighDensityThreshold; }
-    public double getPushHighDensityMultiplier() { return pushHighDensityMultiplier; }
-    public boolean isAdvancedCollisionOptimizationEnabled() { return advancedCollisionOptimizationEnabled; }
-    public int getCollisionThreshold() { return collisionThreshold; }
-    public float getSuffocationDamage() { return suffocationDamage; }
-    public int getMaxPushIterations() { return maxPushIterations; }
-    public boolean isVectorizedCollisionEnabled() { return vectorizedCollisionEnabled; }
-    public int getVectorizedCollisionThreshold() { return vectorizedCollisionThreshold; }
+    
+    
+    public boolean isNativeCollisionsEnabled() { return nativeCollisionsEnabled; }
+    public boolean isNativeCollisionsFallbackEnabled() { return nativeCollisionsFallbackEnabled; }
     public boolean isCollisionBlockCacheEnabled() { return collisionBlockCacheEnabled; }
     public int getCollisionBlockCacheSize() { return collisionBlockCacheSize; }
     public int getCollisionBlockCacheExpireTicks() { return collisionBlockCacheExpireTicks; }
     public boolean isRayCollisionEnabled() { return rayCollisionEnabled; }
     public double getRayCollisionMaxDistance() { return rayCollisionMaxDistance; }
-    public boolean isUseSectionGrid() { return useSectionGrid; }
-    public boolean isSectionGridWarmup() { return sectionGridWarmup; }
     public boolean isShapeOptimizationEnabled() { return shapeOptimizationEnabled; }
     public boolean isShapePrecomputeArrays() { return shapePrecomputeArrays; }
     public boolean isShapeBlockShapeCache() { return shapeBlockShapeCache; }
@@ -2065,8 +1975,6 @@ public class ConfigManager {
     public double getItemEntityInactiveRange() { return itemEntityInactiveRange; }
     public int getItemEntityInactiveMergeInterval() { return itemEntityInactiveMergeInterval; }
 
-    public boolean isEntityPacketThrottleEnabled() { return entityPacketThrottleEnabled; }
-    public boolean isEntityDataThrottleEnabled() { return entityDataThrottleEnabled; }
     public boolean isChunkVisibilityFilterEnabled() { return chunkVisibilityFilterEnabled; }
     
     public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
@@ -2120,37 +2028,25 @@ public class ConfigManager {
         asyncPathfindingCacheExpireSeconds = config.getInt("async-ai.async-pathfinding.cache.expire-seconds", 30);
         asyncPathfindingCacheReuseTolerance = config.getInt("async-ai.async-pathfinding.cache.reuse-tolerance", 3);
         asyncPathfindingCacheCleanupIntervalSeconds = config.getInt("async-ai.async-pathfinding.cache.cleanup-interval-seconds", 5);
+        
+        
         collisionOptimizationEnabled = config.getBoolean("collision-optimization.enabled", true);
         collisionAggressiveMode = config.getBoolean("collision-optimization.aggressive-mode", true);
         collisionExclusionListFile = config.getString("collision-optimization.exclusion-list-file", "entities.yml");
         collisionExcludedEntities = loadEntitiesFromFile(collisionExclusionListFile, "collision-optimization-excluded-entities");
-        collisionCacheEnabled = config.getBoolean("collision-optimization.cache.enabled", true);
-        collisionCacheLifetimeMs = config.getInt("collision-optimization.cache.lifetime-ms", 50);
-        collisionCacheMovementThreshold = config.getDouble("collision-optimization.cache.movement-threshold", 0.01);
-        collisionSpatialPartitionEnabled = config.getBoolean("collision-optimization.spatial-partition.enabled", true);
-        collisionSpatialGridSize = config.getInt("collision-optimization.spatial-partition.grid-size", 4);
-        collisionSpatialDensityThreshold = config.getInt("collision-optimization.spatial-partition.density-threshold", 50);
-        collisionSpatialUpdateIntervalMs = config.getInt("collision-optimization.spatial-partition.update-interval-ms", 100);
-        collisionSkipMinMovement = config.getDouble("collision-optimization.skip-checks.min-movement", 0.001);
-        collisionSkipCheckIntervalMs = config.getInt("collision-optimization.skip-checks.check-interval-ms", 50);
-        pushOptimizationEnabled = config.getBoolean("collision-optimization.push-optimization.enabled", true);
-        pushMaxPushPerTick = config.getDouble("collision-optimization.push-optimization.max-push-per-tick", 0.5);
-        pushDampingFactor = config.getDouble("collision-optimization.push-optimization.damping-factor", 0.7);
-        pushHighDensityThreshold = config.getInt("collision-optimization.push-optimization.high-density-threshold", 10);
-        pushHighDensityMultiplier = config.getDouble("collision-optimization.push-optimization.high-density-multiplier", 0.3);
-        advancedCollisionOptimizationEnabled = config.getBoolean("collision-optimization.advanced.enabled", true);
-        collisionThreshold = config.getInt("collision-optimization.advanced.collision-threshold", 8);
-        suffocationDamage = (float) config.getDouble("collision-optimization.advanced.suffocation-damage", 0.5);
-        maxPushIterations = config.getInt("collision-optimization.advanced.max-push-iterations", 8);
-        vectorizedCollisionEnabled = config.getBoolean("collision-optimization.vectorized.enabled", true);
-        vectorizedCollisionThreshold = config.getInt("collision-optimization.vectorized.threshold", 64);
+        
+        
+        nativeCollisionsEnabled = config.getBoolean("collision-optimization.native.enabled", true);
+        nativeCollisionsFallbackEnabled = config.getBoolean("collision-optimization.native.fallback-enabled", true);
+        
+        
         collisionBlockCacheEnabled = config.getBoolean("collision-optimization.block-cache.enabled", true);
         collisionBlockCacheSize = config.getInt("collision-optimization.block-cache.cache-size", 512);
         collisionBlockCacheExpireTicks = config.getInt("collision-optimization.block-cache.expire-ticks", 600);
+        
+        
         rayCollisionEnabled = config.getBoolean("collision-optimization.ray-collision.enabled", true);
         rayCollisionMaxDistance = config.getDouble("collision-optimization.ray-collision.max-distance", 64.0);
-        useSectionGrid = config.getBoolean("collision-optimization.advanced.use-section-grid", true);
-        sectionGridWarmup = config.getBoolean("collision-optimization.advanced.section-grid-warmup", false);
         shapeOptimizationEnabled = config.getBoolean("collision-optimization.shape-optimization.enabled", true);
         shapePrecomputeArrays = config.getBoolean("collision-optimization.shape-optimization.precompute-arrays", true);
         shapeBlockShapeCache = config.getBoolean("collision-optimization.shape-optimization.block-shape-cache", true);

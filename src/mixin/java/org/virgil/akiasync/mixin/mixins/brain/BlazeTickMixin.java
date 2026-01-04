@@ -24,7 +24,7 @@ public abstract class BlazeTickMixin {
     @Unique private static volatile boolean init = false;
     @Unique private BlazeSnapshot aki$snap;
     @Unique private long aki$next = 0;
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(method = "tick", at = @At("HEAD"))
     private void aki$blaze(CallbackInfo ci) {
         if (!((Object) this instanceof Blaze)) return;
         if (!init) { aki$init(); }

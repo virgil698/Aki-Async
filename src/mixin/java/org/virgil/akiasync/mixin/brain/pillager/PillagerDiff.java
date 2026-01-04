@@ -2,6 +2,7 @@ package org.virgil.akiasync.mixin.brain.pillager;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.monster.AbstractIllager;
+import org.virgil.akiasync.mixin.util.SafeTargetSetter;
 public final class PillagerDiff {
     private double chargeScore;
     private UUID attackTarget;
@@ -23,7 +24,7 @@ public final class PillagerDiff {
         if (attackTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(attackTarget);
             if (player != null && !player.isRemoved()) {
-                illager.setTarget(player);
+                SafeTargetSetter.setClosestPlayer(illager, player);
             }
         }
         if (raidTarget != null) {

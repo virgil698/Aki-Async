@@ -22,7 +22,7 @@ public abstract class PillagerFamilyTickMixin {
     @Unique private static volatile boolean initialized = false;
     @Unique private PillagerSnapshot aki$snapshot;
     @Unique private long aki$nextAsyncTick = 0;
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(method = "tick", at = @At("HEAD"))
     private void aki$pillagerFamilySnapshot(CallbackInfo ci) {
         if (!((Object) this instanceof net.minecraft.world.entity.monster.Pillager ||
               (Object) this instanceof net.minecraft.world.entity.monster.Evoker ||

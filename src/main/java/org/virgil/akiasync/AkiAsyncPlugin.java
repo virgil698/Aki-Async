@@ -183,10 +183,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         
         org.virgil.akiasync.network.NetworkTrafficMonitor.getInstance(this);
         
-        if (configManager.isEntityPacketThrottleEnabled()) {
-            org.virgil.akiasync.mixin.network.EntityPacketThrottler.initialize(this);
-            getLogger().info("[AkiAsync] Entity packet throttle enabled");
-        }
 
         if (configManager.isFastMovementChunkLoadEnabled()) {
             chunkLoadScheduler = new ChunkLoadPriorityScheduler(configManager);
@@ -205,7 +201,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-network");
         getLogger().info("");
         getLogger().info("[+] Core Features:");
-        getLogger().info("  [+] Entity Packet Throttle: " + (configManager.isEntityPacketThrottleEnabled() ? "Enabled" : "Disabled"));
         getLogger().info("  [+] Multithreaded Entity Tracker: " + (configManager.isMultithreadedEntityTrackerEnabled() ? "Enabled" : "Disabled"));
         getLogger().info("  [+] Async Mob Spawning: " + (configManager.isMobSpawningEnabled() ? "Enabled" : "Disabled"));
         getLogger().info("  [+] Entity Tick Parallel: " + (configManager.isEntityTickParallel() ? "Enabled" : "Disabled") + " (" + configManager.getEntityTickThreads() + " threads)");
@@ -286,7 +281,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             optimizer.shutdown();
         }
 
-        org.virgil.akiasync.mixin.network.EntityPacketThrottler.shutdown();
 
         try {
             org.virgil.akiasync.network.NetworkOptimizationManager.shutdown();

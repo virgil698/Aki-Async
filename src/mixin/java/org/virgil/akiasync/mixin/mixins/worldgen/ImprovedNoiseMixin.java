@@ -26,6 +26,9 @@ public abstract class ImprovedNoiseMixin {
     @Shadow @Final
     private byte[] p;
 
+    @Shadow
+    protected abstract double sampleAndLerp(int sectionX, int sectionY, int sectionZ, double localX, double localY, double localZ, double fadeLocalX);
+
     @Unique
     private static final double[] akiasync$OPTIMIZED_GRADIENTS = akiasync$createOptimizedGradients();
 
@@ -158,7 +161,6 @@ public abstract class ImprovedNoiseMixin {
 
     @Unique
     private double akiasync$vanillaNoise(double x, double y, double z, double yScale, double yMax) {
-        
         double offsetX = x + this.xo;
         double offsetY = y + this.yo;
         double offsetZ = z + this.zo;
@@ -179,6 +181,6 @@ public abstract class ImprovedNoiseMixin {
             yShift = 0.0;
         }
 
-        return akiasync$optimizedSampleAndLerp(gridX, gridY, gridZ, deltaX, deltaY - yShift, deltaZ, deltaY);
+        return this.sampleAndLerp(gridX, gridY, gridZ, deltaX, deltaY - yShift, deltaZ, deltaY);
     }
 }

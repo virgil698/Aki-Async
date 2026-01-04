@@ -13,14 +13,7 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * 多线程实体追踪器
- * 
- * 重要修复：
- * 1. sendChanges() 必须在 updatePlayers() 之后立即执行，不能分离
- * 2. 使用 CountDownLatch 确保所有任务完成后再返回
- * 3. 减少批量大小，提高响应性
- */
+
 public class MultithreadedEntityTracker {
     
     private static final int PARALLELISM = Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors() / 2));
@@ -58,7 +51,7 @@ public class MultithreadedEntityTracker {
             return;
         }
         
-        // 小规模直接串行处理，避免线程开销
+        
         if (size <= 4) {
             for (int i = 0; i < size; i++) {
                 LevelChunk chunk = chunks[i];
@@ -70,7 +63,7 @@ public class MultithreadedEntityTracker {
             return;
         }
         
-        // 大规模并行处理
+        
         final AtomicInteger taskIndex = new AtomicInteger(0);
         final CountDownLatch latch = new CountDownLatch(PARALLELISM);
         
@@ -78,7 +71,7 @@ public class MultithreadedEntityTracker {
             TRACKER_EXECUTOR.execute(() -> {
                 try {
                     int index;
-                    // 每次只处理1个区块，提高响应性
+                    
                     while ((index = taskIndex.getAndIncrement()) < size) {
                         LevelChunk chunk = chunks[index];
                         if (chunk != null) {
@@ -96,7 +89,7 @@ public class MultithreadedEntityTracker {
             });
         }
         
-        // 等待所有任务完成，同时处理主线程任务
+        
         try {
             while (!latch.await(1, TimeUnit.MILLISECONDS)) {
                 runMainThreadTasks();
@@ -105,14 +98,11 @@ public class MultithreadedEntityTracker {
             Thread.currentThread().interrupt();
         }
         
-        // 最后处理剩余的主线程任务
+        
         runMainThreadTasks();
     }
     
-    /**
-     * 处理单个区块的所有实体
-     * 关键：updatePlayers 和 sendChanges 必须连续执行
-     */
+    
     private void processChunkEntities(LevelChunk chunk) {
         final ChunkEntitySlices entitySlices = ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel)chunk.level)
                 .moonrise$getEntityLookup().getChunk(chunk.locX, chunk.locZ);
@@ -123,7 +113,7 @@ public class MultithreadedEntityTracker {
         final List<Entity> entities = entitySlices.getAllEntities();
         final ChunkMap chunkMap = chunk.level.chunkSource.chunkMap;
         
-        // 获取附近玩家列表（只获取一次）
+        
         List<ServerPlayer> nearbyPlayers = null;
         try {
             ca.spottedleaf.moonrise.common.misc.NearbyPlayers.TrackedChunk trackedChunk = 
@@ -142,7 +132,7 @@ public class MultithreadedEntityTracker {
                 }
             }
         } catch (Exception e) {
-            // 忽略，使用 null
+            
         }
         
         for (Entity entity : entities) {
@@ -152,12 +142,12 @@ public class MultithreadedEntityTracker {
             if (entityTracker == null) continue;
             
             try {
-                // 1. 先更新玩家列表
+                
                 if (nearbyPlayers != null && !nearbyPlayers.isEmpty()) {
                     entityTracker.updatePlayers(nearbyPlayers);
                 }
                 
-                // 2. 立即发送变更（关键：不能分离！）
+                
                 entityTracker.serverEntity.sendChanges();
             } catch (Throwable t) {
                 ExceptionHandler.handleExpected("MultithreadedEntityTracker", "processEntity",
@@ -172,7 +162,7 @@ public class MultithreadedEntityTracker {
                 return ((ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity) entity).moonrise$getTrackedEntity();
             }
         } catch (Exception e) {
-            // 忽略
+            
         }
         
         if (chunkMap.entityMap != null) {

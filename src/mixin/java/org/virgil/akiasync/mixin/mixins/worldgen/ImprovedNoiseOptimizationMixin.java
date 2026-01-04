@@ -25,7 +25,7 @@ public abstract class ImprovedNoiseOptimizationMixin {
     @Shadow @Final private byte[] p;
     
     @Shadow
-    public abstract double noise(double x, double y, double z);
+    protected abstract double sampleAndLerp(int sectionX, int sectionY, int sectionZ, double localX, double localY, double localZ, double fadeLocalX);
     
     @Unique
     private static void akiasync$initialize() {
@@ -78,7 +78,27 @@ public abstract class ImprovedNoiseOptimizationMixin {
         
         
         if (!akiasync$enabled) {
-            return this.noise(x, y, z);
+            double d = x + this.xo;
+            double e = y + this.yo;
+            double f = z + this.zo;
+            
+            double i = Math.floor(d);
+            double j = Math.floor(e);
+            double k = Math.floor(f);
+            
+            double g = d - i;
+            double h = e - j;
+            double l = f - k;
+            
+            double o;
+            if (yScale != 0.0) {
+                double m = (yMax >= 0.0 && yMax < h) ? yMax : h;
+                o = Math.floor(m / yScale + 1.0E-7) * yScale;
+            } else {
+                o = 0.0;
+            }
+            
+            return this.sampleAndLerp((int) i, (int) j, (int) k, g, h - o, l, h);
         }
         
         double d = x + this.xo;

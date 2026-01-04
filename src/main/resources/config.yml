@@ -87,62 +87,18 @@ collision-optimization:
   enabled: true
   exclusion-list-file: "entities.yml"  # 排除列表配置文件 / Exclusion list config file
   
-  # 激进模式 / Aggressive Mode
-  # 启用后性能提升最大，但极端情况下可能有轻微物理不准确
-  # Maximum performance boost, but may have slight physics inaccuracy in extreme cases
-  aggressive-mode: true
+  # 原生碰撞检测 / Native Collision Detection (推荐!)
+  # 使用堆外内存 + AVX SIMD 向量化
+  # Uses off-heap memory + AVX SIMD vectorization
+  # 要求 / Requires: JDK 17+ with --add-modules jdk.incubator.vector
+  native:
+    enabled: true  # 启用原生碰撞检测 / Enable native collision detection
+    fallback-enabled: true  # 不支持时降级到普通逻辑 / Fallback to vanilla if not supported
   
-  # 碰撞缓存 / Collision Cache
-  # 缓存碰撞检测结果，避免重复计算
-  # Cache collision results to avoid repeated calculations
-  cache:
-    enabled: true
-    lifetime-ms: 50  # 缓存有效期 / Cache lifetime (毫秒 / milliseconds)
-    movement-threshold: 0.01  # 移动阈值 / Movement threshold (低于此值视为静止 / below = stationary)
-  
-  # 空间分区 / Spatial Partition
-  # 使用网格分区加速实体查询，高密度场景下显著提升性能
-  # Use grid partitioning to accelerate entity queries, significant boost in high-density scenarios
-  spatial-partition:
-    enabled: true
-    grid-size: 4  # 网格大小 / Grid size (方块 / blocks, 推荐 / Recommended: 2-8)
-    density-threshold: 50  # 触发阈值 / Trigger threshold (实体数 / entity count)
-    update-interval-ms: 100  # 网格更新频率 / Grid update interval (毫秒 / milliseconds)
-  
-  # 碰撞跳过 / Collision Skip
-  # 跳过微小移动的碰撞检测，减少计算量
-  # Skip collision checks for tiny movements to reduce calculations
-  skip-checks:
-    min-movement: 0.001  # 最小移动阈值 / Minimum movement threshold
-    check-interval-ms: 50  # 检测间隔 / Check interval (毫秒 / milliseconds)
-  
-  # 实体推挤优化 / Entity Push Optimization
-  # 优化实体推挤力计算，防止高密度区域卡顿
-  # Optimize entity push force calculation to prevent lag in high-density areas
-  push-optimization:
-    enabled: true
-    max-push-per-tick: 0.5  # 单tick最大推力 / Max push per tick (推荐 / Recommended: 0.3-0.8)
-    damping-factor: 0.7  # 推力衰减系数 / Push damping factor (推荐 / Recommended: 0.5-0.9)
-    high-density-threshold: 10  # 高密度阈值 / High density threshold (实体数 / entity count)
-    high-density-multiplier: 0.3  # 高密度推力倍数 / Push multiplier in high density (推荐 / Recommended: 0.2-0.5)
-  
-  # 高级碰撞优化 / Advanced Collision Optimization
-  # 使用Section网格和窒息伤害机制处理极端密集场景
-  # Use Section grid and suffocation damage for extreme density scenarios
-  advanced:
-    enabled: true
-    collision-threshold: 8  # 碰撞阈值 / Collision threshold (超过此数量直接造成窒息伤害 / apply suffocation damage when exceeded)
-    suffocation-damage: 0.5  # 窒息伤害 / Suffocation damage (每秒 / per second)
-    max-push-iterations: 8  # 最大推挤迭代次数 / Max push iterations (防止无限循环 / prevent infinite loops)
-    use-section-grid: true  # 使用Section网格 / Use Section grid (推荐 / recommended)
-    section-grid-warmup: false  # 预热网格 / Warmup grid (可选，增加内存占用 / optional, increases memory)
-  
-  # 向量化碰撞检测 / Vectorized Collision Detection
-  # 批量处理实体碰撞检测，高密度场景性能提升 25-40%
-  # Batch process entity collision detection, 25-40% boost in high-density scenarios
-  vectorized:
-    enabled: true
-    threshold: 64  # 向量化阈值 / Vectorization threshold (实体数 >= 此值才使用向量化 / use vectorization when entity count >= threshold)
+  # 基础碰撞优化 / Basic Collision Optimization
+  # 保留的基础优化：跳过静止实体、Paper配置检查等
+  # Preserved basic optimizations: skip static entities, Paper config checks, etc.
+  aggressive-mode: true  # 激进模式 / Aggressive mode (跳过更多检查 / skip more checks)
   
   # 方块缓存 / Block Cache
   # 缓存碰撞检测中的方块状态查询，性能提升 10-15%
@@ -1029,7 +985,6 @@ datapack-optimization:
   # 函数命令去重 / Command Deduplication
   # 去重数据包函数中的重复命令对象，减少内存使用
   # Deduplicate command objects to reduce memory usage
-  # 灵感来源 / Inspired by: FunctionCommandDeduplicator mod by Myitian
   command-deduplication:
     enabled: true
 
@@ -1096,38 +1051,6 @@ seed-encryption:
 # 网络优化 / Network Optimization
 # ==========================================
 network-optimization:
-  
-  # 实体包节流 / Entity Packet Throttle
-  # 高密度实体场景下的网络优化
-  # Network optimization for high-density entity scenarios
-  entity-packet-throttle:
-    enabled: true
-    
-    # 距离分级更新 / Distance-Based Update Rate
-    # 远距离实体降低更新频率，节省网络带宽
-    # Reduce update rate for distant entities to save network bandwidth
-    distance-based:
-      enabled: true
-      tier-1-distance: 16    # 0-16格: 每tick更新 / every tick (100%)
-      tier-2-distance: 32    # 16-32格: 每2tick更新 / every 2 ticks (50%)
-      tier-3-distance: 64    # 32-64格: 每4tick更新 / every 4 ticks (25%)
-      tier-4-distance: 128   # 64-128格: 每8tick更新 / every 8 ticks (12.5%)
-      tier-5-distance: 256   # 128+格: 每16tick更新 / every 16 ticks (6.25%)
-    
-    # 视锥体裁剪 / Frustum Culling
-    # 视野外实体进一步降频
-    # Further reduce rate for out-of-view entities
-    # ⚠️ 实验性功能 / Experimental
-    frustum-culling:
-      enabled: false
-      fov-angle: 90  # 视野角度 / Field of view angle
-      outside-multiplier: 2  # 视野外降频倍数 / Outside FOV throttle multiplier
-    
-    # 实体数据节流 / Entity Data Throttle
-    # Metadata & NBT 智能节流
-    # Smart throttling for Metadata & NBT
-    data-throttle:
-      enabled: true
   
   # 区块可见性过滤 / Chunk Visibility Filter
   # 遮挡剔除：只发送玩家视野内的表层区块
@@ -1212,22 +1135,6 @@ network-optimization:
     skip-zero-movement-packets:
       enabled: true
       strict-mode: false  # 严格模式 / Strict mode (true=位置和旋转都为零才过滤 / filter only when both are zero, false=位置为零即过滤 / filter when position is zero)
-    
-    # 实体旋转包过滤 / Entity Rotation Packet Filter
-    # 参考ESU的SkipUnnecessaryPackets功能 / Based on ESU's SkipUnnecessaryPackets
-    # 过滤旋转角度为零的纯旋转包，进一步减少网络流量 / Filter pure rotation packets with zero rotation, further reduce network traffic
-    entity-rotation-filter:
-      enabled: true
-      filter-pure-rotation: true  # 过滤纯旋转包 / Filter pure rotation packets (旋转角度为零时过滤 / filter when rotation is zero)
-  
-  # 高延迟玩家自动调整 / High Latency Player Auto-Adjust
-  # 参考ESU的HighLatencyAdjust功能 / Based on ESU's HighLatencyAdjust
-  # 当玩家延迟过高时自动降低视距以减少网络负载 / Auto-reduce view distance for high-latency players to reduce network load
-  high-latency-adjust:
-    enabled: true
-    latency-threshold: 150  # 延迟阈值 / Latency threshold (毫秒 / milliseconds, 超过此值视为高延迟 / above = high latency)
-    min-view-distance: 5  # 最小视距 / Minimum view distance (不会低于此值 / won't go below this)
-    duration-ms: 60000  # 持续时间 / Duration (毫秒 / milliseconds, 高延迟持续此时间后调整 / adjust after high latency lasts this long)
   
   # AFK玩家网络包节流 / AFK Player Packet Throttle
   # 参考ESU的AfkEfficiency功能 / Based on ESU's AfkEfficiency
@@ -1254,21 +1161,6 @@ network-optimization:
     adaptive-threshold: true  # 自适应压缩阈值 / Adaptive compression threshold
     skip-small-packets: true  # 跳过小包压缩 / Skip small packet compression
     skip-threshold: 32  # 跳过阈值 / Skip threshold (字节 / bytes)
-  
-  # 连接刷新优化 / Connection Flush Optimization
-  # 合并多个小包的flush操作，减少系统调用 / Consolidate flush operations for multiple small packets
-  connection-flush:
-    enabled: true
-    consolidation-threshold: 5  # 合并阈值 / Consolidation threshold (包数 / packet count)
-    consolidation-timeout-ns: 1000000  # 合并超时 / Consolidation timeout (纳秒 / nanoseconds, 1ms)
-    use-explicit-flush: false  # 使用显式刷新 / Use explicit flush
-  
-  # 实体数据包节流 / Entity Data Packet Throttle
-  # 对高频实体数据更新进行节流 / Throttle high-frequency entity data updates
-  entity-data-throttle:
-    enabled: true
-    throttle-interval: 3  # 节流间隔 / Throttle interval (ticks)
-    max-packets-per-second: 20  # 每秒最大包数 / Max packets per second
   
   # 区块批量优化 / Chunk Batch Optimization
   # 根据玩家网络状况动态调整区块批量发送 / Dynamically adjust chunk batch sending based on player network

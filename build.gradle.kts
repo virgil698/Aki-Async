@@ -111,9 +111,25 @@ repositories {
     mavenLocal()
 }
 
+// Check for private implementation folders
+val hasCollisionImpl = file("src/mixin/java/org/virgil/akiasync/mixin/util/collision").exists()
+val hasQuantumImpl = file("src/mixin/java/org/virgil/akiasync/mixin/crypto/quantum").exists()
+
+println("[AkiAsync Build] Private implementations detected:")
+println("  - Collision optimization: ${if (hasCollisionImpl) "YES" else "NO"}")
+println("  - Quantum seed encryption: ${if (hasQuantumImpl) "YES" else "NO"}")
+
 sourceSets {
     create("mixin") {
-        java.srcDir("mixin/java")
+        java {
+            srcDir("mixin/java")
+            
+            if (!hasCollisionImpl) {
+                exclude("**/mixins/entity/NativeCollisionTickMixin.java")
+                exclude("**/mixins/entity/LivingEntityCollisionAccessMixin.java")
+                println("  [Excluded] Collision mixin files (missing private implementation)")
+            }
+        }
         resources.srcDir("mixin/resources")
     }
 
@@ -198,6 +214,10 @@ tasks {
     withType<JavaCompile>().configureEach {
         options.encoding = Charsets.UTF_8.name()
         options.forkOptions.memoryMaximumSize = "6g"
+        options.compilerArgs.addAll(listOf(
+            "--enable-preview",
+            "--add-modules", "jdk.incubator.vector"
+        ))
 
         if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
             options.release.set(targetJavaVersion)

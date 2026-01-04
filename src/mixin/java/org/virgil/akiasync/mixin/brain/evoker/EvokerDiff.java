@@ -2,6 +2,7 @@ package org.virgil.akiasync.mixin.brain.evoker;
 import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Evoker;
+import org.virgil.akiasync.mixin.util.SafeTargetSetter;
 public final class EvokerDiff {
     private UUID evokerTarget;
     private int changeCount;
@@ -14,7 +15,7 @@ public final class EvokerDiff {
         if (evokerTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(evokerTarget);
             if (player != null && !player.isRemoved()) {
-                evoker.setTarget(player);
+                SafeTargetSetter.setClosestPlayer(evoker, player);
             }
         }
     }

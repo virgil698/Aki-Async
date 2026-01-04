@@ -172,13 +172,26 @@ public class PlayerPathPrewarmer {
     }
     
     public static List<BlockPos> fetchNearbyPois(ServerPlayer player, ServerLevel level) {
-        BlockPos playerPos = player.blockPosition();
-        PoiManager poiManager = level.getPoiManager();
-        
-        Set<BlockPos> pois = new HashSet<>();
-        
-        poiManager.getInRange(
-            type -> type.is(PoiTypes.MEETING) || 
+        try {
+            if (player == null || level == null) {
+                return new ArrayList<>();
+            }
+            
+            BlockPos playerPos = player.blockPosition();
+            if (playerPos == null) {
+                return new ArrayList<>();
+            }
+            
+            PoiManager poiManager = level.getPoiManager();
+            if (poiManager == null) {
+                return new ArrayList<>();
+            }
+            
+            Set<BlockPos> pois = new HashSet<>();
+            
+            poiManager.getInRange(
+                type -> type != null && (
+                    type.is(PoiTypes.MEETING) || 
                     type.is(PoiTypes.HOME) ||
                     type.is(PoiTypes.ARMORER) ||
                     type.is(PoiTypes.BUTCHER) ||
@@ -192,13 +205,21 @@ public class PlayerPathPrewarmer {
                     type.is(PoiTypes.MASON) ||
                     type.is(PoiTypes.SHEPHERD) ||
                     type.is(PoiTypes.TOOLSMITH) ||
-                    type.is(PoiTypes.WEAPONSMITH),
-            playerPos,
-            PREWARM_RADIUS,
-            PoiManager.Occupancy.ANY
-        ).map(PoiRecord::getPos).forEach(pois::add);
-        
-        return new ArrayList<>(pois);
+                    type.is(PoiTypes.WEAPONSMITH)
+                ),
+                playerPos,
+                PREWARM_RADIUS,
+                PoiManager.Occupancy.ANY
+            ).map(PoiRecord::getPos)
+             .filter(pos -> pos != null)
+             .forEach(pois::add);
+            
+            return new ArrayList<>(pois);
+        } catch (Exception e) {
+            org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
+                "PlayerPathPrewarmer", "fetchNearbyPois", e);
+            return new ArrayList<>();
+        }
     }
     
     private List<BlockPos> findClosestPois(BlockPos start, List<BlockPos> pois, int count) {

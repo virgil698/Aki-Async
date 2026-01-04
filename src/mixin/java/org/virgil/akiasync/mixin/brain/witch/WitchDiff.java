@@ -1,6 +1,7 @@
 package org.virgil.akiasync.mixin.brain.witch;
 import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
+import org.virgil.akiasync.mixin.util.SafeTargetSetter;
 public final class WitchDiff {
     private UUID witchTarget;
     private int changeCount;
@@ -10,7 +11,7 @@ public final class WitchDiff {
         if (witchTarget != null) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(witchTarget);
             if (player != null && !player.isRemoved()) {
-                witch.setTarget(player);
+                SafeTargetSetter.setClosestPlayer(witch, player);
             }
         }
     }

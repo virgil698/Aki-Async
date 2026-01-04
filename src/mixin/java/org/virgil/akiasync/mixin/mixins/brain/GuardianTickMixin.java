@@ -17,7 +17,7 @@ public abstract class GuardianTickMixin {
     @Unique private static volatile boolean init = false;
     @Unique private GuardianSnapshot aki$snap;
     @Unique private long aki$next = 0;
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(method = "tick", at = @At("HEAD"))
     private void aki$guardian(CallbackInfo ci) {
         if (!((Object) this instanceof Guardian)) return;
         if (!init) { aki$init(); }
