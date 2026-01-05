@@ -8,7 +8,6 @@
     "entitytracker.ChunkMapTrackerMixin",
     "entitytracker.TrackedEntityMixin",
     "entitytracker.ServerEntityMixin",
-    "entitytracker.ServerBossEventMixin",
     "spawning.MobSpawningMixin",
     "brain.BrainThrottleMixin",
     "brain.VillagerJobClaimMixin",
@@ -92,9 +91,7 @@
     "shapes.CubeVoxelShapeMixin",
     "shapes.BlockShapeCacheMixin",
     "shapes.AABBOptimizationMixin",
-    "network.ZeroVelocityOptimizationMixin",
-    
-    
+    "network.ZeroVelocityOptimizationMixin",   
     "network.AfkPlayerPacketThrottleMixin",
     "entity.ServerSideParticleOptimizationMixin",
     "entity.ItemEntityPickupDelayCompensationMixin",
