@@ -8,7 +8,6 @@
     "entitytracker.ChunkMapTrackerMixin",
     "entitytracker.TrackedEntityMixin",
     "entitytracker.ServerEntityMixin",
-    "entitytracker.ServerBossEventMixin",
     "spawning.MobSpawningMixin",
     "brain.BrainThrottleMixin",
     "brain.VillagerJobClaimMixin",
