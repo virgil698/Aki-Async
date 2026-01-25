@@ -5,7 +5,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.entity.Player;
-import org.bukkit.ChatColor;
 import org.virgil.akiasync.AkiAsyncPlugin;
 
 import java.util.Locale;
@@ -34,8 +33,7 @@ public class SeedCommandListener implements Listener {
         if (!player.isOp()) {
             event.setCancelled(true);
 
-            String denyMessage = getDenyMessage();
-            player.sendMessage(ChatColor.RED + denyMessage);
+            player.sendMessage(plugin.getLanguageManager().get("seed.command-denied"));
 
             plugin.getLogger().warning(String.format(
                 "Player %s attempted to use /seed command without OP permission",
@@ -65,18 +63,4 @@ public class SeedCommandListener implements Listener {
         }
     }
 
-    private String getDenyMessage() {
-        try {
-            String message = plugin.getConfig().getString(
-                "seed-encryption.seed-command-deny-message",
-                "You don't have permission to use this command. Only server operators can view the world seed."
-            );
-            if (message == null) {
-                message = "You don't have permission to use this command. Only server operators can view the world seed.";
-            }
-            return ChatColor.translateAlternateColorCodes('&', message);
-        } catch (Exception e) {
-            return "You don't have permission to use this command. Only server operators can view the world seed.";
-        }
-    }
 }

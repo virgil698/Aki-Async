@@ -2,8 +2,10 @@ package org.virgil.akiasync.config;
 
 import java.util.Set;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.config.sections.*;
 import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
 public class ConfigManager {
@@ -13,419 +15,16 @@ public class ConfigManager {
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
 
-    private int threadPoolSize;
-
-    private boolean multithreadedTrackerEnabled;
-    private int multithreadedTrackerParallelism;
-    private int multithreadedTrackerBatchSize;
-    private int multithreadedTrackerAssistBatchSize;
-
-    private boolean mobSpawningEnabled;
-    private boolean spawnerOptimizationEnabled;
-    private boolean densityControlEnabled;
-    private int maxEntitiesPerChunk;
-    private boolean brainThrottle;
-    private int brainThrottleInterval;
-    private boolean livingEntityTravelOptimizationEnabled;
-    private int livingEntityTravelSkipInterval;
-    private boolean mobDespawnOptimizationEnabled;
-    private int mobDespawnCheckInterval;
-    private boolean endermanBlockCarryLimiterEnabled;
-    private int endermanMaxCarrying;
-    private boolean endermanCountTowardsMobCap;
-    private boolean endermanPreventPickup;
-
-    private boolean multithreadedEntityTrackerEnabled;
-
-    private boolean advancedNetworkOptimizationEnabled;
-    private boolean fastVarIntEnabled;
-    private boolean eventLoopAffinityEnabled;
-    private boolean byteBufOptimizerEnabled;
-    private boolean strictEventLoopChecking;
-    private boolean pooledByteBufAllocator;
-    private boolean directByteBufPreferred;
-
-    private boolean skipZeroMovementPacketsEnabled;
-    private boolean skipZeroMovementPacketsStrictMode;
-
-    private boolean mtuAwareBatchingEnabled;
-    private int mtuLimit;
-    private int mtuHardCapPackets;
-
-    private boolean flushConsolidationEnabled;
-    private int flushConsolidationExplicitFlushAfterFlushes;
-    private boolean flushConsolidationConsolidateWhenNoReadInProgress;
-
-    private boolean nativeCompressionEnabled;
-    private int nativeCompressionLevel;
-
-    private boolean nativeEncryptionEnabled;
-
-    private boolean explosionBlockUpdateOptimizationEnabled;
-    private int explosionBlockChangeThreshold;
-
-    private int highLatencyThreshold;
-    private int highLatencyMinViewDistance;
-    private long highLatencyDurationMs;
-
-    private boolean afkPacketThrottleEnabled;
-    private long afkDurationMs;
-    private double afkParticleMaxDistance;
-    private double afkSoundMaxDistance;
-
-    private boolean asyncPathfindingEnabled;
-    private int asyncPathfindingMaxThreads;
-    private int asyncPathfindingKeepAliveSeconds;
-    private int asyncPathfindingMaxQueueSize;
-    private int asyncPathfindingTimeoutMs;
-    private boolean asyncPathfindingSyncFallbackEnabled;
-    private boolean asyncPathfindingCacheEnabled;
-    private int asyncPathfindingCacheMaxSize;
-    private int asyncPathfindingCacheExpireSeconds;
-    private int asyncPathfindingCacheReuseTolerance;
-    private int asyncPathfindingCacheCleanupIntervalSeconds;
-
-    private boolean aiSensorOptimizationEnabled;
-    private int aiSensorRefreshInterval;
-
-    private boolean gameEventOptimizationEnabled;
-    private boolean gameEventEarlyFilter;
-    private boolean gameEventThrottleLowPriority;
-    private long gameEventThrottleIntervalMs;
-    private boolean gameEventDistanceFilter;
-    private double gameEventMaxDetectionDistance;
-
-    private boolean enhancedPathfindingEnabled;
-    private int enhancedPathfindingMaxConcurrentRequests;
-    private int enhancedPathfindingMaxRequestsPerTick;
-    private int enhancedPathfindingHighPriorityDistance;
-    private int enhancedPathfindingMediumPriorityDistance;
-    private boolean pathPrewarmEnabled;
-    private int pathPrewarmRadius;
-    private int pathPrewarmMaxMobsPerBatch;
-    private int pathPrewarmMaxPoisPerMob;
-    private boolean collisionOptimizationEnabled;
-    private boolean collisionAggressiveMode;
-    private String collisionExclusionListFile;
-    private java.util.Set<String> collisionExcludedEntities;
-
-    private boolean nativeCollisionsEnabled;
-    private boolean nativeCollisionsFallbackEnabled;
-    private boolean collisionBlockCacheEnabled;
-    private int collisionBlockCacheSize;
-    private int collisionBlockCacheExpireTicks;
-    private boolean rayCollisionEnabled;
-    private double rayCollisionMaxDistance;
-    private boolean shapeOptimizationEnabled;
-    private boolean shapePrecomputeArrays;
-    private boolean shapeBlockShapeCache;
-    private int shapeBlockShapeCacheSize;
-    private boolean tntCacheEnabled;
-    private boolean tntUseOptimizedCache;
-    private int tntCacheExpiryTicks;
-    private boolean tntCacheWarmupEnabled;
-    private boolean tntPrecomputedShapeEnabled;
-    private boolean tntUseOcclusionDetection;
-    private double tntOcclusionThreshold;
-    private boolean tntBatchCollisionEnabled;
-    private int tntBatchUnrollFactor;
-    private boolean entityThrottlingEnabled;
-    private String entityThrottlingConfigFile;
-    private int entityThrottlingCheckInterval;
-    private int entityThrottlingThrottleInterval;
-    private int entityThrottlingRemovalBatchSize;
-    private boolean zeroDelayFactoryOptimizationEnabled;
-    private String zeroDelayFactoryEntitiesConfigFile;
-    private java.util.Set<String> zeroDelayFactoryEntities;
-    private boolean blockEntityParallelTickEnabled;
-    private int blockEntityParallelMinBlockEntities;
-    private int blockEntityParallelBatchSize;
-    private boolean blockEntityParallelProtectContainers;
-    private int blockEntityParallelTimeoutMs;
-    private boolean hopperOptimizationEnabled;
-    private int hopperCacheExpireTime;
-    private boolean minecartOptimizationEnabled;
-    private int minecartTickInterval;
-    private boolean entityTickParallel;
-    private int minEntitiesForParallel;
-    private int entityTickBatchSize;
-    private boolean asyncLightingEnabled;
-    private int lightingThreadPoolSize;
-    private boolean spawnChunkRemovalEnabled;
-    private int lightBatchThreshold;
-    private int lightUpdateIntervalMs;
-    private boolean useLayeredPropagationQueue;
-    private int maxLightPropagationDistance;
-    private boolean skylightCacheEnabled;
-    private int skylightCacheDurationMs;
-    private boolean lightDeduplicationEnabled;
-    private boolean dynamicBatchAdjustmentEnabled;
-    private boolean advancedLightingStatsEnabled;
-
-    private String lightingThreadPoolMode;
-    private String lightingThreadPoolCalculation;
-    private int lightingMinThreads;
-    private int lightingMaxThreads;
-    private int lightingBatchThresholdMax;
-    private boolean lightingAggressiveBatching;
-
-    private boolean lightingPrioritySchedulingEnabled;
-    private int lightingHighPriorityRadius;
-    private int lightingMediumPriorityRadius;
-    private int lightingLowPriorityRadius;
-    private long lightingMaxLowPriorityDelay;
-
-    private boolean lightingDebouncingEnabled;
-    private long lightingDebounceDelay;
-    private int lightingMaxUpdatesPerSecond;
-    private long lightingResetOnStableMs;
-
-    private boolean lightingMergingEnabled;
-    private int lightingMergeRadius;
-    private long lightingMergeDelay;
-    private int lightingMaxMergedUpdates;
-
-    private boolean lightingChunkBorderEnabled;
-    private boolean lightingBatchBorderUpdates;
-    private long lightingBorderUpdateDelay;
-    private int lightingCrossChunkBatchSize;
-
-    private boolean lightingAdaptiveEnabled;
-    private int lightingMonitorInterval;
-    private boolean lightingAutoAdjustThreads;
-    private boolean lightingAutoAdjustBatchSize;
-    private int lightingTargetQueueSize;
-    private int lightingTargetLatency;
-
-    private boolean lightingChunkUnloadEnabled;
-    private boolean lightingAsyncCleanup;
-    private int lightingCleanupBatchSize;
-    private long lightingCleanupDelay;
-
-    private boolean noiseOptimizationEnabled;
-    private boolean jigsawOptimizationEnabled;
-
-    private boolean playerChunkLoadingOptimizationEnabled;
-    private int maxConcurrentChunkLoadsPerPlayer;
-    private boolean entityTrackingRangeOptimizationEnabled;
-    private double entityTrackingRangeMultiplier;
-
-    private boolean tntOptimizationEnabled;
-    private boolean tntDebugEnabled;
-    private boolean lightingDebugEnabled;
-    private int tntThreads;
-    private int tntMaxBlocks;
-    private long tntTimeoutMicros;
-    private int tntBatchSize;
-    private boolean tntVanillaCompatibilityEnabled;
-    private boolean tntUseVanillaPower;
-    private boolean tntUseVanillaFireLogic;
-    private boolean tntUseVanillaDamageCalculation;
-    private boolean beeFixEnabled;
-    private boolean endIslandDensityFixEnabled;
-    private boolean leaderZombieHealthFixEnabled;
-    private boolean portalSuffocationCheckDisabled;
-    private boolean shulkerBulletSelfHitFixEnabled;
-
-    private boolean executeCommandInactiveSkipEnabled;
-    private int executeCommandSkipLevel;
-    private double executeCommandSimulationDistanceMultiplier;
-    private long executeCommandCacheDurationMs;
-    private Set<String> executeCommandWhitelistTypes;
-    private boolean executeCommandDebugEnabled;
-
-    private boolean commandDeduplicationEnabled;
-    private boolean commandDeduplicationDebugEnabled;
-
-    private boolean tntUseFullRaycast;
-    private boolean tntUseVanillaBlockDestruction;
-    private boolean tntUseVanillaDrops;
-
-    private boolean tntUseSakuraDensityCache;
-    private boolean tntUseVectorizedAABB;
-    private boolean tntUseUnifiedEngine;
-    private boolean tntMergeEnabled;
-    private double tntMergeRadius;
-    private int tntMaxFuseDifference;
-    private float tntMergedPowerMultiplier;
-    private float tntMaxPower;
-
-    private boolean asyncVillagerBreedEnabled;
-    private boolean villagerAgeThrottleEnabled;
-    private int villagerBreedThreads;
-    private int villagerBreedCheckInterval;
-    private boolean chunkTickAsyncEnabled;
-    private int chunkTickThreads;
-    private long chunkTickTimeoutMicros;
-    private int chunkTickAsyncBatchSize;
-
-    private boolean enableDebugLogging;
-
-    private boolean smartLagCompensationEnabled;
-    private double smartLagTPSThreshold;
-    private boolean smartLagItemPickupDelayEnabled;
-    private boolean smartLagPotionEffectsEnabled;
-    private boolean smartLagTimeAccelerationEnabled;
-    private boolean smartLagDebugEnabled;
-    private boolean smartLagLogMissedTicks;
-    private boolean smartLagLogCompensation;
-
-    private boolean experienceOrbInactiveTickEnabled;
-    private double experienceOrbInactiveRange;
-    private int experienceOrbInactiveMergeInterval;
-    private boolean experienceOrbMergeEnabled;
-    private int experienceOrbMergeInterval;
-    private boolean enablePerformanceMetrics;
-    private int configVersion;
-
-    private boolean structureLocationAsyncEnabled;
-    private int structureLocationThreads;
-    private boolean locateCommandEnabled;
-    private int locateCommandSearchRadius;
-    private boolean locateCommandSkipKnownStructures;
-    private boolean villagerTradeMapsEnabled;
-    private int villagerTradeMapsSearchRadius;
-    private boolean villagerTradeMapsSkipKnownStructures;
-    private java.util.Set<String> villagerTradeMapTypes;
-    private int villagerMapGenerationTimeoutSeconds;
-    private boolean dolphinTreasureHuntEnabled;
-    private int dolphinTreasureSearchRadius;
-    private boolean chestExplorationMapsEnabled;
-    private java.util.Set<String> chestExplorationLootTables;
-
-    private boolean structureAlgorithmOptimizationEnabled;
-    private String structureSearchPattern;
-    private boolean structureCachingEnabled;
-    private boolean biomeAwareSearchEnabled;
-    private int structureCacheMaxSize;
-    private long structureCacheExpirationMinutes;
-
-    private boolean dataPackOptimizationEnabled;
-    private int dataPackFileLoadThreads;
-    private int dataPackZipProcessThreads;
-    private int dataPackBatchSize;
-    private long dataPackCacheExpirationMinutes;
-    private int dataPackMaxFileCacheSize;
-    private int dataPackMaxFileSystemCacheSize;
-
-    private boolean nitoriOptimizationsEnabled;
-    private boolean virtualThreadEnabled;
-    private boolean workStealingEnabled;
-    private boolean blockPosCacheEnabled;
-    private boolean optimizedCollectionsEnabled;
-
-    private boolean mobSunBurnOptimizationEnabled;
-    private boolean entitySpeedOptimizationEnabled;
-    private boolean entityFallDamageOptimizationEnabled;
-    private boolean entitySectionStorageOptimizationEnabled;
-
-    private boolean chunkPosOptimizationEnabled;
-    private boolean nbtOptimizationEnabled;
-    private boolean bitSetPoolingEnabled;
-    private boolean completableFutureOptimizationEnabled;
-    private boolean chunkOptimizationEnabled;
-
-    private String seedEncryptionScheme;
-    private boolean seedEncryptionEnabled;
-    private boolean seedEncryptionProtectStructures;
-    private boolean seedEncryptionProtectOres;
-    private boolean seedEncryptionProtectSlimes;
-    private boolean seedEncryptionProtectBiomes;
-
-    private int secureSeedBits;
-
-    private int quantumSeedEncryptionLevel;
-    private String quantumSeedPrivateKeyFile;
-    private boolean quantumSeedEnableTimeDecay;
-    private int quantumSeedCacheSize;
-
-    private boolean furnaceRecipeCacheEnabled;
-    private int furnaceRecipeCacheSize;
-    private boolean furnaceCacheApplyToBlastFurnace;
-    private boolean furnaceCacheApplyToSmoker;
-    private boolean furnaceFixBurnTimeBug;
-
-    private boolean craftingRecipeCacheEnabled;
-    private int craftingRecipeCacheSize;
-    private boolean craftingOptimizeBatchCrafting;
-    private boolean craftingReduceNetworkTraffic;
-
-    private boolean minecartCauldronDestructionEnabled;
-
-    private boolean fallingBlockParallelEnabled;
-    private int minFallingBlocksForParallel;
-    private int fallingBlockBatchSize;
-
-    private boolean chunkVisibilityFilterEnabled;
-
-    private boolean suffocationOptimizationEnabled;
-    private boolean fastRayTraceEnabled;
-    private boolean mapRenderingOptimizationEnabled;
-    private int mapRenderingThreads;
-
-    private boolean projectileOptimizationEnabled;
-    private int maxProjectileLoadsPerTick;
-    private int maxProjectileLoadsPerProjectile;
-
-    private boolean itemEntityMergeOptimizationEnabled;
-    private boolean itemEntityCancelVanillaMerge;
-    private int itemEntityMergeInterval;
-    private int itemEntityMinNearbyItems;
-    private double itemEntityMergeRange;
-    private boolean itemEntityAgeOptimizationEnabled;
-    private int itemEntityAgeInterval;
-    private double itemEntityPlayerDetectionRange;
-    private boolean itemEntityInactiveTickEnabled;
-    private double itemEntityInactiveRange;
-    private int itemEntityInactiveMergeInterval;
-
-    private boolean fastMovementChunkLoadEnabled;
-    private double fastMovementSpeedThreshold;
-    private int fastMovementPreloadDistance;
-    private int fastMovementMaxConcurrentLoads;
-    private int fastMovementPredictionTicks;
-
-    private boolean centerOffsetEnabled;
-    private double minOffsetSpeed;
-    private double maxOffsetSpeed;
-    private double maxOffsetRatio;
-    private int asyncLoadingBatchSize;
-    private long asyncLoadingBatchDelayMs;
-
-    private boolean playerJoinWarmupEnabled;
-    private long playerJoinWarmupDurationMs;
-    private double playerJoinWarmupInitialRate;
-
-    private boolean virtualEntityCompatibilityEnabled;
-    private boolean virtualEntityBypassPacketQueue;
-    private boolean virtualEntityExcludeFromThrottling;
-    private boolean fancynpcsCompatEnabled;
-    private boolean fancynpcsUseAPI;
-    private int fancynpcsPriority;
-    private boolean znpcsplusCompatEnabled;
-    private boolean znpcsplusUseAPI;
-    private int znpcsplusPriority;
-    private java.util.List<String> virtualEntityDetectionOrder;
-
-    private boolean dynamicChunkSendRateEnabled;
-    private long dynamicChunkLimitBandwidth;
-    private long dynamicChunkGuaranteedBandwidth;
-
-    private boolean packetCompressionOptimizationEnabled;
-    private boolean adaptiveCompressionThresholdEnabled;
-    private boolean skipSmallPacketsEnabled;
-    private int skipSmallPacketsThreshold;
-
-    private boolean chunkBatchOptimizationEnabled;
-    private float chunkBatchMinChunks;
-    private float chunkBatchMaxChunks;
-    private int chunkBatchMaxUnacked;
-
-    private boolean packetPriorityQueueEnabled;
-    private boolean prioritizePlayerPacketsEnabled;
-    private boolean prioritizeChunkPacketsEnabled;
-    private boolean deprioritizeParticlesEnabled;
-    private boolean deprioritizeSoundsEnabled;
+    private final NetworkConfig networkConfig = new NetworkConfig();
+    private final EntityConfig entityConfig = new EntityConfig();
+    private final AIConfig aiConfig = new AIConfig();
+    private final LightingConfig lightingConfig = new LightingConfig();
+    private final ChunkConfig chunkConfig = new ChunkConfig();
+    private final TNTConfig tntConfig = new TNTConfig();
+    private final CollisionConfig collisionConfig = new CollisionConfig();
+    private final PerformanceConfig performanceConfig = new PerformanceConfig();
+    private final CompatibilityConfig compatibilityConfig = new CompatibilityConfig();
+    private final MiscConfig miscConfig = new MiscConfig();
 
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -469,410 +68,40 @@ public class ConfigManager {
     }
 
     private void loadConfigValues() {
-
-        int configuredThreadPoolSize = config.getInt("general-thread-pool.size", 0);
-        if (configuredThreadPoolSize <= 0) {
-            int cpuCores = Runtime.getRuntime().availableProcessors();
-            threadPoolSize = Math.max(2, cpuCores / 4);
-        } else {
-            threadPoolSize = configuredThreadPoolSize;
-        }
-
-        multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
-
-        advancedNetworkOptimizationEnabled = config.getBoolean("network-optimization.advanced.enabled", true);
-        fastVarIntEnabled = config.getBoolean("network-optimization.advanced.fast-varint.enabled", true);
-        eventLoopAffinityEnabled = config.getBoolean("network-optimization.advanced.eventloop-affinity.enabled", true);
-        byteBufOptimizerEnabled = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.enabled", true);
-        strictEventLoopChecking = config.getBoolean("network-optimization.advanced.eventloop-affinity.strict-checking", false);
-        pooledByteBufAllocator = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.pooled-allocator", true);
-        directByteBufPreferred = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.prefer-direct", true);
-
-        mtuAwareBatchingEnabled = config.getBoolean("network-optimization.advanced.mtu-aware-batching.enabled", true);
-        mtuLimit = config.getInt("network-optimization.advanced.mtu-aware-batching.mtu-limit", 1396);
-        mtuHardCapPackets = config.getInt("network-optimization.advanced.mtu-aware-batching.hard-cap-packets", 4096);
-
-        flushConsolidationEnabled = config.getBoolean("network-optimization.advanced.flush-consolidation.enabled", true);
-        flushConsolidationExplicitFlushAfterFlushes = config.getInt("network-optimization.advanced.flush-consolidation.explicit-flush-after", 256);
-        flushConsolidationConsolidateWhenNoReadInProgress = config.getBoolean("network-optimization.advanced.flush-consolidation.consolidate-when-no-read", true);
-
-        nativeCompressionEnabled = config.getBoolean("network-optimization.advanced.native-compression.enabled", true);
-        nativeCompressionLevel = config.getInt("network-optimization.advanced.native-compression.level", 6);
-
-        nativeEncryptionEnabled = config.getBoolean("network-optimization.advanced.native-encryption.enabled", true);
-
-        explosionBlockUpdateOptimizationEnabled = config.getBoolean("network-optimization.advanced.explosion-optimization.enabled", true);
-        explosionBlockChangeThreshold = config.getInt("network-optimization.advanced.explosion-optimization.block-change-threshold", 512);
-
-        multithreadedTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
-        multithreadedTrackerParallelism = config.getInt("entity-tracker.parallelism",
-            Math.max(4, Runtime.getRuntime().availableProcessors()));
-        multithreadedTrackerBatchSize = config.getInt("entity-tracker.batch-size", 10);
-        multithreadedTrackerAssistBatchSize = config.getInt("entity-tracker.assist-batch-size", 5);
-
-        mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
-        spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
-        mobSpawnInterval = config.getInt("mob-spawning.spawn-interval", 1);
-        densityControlEnabled = config.getBoolean("density.enabled", true);
-        maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        brainThrottle = config.getBoolean("brain.enabled", true);
-        brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
-        livingEntityTravelOptimizationEnabled = config.getBoolean("living-entity-travel-optimization.enabled", true);
-        livingEntityTravelSkipInterval = config.getInt("living-entity-travel-optimization.skip-interval", 2);
-        mobDespawnOptimizationEnabled = config.getBoolean("mob-despawn-optimization.enabled", true);
-        mobDespawnCheckInterval = config.getInt("mob-despawn-optimization.check-interval", 20);
-
-        endermanBlockCarryLimiterEnabled = config.getBoolean("enderman-block-carry-limiter.enabled", true);
-        endermanMaxCarrying = config.getInt("enderman-block-carry-limiter.max-carrying-endermen", 50);
-        endermanCountTowardsMobCap = config.getBoolean("enderman-block-carry-limiter.count-towards-mob-cap", true);
-        endermanPreventPickup = config.getBoolean("enderman-block-carry-limiter.prevent-pickup-when-limit-reached", true);
-
-        aiSensorOptimizationEnabled = config.getBoolean("async-ai.sensor-optimization.enabled", true);
-        aiSensorRefreshInterval = config.getInt("async-ai.sensor-optimization.sensing-refresh-interval", 5);
-
-        gameEventOptimizationEnabled = config.getBoolean("async-ai.game-event-optimization.enabled", true);
-        gameEventEarlyFilter = config.getBoolean("async-ai.game-event-optimization.early-filter", true);
-        gameEventThrottleLowPriority = config.getBoolean("async-ai.game-event-optimization.throttle-low-priority", true);
-        gameEventThrottleIntervalMs = config.getLong("async-ai.game-event-optimization.throttle-interval-ms", 50L);
-        gameEventDistanceFilter = config.getBoolean("async-ai.game-event-optimization.distance-filter", true);
-        gameEventMaxDetectionDistance = config.getDouble("async-ai.game-event-optimization.max-detection-distance", 64.0);
-
-        asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
-        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
-        asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
-        asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
-        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 100);
-        asyncPathfindingSyncFallbackEnabled = config.getBoolean("async-ai.async-pathfinding.sync-fallback-enabled", true);
-
-        enhancedPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.enabled", true);
-        enhancedPathfindingMaxConcurrentRequests = config.getInt("async-ai.async-pathfinding.enhanced.max-concurrent-requests", 30);
-        enhancedPathfindingMaxRequestsPerTick = config.getInt("async-ai.async-pathfinding.enhanced.max-requests-per-tick", 15);
-        enhancedPathfindingHighPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.high-distance", 16);
-        enhancedPathfindingMediumPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.medium-distance", 48);
-        pathPrewarmEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.prewarm.enabled", true);
-        pathPrewarmRadius = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.radius", 32);
-        pathPrewarmMaxMobsPerBatch = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-mobs-per-batch", 5);
-        pathPrewarmMaxPoisPerMob = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-pois-per-mob", 3);
-
-        loadPathfindingAndCollisionConfigs();
-        entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
-        entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
-        entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
-        entityThrottlingThrottleInterval = config.getInt("entity-throttling.throttle-interval", 3);
-        entityThrottlingRemovalBatchSize = config.getInt("entity-throttling.removal-batch-size", 10);
-        zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
-        zeroDelayFactoryEntitiesConfigFile = config.getString("block-entity-optimizations.zero-delay-factory-optimization.entities-config-file", "entities.yml");
-        zeroDelayFactoryEntities = loadEntitiesFromFile(zeroDelayFactoryEntitiesConfigFile, "zero-delay-factory-entities");
-        blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
-        blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
-        blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
-        blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
-        blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
-        hopperOptimizationEnabled = config.getBoolean("block-entity-optimizations.hopper-optimization.enabled", true);
-        hopperCacheExpireTime = config.getInt("block-entity-optimizations.hopper-optimization.cache-expire-time", 100);
-        minecartOptimizationEnabled = config.getBoolean("block-entity-optimizations.minecart-optimization.enabled", true);
-        minecartTickInterval = config.getInt("block-entity-optimizations.minecart-optimization.tick-interval", 2);
-        entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
-        minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 50);
-        entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
-        asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
-        lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
-        spawnChunkRemovalEnabled = config.getBoolean("spawn-chunk-removal.enabled", true);
-        lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
-        lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
-        useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
-        maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
-        skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
-        skylightCacheDurationMs = config.getInt("lighting-optimizations.skylight-cache.cache-duration-ms", 100);
-        lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
-        dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
-        advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
-
-        lightingThreadPoolMode = config.getString("lighting-optimizations.async-lighting.thread-pool-mode", "auto");
-        lightingThreadPoolCalculation = config.getString("lighting-optimizations.async-lighting.thread-pool-calculation", "cores/3");
-        lightingMinThreads = config.getInt("lighting-optimizations.async-lighting.min-threads", 1);
-        lightingMaxThreads = config.getInt("lighting-optimizations.async-lighting.max-threads", 8);
-        lightingBatchThresholdMax = config.getInt("lighting-optimizations.async-lighting.batch-threshold-max", 64);
-        lightingAggressiveBatching = config.getBoolean("lighting-optimizations.async-lighting.aggressive-batching", false);
-
-        lightingPrioritySchedulingEnabled = config.getBoolean("lighting-optimizations.async-lighting.priority-scheduling.enabled", true);
-        lightingHighPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-high-priority", 32);
-        lightingMediumPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-medium-priority", 64);
-        lightingLowPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-low-priority", 128);
-        lightingMaxLowPriorityDelay = config.getLong("lighting-optimizations.async-lighting.priority-scheduling.max-low-priority-delay-ms", 500);
-
-        lightingDebouncingEnabled = config.getBoolean("lighting-optimizations.async-lighting.debouncing.enabled", true);
-        lightingDebounceDelay = config.getLong("lighting-optimizations.async-lighting.debouncing.debounce-delay-ms", 50);
-        lightingMaxUpdatesPerSecond = config.getInt("lighting-optimizations.async-lighting.debouncing.max-updates-per-second", 20);
-        lightingResetOnStableMs = config.getLong("lighting-optimizations.async-lighting.debouncing.reset-on-stable-ms", 200);
-
-        lightingMergingEnabled = config.getBoolean("lighting-optimizations.async-lighting.update-merging.enabled", true);
-        lightingMergeRadius = config.getInt("lighting-optimizations.async-lighting.update-merging.merge-radius", 2);
-        lightingMergeDelay = config.getLong("lighting-optimizations.async-lighting.update-merging.merge-delay-ms", 10);
-        lightingMaxMergedUpdates = config.getInt("lighting-optimizations.async-lighting.update-merging.max-merged-updates", 64);
-
-        lightingChunkBorderEnabled = config.getBoolean("lighting-optimizations.async-lighting.chunk-border.enabled", true);
-        lightingBatchBorderUpdates = config.getBoolean("lighting-optimizations.async-lighting.chunk-border.batch-border-updates", true);
-        lightingBorderUpdateDelay = config.getLong("lighting-optimizations.async-lighting.chunk-border.border-update-delay-ms", 20);
-        lightingCrossChunkBatchSize = config.getInt("lighting-optimizations.async-lighting.chunk-border.cross-chunk-batch-size", 32);
-
-        lightingAdaptiveEnabled = config.getBoolean("lighting-optimizations.async-lighting.adaptive.enabled", true);
-        lightingMonitorInterval = config.getInt("lighting-optimizations.async-lighting.adaptive.monitor-interval-seconds", 10);
-        lightingAutoAdjustThreads = config.getBoolean("lighting-optimizations.async-lighting.adaptive.auto-adjust-threads", true);
-        lightingAutoAdjustBatchSize = config.getBoolean("lighting-optimizations.async-lighting.adaptive.auto-adjust-batch-size", true);
-        lightingTargetQueueSize = config.getInt("lighting-optimizations.async-lighting.adaptive.target-queue-size", 100);
-        lightingTargetLatency = config.getInt("lighting-optimizations.async-lighting.adaptive.target-latency-ms", 50);
-
-        lightingChunkUnloadEnabled = config.getBoolean("lighting-optimizations.async-lighting.chunk-unload.enabled", true);
-        lightingAsyncCleanup = config.getBoolean("lighting-optimizations.async-lighting.chunk-unload.async-cleanup", true);
-        lightingCleanupBatchSize = config.getInt("lighting-optimizations.async-lighting.chunk-unload.cleanup-batch-size", 16);
-        lightingCleanupDelay = config.getLong("lighting-optimizations.async-lighting.chunk-unload.cleanup-delay-ms", 100);
-
-        noiseOptimizationEnabled = config.getBoolean("chunk-system.generation.noise-optimization.enabled", true);
-        jigsawOptimizationEnabled = config.getBoolean("chunk-system.generation.jigsaw-optimization.enabled", true);
-
-        playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
-        maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
-        entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
-        entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
-
-        chunkTickAsyncEnabled = config.getBoolean("chunk-system.block-tick.async.enabled", false);
-        chunkTickThreads = config.getInt("chunk-system.block-tick.async.threads", 4);
-        chunkTickTimeoutMicros = config.getLong("chunk-system.block-tick.async.timeout-us", 200L);;
-        chunkTickAsyncBatchSize = config.getInt("chunk-system.block-tick.async.batch-size", 16);
-
-        tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
-        tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
-        lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
-        tntThreads = config.getInt("tnt-explosion-optimization.threads", 6);
-        tntMaxBlocks = config.getInt("tnt-explosion-optimization.max-blocks", 4096);
-        tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
-        tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
-        tntVanillaCompatibilityEnabled = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.enabled", true);
-        tntUseVanillaPower = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-power", true);
-        tntUseVanillaFireLogic = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-fire-logic", true);
-        tntUseVanillaDamageCalculation = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-damage-calculation", true);
-        tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
-        tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
-        tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
-
-        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
-        tntUseVectorizedAABB = config.getBoolean("tnt-explosion-optimization.vectorized-aabb.enabled", true);
-        tntUseUnifiedEngine = config.getBoolean("tnt-explosion-optimization.unified-engine.enabled", true);
-        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", false);
-        tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
-        tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.entity-merge.max-fuse-difference", 5);
-        tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.entity-merge.power-multiplier", 0.5);
-        tntMaxPower = (float) config.getDouble("tnt-explosion-optimization.entity-merge.max-power", 12.0);
-
-        beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
-        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
-        leaderZombieHealthFixEnabled = config.getBoolean("leader-zombie-health-fix.enabled", true);
-
-        enableDebugLogging = config.getBoolean("performance.debug-logging", false);
-
-        smartLagCompensationEnabled = config.getBoolean("smart-lag-compensation.enabled", true);
-        smartLagTPSThreshold = config.getDouble("smart-lag-compensation.tps-threshold", 18.0);
-        smartLagItemPickupDelayEnabled = config.getBoolean("smart-lag-compensation.item-pickup-delay.enabled", true);
-        smartLagPotionEffectsEnabled = config.getBoolean("smart-lag-compensation.potion-effects.enabled", false);
-        smartLagTimeAccelerationEnabled = config.getBoolean("smart-lag-compensation.time-acceleration.enabled", false);
-        smartLagDebugEnabled = config.getBoolean("performance.debug-logging.smart-lag-compensation.enabled", false);
-        smartLagLogMissedTicks = config.getBoolean("performance.debug-logging.smart-lag-compensation.log-missed-ticks", false);
-        smartLagLogCompensation = config.getBoolean("performance.debug-logging.smart-lag-compensation.log-compensation", false);
-
-        experienceOrbInactiveTickEnabled = config.getBoolean("experience-orb-optimizations.inactive-tick.enabled", true);
-        experienceOrbInactiveRange = config.getDouble("experience-orb-optimizations.inactive-tick.inactive-range", 32.0);
-        experienceOrbInactiveMergeInterval = config.getInt("experience-orb-optimizations.inactive-tick.merge-interval", 100);
-        experienceOrbMergeEnabled = config.getBoolean("experience-orb-optimizations.merge.enabled", false);
-        experienceOrbMergeInterval = config.getInt("experience-orb-optimizations.merge.interval", 20);
-        enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 6);
-
-        structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
-        structureLocationThreads = config.getInt("structure-location-async.threads", 3);
-        locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
-        locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
-        locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
-        villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
-        villagerTradeMapsSearchRadius = config.getInt("structure-location-async.villager-trade-maps.search-radius", 100);
-        villagerTradeMapsSkipKnownStructures = config.getBoolean("structure-location-async.villager-trade-maps.skip-known-structures", false);
-        villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
-        if (villagerTradeMapTypes.isEmpty()) {
-            villagerTradeMapTypes.add("minecraft:ocean_monument_map");
-            villagerTradeMapTypes.add("minecraft:woodland_mansion_map");
-            villagerTradeMapTypes.add("minecraft:buried_treasure_map");
-        }
-        villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
-        dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
-        dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
-        chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
-        chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
-        if (chestExplorationLootTables.isEmpty()) {
-            chestExplorationLootTables.add("minecraft:chests/shipwreck_map");
-            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
-            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
-        }
-
-        structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
-        structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
-        structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
-        structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
-        structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
-        biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
-
-        dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
-        dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
-        dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
-        dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
-        dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
-        dataPackMaxFileCacheSize = config.getInt("datapack-optimization.max-file-cache-size", 1000);
-        dataPackMaxFileSystemCacheSize = config.getInt("datapack-optimization.max-filesystem-cache-size", 50);
-
-        nitoriOptimizationsEnabled = config.getBoolean("advanced-optimizations.virtual-threads", true) ||
-                                      config.getBoolean("advanced-optimizations.work-stealing", true);
-        virtualThreadEnabled = config.getBoolean("advanced-optimizations.virtual-threads", true);
-        workStealingEnabled = config.getBoolean("advanced-optimizations.work-stealing", true);
-
-        blockPosCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.blockpos-cache", true);
-        optimizedCollectionsEnabled = config.getBoolean("math-optimization.c2me-optimizations.optimized-collections", true);
-        bitSetPoolingEnabled = config.getBoolean("math-optimization.c2me-optimizations.bitset-pooling.enabled", true);
-        completableFutureOptimizationEnabled = config.getBoolean("math-optimization.c2me-optimizations.completable-future-optimization.enabled", true);
-
-        chunkOptimizationEnabled = config.getBoolean("chunk-system.enabled", true);
-
-        mobSunBurnOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.mob-sunburn-optimization.enabled", true);
-        entitySpeedOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-speed-optimization.enabled", true);
-        entityFallDamageOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-fall-damage-optimization.enabled", true);
-        entitySectionStorageOptimizationEnabled = config.getBoolean("collision-optimization.nitori-entity-optimizations.entity-section-storage-optimization.enabled", true);
-
-        chunkPosOptimizationEnabled = config.getBoolean("chunk-system.generation.chunk-pos-optimization.enabled", true);
-        noiseOptimizationEnabled = config.getBoolean("chunk-system.generation.noise-optimization.enabled", true);
-
-        nbtOptimizationEnabled = config.getBoolean("recipe-optimization.c2me-nbt-optimization.enabled", true);
-
-        if (config.contains("seed-encryption.scheme")) {
-
-            seedEncryptionScheme = config.getString("seed-encryption.scheme", "quantum");
-            seedEncryptionEnabled = config.getBoolean("seed-encryption.enabled", false);
-            seedEncryptionProtectStructures = config.getBoolean("seed-encryption.protect-structures", true);
-            seedEncryptionProtectOres = config.getBoolean("seed-encryption.protect-ores", true);
-            seedEncryptionProtectSlimes = config.getBoolean("seed-encryption.protect-slimes", true);
-            seedEncryptionProtectBiomes = config.getBoolean("seed-encryption.protect-biomes", true);
-
-            secureSeedBits = config.getInt("seed-encryption.legacy.seed-bits", 1024);
-
-            quantumSeedEncryptionLevel = config.getInt("seed-encryption.quantum.encryption-level", 2);
-            quantumSeedPrivateKeyFile = config.getString("seed-encryption.quantum.private-key-file", "quantum-seed.key");
-            quantumSeedEnableTimeDecay = config.getBoolean("seed-encryption.quantum.enable-time-decay", false);
-            quantumSeedCacheSize = config.getInt("seed-encryption.quantum.cache-size", 10000);
-        } else {
-
-            seedEncryptionScheme = "legacy";
-            seedEncryptionEnabled = config.getBoolean("secure-seed.enabled", false);
-            seedEncryptionProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
-            seedEncryptionProtectOres = config.getBoolean("secure-seed.protect-ores", true);
-            seedEncryptionProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
-            seedEncryptionProtectBiomes = false;
-            secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
-
-            quantumSeedEncryptionLevel = 2;
-            quantumSeedPrivateKeyFile = "quantum-seed.key";
-            quantumSeedEnableTimeDecay = false;
-            quantumSeedCacheSize = 10000;
-        }
-
-        furnaceRecipeCacheEnabled = config.getBoolean("recipe-optimization.furnace-recipe-cache.enabled", true);
-        furnaceRecipeCacheSize = config.getInt("recipe-optimization.furnace-recipe-cache.cache-size", 100);
-        furnaceCacheApplyToBlastFurnace = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-blast-furnace", true);
-        furnaceCacheApplyToSmoker = config.getBoolean("recipe-optimization.furnace-recipe-cache.apply-to-smoker", true);
-        furnaceFixBurnTimeBug = config.getBoolean("recipe-optimization.furnace-recipe-cache.fix-burn-time-bug", true);
-
-        craftingRecipeCacheEnabled = config.getBoolean("recipe-optimization.crafting-recipe-cache.enabled", false);
-        craftingRecipeCacheSize = config.getInt("recipe-optimization.crafting-recipe-cache.cache-size", 200);
-        craftingOptimizeBatchCrafting = config.getBoolean("recipe-optimization.crafting-recipe-cache.optimize-batch-crafting", true);
-        craftingReduceNetworkTraffic = config.getBoolean("recipe-optimization.crafting-recipe-cache.reduce-network-traffic", true);
-
-        minecartCauldronDestructionEnabled = config.getBoolean("servercore-optimizations.minecart-cauldron-destruction.enabled", true);
-
-        fallingBlockParallelEnabled = config.getBoolean("falling-block-optimization.enabled", true);
-        minFallingBlocksForParallel = config.getInt("falling-block-optimization.min-falling-blocks", 20);
-        fallingBlockBatchSize = config.getInt("falling-block-optimization.batch-size", 10);
-
-        itemEntityMergeOptimizationEnabled = config.getBoolean("item-entity-optimizations.smart-merge.enabled", true);
-        itemEntityCancelVanillaMerge = config.getBoolean("item-entity-optimizations.smart-merge.cancel-vanilla-merge", true);
-        itemEntityMergeInterval = config.getInt("item-entity-optimizations.smart-merge.merge-interval", 5);
-        itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.smart-merge.min-nearby-items", 3);
-        itemEntityMergeRange = config.getDouble("item-entity-optimizations.smart-merge.merge-range", 1.5);
-        itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-optimizations.age-optimization.enabled", true);
-        itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-optimization.age-interval", 10);
-        itemEntityPlayerDetectionRange = config.getDouble("item-entity-optimizations.age-optimization.player-detection-range", 8.0);
-        itemEntityInactiveTickEnabled = config.getBoolean("item-entity-optimizations.inactive-tick.enabled", true);
-        itemEntityInactiveRange = config.getDouble("item-entity-optimizations.inactive-tick.inactive-range", 32.0);
-        itemEntityInactiveMergeInterval = config.getInt("item-entity-optimizations.inactive-tick.merge-interval", 100);
-
-        chunkVisibilityFilterEnabled = config.getBoolean("network-optimization.chunk-visibility-filter.enabled", true);
-
-        fastMovementChunkLoadEnabled = config.getBoolean("network-optimization.fast-movement-chunk-load.enabled", false);
-        fastMovementSpeedThreshold = config.getDouble("network-optimization.fast-movement-chunk-load.speed-threshold", 0.5);
-        fastMovementPreloadDistance = config.getInt("network-optimization.fast-movement-chunk-load.preload-distance", 8);
-        fastMovementMaxConcurrentLoads = config.getInt("network-optimization.fast-movement-chunk-load.max-concurrent-loads", 4);
-        fastMovementPredictionTicks = config.getInt("network-optimization.fast-movement-chunk-load.prediction-ticks", 40);
-
-        centerOffsetEnabled = config.getBoolean("network-optimization.fast-movement-chunk-load.center-offset.enabled", true);
-        minOffsetSpeed = config.getDouble("network-optimization.fast-movement-chunk-load.center-offset.min-speed", 3.0);
-        maxOffsetSpeed = config.getDouble("network-optimization.fast-movement-chunk-load.center-offset.max-speed", 9.0);
-        maxOffsetRatio = config.getDouble("network-optimization.fast-movement-chunk-load.center-offset.max-offset-ratio", 0.75);
-
-        asyncLoadingBatchSize = config.getInt("network-optimization.fast-movement-chunk-load.async-loading.batch-size", 2);
-        asyncLoadingBatchDelayMs = config.getLong("network-optimization.fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
-
-        playerJoinWarmupEnabled = config.getBoolean("network-optimization.fast-movement-chunk-load.player-join-warmup.enabled", true);
-        playerJoinWarmupDurationMs = config.getLong("network-optimization.fast-movement-chunk-load.player-join-warmup.warmup-duration-ms", 3000L);
-        playerJoinWarmupInitialRate = config.getDouble("network-optimization.fast-movement-chunk-load.player-join-warmup.initial-rate", 0.5);
-
-        suffocationOptimizationEnabled = config.getBoolean("suffocation-optimization.enabled", true);
-
-        projectileOptimizationEnabled = config.getBoolean("projectile.enabled", true);
-        maxProjectileLoadsPerTick = config.getInt("projectile.max-loads-per-tick", 10);
-        maxProjectileLoadsPerProjectile = config.getInt("projectile.max-loads-per-projectile", 10);
-
-        fastRayTraceEnabled = config.getBoolean("async-ai.villager-optimization.fast-raytrace.enabled", true);
-        asyncVillagerBreedEnabled = config.getBoolean("async-ai.villager-optimization.breed-optimization.async-villager-breed", true);
-        villagerAgeThrottleEnabled = config.getBoolean("async-ai.villager-optimization.breed-optimization.age-throttle", true);
-        villagerBreedThreads = config.getInt("async-ai.villager-optimization.breed-optimization.threads", 4);
-        villagerBreedCheckInterval = config.getInt("async-ai.villager-optimization.breed-optimization.check-interval", 5);
-
-        mapRenderingOptimizationEnabled = config.getBoolean("network-optimization.fast-movement-chunk-load.map-rendering.enabled", false);
-        mapRenderingThreads = config.getInt("network-optimization.fast-movement-chunk-load.map-rendering.threads", 2);
-
-        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
-        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
-        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
-
-        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.enabled", true);
-        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.use-api", true);
-        fancynpcsPriority = config.getInt("virtual-entity-compatibility.plugins.fancynpcs.priority", 90);
-
-        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.enabled", true);
-        znpcsplusUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.use-api", false);
-        znpcsplusPriority = config.getInt("virtual-entity-compatibility.plugins.znpcsplus.priority", 90);
-
-        virtualEntityDetectionOrder = config.getStringList("virtual-entity-compatibility.detection-order");
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+
+        networkConfig.load(config);
+        entityConfig.load(config, cpuCores);
+        aiConfig.load(config);
+        lightingConfig.load(config);
+        chunkConfig.load(config);
+        tntConfig.load(config);
+        collisionConfig.load(config);
+        performanceConfig.load(config);
+        compatibilityConfig.load(config);
+        miscConfig.load(config);
+
+        collisionConfig.setCollisionExcludedEntities(
+            loadEntitiesFromFile(collisionConfig.getCollisionExclusionListFile(), "collision-optimization-excluded-entities")
+        );
+        miscConfig.setZeroDelayFactoryEntities(
+            loadEntitiesFromFile(miscConfig.getZeroDelayFactoryEntitiesConfigFile(), "zero-delay-factory-entities")
+        );
 
         validateConfigVersion();
         validateConfig();
     }
 
     private void validateConfigVersion() {
-        if (configVersion != CURRENT_CONFIG_VERSION) {
+        if (miscConfig.getConfigVersion() != CURRENT_CONFIG_VERSION) {
             plugin.getLogger().warning("==========================================");
             plugin.getLogger().warning("  CONFIG VERSION MISMATCH DETECTED");
             plugin.getLogger().warning("==========================================");
             plugin.getLogger().warning("Current supported version: " + CURRENT_CONFIG_VERSION);
-            plugin.getLogger().warning("Your config version: " + configVersion);
+            plugin.getLogger().warning("Your config version: " + miscConfig.getConfigVersion());
             plugin.getLogger().warning("");
 
-            if (configVersion < CURRENT_CONFIG_VERSION) {
+            if (miscConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
                 plugin.getLogger().warning("Your config.yml is outdated!");
                 plugin.getLogger().info("Attempting smart migration to preserve your settings...");
             } else {
@@ -883,7 +112,7 @@ public class ConfigManager {
             ConfigMigrator migrator = new ConfigMigrator(plugin.getDataFolder(), plugin.getLogger());
             migrator.registerVersionMigrations();
 
-            if (migrator.migrate(configVersion, CURRENT_CONFIG_VERSION)) {
+            if (migrator.migrate(miscConfig.getConfigVersion(), CURRENT_CONFIG_VERSION)) {
                 plugin.getLogger().info("==========================================");
                 plugin.getLogger().info("  CONFIG MIGRATION SUCCESSFUL!");
                 plugin.getLogger().info("==========================================");
@@ -959,342 +188,36 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
 
-        int configuredThreadPoolSize = config.getInt("general-thread-pool.size", 0);
-        if (configuredThreadPoolSize <= 0) {
-            int cpuCores = Runtime.getRuntime().availableProcessors();
-            threadPoolSize = Math.max(2, cpuCores / 4);
-        } else {
-            threadPoolSize = configuredThreadPoolSize;
-        }
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+        networkConfig.load(config);
+        entityConfig.load(config, cpuCores);
+        aiConfig.load(config);
+        lightingConfig.load(config);
+        chunkConfig.load(config);
+        tntConfig.load(config);
+        collisionConfig.load(config);
+        performanceConfig.load(config);
+        compatibilityConfig.load(config);
+        miscConfig.load(config);
 
-        multithreadedEntityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
-        advancedNetworkOptimizationEnabled = config.getBoolean("network-optimization.advanced.enabled", true);
-        fastVarIntEnabled = config.getBoolean("network-optimization.advanced.fast-varint.enabled", true);
-        eventLoopAffinityEnabled = config.getBoolean("network-optimization.advanced.eventloop-affinity.enabled", true);
-        strictEventLoopChecking = config.getBoolean("network-optimization.advanced.eventloop-affinity.strict-checking", false);
-        byteBufOptimizerEnabled = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.enabled", true);
-        pooledByteBufAllocator = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.pooled-allocator", true);
-        directByteBufPreferred = config.getBoolean("network-optimization.advanced.bytebuf-optimizer.prefer-direct", true);
-        skipZeroMovementPacketsEnabled = config.getBoolean("network-optimization.advanced.skip-zero-movement-packets.enabled", true);
-        skipZeroMovementPacketsStrictMode = config.getBoolean("network-optimization.advanced.skip-zero-movement-packets.strict-mode", false);
-
-        mtuAwareBatchingEnabled = config.getBoolean("network-optimization.advanced.mtu-aware-batching.enabled", true);
-        mtuLimit = config.getInt("network-optimization.advanced.mtu-aware-batching.mtu-limit", 1396);
-        mtuHardCapPackets = config.getInt("network-optimization.advanced.mtu-aware-batching.hard-cap-packets", 4096);
-
-        flushConsolidationEnabled = config.getBoolean("network-optimization.advanced.flush-consolidation.enabled", true);
-        flushConsolidationExplicitFlushAfterFlushes = config.getInt("network-optimization.advanced.flush-consolidation.explicit-flush-after", 256);
-        flushConsolidationConsolidateWhenNoReadInProgress = config.getBoolean("network-optimization.advanced.flush-consolidation.consolidate-when-no-read", true);
-
-        nativeCompressionEnabled = config.getBoolean("network-optimization.advanced.native-compression.enabled", true);
-        nativeCompressionLevel = config.getInt("network-optimization.advanced.native-compression.level", 6);
-
-        nativeEncryptionEnabled = config.getBoolean("network-optimization.advanced.native-encryption.enabled", true);
-
-        explosionBlockUpdateOptimizationEnabled = config.getBoolean("network-optimization.advanced.explosion-optimization.enabled", true);
-        explosionBlockChangeThreshold = config.getInt("network-optimization.advanced.explosion-optimization.block-change-threshold", 512);
-
-        highLatencyThreshold = config.getInt("network-optimization.high-latency-adjust.latency-threshold", 150);
-        highLatencyMinViewDistance = config.getInt("network-optimization.high-latency-adjust.min-view-distance", 5);
-        highLatencyDurationMs = config.getLong("network-optimization.high-latency-adjust.duration-ms", 60000L);
-
-        afkPacketThrottleEnabled = config.getBoolean("network-optimization.afk-packet-throttle.enabled", true);
-        afkDurationMs = config.getLong("network-optimization.afk-packet-throttle.afk-duration-ms", 120000L);
-        afkParticleMaxDistance = config.getDouble("network-optimization.afk-packet-throttle.particle-max-distance", 0.0);
-        afkSoundMaxDistance = config.getDouble("network-optimization.afk-packet-throttle.sound-max-distance", 64.0);
-
-        dynamicChunkSendRateEnabled = config.getBoolean("network-optimization.dynamic-chunk-send-rate.enabled", true);
-        dynamicChunkLimitBandwidth = config.getLong("network-optimization.dynamic-chunk-send-rate.limit-upload-bandwidth", 10240L);
-        dynamicChunkGuaranteedBandwidth = config.getLong("network-optimization.dynamic-chunk-send-rate.guaranteed-bandwidth", 512L);
-
-        packetCompressionOptimizationEnabled = config.getBoolean("network-optimization.packet-compression.enabled", true);
-        adaptiveCompressionThresholdEnabled = config.getBoolean("network-optimization.packet-compression.adaptive-threshold", true);
-        skipSmallPacketsEnabled = config.getBoolean("network-optimization.packet-compression.skip-small-packets", true);
-        skipSmallPacketsThreshold = config.getInt("network-optimization.packet-compression.skip-threshold", 32);
-
-        chunkBatchOptimizationEnabled = config.getBoolean("network-optimization.chunk-batch.enabled", true);
-        chunkBatchMinChunks = (float) config.getDouble("network-optimization.chunk-batch.min-chunks", 2.0);
-        chunkBatchMaxChunks = (float) config.getDouble("network-optimization.chunk-batch.max-chunks", 32.0);
-        chunkBatchMaxUnacked = config.getInt("network-optimization.chunk-batch.max-unacked-batches", 8);
-
-        packetPriorityQueueEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
-        prioritizePlayerPacketsEnabled = config.getBoolean("network-optimization.packet-priority.prioritize-player-packets", true);
-        prioritizeChunkPacketsEnabled = config.getBoolean("network-optimization.packet-priority.prioritize-chunk-packets", true);
-        deprioritizeParticlesEnabled = config.getBoolean("network-optimization.packet-priority.deprioritize-particles", true);
-        deprioritizeSoundsEnabled = config.getBoolean("network-optimization.packet-priority.deprioritize-sounds", true);
-
-        mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
-        spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
-        mobSpawnInterval = config.getInt("mob-spawning.spawn-interval", 1);
-        densityControlEnabled = config.getBoolean("density.enabled", true);
-        maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        brainThrottle = config.getBoolean("brain.enabled", true);
-        brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
-
-        endermanBlockCarryLimiterEnabled = config.getBoolean("enderman-block-carry-limiter.enabled", true);
-        endermanMaxCarrying = config.getInt("enderman-block-carry-limiter.max-carrying-endermen", 50);
-        endermanCountTowardsMobCap = config.getBoolean("enderman-block-carry-limiter.count-towards-mob-cap", true);
-        endermanPreventPickup = config.getBoolean("enderman-block-carry-limiter.prevent-pickup-when-limit-reached", true);
-
-        aiSensorOptimizationEnabled = config.getBoolean("async-ai.sensor-optimization.enabled", true);
-        aiSensorRefreshInterval = config.getInt("async-ai.sensor-optimization.sensing-refresh-interval", 5);
-
-        gameEventOptimizationEnabled = config.getBoolean("async-ai.game-event-optimization.enabled", true);
-        gameEventEarlyFilter = config.getBoolean("async-ai.game-event-optimization.early-filter", true);
-        gameEventThrottleLowPriority = config.getBoolean("async-ai.game-event-optimization.throttle-low-priority", true);
-        gameEventThrottleIntervalMs = config.getLong("async-ai.game-event-optimization.throttle-interval-ms", 50L);
-        gameEventDistanceFilter = config.getBoolean("async-ai.game-event-optimization.distance-filter", true);
-        gameEventMaxDetectionDistance = config.getDouble("async-ai.game-event-optimization.max-detection-distance", 64.0);
-
-        asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
-        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
-        asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
-        asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
-        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 100);
-        asyncPathfindingSyncFallbackEnabled = config.getBoolean("async-ai.async-pathfinding.sync-fallback-enabled", true);
-
-        enhancedPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.enabled", true);
-        enhancedPathfindingMaxConcurrentRequests = config.getInt("async-ai.async-pathfinding.enhanced.max-concurrent-requests", 30);
-        enhancedPathfindingMaxRequestsPerTick = config.getInt("async-ai.async-pathfinding.enhanced.max-requests-per-tick", 15);
-        enhancedPathfindingHighPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.high-distance", 16);
-        enhancedPathfindingMediumPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.medium-distance", 48);
-        pathPrewarmEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.prewarm.enabled", true);
-        pathPrewarmRadius = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.radius", 32);
-        pathPrewarmMaxMobsPerBatch = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-mobs-per-batch", 5);
-        pathPrewarmMaxPoisPerMob = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-pois-per-mob", 3);
-
-        entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
-        entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
-        entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
-        entityThrottlingThrottleInterval = config.getInt("entity-throttling.throttle-interval", 3);
-        entityThrottlingRemovalBatchSize = config.getInt("entity-throttling.removal-batch-size", 10);
-        zeroDelayFactoryOptimizationEnabled = config.getBoolean("block-entity-optimizations.zero-delay-factory-optimization.enabled", false);
-        zeroDelayFactoryEntitiesConfigFile = config.getString("block-entity-optimizations.zero-delay-factory-optimization.entities-config-file", "entities.yml");
-        zeroDelayFactoryEntities = loadEntitiesFromFile(zeroDelayFactoryEntitiesConfigFile, "zero-delay-factory-entities");
-        blockEntityParallelTickEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.enabled", true);
-        blockEntityParallelMinBlockEntities = config.getInt("block-entity-optimizations.parallel-tick.min-block-entities", 50);
-        blockEntityParallelBatchSize = config.getInt("block-entity-optimizations.parallel-tick.batch-size", 16);
-        blockEntityParallelProtectContainers = config.getBoolean("block-entity-optimizations.parallel-tick.protect-containers", true);
-        blockEntityParallelTimeoutMs = config.getInt("block-entity-optimizations.parallel-tick.timeout-ms", 50);
-        hopperOptimizationEnabled = config.getBoolean("block-entity-optimizations.hopper-optimization.enabled", true);
-        hopperCacheExpireTime = config.getInt("block-entity-optimizations.hopper-optimization.cache-expire-time", 100);
-        minecartOptimizationEnabled = config.getBoolean("block-entity-optimizations.minecart-optimization.enabled", true);
-        minecartTickInterval = config.getInt("block-entity-optimizations.minecart-optimization.tick-interval", 2);
-        entityTickParallel = config.getBoolean("entity-tick-parallel.enabled", true);
-        minEntitiesForParallel = config.getInt("entity-tick-parallel.min-entities", 50);
-        entityTickBatchSize = config.getInt("entity-tick-parallel.batch-size", 8);
-
-        blockPosCacheEnabled = config.getBoolean("math-optimization.c2me-optimizations.blockpos-cache", true);
-        optimizedCollectionsEnabled = config.getBoolean("math-optimization.c2me-optimizations.optimized-collections", true);
-
-        asyncLightingEnabled = config.getBoolean("lighting-optimizations.enabled", true);
-        lightingThreadPoolSize = config.getInt("lighting-optimizations.async-lighting.thread-pool-size", 2);
-        spawnChunkRemovalEnabled = config.getBoolean("spawn-chunk-removal.enabled", true);
-        lightBatchThreshold = config.getInt("lighting-optimizations.async-lighting.batch-threshold", 16);
-        lightUpdateIntervalMs = config.getInt("lighting-optimizations.update-interval-ms", 10);
-        useLayeredPropagationQueue = config.getBoolean("lighting-optimizations.propagation-queue.use-layered-queue", true);
-        maxLightPropagationDistance = config.getInt("lighting-optimizations.propagation-queue.max-propagation-distance", 15);
-        skylightCacheEnabled = config.getBoolean("lighting-optimizations.skylight-cache.enabled", true);
-        skylightCacheDurationMs = config.getInt("lighting-optimizations.skylight-cache.cache-duration-ms", 100);
-        lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
-        dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
-        advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
-
-        playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
-        maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
-        entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
-        entityTrackingRangeMultiplier = config.getDouble("vmp-optimizations.entity-tracking.range-multiplier", 0.8);
-
-        tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
-        tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
-        lightingDebugEnabled = config.getBoolean("performance.debug-logging.modules.lighting", false);
-        tntThreads = config.getInt("tnt-explosion-optimization.threads", 6);
-        tntMaxBlocks = config.getInt("tnt-explosion-optimization.max-blocks", 4096);
-        tntTimeoutMicros = config.getLong("tnt-explosion-optimization.timeout-us", 100L);
-        tntBatchSize = config.getInt("tnt-explosion-optimization.batch-size", 64);
-        tntVanillaCompatibilityEnabled = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.enabled", true);
-        tntUseVanillaPower = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-power", true);
-        tntUseVanillaFireLogic = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-fire-logic", true);
-        tntUseVanillaDamageCalculation = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-damage-calculation", true);
-        tntUseFullRaycast = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-full-raycast", false);
-        tntUseVanillaBlockDestruction = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-block-destruction", true);
-        tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
-
-        beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
-        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
-        leaderZombieHealthFixEnabled = config.getBoolean("leader-zombie-health-fix.enabled", true);
-        portalSuffocationCheckDisabled = config.getBoolean("portal-suffocation-check.disabled", false);
-        shulkerBulletSelfHitFixEnabled = config.getBoolean("shulker-bullet-self-hit-fix.enabled", true);
-
-        executeCommandInactiveSkipEnabled = config.getBoolean("datapack-optimization.execute-inactive-skip.enabled", false);
-        executeCommandSkipLevel = config.getInt("datapack-optimization.execute-inactive-skip.skip-level", 2);
-        executeCommandSimulationDistanceMultiplier = config.getDouble("datapack-optimization.execute-inactive-skip.simulation-distance-multiplier", 1.0);
-        executeCommandCacheDurationMs = config.getLong("datapack-optimization.execute-inactive-skip.cache-duration-ms", 1000L);
-        executeCommandWhitelistTypes = new java.util.HashSet<>(config.getStringList("datapack-optimization.execute-inactive-skip.whitelist-types"));
-        executeCommandDebugEnabled = config.getBoolean("performance.debug-logging.modules.execute-command", false);
-
-        commandDeduplicationEnabled = config.getBoolean("datapack-optimization.command-deduplication.enabled", true);
-        commandDeduplicationDebugEnabled = config.getBoolean("performance.debug-logging.modules.command-deduplication", false);
-
-        structureLocationAsyncEnabled = config.getBoolean("structure-location-async.enabled", true);
-        structureLocationThreads = config.getInt("structure-location-async.threads", 3);
-        locateCommandEnabled = config.getBoolean("structure-location-async.locate-command.enabled", true);
-        locateCommandSearchRadius = config.getInt("structure-location-async.locate-command.search-radius", 100);
-        locateCommandSkipKnownStructures = config.getBoolean("structure-location-async.locate-command.skip-known-structures", false);
-        villagerTradeMapsEnabled = config.getBoolean("structure-location-async.villager-trade-maps.enabled", true);
-        villagerTradeMapsSearchRadius = config.getInt("structure-location-async.villager-trade-maps.search-radius", 100);
-        villagerTradeMapsSkipKnownStructures = config.getBoolean("structure-location-async.villager-trade-maps.skip-known-structures", false);
-        villagerTradeMapTypes = new java.util.HashSet<>(config.getStringList("structure-location-async.villager-trade-maps.trade-types"));
-        if (villagerTradeMapTypes.isEmpty()) {
-            villagerTradeMapTypes.add("minecraft:ocean_monument_map");
-            villagerTradeMapTypes.add("minecraft:woodland_mansion_map");
-            villagerTradeMapTypes.add("minecraft:buried_treasure_map");
-        }
-        villagerMapGenerationTimeoutSeconds = config.getInt("structure-location-async.villager-trade-maps.generation-timeout-seconds", 30);
-        dolphinTreasureHuntEnabled = config.getBoolean("structure-location-async.dolphin-treasure-hunt.enabled", true);
-        dolphinTreasureSearchRadius = config.getInt("structure-location-async.dolphin-treasure-hunt.search-radius", 50);
-        chestExplorationMapsEnabled = config.getBoolean("structure-location-async.chest-exploration-maps.enabled", true);
-        chestExplorationLootTables = new java.util.HashSet<>(config.getStringList("structure-location-async.chest-exploration-maps.loot-tables"));
-        if (chestExplorationLootTables.isEmpty()) {
-            chestExplorationLootTables.add("minecraft:chests/shipwreck_map");
-            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_big");
-            chestExplorationLootTables.add("minecraft:chests/underwater_ruin_small");
-        }
-
-        structureAlgorithmOptimizationEnabled = config.getBoolean("structure-location-async.algorithm-optimization.enabled", true);
-        structureSearchPattern = config.getString("structure-location-async.algorithm-optimization.search-pattern", "hybrid");
-        structureCachingEnabled = config.getBoolean("structure-location-async.algorithm-optimization.caching.enabled", true);
-        structureCacheMaxSize = config.getInt("structure-location-async.algorithm-optimization.caching.max-size", 1000);
-        structureCacheExpirationMinutes = config.getLong("structure-location-async.algorithm-optimization.caching.expiration-minutes", 30L);
-        biomeAwareSearchEnabled = config.getBoolean("structure-location-async.algorithm-optimization.biome-aware-search.enabled", true);
-
-        dataPackOptimizationEnabled = config.getBoolean("datapack-optimization.enabled", true);
-        dataPackFileLoadThreads = config.getInt("datapack-optimization.file-load-threads", 4);
-        dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
-        dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
-        dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
-
-        enableDebugLogging = config.getBoolean("performance.debug-logging", false);
-        enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
-        configVersion = config.getInt("version", 6);
-
-        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
-        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
-        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
-
-        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.enabled", true);
-        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.fancynpcs.use-api", true);
-        fancynpcsPriority = config.getInt("virtual-entity-compatibility.plugins.fancynpcs.priority", 90);
-
-        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.enabled", true);
-        znpcsplusUseAPI = config.getBoolean("virtual-entity-compatibility.plugins.znpcsplus.use-api", false);
-        znpcsplusPriority = config.getInt("virtual-entity-compatibility.plugins.znpcsplus.priority", 90);
-
-        virtualEntityDetectionOrder = config.getStringList("virtual-entity-compatibility.detection-order");
+        collisionConfig.setCollisionExcludedEntities(
+            loadEntitiesFromFile(collisionConfig.getCollisionExclusionListFile(), "collision-optimization-excluded-entities")
+        );
+        miscConfig.setZeroDelayFactoryEntities(
+            loadEntitiesFromFile(miscConfig.getZeroDelayFactoryEntitiesConfigFile(), "zero-delay-factory-entities")
+        );
 
         validateConfig();
     }
 
     private void validateConfig() {
-        if (threadPoolSize < 1) {
-            plugin.getLogger().warning("Thread pool size cannot be less than 1, setting to 1");
-            threadPoolSize = 1;
-        }
-        if (threadPoolSize > 32) {
-            plugin.getLogger().warning("Thread pool size cannot be more than 32, setting to 32");
-            threadPoolSize = 32;
-        }
-
-        if (maxEntitiesPerChunk < 20) {
-            maxEntitiesPerChunk = 20;
-        }
-        if (brainThrottleInterval < 0) {
-            brainThrottleInterval = 0;
-        }
-        if (minEntitiesForParallel < 10) minEntitiesForParallel = 10;
-        if (lightingThreadPoolSize < 1) lightingThreadPoolSize = 1;
-        if (lightingThreadPoolSize > 8) lightingThreadPoolSize = 8;
-        if (lightBatchThreshold < 1) lightBatchThreshold = 1;
-        if (lightBatchThreshold > 100) lightBatchThreshold = 100;
-        if (maxLightPropagationDistance < 1) maxLightPropagationDistance = 1;
-        if (maxLightPropagationDistance > 32) maxLightPropagationDistance = 32;
-        if (skylightCacheDurationMs < 0) skylightCacheDurationMs = 0;
-        if (maxConcurrentChunkLoadsPerPlayer < 1) maxConcurrentChunkLoadsPerPlayer = 1;
-        if (maxConcurrentChunkLoadsPerPlayer > 20) maxConcurrentChunkLoadsPerPlayer = 20;
-        if (entityTrackingRangeMultiplier < 0.1) entityTrackingRangeMultiplier = 0.1;
-        if (entityTrackingRangeMultiplier > 2.0) entityTrackingRangeMultiplier = 2.0;
-        if (tntThreads < 1) {
-            plugin.getLogger().warning("TNT threads cannot be less than 1, setting to 1");
-            tntThreads = 1;
-        }
-        if (tntThreads > 32) {
-            plugin.getLogger().warning("TNT threads cannot be more than 32, setting to 32");
-            tntThreads = 32;
-        }
-        if (tntMaxBlocks < 256) tntMaxBlocks = 256;
-        if (tntMaxBlocks > 16384) tntMaxBlocks = 16384;
-        if (tntTimeoutMicros < 10) tntTimeoutMicros = 10;
-        if (tntTimeoutMicros > 10000) tntTimeoutMicros = 10000;
-        if (tntBatchSize < 8) tntBatchSize = 8;
-        if (tntBatchSize > 256) tntBatchSize = 256;
-
-        if (structureLocationThreads < 1) {
-            plugin.getLogger().warning("Structure location threads cannot be less than 1, setting to 1");
-            structureLocationThreads = 1;
-        }
-        if (structureLocationThreads > 8) {
-            plugin.getLogger().warning("Structure location threads cannot be more than 8, setting to 8");
-            structureLocationThreads = 8;
-        }
-
-        validateNitoriConfig();
-        if (locateCommandSearchRadius < 10) locateCommandSearchRadius = 10;
-        if (locateCommandSearchRadius > 1000) locateCommandSearchRadius = 1000;
-        if (villagerMapGenerationTimeoutSeconds < 5) villagerMapGenerationTimeoutSeconds = 5;
-        if (villagerMapGenerationTimeoutSeconds > 300) villagerMapGenerationTimeoutSeconds = 300;
-        if (dolphinTreasureSearchRadius < 10) dolphinTreasureSearchRadius = 10;
-        if (dolphinTreasureSearchRadius > 200) dolphinTreasureSearchRadius = 200;
-    }
-
-    private void validateNitoriConfig() {
-        if (virtualThreadEnabled) {
-            int javaVersion = getJavaMajorVersion();
-            if (javaVersion < 19) {
-                plugin.getLogger().warning("==========================================");
-                plugin.getLogger().warning("  NITORI VIRTUAL THREAD WARNING");
-                plugin.getLogger().warning("==========================================");
-                plugin.getLogger().warning("Virtual Thread is enabled but your Java version (" + javaVersion + ") doesn't support it.");
-                plugin.getLogger().warning("Virtual Thread requires Java 19+ (preview) or Java 21+ (stable).");
-                plugin.getLogger().warning("The plugin will automatically fall back to regular threads.");
-                plugin.getLogger().warning("Consider upgrading to Java 21+ for better performance.");
-                plugin.getLogger().warning("==========================================");
-            } else if (javaVersion >= 19 && javaVersion < 21) {
-                plugin.getLogger().info("Virtual Thread enabled with Java " + javaVersion + " (preview feature)");
-            } else {
-                plugin.getLogger().info("Virtual Thread enabled with Java " + javaVersion + " (stable feature)");
-            }
-        }
-
-        if (!nitoriOptimizationsEnabled) {
-            plugin.getLogger().info("Nitori-style optimizations are disabled. You may miss some performance improvements.");
-        } else {
-            int enabledOptimizations = 0;
-            if (virtualThreadEnabled) enabledOptimizations++;
-            if (workStealingEnabled) enabledOptimizations++;
-            if (blockPosCacheEnabled) enabledOptimizations++;
-            if (optimizedCollectionsEnabled) enabledOptimizations++;
-
-            plugin.getLogger().info("Nitori-style optimizations enabled: " + enabledOptimizations + "/4 features active");
-        }
-    }
-
-    private int getJavaMajorVersion() {
-        String version = System.getProperty("java.version");
-        if (version.startsWith("1.")) {
-            return version.charAt(2) - '0';
-        }
-        int dotIndex = version.indexOf(".");
-        return Integer.parseInt(dotIndex == -1 ? version : version.substring(0, dotIndex));
+        performanceConfig.validate(plugin.getLogger());
+        entityConfig.validate(plugin.getLogger());
+        lightingConfig.validate(plugin.getLogger());
+        chunkConfig.validate(plugin.getLogger());
+        tntConfig.validate(plugin.getLogger());
+        miscConfig.validate(plugin.getLogger());
+        performanceConfig.validateNitori(plugin.getLogger());
     }
 
     public void reload() {
@@ -1305,361 +228,297 @@ public class ConfigManager {
         plugin.getLogger().info("Notified " + ConfigReloader.getListenerCount() + " config reload listeners");
     }
 
-    public int getThreadPoolSize() {
-        return threadPoolSize;
-    }
+    public int getThreadPoolSize() { return performanceConfig.getThreadPoolSize(); }
+    public boolean isDebugLoggingEnabled() { return performanceConfig.isDebugLoggingEnabled(); }
+    public boolean isSmartLagCompensationEnabled() { return performanceConfig.isSmartLagCompensationEnabled(); }
+    public double getSmartLagTPSThreshold() { return performanceConfig.getSmartLagTPSThreshold(); }
+    public boolean isSmartLagItemPickupDelayEnabled() { return performanceConfig.isSmartLagItemPickupDelayEnabled(); }
+    public boolean isSmartLagPotionEffectsEnabled() { return performanceConfig.isSmartLagPotionEffectsEnabled(); }
+    public boolean isSmartLagTimeAccelerationEnabled() { return performanceConfig.isSmartLagTimeAccelerationEnabled(); }
+    public boolean isSmartLagDebugEnabled() { return performanceConfig.isSmartLagDebugEnabled(); }
+    public boolean isSmartLagLogMissedTicks() { return performanceConfig.isSmartLagLogMissedTicks(); }
+    public boolean isSmartLagLogCompensation() { return performanceConfig.isSmartLagLogCompensation(); }
 
-    public boolean isDebugLoggingEnabled() {
-        return enableDebugLogging;
-    }
-
-    public boolean isSmartLagCompensationEnabled() {
-        return smartLagCompensationEnabled;
-    }
-
-    public double getSmartLagTPSThreshold() {
-        return smartLagTPSThreshold;
-    }
-
-    public boolean isSmartLagItemPickupDelayEnabled() {
-        return smartLagItemPickupDelayEnabled;
-    }
-
-    public boolean isSmartLagPotionEffectsEnabled() {
-        return smartLagPotionEffectsEnabled;
-    }
-
-    public boolean isSmartLagTimeAccelerationEnabled() {
-        return smartLagTimeAccelerationEnabled;
-    }
-
-    public boolean isSmartLagDebugEnabled() {
-        return smartLagDebugEnabled || enableDebugLogging;
-    }
-
-    public boolean isSmartLagLogMissedTicks() {
-        return smartLagLogMissedTicks && isSmartLagDebugEnabled();
-    }
-
-    public boolean isSmartLagLogCompensation() {
-        return smartLagLogCompensation && isSmartLagDebugEnabled();
-    }
-
-    public boolean isExperienceOrbInactiveTickEnabled() {
-        return experienceOrbInactiveTickEnabled;
-    }
-
-    public double getExperienceOrbInactiveRange() {
-        return experienceOrbInactiveRange;
-    }
-
-    public int getExperienceOrbInactiveMergeInterval() {
-        return experienceOrbInactiveMergeInterval;
-    }
-
-    public boolean isExperienceOrbMergeEnabled() {
-        return experienceOrbMergeEnabled;
-    }
-
-    public int getExperienceOrbMergeInterval() {
-        return experienceOrbMergeInterval;
-    }
+    public boolean isExperienceOrbInactiveTickEnabled() { return entityConfig.isExperienceOrbInactiveTickEnabled(); }
+    public double getExperienceOrbInactiveRange() { return entityConfig.getExperienceOrbInactiveRange(); }
+    public int getExperienceOrbInactiveMergeInterval() { return entityConfig.getExperienceOrbInactiveMergeInterval(); }
+    public boolean isExperienceOrbMergeEnabled() { return entityConfig.isExperienceOrbMergeEnabled(); }
+    public int getExperienceOrbMergeInterval() { return entityConfig.getExperienceOrbMergeInterval(); }
 
     public void setDebugLoggingEnabled(boolean enabled) {
-        this.enableDebugLogging = enabled;
+        performanceConfig.setDebugLoggingEnabled(enabled);
         config.set("performance.debug-logging", enabled);
         plugin.saveConfig();
     }
 
-    public boolean isPerformanceMetricsEnabled() {
-        return enablePerformanceMetrics;
-    }
+    public boolean isPerformanceMetricsEnabled() { return performanceConfig.isPerformanceMetricsEnabled(); }
+    public boolean isMobSpawningEnabled() { return entityConfig.isMobSpawningEnabled(); }
+    public boolean isSpawnerOptimizationEnabled() { return entityConfig.isSpawnerOptimizationEnabled(); }
+    public boolean isDensityControlEnabled() { return entityConfig.isDensityControlEnabled(); }
+    public int getMaxEntitiesPerChunk() { return entityConfig.getMaxEntitiesPerChunk(); }
+    public int getMobSpawnInterval() { return entityConfig.getMobSpawnInterval(); }
 
-    public boolean isMobSpawningEnabled() {
-        return mobSpawningEnabled;
-    }
+    public boolean isBrainThrottleEnabled() { return entityConfig.isBrainThrottleEnabled(); }
+    public int getBrainThrottleInterval() { return entityConfig.getBrainThrottleInterval(); }
+    public boolean isLivingEntityTravelOptimizationEnabled() { return entityConfig.isLivingEntityTravelOptimizationEnabled(); }
+    public int getLivingEntityTravelSkipInterval() { return entityConfig.getLivingEntityTravelSkipInterval(); }
+    public boolean isMobDespawnOptimizationEnabled() { return entityConfig.isMobDespawnOptimizationEnabled(); }
+    public int getMobDespawnCheckInterval() { return entityConfig.getMobDespawnCheckInterval(); }
 
-    public boolean isSpawnerOptimizationEnabled() {
-        return spawnerOptimizationEnabled;
-    }
+    public boolean isEndermanBlockCarryLimiterEnabled() { return entityConfig.isEndermanBlockCarryLimiterEnabled(); }
+    public int getEndermanMaxCarrying() { return entityConfig.getEndermanMaxCarrying(); }
+    public boolean isEndermanCountTowardsMobCap() { return entityConfig.isEndermanCountTowardsMobCap(); }
+    public boolean isEndermanPreventPickup() { return entityConfig.isEndermanPreventPickup(); }
 
-    public boolean isDensityControlEnabled() {
-        return densityControlEnabled;
-    }
+    public boolean isMultithreadedEntityTrackerEnabled() { return entityConfig.isMultithreadedTrackerEnabled(); }
 
-    public int getMaxEntitiesPerChunk() {
-        return maxEntitiesPerChunk;
-    }
+    public boolean isAdvancedNetworkOptimizationEnabled() { return networkConfig.isAdvancedNetworkOptimizationEnabled(); }
+    public boolean isFastVarIntEnabled() { return networkConfig.isFastVarIntEnabled(); }
+    public boolean isEventLoopAffinityEnabled() { return networkConfig.isEventLoopAffinityEnabled(); }
+    public boolean isByteBufOptimizerEnabled() { return networkConfig.isByteBufOptimizerEnabled(); }
+    public boolean isStrictEventLoopChecking() { return networkConfig.isStrictEventLoopChecking(); }
+    public boolean isPooledByteBufAllocator() { return networkConfig.isPooledByteBufAllocator(); }
+    public boolean isDirectByteBufPreferred() { return networkConfig.isDirectByteBufPreferred(); }
+    public boolean isSkipZeroMovementPacketsEnabled() { return networkConfig.isSkipZeroMovementPacketsEnabled(); }
+    public boolean isSkipZeroMovementPacketsStrictMode() { return networkConfig.isSkipZeroMovementPacketsStrictMode(); }
 
-    private int mobSpawnInterval = 1;
+    public boolean isMtuAwareBatchingEnabled() { return networkConfig.isMtuAwareBatchingEnabled(); }
+    public int getMtuLimit() { return networkConfig.getMtuLimit(); }
+    public int getMtuHardCapPackets() { return networkConfig.getMtuHardCapPackets(); }
 
-    public int getMobSpawnInterval() {
-        return mobSpawnInterval;
-    }
+    public boolean isFlushConsolidationEnabled() { return networkConfig.isFlushConsolidationEnabled(); }
+    public int getFlushConsolidationExplicitFlushAfterFlushes() { return networkConfig.getFlushConsolidationExplicitFlushAfterFlushes(); }
+    public boolean isFlushConsolidationConsolidateWhenNoReadInProgress() { return networkConfig.isFlushConsolidationConsolidateWhenNoReadInProgress(); }
 
-    public boolean isBrainThrottleEnabled() { return brainThrottle; }
-    public int getBrainThrottleInterval() { return brainThrottleInterval; }
-    public boolean isLivingEntityTravelOptimizationEnabled() { return livingEntityTravelOptimizationEnabled; }
-    public int getLivingEntityTravelSkipInterval() { return livingEntityTravelSkipInterval; }
-    public boolean isMobDespawnOptimizationEnabled() { return mobDespawnOptimizationEnabled; }
-    public int getMobDespawnCheckInterval() { return mobDespawnCheckInterval; }
+    public boolean isNativeCompressionEnabled() { return networkConfig.isNativeCompressionEnabled(); }
+    public int getNativeCompressionLevel() { return networkConfig.getNativeCompressionLevel(); }
 
-    public boolean isEndermanBlockCarryLimiterEnabled() { return endermanBlockCarryLimiterEnabled; }
-    public int getEndermanMaxCarrying() { return endermanMaxCarrying; }
-    public boolean isEndermanCountTowardsMobCap() { return endermanCountTowardsMobCap; }
-    public boolean isEndermanPreventPickup() { return endermanPreventPickup; }
+    public boolean isNativeEncryptionEnabled() { return networkConfig.isNativeEncryptionEnabled(); }
 
-    public boolean isMultithreadedEntityTrackerEnabled() { return multithreadedEntityTrackerEnabled; }
+    public boolean isExplosionBlockUpdateOptimizationEnabled() { return networkConfig.isExplosionBlockUpdateOptimizationEnabled(); }
+    public int getExplosionBlockChangeThreshold() { return networkConfig.getExplosionBlockChangeThreshold(); }
 
-    public boolean isAdvancedNetworkOptimizationEnabled() { return advancedNetworkOptimizationEnabled; }
-    public boolean isFastVarIntEnabled() { return fastVarIntEnabled; }
-    public boolean isEventLoopAffinityEnabled() { return eventLoopAffinityEnabled; }
-    public boolean isByteBufOptimizerEnabled() { return byteBufOptimizerEnabled; }
-    public boolean isStrictEventLoopChecking() { return strictEventLoopChecking; }
-    public boolean isPooledByteBufAllocator() { return pooledByteBufAllocator; }
-    public boolean isDirectByteBufPreferred() { return directByteBufPreferred; }
-    public boolean isSkipZeroMovementPacketsEnabled() { return skipZeroMovementPacketsEnabled; }
-    public boolean isSkipZeroMovementPacketsStrictMode() { return skipZeroMovementPacketsStrictMode; }
+    public int getHighLatencyThreshold() { return networkConfig.getHighLatencyThreshold(); }
+    public int getHighLatencyMinViewDistance() { return networkConfig.getHighLatencyMinViewDistance(); }
+    public long getHighLatencyDurationMs() { return networkConfig.getHighLatencyDurationMs(); }
 
-    public boolean isMtuAwareBatchingEnabled() { return mtuAwareBatchingEnabled; }
-    public int getMtuLimit() { return mtuLimit; }
-    public int getMtuHardCapPackets() { return mtuHardCapPackets; }
+    public boolean isAfkPacketThrottleEnabled() { return networkConfig.isAfkPacketThrottleEnabled(); }
+    public long getAfkDurationMs() { return networkConfig.getAfkDurationMs(); }
+    public double getAfkParticleMaxDistance() { return networkConfig.getAfkParticleMaxDistance(); }
+    public double getAfkSoundMaxDistance() { return networkConfig.getAfkSoundMaxDistance(); }
 
-    public boolean isFlushConsolidationEnabled() { return flushConsolidationEnabled; }
-    public int getFlushConsolidationExplicitFlushAfterFlushes() { return flushConsolidationExplicitFlushAfterFlushes; }
-    public boolean isFlushConsolidationConsolidateWhenNoReadInProgress() { return flushConsolidationConsolidateWhenNoReadInProgress; }
+    public boolean isDynamicChunkSendRateEnabled() { return networkConfig.isDynamicChunkSendRateEnabled(); }
+    public long getDynamicChunkLimitBandwidth() { return networkConfig.getDynamicChunkLimitBandwidth(); }
+    public long getDynamicChunkGuaranteedBandwidth() { return networkConfig.getDynamicChunkGuaranteedBandwidth(); }
 
-    public boolean isNativeCompressionEnabled() { return nativeCompressionEnabled; }
-    public int getNativeCompressionLevel() { return nativeCompressionLevel; }
+    public boolean isPacketCompressionOptimizationEnabled() { return networkConfig.isPacketCompressionOptimizationEnabled(); }
+    public boolean isAdaptiveCompressionThresholdEnabled() { return networkConfig.isAdaptiveCompressionThresholdEnabled(); }
+    public boolean isSkipSmallPacketsEnabled() { return networkConfig.isSkipSmallPacketsEnabled(); }
+    public int getSkipSmallPacketsThreshold() { return networkConfig.getSkipSmallPacketsThreshold(); }
 
-    public boolean isNativeEncryptionEnabled() { return nativeEncryptionEnabled; }
+    public boolean isChunkBatchOptimizationEnabled() { return networkConfig.isChunkBatchOptimizationEnabled(); }
+    public float getChunkBatchMinChunks() { return networkConfig.getChunkBatchMinChunks(); }
+    public float getChunkBatchMaxChunks() { return networkConfig.getChunkBatchMaxChunks(); }
+    public int getChunkBatchMaxUnacked() { return networkConfig.getChunkBatchMaxUnacked(); }
 
-    public boolean isExplosionBlockUpdateOptimizationEnabled() { return explosionBlockUpdateOptimizationEnabled; }
-    public int getExplosionBlockChangeThreshold() { return explosionBlockChangeThreshold; }
+    public boolean isPacketPriorityQueueEnabled() { return networkConfig.isPacketPriorityQueueEnabled(); }
+    public boolean isPrioritizePlayerPacketsEnabled() { return networkConfig.isPrioritizePlayerPacketsEnabled(); }
+    public boolean isPrioritizeChunkPacketsEnabled() { return networkConfig.isPrioritizeChunkPacketsEnabled(); }
+    public boolean isDeprioritizeParticlesEnabled() { return networkConfig.isDeprioritizeParticlesEnabled(); }
+    public boolean isDeprioritizeSoundsEnabled() { return networkConfig.isDeprioritizeSoundsEnabled(); }
 
-    public int getHighLatencyThreshold() { return highLatencyThreshold; }
-    public int getHighLatencyMinViewDistance() { return highLatencyMinViewDistance; }
-    public long getHighLatencyDurationMs() { return highLatencyDurationMs; }
+    public boolean isMultithreadedTrackerEnabled() { return entityConfig.isMultithreadedTrackerEnabled(); }
+    public int getMultithreadedTrackerParallelism() { return entityConfig.getMultithreadedTrackerParallelism(); }
+    public int getMultithreadedTrackerBatchSize() { return entityConfig.getMultithreadedTrackerBatchSize(); }
+    public int getMultithreadedTrackerAssistBatchSize() { return entityConfig.getMultithreadedTrackerAssistBatchSize(); }
 
-    public boolean isAfkPacketThrottleEnabled() { return afkPacketThrottleEnabled; }
-    public long getAfkDurationMs() { return afkDurationMs; }
-    public double getAfkParticleMaxDistance() { return afkParticleMaxDistance; }
-    public double getAfkSoundMaxDistance() { return afkSoundMaxDistance; }
+    public boolean isAiSensorOptimizationEnabled() { return aiConfig.isAiSensorOptimizationEnabled(); }
+    public int getAiSensorRefreshInterval() { return aiConfig.getAiSensorRefreshInterval(); }
 
-    public boolean isDynamicChunkSendRateEnabled() { return dynamicChunkSendRateEnabled; }
-    public long getDynamicChunkLimitBandwidth() { return dynamicChunkLimitBandwidth; }
-    public long getDynamicChunkGuaranteedBandwidth() { return dynamicChunkGuaranteedBandwidth; }
+    public boolean isGameEventOptimizationEnabled() { return aiConfig.isGameEventOptimizationEnabled(); }
+    public boolean isGameEventEarlyFilter() { return aiConfig.isGameEventEarlyFilter(); }
+    public boolean isGameEventThrottleLowPriority() { return aiConfig.isGameEventThrottleLowPriority(); }
+    public long getGameEventThrottleIntervalMs() { return aiConfig.getGameEventThrottleIntervalMs(); }
+    public boolean isGameEventDistanceFilter() { return aiConfig.isGameEventDistanceFilter(); }
+    public double getGameEventMaxDetectionDistance() { return aiConfig.getGameEventMaxDetectionDistance(); }
 
-    public boolean isPacketCompressionOptimizationEnabled() { return packetCompressionOptimizationEnabled; }
-    public boolean isAdaptiveCompressionThresholdEnabled() { return adaptiveCompressionThresholdEnabled; }
-    public boolean isSkipSmallPacketsEnabled() { return skipSmallPacketsEnabled; }
-    public int getSkipSmallPacketsThreshold() { return skipSmallPacketsThreshold; }
+    public boolean isAsyncPathfindingEnabled() { return aiConfig.isAsyncPathfindingEnabled(); }
+    public int getAsyncPathfindingMaxThreads() { return performanceConfig.getThreadPoolSize(); }
+    public int getAsyncPathfindingKeepAliveSeconds() { return aiConfig.getAsyncPathfindingKeepAliveSeconds(); }
+    public int getAsyncPathfindingMaxQueueSize() { return aiConfig.getAsyncPathfindingMaxQueueSize(); }
+    public int getAsyncPathfindingTimeoutMs() { return aiConfig.getAsyncPathfindingTimeoutMs(); }
+    public boolean isAsyncPathfindingSyncFallbackEnabled() { return aiConfig.isAsyncPathfindingSyncFallbackEnabled(); }
 
-    public boolean isChunkBatchOptimizationEnabled() { return chunkBatchOptimizationEnabled; }
-    public float getChunkBatchMinChunks() { return chunkBatchMinChunks; }
-    public float getChunkBatchMaxChunks() { return chunkBatchMaxChunks; }
-    public int getChunkBatchMaxUnacked() { return chunkBatchMaxUnacked; }
+    public boolean isEnhancedPathfindingEnabled() { return aiConfig.isEnhancedPathfindingEnabled(); }
+    public int getEnhancedPathfindingMaxConcurrentRequests() { return aiConfig.getEnhancedPathfindingMaxConcurrentRequests(); }
+    public int getEnhancedPathfindingMaxRequestsPerTick() { return aiConfig.getEnhancedPathfindingMaxRequestsPerTick(); }
+    public int getEnhancedPathfindingHighPriorityDistance() { return aiConfig.getEnhancedPathfindingHighPriorityDistance(); }
+    public int getEnhancedPathfindingMediumPriorityDistance() { return aiConfig.getEnhancedPathfindingMediumPriorityDistance(); }
+    public boolean isPathPrewarmEnabled() { return aiConfig.isPathPrewarmEnabled(); }
+    public int getPathPrewarmRadius() { return aiConfig.getPathPrewarmRadius(); }
+    public int getPathPrewarmMaxMobsPerBatch() { return aiConfig.getPathPrewarmMaxMobsPerBatch(); }
+    public int getPathPrewarmMaxPoisPerMob() { return aiConfig.getPathPrewarmMaxPoisPerMob(); }
+    public boolean isAsyncPathfindingCacheEnabled() { return aiConfig.isAsyncPathfindingCacheEnabled(); }
+    public int getAsyncPathfindingCacheMaxSize() { return aiConfig.getAsyncPathfindingCacheMaxSize(); }
+    public int getAsyncPathfindingCacheExpireSeconds() { return aiConfig.getAsyncPathfindingCacheExpireSeconds(); }
+    public int getAsyncPathfindingCacheReuseTolerance() { return aiConfig.getAsyncPathfindingCacheReuseTolerance(); }
+    public int getAsyncPathfindingCacheCleanupIntervalSeconds() { return aiConfig.getAsyncPathfindingCacheCleanupIntervalSeconds(); }
+    public boolean isCollisionOptimizationEnabled() { return collisionConfig.isCollisionOptimizationEnabled(); }
+    public boolean isCollisionAggressiveMode() { return collisionConfig.isCollisionAggressiveMode(); }
+    public java.util.Set<String> getCollisionExcludedEntities() { return collisionConfig.getCollisionExcludedEntities(); }
 
-    public boolean isPacketPriorityQueueEnabled() { return packetPriorityQueueEnabled; }
-    public boolean isPrioritizePlayerPacketsEnabled() { return prioritizePlayerPacketsEnabled; }
-    public boolean isPrioritizeChunkPacketsEnabled() { return prioritizeChunkPacketsEnabled; }
-    public boolean isDeprioritizeParticlesEnabled() { return deprioritizeParticlesEnabled; }
-    public boolean isDeprioritizeSoundsEnabled() { return deprioritizeSoundsEnabled; }
+    public boolean isNativeCollisionsEnabled() { return collisionConfig.isNativeCollisionsEnabled(); }
+    public boolean isNativeCollisionsFallbackEnabled() { return collisionConfig.isNativeCollisionsFallbackEnabled(); }
+    public boolean isCollisionBlockCacheEnabled() { return collisionConfig.isCollisionBlockCacheEnabled(); }
+    public int getCollisionBlockCacheSize() { return collisionConfig.getCollisionBlockCacheSize(); }
+    public int getCollisionBlockCacheExpireTicks() { return collisionConfig.getCollisionBlockCacheExpireTicks(); }
+    public boolean isRayCollisionEnabled() { return collisionConfig.isRayCollisionEnabled(); }
+    public double getRayCollisionMaxDistance() { return collisionConfig.getRayCollisionMaxDistance(); }
+    public boolean isShapeOptimizationEnabled() { return collisionConfig.isShapeOptimizationEnabled(); }
+    public boolean isShapePrecomputeArrays() { return collisionConfig.isShapePrecomputeArrays(); }
+    public boolean isShapeBlockShapeCache() { return collisionConfig.isShapeBlockShapeCache(); }
+    public int getShapeBlockShapeCacheSize() { return collisionConfig.getShapeBlockShapeCacheSize(); }
+    public boolean isTntCacheEnabled() { return tntConfig.isTntCacheEnabled(); }
+    public boolean isTntUseOptimizedCache() { return tntConfig.isTntUseOptimizedCache(); }
+    public int getTntCacheExpiryTicks() { return tntConfig.getTntCacheExpiryTicks(); }
+    public boolean isTntCacheWarmupEnabled() { return tntConfig.isTntCacheWarmupEnabled(); }
+    public boolean isTntPrecomputedShapeEnabled() { return tntConfig.isTntPrecomputedShapeEnabled(); }
+    public boolean isTntUseOcclusionDetection() { return tntConfig.isTntUseOcclusionDetection(); }
+    public double getTntOcclusionThreshold() { return tntConfig.getTntOcclusionThreshold(); }
+    public boolean isTntBatchCollisionEnabled() { return tntConfig.isTntBatchCollisionEnabled(); }
+    public int getTntBatchUnrollFactor() { return tntConfig.getTntBatchUnrollFactor(); }
+    public boolean isEntityThrottlingEnabled() { return entityConfig.isEntityThrottlingEnabled(); }
+    public String getEntityThrottlingConfigFile() { return entityConfig.getEntityThrottlingConfigFile(); }
+    public int getEntityThrottlingCheckInterval() { return entityConfig.getEntityThrottlingCheckInterval(); }
+    public int getEntityThrottlingThrottleInterval() { return entityConfig.getEntityThrottlingThrottleInterval(); }
+    public int getEntityThrottlingRemovalBatchSize() { return entityConfig.getEntityThrottlingRemovalBatchSize(); }
+    public boolean isZeroDelayFactoryOptimizationEnabled() { return miscConfig.isZeroDelayFactoryOptimizationEnabled(); }
+    public java.util.Set<String> getZeroDelayFactoryEntities() { return miscConfig.getZeroDelayFactoryEntities(); }
+    public boolean isBlockEntityParallelTickEnabled() { return miscConfig.isBlockEntityParallelTickEnabled(); }
+    public int getBlockEntityParallelMinBlockEntities() { return miscConfig.getBlockEntityParallelMinBlockEntities(); }
+    public int getBlockEntityParallelBatchSize() { return miscConfig.getBlockEntityParallelBatchSize(); }
+    public boolean isBlockEntityParallelProtectContainers() { return miscConfig.isBlockEntityParallelProtectContainers(); }
+    public int getBlockEntityParallelTimeoutMs() { return miscConfig.getBlockEntityParallelTimeoutMs(); }
+    public boolean isHopperOptimizationEnabled() { return entityConfig.isHopperOptimizationEnabled(); }
+    public int getHopperCacheExpireTime() { return entityConfig.getHopperCacheExpireTime(); }
+    public boolean isMinecartOptimizationEnabled() { return entityConfig.isMinecartOptimizationEnabled(); }
+    public int getMinecartTickInterval() { return entityConfig.getMinecartTickInterval(); }
+    public boolean isEntityTickParallel() { return entityConfig.isEntityTickParallel(); }
+    public int getMinEntitiesForParallel() { return entityConfig.getMinEntitiesForParallel(); }
+    public int getEntityTickBatchSize() { return entityConfig.getEntityTickBatchSize(); }
+    public boolean isAsyncLightingEnabled() { return lightingConfig.isAsyncLightingEnabled(); }
+    public int getLightBatchThreshold() { return lightingConfig.getLightBatchThreshold(); }
+    public int getLightUpdateIntervalMs() { return lightingConfig.getLightUpdateIntervalMs(); }
+    public boolean useLayeredPropagationQueue() { return lightingConfig.useLayeredPropagationQueue(); }
+    public int getMaxLightPropagationDistance() { return lightingConfig.getMaxLightPropagationDistance(); }
+    public boolean isSkylightCacheEnabled() { return lightingConfig.isSkylightCacheEnabled(); }
+    public int getSkylightCacheDurationMs() { return lightingConfig.getSkylightCacheDurationMs(); }
+    public boolean isLightDeduplicationEnabled() { return lightingConfig.isLightDeduplicationEnabled(); }
+    public boolean isDynamicBatchAdjustmentEnabled() { return lightingConfig.isDynamicBatchAdjustmentEnabled(); }
+    public boolean isAdvancedLightingStatsEnabled() { return lightingConfig.isAdvancedLightingStatsEnabled(); }
+    public boolean isLightingDebugEnabled() { return lightingConfig.isLightingDebugEnabled(); }
+    public boolean isSpawnChunkRemovalEnabled() { return chunkConfig.isSpawnChunkRemovalEnabled(); }
+    public boolean isPlayerChunkLoadingOptimizationEnabled() { return chunkConfig.isPlayerChunkLoadingOptimizationEnabled(); }
+    public int getMaxConcurrentChunkLoadsPerPlayer() { return chunkConfig.getMaxConcurrentChunkLoadsPerPlayer(); }
+    public boolean isEntityTrackingRangeOptimizationEnabled() { return entityConfig.isEntityTrackingRangeOptimizationEnabled(); }
+    public double getEntityTrackingRangeMultiplier() { return entityConfig.getEntityTrackingRangeMultiplier(); }
 
-    public boolean isMultithreadedTrackerEnabled() { return multithreadedTrackerEnabled; }
-    public int getMultithreadedTrackerParallelism() { return multithreadedTrackerParallelism; }
-    public int getMultithreadedTrackerBatchSize() { return multithreadedTrackerBatchSize; }
-    public int getMultithreadedTrackerAssistBatchSize() { return multithreadedTrackerAssistBatchSize; }
+    public boolean isTNTUseSakuraDensityCache() { return tntConfig.isTntUseSakuraDensityCache(); }
+    public boolean isTNTUseVectorizedAABB() { return tntConfig.isTntUseVectorizedAABB(); }
+    public boolean isTNTUseUnifiedEngine() { return tntConfig.isTntUseUnifiedEngine(); }
+    public boolean isTNTMergeEnabled() { return tntConfig.isTntMergeEnabled(); }
+    public double getTNTMergeRadius() { return tntConfig.getTntMergeRadius(); }
+    public int getTNTMaxFuseDifference() { return tntConfig.getTntMaxFuseDifference(); }
+    public float getTNTMergedPowerMultiplier() { return tntConfig.getTntMergedPowerMultiplier(); }
+    public float getTNTMaxPower() { return tntConfig.getTntMaxPower(); }
 
-    public boolean isAiSensorOptimizationEnabled() { return aiSensorOptimizationEnabled; }
-    public int getAiSensorRefreshInterval() { return aiSensorRefreshInterval; }
+    public boolean isAsyncVillagerBreedEnabled() { return entityConfig.isAsyncVillagerBreedEnabled(); }
+    public boolean isVillagerAgeThrottleEnabled() { return entityConfig.isVillagerAgeThrottleEnabled(); }
+    public int getVillagerBreedThreads() { return performanceConfig.getThreadPoolSize(); }
+    public int getVillagerBreedCheckInterval() { return entityConfig.getVillagerBreedCheckInterval(); }
+    public boolean isTNTOptimizationEnabled() { return tntConfig.isTntOptimizationEnabled(); }
+    public int getTNTThreads() { return performanceConfig.getThreadPoolSize(); }
+    public int getTNTMaxBlocks() { return tntConfig.getTntMaxBlocks(); }
+    public long getTNTTimeoutMicros() { return tntConfig.getTntTimeoutMicros(); }
+    public int getTNTBatchSize() { return tntConfig.getTntBatchSize(); }
+    public boolean isTNTDebugEnabled() { return tntConfig.isTntDebugEnabled(); }
+    public boolean isTNTVanillaCompatibilityEnabled() { return tntConfig.isTntVanillaCompatibilityEnabled(); }
+    public boolean isTNTUseVanillaPower() { return tntConfig.isTntUseVanillaPower(); }
+    public boolean isTNTUseVanillaFireLogic() { return tntConfig.isTntUseVanillaFireLogic(); }
+    public boolean isTNTUseVanillaDamageCalculation() { return tntConfig.isTntUseVanillaDamageCalculation(); }
+    public boolean isTNTUseFullRaycast() { return tntConfig.isTntUseFullRaycast(); }
+    public boolean isBeeFixEnabled() { return entityConfig.isBeeFixEnabled(); }
+    public boolean isEndIslandDensityFixEnabled() { return entityConfig.isEndIslandDensityFixEnabled(); }
+    public boolean isLeaderZombieHealthFixEnabled() { return entityConfig.isLeaderZombieHealthFixEnabled(); }
+    public boolean isPortalSuffocationCheckDisabled() { return entityConfig.isPortalSuffocationCheckDisabled(); }
+    public boolean isShulkerBulletSelfHitFixEnabled() { return entityConfig.isShulkerBulletSelfHitFixEnabled(); }
 
-    public boolean isGameEventOptimizationEnabled() { return gameEventOptimizationEnabled; }
-    public boolean isGameEventEarlyFilter() { return gameEventEarlyFilter; }
-    public boolean isGameEventThrottleLowPriority() { return gameEventThrottleLowPriority; }
-    public long getGameEventThrottleIntervalMs() { return gameEventThrottleIntervalMs; }
-    public boolean isGameEventDistanceFilter() { return gameEventDistanceFilter; }
-    public double getGameEventMaxDetectionDistance() { return gameEventMaxDetectionDistance; }
+    public boolean isExecuteCommandInactiveSkipEnabled() { return miscConfig.isExecuteCommandInactiveSkipEnabled(); }
+    public int getExecuteCommandSkipLevel() { return miscConfig.getExecuteCommandSkipLevel(); }
+    public double getExecuteCommandSimulationDistanceMultiplier() { return miscConfig.getExecuteCommandSimulationDistanceMultiplier(); }
+    public long getExecuteCommandCacheDurationMs() { return miscConfig.getExecuteCommandCacheDurationMs(); }
+    public Set<String> getExecuteCommandWhitelistTypes() { return miscConfig.getExecuteCommandWhitelistTypes(); }
+    public boolean isExecuteCommandDebugEnabled() { return miscConfig.isExecuteCommandDebugEnabled(); }
 
-    public boolean isAsyncPathfindingEnabled() { return asyncPathfindingEnabled; }
-    public int getAsyncPathfindingMaxThreads() { return threadPoolSize; }
-    public int getAsyncPathfindingKeepAliveSeconds() { return asyncPathfindingKeepAliveSeconds; }
-    public int getAsyncPathfindingMaxQueueSize() { return asyncPathfindingMaxQueueSize; }
-    public int getAsyncPathfindingTimeoutMs() { return asyncPathfindingTimeoutMs; }
-    public boolean isAsyncPathfindingSyncFallbackEnabled() { return asyncPathfindingSyncFallbackEnabled; }
+    public boolean isCommandDeduplicationEnabled() { return miscConfig.isCommandDeduplicationEnabled(); }
+    public boolean isCommandDeduplicationDebugEnabled() { return miscConfig.isCommandDeduplicationDebugEnabled(); }
 
-    public boolean isEnhancedPathfindingEnabled() { return enhancedPathfindingEnabled; }
-    public int getEnhancedPathfindingMaxConcurrentRequests() { return enhancedPathfindingMaxConcurrentRequests; }
-    public int getEnhancedPathfindingMaxRequestsPerTick() { return enhancedPathfindingMaxRequestsPerTick; }
-    public int getEnhancedPathfindingHighPriorityDistance() { return enhancedPathfindingHighPriorityDistance; }
-    public int getEnhancedPathfindingMediumPriorityDistance() { return enhancedPathfindingMediumPriorityDistance; }
-    public boolean isPathPrewarmEnabled() { return pathPrewarmEnabled; }
-    public int getPathPrewarmRadius() { return pathPrewarmRadius; }
-    public int getPathPrewarmMaxMobsPerBatch() { return pathPrewarmMaxMobsPerBatch; }
-    public int getPathPrewarmMaxPoisPerMob() { return pathPrewarmMaxPoisPerMob; }
-    public boolean isAsyncPathfindingCacheEnabled() { return asyncPathfindingCacheEnabled; }
-    public int getAsyncPathfindingCacheMaxSize() { return asyncPathfindingCacheMaxSize; }
-    public int getAsyncPathfindingCacheExpireSeconds() { return asyncPathfindingCacheExpireSeconds; }
-    public int getAsyncPathfindingCacheReuseTolerance() { return asyncPathfindingCacheReuseTolerance; }
-    public int getAsyncPathfindingCacheCleanupIntervalSeconds() { return asyncPathfindingCacheCleanupIntervalSeconds; }
-    public boolean isCollisionOptimizationEnabled() { return collisionOptimizationEnabled; }
-    public boolean isCollisionAggressiveMode() { return collisionAggressiveMode; }
-    public java.util.Set<String> getCollisionExcludedEntities() { return collisionExcludedEntities; }
+    public boolean isTNTUseVanillaBlockDestruction() { return tntConfig.isTntUseVanillaBlockDestruction(); }
+    public boolean isTNTUseVanillaDrops() { return tntConfig.isTntUseVanillaDrops(); }
+    public boolean isChunkTickAsyncEnabled() { return chunkConfig.isChunkTickAsyncEnabled(); }
+    public int getChunkTickThreads() { return performanceConfig.getThreadPoolSize(); }
+    public long getChunkTickTimeoutMicros() { return chunkConfig.getChunkTickTimeoutMicros(); }
+    public int getChunkTickAsyncBatchSize() { return chunkConfig.getChunkTickAsyncBatchSize(); }
 
-    public boolean isNativeCollisionsEnabled() { return nativeCollisionsEnabled; }
-    public boolean isNativeCollisionsFallbackEnabled() { return nativeCollisionsFallbackEnabled; }
-    public boolean isCollisionBlockCacheEnabled() { return collisionBlockCacheEnabled; }
-    public int getCollisionBlockCacheSize() { return collisionBlockCacheSize; }
-    public int getCollisionBlockCacheExpireTicks() { return collisionBlockCacheExpireTicks; }
-    public boolean isRayCollisionEnabled() { return rayCollisionEnabled; }
-    public double getRayCollisionMaxDistance() { return rayCollisionMaxDistance; }
-    public boolean isShapeOptimizationEnabled() { return shapeOptimizationEnabled; }
-    public boolean isShapePrecomputeArrays() { return shapePrecomputeArrays; }
-    public boolean isShapeBlockShapeCache() { return shapeBlockShapeCache; }
-    public int getShapeBlockShapeCacheSize() { return shapeBlockShapeCacheSize; }
-    public boolean isTntCacheEnabled() { return tntCacheEnabled; }
-    public boolean isTntUseOptimizedCache() { return tntUseOptimizedCache; }
-    public int getTntCacheExpiryTicks() { return tntCacheExpiryTicks; }
-    public boolean isTntCacheWarmupEnabled() { return tntCacheWarmupEnabled; }
-    public boolean isTntPrecomputedShapeEnabled() { return tntPrecomputedShapeEnabled; }
-    public boolean isTntUseOcclusionDetection() { return tntUseOcclusionDetection; }
-    public double getTntOcclusionThreshold() { return tntOcclusionThreshold; }
-    public boolean isTntBatchCollisionEnabled() { return tntBatchCollisionEnabled; }
-    public int getTntBatchUnrollFactor() { return tntBatchUnrollFactor; }
-    public boolean isEntityThrottlingEnabled() { return entityThrottlingEnabled; }
-    public String getEntityThrottlingConfigFile() { return entityThrottlingConfigFile; }
-    public int getEntityThrottlingCheckInterval() { return entityThrottlingCheckInterval; }
-    public int getEntityThrottlingThrottleInterval() { return entityThrottlingThrottleInterval; }
-    public int getEntityThrottlingRemovalBatchSize() { return entityThrottlingRemovalBatchSize; }
-    public boolean isZeroDelayFactoryOptimizationEnabled() { return zeroDelayFactoryOptimizationEnabled; }
-    public java.util.Set<String> getZeroDelayFactoryEntities() { return zeroDelayFactoryEntities; }
-    public boolean isBlockEntityParallelTickEnabled() { return blockEntityParallelTickEnabled; }
-    public int getBlockEntityParallelMinBlockEntities() { return blockEntityParallelMinBlockEntities; }
-    public int getBlockEntityParallelBatchSize() { return blockEntityParallelBatchSize; }
-    public boolean isBlockEntityParallelProtectContainers() { return blockEntityParallelProtectContainers; }
-    public int getBlockEntityParallelTimeoutMs() { return blockEntityParallelTimeoutMs; }
-    public boolean isHopperOptimizationEnabled() { return hopperOptimizationEnabled; }
-    public int getHopperCacheExpireTime() { return hopperCacheExpireTime; }
-    public boolean isMinecartOptimizationEnabled() { return minecartOptimizationEnabled; }
-    public int getMinecartTickInterval() { return minecartTickInterval; }
-    public boolean isEntityTickParallel() { return entityTickParallel; }
-    public int getMinEntitiesForParallel() { return minEntitiesForParallel; }
-    public int getEntityTickBatchSize() { return entityTickBatchSize; }
-    public boolean isAsyncLightingEnabled() { return asyncLightingEnabled; }
-    public int getLightBatchThreshold() { return lightBatchThreshold; }
-    public int getLightUpdateIntervalMs() { return lightUpdateIntervalMs; }
-    public boolean useLayeredPropagationQueue() { return useLayeredPropagationQueue; }
-    public int getMaxLightPropagationDistance() { return maxLightPropagationDistance; }
-    public boolean isSkylightCacheEnabled() { return skylightCacheEnabled; }
-    public int getSkylightCacheDurationMs() { return skylightCacheDurationMs; }
-    public boolean isLightDeduplicationEnabled() { return lightDeduplicationEnabled; }
-    public boolean isDynamicBatchAdjustmentEnabled() { return dynamicBatchAdjustmentEnabled; }
-    public boolean isAdvancedLightingStatsEnabled() { return advancedLightingStatsEnabled; }
-    public boolean isLightingDebugEnabled() { return enableDebugLogging && lightingDebugEnabled; }
-    public boolean isSpawnChunkRemovalEnabled() { return spawnChunkRemovalEnabled; }
-    public boolean isPlayerChunkLoadingOptimizationEnabled() { return playerChunkLoadingOptimizationEnabled; }
-    public int getMaxConcurrentChunkLoadsPerPlayer() { return maxConcurrentChunkLoadsPerPlayer; }
-    public boolean isEntityTrackingRangeOptimizationEnabled() { return entityTrackingRangeOptimizationEnabled; }
-    public double getEntityTrackingRangeMultiplier() { return entityTrackingRangeMultiplier; }
+    public int getConfigVersion() { return miscConfig.getConfigVersion(); }
 
-    public boolean isTNTUseSakuraDensityCache() { return tntUseSakuraDensityCache; }
-    public boolean isTNTUseVectorizedAABB() { return tntUseVectorizedAABB; }
-    public boolean isTNTUseUnifiedEngine() { return tntUseUnifiedEngine; }
-    public boolean isTNTMergeEnabled() { return tntMergeEnabled; }
-    public double getTNTMergeRadius() { return tntMergeRadius; }
-    public int getTNTMaxFuseDifference() { return tntMaxFuseDifference; }
-    public float getTNTMergedPowerMultiplier() { return tntMergedPowerMultiplier; }
-    public float getTNTMaxPower() { return tntMaxPower; }
+    public boolean isStructureLocationAsyncEnabled() { return miscConfig.isStructureLocationAsyncEnabled(); }
+    public int getStructureLocationThreads() { return performanceConfig.getThreadPoolSize(); }
+    public boolean isLocateCommandEnabled() { return miscConfig.isLocateCommandEnabled(); }
+    public int getLocateCommandSearchRadius() { return miscConfig.getLocateCommandSearchRadius(); }
+    public boolean isLocateCommandSkipKnownStructures() { return miscConfig.isLocateCommandSkipKnownStructures(); }
+    public boolean isVillagerTradeMapsEnabled() { return miscConfig.isVillagerTradeMapsEnabled(); }
+    public int getVillagerTradeMapsSearchRadius() { return miscConfig.getVillagerTradeMapsSearchRadius(); }
+    public boolean isVillagerTradeMapsSkipKnownStructures() { return miscConfig.isVillagerTradeMapsSkipKnownStructures(); }
+    public java.util.Set<String> getVillagerTradeMapTypes() { return miscConfig.getVillagerTradeMapTypes(); }
+    public int getVillagerMapGenerationTimeoutSeconds() { return miscConfig.getVillagerMapGenerationTimeoutSeconds(); }
+    public boolean isDolphinTreasureHuntEnabled() { return miscConfig.isDolphinTreasureHuntEnabled(); }
+    public int getDolphinTreasureSearchRadius() { return miscConfig.getDolphinTreasureSearchRadius(); }
+    public boolean isChestExplorationMapsEnabled() { return miscConfig.isChestExplorationMapsEnabled(); }
+    public java.util.Set<String> getChestExplorationLootTables() { return miscConfig.getChestExplorationLootTables(); }
+    public boolean isStructureLocationDebugEnabled() { return performanceConfig.isDebugLoggingEnabled(); }
 
-    public boolean isAsyncVillagerBreedEnabled() { return asyncVillagerBreedEnabled; }
-    public boolean isVillagerAgeThrottleEnabled() { return villagerAgeThrottleEnabled; }
-    public int getVillagerBreedThreads() { return threadPoolSize; }
-    public int getVillagerBreedCheckInterval() { return villagerBreedCheckInterval; }
-    public boolean isTNTOptimizationEnabled() { return tntOptimizationEnabled; }
-    public int getTNTThreads() { return threadPoolSize; }
-    public int getTNTMaxBlocks() { return tntMaxBlocks; }
-    public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
-    public int getTNTBatchSize() { return tntBatchSize; }
-    public boolean isTNTDebugEnabled() { return tntDebugEnabled || enableDebugLogging; }
-    public boolean isTNTVanillaCompatibilityEnabled() { return tntVanillaCompatibilityEnabled; }
-    public boolean isTNTUseVanillaPower() { return tntUseVanillaPower; }
-    public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
-    public boolean isTNTUseVanillaDamageCalculation() { return tntUseVanillaDamageCalculation; }
-    public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
-    public boolean isBeeFixEnabled() { return beeFixEnabled; }
-    public boolean isEndIslandDensityFixEnabled() { return endIslandDensityFixEnabled; }
-    public boolean isLeaderZombieHealthFixEnabled() { return leaderZombieHealthFixEnabled; }
-    public boolean isPortalSuffocationCheckDisabled() { return portalSuffocationCheckDisabled; }
-    public boolean isShulkerBulletSelfHitFixEnabled() { return shulkerBulletSelfHitFixEnabled; }
+    public boolean isStructureAlgorithmOptimizationEnabled() { return miscConfig.isStructureAlgorithmOptimizationEnabled(); }
+    public String getStructureSearchPattern() { return miscConfig.getStructureSearchPattern(); }
+    public boolean isStructureCachingEnabled() { return miscConfig.isStructureCachingEnabled(); }
+    public boolean isBiomeAwareSearchEnabled() { return miscConfig.isBiomeAwareSearchEnabled(); }
+    public int getStructureCacheMaxSize() { return miscConfig.getStructureCacheMaxSize(); }
+    public long getStructureCacheExpirationMinutes() { return miscConfig.getStructureCacheExpirationMinutes(); }
 
-    public boolean isExecuteCommandInactiveSkipEnabled() { return executeCommandInactiveSkipEnabled; }
-    public int getExecuteCommandSkipLevel() { return executeCommandSkipLevel; }
-    public double getExecuteCommandSimulationDistanceMultiplier() { return executeCommandSimulationDistanceMultiplier; }
-    public long getExecuteCommandCacheDurationMs() { return executeCommandCacheDurationMs; }
-    public Set<String> getExecuteCommandWhitelistTypes() { return executeCommandWhitelistTypes; }
-    public boolean isExecuteCommandDebugEnabled() { return executeCommandDebugEnabled; }
+    public boolean isDataPackOptimizationEnabled() { return miscConfig.isDataPackOptimizationEnabled(); }
+    public int getDataPackFileLoadThreads() { return performanceConfig.getThreadPoolSize(); }
+    public int getDataPackZipProcessThreads() { return performanceConfig.getThreadPoolSize(); }
+    public int getDataPackBatchSize() { return miscConfig.getDataPackBatchSize(); }
+    public long getDataPackCacheExpirationMinutes() { return miscConfig.getDataPackCacheExpirationMinutes(); }
+    public int getDataPackMaxFileCacheSize() { return miscConfig.getDataPackMaxFileCacheSize(); }
+    public int getDataPackMaxFileSystemCacheSize() { return miscConfig.getDataPackMaxFileSystemCacheSize(); }
+    public boolean isDataPackDebugEnabled() { return performanceConfig.isDebugLoggingEnabled(); }
 
-    public boolean isCommandDeduplicationEnabled() { return commandDeduplicationEnabled; }
-    public boolean isCommandDeduplicationDebugEnabled() { return commandDeduplicationDebugEnabled; }
+    public boolean isNitoriOptimizationsEnabled() { return performanceConfig.isNitoriOptimizationsEnabled(); }
+    public boolean isBlockPosCacheEnabled() { return performanceConfig.isBlockPosCacheEnabled(); }
+    public boolean isOptimizedCollectionsEnabled() { return performanceConfig.isOptimizedCollectionsEnabled(); }
 
-    public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
-    public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
-    public boolean isChunkTickAsyncEnabled() { return chunkTickAsyncEnabled; }
-    public int getChunkTickThreads() { return threadPoolSize; }
-    public long getChunkTickTimeoutMicros() { return chunkTickTimeoutMicros; }
-    public int getChunkTickAsyncBatchSize() { return chunkTickAsyncBatchSize; }
+    public boolean isMobSunBurnOptimizationEnabled() { return entityConfig.isMobSunBurnOptimizationEnabled(); }
+    public boolean isEntitySpeedOptimizationEnabled() { return entityConfig.isEntitySpeedOptimizationEnabled(); }
+    public boolean isEntityFallDamageOptimizationEnabled() { return entityConfig.isEntityFallDamageOptimizationEnabled(); }
+    public boolean isEntitySectionStorageOptimizationEnabled() { return entityConfig.isEntitySectionStorageOptimizationEnabled(); }
 
-    public int getConfigVersion() {
-        return configVersion;
-    }
-
-    public boolean isStructureLocationAsyncEnabled() { return structureLocationAsyncEnabled; }
-    public int getStructureLocationThreads() { return threadPoolSize; }
-    public boolean isLocateCommandEnabled() { return locateCommandEnabled; }
-    public int getLocateCommandSearchRadius() { return locateCommandSearchRadius; }
-    public boolean isLocateCommandSkipKnownStructures() { return locateCommandSkipKnownStructures; }
-    public boolean isVillagerTradeMapsEnabled() { return villagerTradeMapsEnabled; }
-    public int getVillagerTradeMapsSearchRadius() { return villagerTradeMapsSearchRadius; }
-    public boolean isVillagerTradeMapsSkipKnownStructures() { return villagerTradeMapsSkipKnownStructures; }
-    public java.util.Set<String> getVillagerTradeMapTypes() { return villagerTradeMapTypes; }
-    public int getVillagerMapGenerationTimeoutSeconds() { return villagerMapGenerationTimeoutSeconds; }
-    public boolean isDolphinTreasureHuntEnabled() { return dolphinTreasureHuntEnabled; }
-    public int getDolphinTreasureSearchRadius() { return dolphinTreasureSearchRadius; }
-    public boolean isChestExplorationMapsEnabled() { return chestExplorationMapsEnabled; }
-    public java.util.Set<String> getChestExplorationLootTables() { return chestExplorationLootTables; }
-    public boolean isStructureLocationDebugEnabled() { return enableDebugLogging; }
-
-    public boolean isStructureAlgorithmOptimizationEnabled() { return structureAlgorithmOptimizationEnabled; }
-    public String getStructureSearchPattern() { return structureSearchPattern; }
-    public boolean isStructureCachingEnabled() { return structureCachingEnabled; }
-    public boolean isBiomeAwareSearchEnabled() { return biomeAwareSearchEnabled; }
-    public int getStructureCacheMaxSize() { return structureCacheMaxSize; }
-    public long getStructureCacheExpirationMinutes() { return structureCacheExpirationMinutes; }
-
-    public boolean isDataPackOptimizationEnabled() { return dataPackOptimizationEnabled; }
-    public int getDataPackFileLoadThreads() { return threadPoolSize; }
-    public int getDataPackZipProcessThreads() { return threadPoolSize; }
-    public int getDataPackBatchSize() { return dataPackBatchSize; }
-    public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
-    public int getDataPackMaxFileCacheSize() { return dataPackMaxFileCacheSize; }
-    public int getDataPackMaxFileSystemCacheSize() { return dataPackMaxFileSystemCacheSize; }
-    public boolean isDataPackDebugEnabled() { return enableDebugLogging; }
-
-    public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
-    public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
-    public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
-
-    public boolean isMobSunBurnOptimizationEnabled() { return mobSunBurnOptimizationEnabled; }
-    public boolean isEntitySpeedOptimizationEnabled() { return entitySpeedOptimizationEnabled; }
-    public boolean isEntityFallDamageOptimizationEnabled() { return entityFallDamageOptimizationEnabled; }
-    public boolean isEntitySectionStorageOptimizationEnabled() { return entitySectionStorageOptimizationEnabled; }
-
-    public boolean isChunkPosOptimizationEnabled() { return chunkPosOptimizationEnabled; }
-    public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
-    public boolean isNbtOptimizationEnabled() { return nbtOptimizationEnabled; }
-    public boolean isBitSetPoolingEnabled() { return bitSetPoolingEnabled; }
-    public boolean isCompletableFutureOptimizationEnabled() { return completableFutureOptimizationEnabled; }
-    public boolean isChunkOptimizationEnabled() { return chunkOptimizationEnabled; }
+    public boolean isChunkPosOptimizationEnabled() { return chunkConfig.isChunkPosOptimizationEnabled(); }
+    public boolean isNoiseOptimizationEnabled() { return chunkConfig.isNoiseOptimizationEnabled(); }
+    public boolean isNbtOptimizationEnabled() { return performanceConfig.isNbtOptimizationEnabled(); }
+    public boolean isBitSetPoolingEnabled() { return performanceConfig.isBitSetPoolingEnabled(); }
+    public boolean isCompletableFutureOptimizationEnabled() { return performanceConfig.isCompletableFutureOptimizationEnabled(); }
+    public boolean isChunkOptimizationEnabled() { return chunkConfig.isChunkOptimizationEnabled(); }
 
     public int getMidTickChunkTasksIntervalMs() {
 
@@ -1667,26 +526,26 @@ public class ConfigManager {
         return Math.max(1, (int)(intervalNs / 1000000));
     }
 
-    public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
-    public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
-    public boolean isSeedEncryptionProtectStructures() { return seedEncryptionProtectStructures; }
-    public boolean isSeedEncryptionProtectOres() { return seedEncryptionProtectOres; }
-    public boolean isSeedEncryptionProtectSlimes() { return seedEncryptionProtectSlimes; }
-    public boolean isSeedEncryptionProtectBiomes() { return seedEncryptionProtectBiomes; }
+    public String getSeedEncryptionScheme() { return miscConfig.getSeedEncryptionScheme(); }
+    public boolean isSeedEncryptionEnabled() { return miscConfig.isSeedEncryptionEnabled(); }
+    public boolean isSeedEncryptionProtectStructures() { return miscConfig.isSeedEncryptionProtectStructures(); }
+    public boolean isSeedEncryptionProtectOres() { return miscConfig.isSeedEncryptionProtectOres(); }
+    public boolean isSeedEncryptionProtectSlimes() { return miscConfig.isSeedEncryptionProtectSlimes(); }
+    public boolean isSeedEncryptionProtectBiomes() { return miscConfig.isSeedEncryptionProtectBiomes(); }
 
-    public boolean isSecureSeedEnabled() { return seedEncryptionEnabled; }
-    public boolean isSecureSeedProtectStructures() { return seedEncryptionProtectStructures; }
-    public boolean isSecureSeedProtectOres() { return seedEncryptionProtectOres; }
-    public boolean isSecureSeedProtectSlimes() { return seedEncryptionProtectSlimes; }
-    public int getSecureSeedBits() { return secureSeedBits; }
-    public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
+    public boolean isSecureSeedEnabled() { return miscConfig.isSeedEncryptionEnabled(); }
+    public boolean isSecureSeedProtectStructures() { return miscConfig.isSeedEncryptionProtectStructures(); }
+    public boolean isSecureSeedProtectOres() { return miscConfig.isSeedEncryptionProtectOres(); }
+    public boolean isSecureSeedProtectSlimes() { return miscConfig.isSeedEncryptionProtectSlimes(); }
+    public int getSecureSeedBits() { return miscConfig.getSecureSeedBits(); }
+    public boolean isSecureSeedDebugLogging() { return performanceConfig.isDebugLoggingEnabled(); }
 
-    public boolean isQuantumSeedEnabled() { return seedEncryptionEnabled && "quantum".equalsIgnoreCase(seedEncryptionScheme); }
-    public int getQuantumSeedEncryptionLevel() { return quantumSeedEncryptionLevel; }
-    public String getQuantumSeedPrivateKeyFile() { return quantumSeedPrivateKeyFile; }
-    public boolean isQuantumSeedEnableTimeDecay() { return quantumSeedEnableTimeDecay; }
-    public int getQuantumSeedCacheSize() { return quantumSeedCacheSize; }
-    public boolean isQuantumSeedDebugLogging() { return enableDebugLogging; }
+    public boolean isQuantumSeedEnabled() { return miscConfig.isQuantumSeedEnabled(); }
+    public int getQuantumSeedEncryptionLevel() { return miscConfig.getQuantumSeedEncryptionLevel(); }
+    public String getQuantumSeedPrivateKeyFile() { return miscConfig.getQuantumSeedPrivateKeyFile(); }
+    public boolean isQuantumSeedEnableTimeDecay() { return miscConfig.isQuantumSeedEnableTimeDecay(); }
+    public int getQuantumSeedCacheSize() { return miscConfig.getQuantumSeedCacheSize(); }
+    public boolean isQuantumSeedDebugLogging() { return performanceConfig.isDebugLoggingEnabled(); }
 
     public boolean isSeedCommandRestrictionEnabled() {
         return config.getBoolean("seed-encryption.restrict-seed-command", true);
@@ -1704,200 +563,151 @@ public class ConfigManager {
         return config.getLong("seed-encryption.anti-plugin-theft.fake-seed-value", 0L);
     }
 
-    public boolean isFurnaceRecipeCacheEnabled() { return furnaceRecipeCacheEnabled; }
-    public int getFurnaceRecipeCacheSize() { return furnaceRecipeCacheSize; }
-    public boolean isFurnaceCacheApplyToBlastFurnace() { return furnaceCacheApplyToBlastFurnace; }
-    public boolean isFurnaceCacheApplyToSmoker() { return furnaceCacheApplyToSmoker; }
-    public boolean isFurnaceFixBurnTimeBug() { return furnaceFixBurnTimeBug; }
+    public boolean isFurnaceRecipeCacheEnabled() { return miscConfig.isFurnaceRecipeCacheEnabled(); }
+    public int getFurnaceRecipeCacheSize() { return miscConfig.getFurnaceRecipeCacheSize(); }
+    public boolean isFurnaceCacheApplyToBlastFurnace() { return miscConfig.isFurnaceCacheApplyToBlastFurnace(); }
+    public boolean isFurnaceCacheApplyToSmoker() { return miscConfig.isFurnaceCacheApplyToSmoker(); }
+    public boolean isFurnaceFixBurnTimeBug() { return miscConfig.isFurnaceFixBurnTimeBug(); }
 
-    public boolean isCraftingRecipeCacheEnabled() { return craftingRecipeCacheEnabled; }
-    public int getCraftingRecipeCacheSize() { return craftingRecipeCacheSize; }
-    public boolean isCraftingOptimizeBatchCrafting() { return craftingOptimizeBatchCrafting; }
-    public boolean isCraftingReduceNetworkTraffic() { return craftingReduceNetworkTraffic; }
+    public boolean isCraftingRecipeCacheEnabled() { return miscConfig.isCraftingRecipeCacheEnabled(); }
+    public int getCraftingRecipeCacheSize() { return miscConfig.getCraftingRecipeCacheSize(); }
+    public boolean isCraftingOptimizeBatchCrafting() { return miscConfig.isCraftingOptimizeBatchCrafting(); }
+    public boolean isCraftingReduceNetworkTraffic() { return miscConfig.isCraftingReduceNetworkTraffic(); }
 
-    public boolean isMinecartCauldronDestructionEnabled() { return minecartCauldronDestructionEnabled; }
+    public boolean isMinecartCauldronDestructionEnabled() { return entityConfig.isMinecartCauldronDestructionEnabled(); }
 
     public int getCurrentConfigVersion() { return CURRENT_CONFIG_VERSION; }
 
-    public boolean isFallingBlockParallelEnabled() { return fallingBlockParallelEnabled; }
-    public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
-    public int getFallingBlockBatchSize() { return fallingBlockBatchSize; }
+    public boolean isFallingBlockParallelEnabled() { return entityConfig.isFallingBlockParallelEnabled(); }
+    public int getMinFallingBlocksForParallel() { return entityConfig.getMinFallingBlocksForParallel(); }
+    public int getFallingBlockBatchSize() { return entityConfig.getFallingBlockBatchSize(); }
 
-    public boolean isItemEntityMergeOptimizationEnabled() { return itemEntityMergeOptimizationEnabled; }
-    public boolean isItemEntityCancelVanillaMerge() { return itemEntityCancelVanillaMerge; }
-    public int getItemEntityMergeInterval() { return itemEntityMergeInterval; }
-    public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }
-    public double getItemEntityMergeRange() { return itemEntityMergeRange; }
-    public boolean isItemEntityAgeOptimizationEnabled() { return itemEntityAgeOptimizationEnabled; }
-    public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
-    public double getItemEntityPlayerDetectionRange() { return itemEntityPlayerDetectionRange; }
-    public boolean isItemEntityInactiveTickEnabled() { return itemEntityInactiveTickEnabled; }
-    public double getItemEntityInactiveRange() { return itemEntityInactiveRange; }
-    public int getItemEntityInactiveMergeInterval() { return itemEntityInactiveMergeInterval; }
+    public boolean isItemEntityMergeOptimizationEnabled() { return entityConfig.isItemEntityMergeOptimizationEnabled(); }
+    public boolean isItemEntityCancelVanillaMerge() { return entityConfig.isItemEntityCancelVanillaMerge(); }
+    public int getItemEntityMergeInterval() { return entityConfig.getItemEntityMergeInterval(); }
+    public int getItemEntityMinNearbyItems() { return entityConfig.getItemEntityMinNearbyItems(); }
+    public double getItemEntityMergeRange() { return entityConfig.getItemEntityMergeRange(); }
+    public boolean isItemEntityAgeOptimizationEnabled() { return entityConfig.isItemEntityAgeOptimizationEnabled(); }
+    public int getItemEntityAgeInterval() { return entityConfig.getItemEntityAgeInterval(); }
+    public double getItemEntityPlayerDetectionRange() { return entityConfig.getItemEntityPlayerDetectionRange(); }
+    public boolean isItemEntityInactiveTickEnabled() { return entityConfig.isItemEntityInactiveTickEnabled(); }
+    public double getItemEntityInactiveRange() { return entityConfig.getItemEntityInactiveRange(); }
+    public int getItemEntityInactiveMergeInterval() { return entityConfig.getItemEntityInactiveMergeInterval(); }
 
-    public boolean isChunkVisibilityFilterEnabled() { return chunkVisibilityFilterEnabled; }
+    public boolean isChunkVisibilityFilterEnabled() { return networkConfig.isChunkVisibilityFilterEnabled(); }
 
-    public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
-    public boolean isFastRayTraceEnabled() { return fastRayTraceEnabled; }
-    public boolean isMapRenderingOptimizationEnabled() { return mapRenderingOptimizationEnabled; }
-    public int getMapRenderingThreads() { return threadPoolSize; }
+    public boolean isSuffocationOptimizationEnabled() { return entityConfig.isSuffocationOptimizationEnabled(); }
+    public boolean isFastRayTraceEnabled() { return entityConfig.isFastRayTraceEnabled(); }
+    public boolean isMapRenderingOptimizationEnabled() { return networkConfig.isMapRenderingOptimizationEnabled(); }
+    public int getMapRenderingThreads() { return performanceConfig.getThreadPoolSize(); }
 
-    public boolean isProjectileOptimizationEnabled() { return projectileOptimizationEnabled; }
-    public int getMaxProjectileLoadsPerTick() { return maxProjectileLoadsPerTick; }
-    public int getMaxProjectileLoadsPerProjectile() { return maxProjectileLoadsPerProjectile; }
+    public boolean isProjectileOptimizationEnabled() { return entityConfig.isProjectileOptimizationEnabled(); }
+    public int getMaxProjectileLoadsPerTick() { return entityConfig.getMaxProjectileLoadsPerTick(); }
+    public int getMaxProjectileLoadsPerProjectile() { return entityConfig.getMaxProjectileLoadsPerProjectile(); }
 
-    public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
-    public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
-    public int getFastMovementPreloadDistance() { return fastMovementPreloadDistance; }
-    public int getFastMovementMaxConcurrentLoads() { return fastMovementMaxConcurrentLoads; }
-    public int getFastMovementPredictionTicks() { return fastMovementPredictionTicks; }
+    public boolean isFastMovementChunkLoadEnabled() { return networkConfig.isFastMovementChunkLoadEnabled(); }
+    public double getFastMovementSpeedThreshold() { return networkConfig.getFastMovementSpeedThreshold(); }
+    public int getFastMovementPreloadDistance() { return networkConfig.getFastMovementPreloadDistance(); }
+    public int getFastMovementMaxConcurrentLoads() { return networkConfig.getFastMovementMaxConcurrentLoads(); }
+    public int getFastMovementPredictionTicks() { return networkConfig.getFastMovementPredictionTicks(); }
 
-    public boolean isCenterOffsetEnabled() { return centerOffsetEnabled; }
-    public double getMinOffsetSpeed() { return minOffsetSpeed; }
-    public double getMaxOffsetSpeed() { return maxOffsetSpeed; }
-    public double getMaxOffsetRatio() { return maxOffsetRatio; }
+    public boolean isCenterOffsetEnabled() { return networkConfig.isCenterOffsetEnabled(); }
+    public double getMinOffsetSpeed() { return networkConfig.getMinOffsetSpeed(); }
+    public double getMaxOffsetSpeed() { return networkConfig.getMaxOffsetSpeed(); }
+    public double getMaxOffsetRatio() { return networkConfig.getMaxOffsetRatio(); }
 
-    public boolean isPlayerJoinWarmupEnabled() { return playerJoinWarmupEnabled; }
-    public long getPlayerJoinWarmupDurationMs() { return playerJoinWarmupDurationMs; }
-    public double getPlayerJoinWarmupInitialRate() { return playerJoinWarmupInitialRate; }
-    public int getAsyncLoadingBatchSize() { return asyncLoadingBatchSize; }
-    public long getAsyncLoadingBatchDelayMs() { return asyncLoadingBatchDelayMs; }
+    public boolean isPlayerJoinWarmupEnabled() { return networkConfig.isPlayerJoinWarmupEnabled(); }
+    public long getPlayerJoinWarmupDurationMs() { return networkConfig.getPlayerJoinWarmupDurationMs(); }
+    public double getPlayerJoinWarmupInitialRate() { return networkConfig.getPlayerJoinWarmupInitialRate(); }
+    public int getAsyncLoadingBatchSize() { return networkConfig.getAsyncLoadingBatchSize(); }
+    public long getAsyncLoadingBatchDelayMs() { return networkConfig.getAsyncLoadingBatchDelayMs(); }
 
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
     }
 
-    public boolean isVirtualEntityCompatibilityEnabled() { return virtualEntityCompatibilityEnabled; }
-    public boolean isVirtualEntityBypassPacketQueue() { return virtualEntityBypassPacketQueue; }
-    public boolean isVirtualEntityExcludeFromThrottling() { return virtualEntityExcludeFromThrottling; }
-    public boolean isVirtualEntityDebugEnabled() { return enableDebugLogging; }
+    public boolean isVirtualEntityCompatibilityEnabled() { return compatibilityConfig.isVirtualEntityCompatibilityEnabled(); }
+    public boolean isVirtualEntityBypassPacketQueue() { return compatibilityConfig.isVirtualEntityBypassPacketQueue(); }
+    public boolean isVirtualEntityExcludeFromThrottling() { return compatibilityConfig.isVirtualEntityExcludeFromThrottling(); }
+    public boolean isVirtualEntityDebugEnabled() { return performanceConfig.isDebugLoggingEnabled(); }
 
-    public boolean isFancynpcsCompatEnabled() { return fancynpcsCompatEnabled; }
-    public boolean isFancynpcsUseAPI() { return fancynpcsUseAPI; }
-    public int getFancynpcsPriority() { return fancynpcsPriority; }
+    public boolean isFancynpcsCompatEnabled() { return compatibilityConfig.isFancynpcsCompatEnabled(); }
+    public boolean isFancynpcsUseAPI() { return compatibilityConfig.isFancynpcsUseAPI(); }
+    public int getFancynpcsPriority() { return compatibilityConfig.getFancynpcsPriority(); }
 
-    public boolean isZnpcsplusCompatEnabled() { return znpcsplusCompatEnabled; }
-    public boolean isZnpcsplusUseAPI() { return znpcsplusUseAPI; }
-    public int getZnpcsplusPriority() { return znpcsplusPriority; }
+    public boolean isZnpcsplusCompatEnabled() { return compatibilityConfig.isZnpcsplusCompatEnabled(); }
+    public boolean isZnpcsplusUseAPI() { return compatibilityConfig.isZnpcsplusUseAPI(); }
+    public int getZnpcsplusPriority() { return compatibilityConfig.getZnpcsplusPriority(); }
 
-    public java.util.List<String> getVirtualEntityDetectionOrder() { return virtualEntityDetectionOrder; }
+    public java.util.List<String> getVirtualEntityDetectionOrder() { return compatibilityConfig.getVirtualEntityDetectionOrder(); }
 
-    private void loadPathfindingAndCollisionConfigs() {
-        asyncPathfindingCacheEnabled = config.getBoolean("async-ai.async-pathfinding.cache.enabled", true);
-        asyncPathfindingCacheMaxSize = config.getInt("async-ai.async-pathfinding.cache.max-size", 1000);
-        asyncPathfindingCacheExpireSeconds = config.getInt("async-ai.async-pathfinding.cache.expire-seconds", 30);
-        asyncPathfindingCacheReuseTolerance = config.getInt("async-ai.async-pathfinding.cache.reuse-tolerance", 3);
-        asyncPathfindingCacheCleanupIntervalSeconds = config.getInt("async-ai.async-pathfinding.cache.cleanup-interval-seconds", 5);
+    public int getLightingThreadPoolSize() { return lightingConfig.getLightingThreadPoolSize(); }
+    public String getLightingThreadPoolMode() { return lightingConfig.getLightingThreadPoolMode(); }
+    public String getLightingThreadPoolCalculation() { return lightingConfig.getLightingThreadPoolCalculation(); }
+    public int getLightingMinThreads() { return lightingConfig.getLightingMinThreads(); }
+    public int getLightingMaxThreads() { return lightingConfig.getLightingMaxThreads(); }
+    public int getLightingBatchThresholdMax() { return lightingConfig.getLightingBatchThresholdMax(); }
+    public boolean isLightingAggressiveBatching() { return lightingConfig.isLightingAggressiveBatching(); }
 
-        collisionOptimizationEnabled = config.getBoolean("collision-optimization.enabled", true);
-        collisionAggressiveMode = config.getBoolean("collision-optimization.aggressive-mode", true);
-        collisionExclusionListFile = config.getString("collision-optimization.exclusion-list-file", "entities.yml");
-        collisionExcludedEntities = loadEntitiesFromFile(collisionExclusionListFile, "collision-optimization-excluded-entities");
+    public boolean isLightingPrioritySchedulingEnabled() { return lightingConfig.isLightingPrioritySchedulingEnabled(); }
+    public int getLightingHighPriorityRadius() { return lightingConfig.getLightingHighPriorityRadius(); }
+    public int getLightingMediumPriorityRadius() { return lightingConfig.getLightingMediumPriorityRadius(); }
+    public int getLightingLowPriorityRadius() { return lightingConfig.getLightingLowPriorityRadius(); }
+    public long getLightingMaxLowPriorityDelay() { return lightingConfig.getLightingMaxLowPriorityDelay(); }
 
-        nativeCollisionsEnabled = config.getBoolean("collision-optimization.native.enabled", true);
-        nativeCollisionsFallbackEnabled = config.getBoolean("collision-optimization.native.fallback-enabled", true);
+    public boolean isLightingDebouncingEnabled() { return lightingConfig.isLightingDebouncingEnabled(); }
+    public long getLightingDebounceDelay() { return lightingConfig.getLightingDebounceDelay(); }
+    public int getLightingMaxUpdatesPerSecond() { return lightingConfig.getLightingMaxUpdatesPerSecond(); }
+    public long getLightingResetOnStableMs() { return lightingConfig.getLightingResetOnStableMs(); }
 
-        collisionBlockCacheEnabled = config.getBoolean("collision-optimization.block-cache.enabled", true);
-        collisionBlockCacheSize = config.getInt("collision-optimization.block-cache.cache-size", 512);
-        collisionBlockCacheExpireTicks = config.getInt("collision-optimization.block-cache.expire-ticks", 600);
+    public boolean isLightingMergingEnabled() { return lightingConfig.isLightingMergingEnabled(); }
+    public int getLightingMergeRadius() { return lightingConfig.getLightingMergeRadius(); }
+    public long getLightingMergeDelay() { return lightingConfig.getLightingMergeDelay(); }
+    public int getLightingMaxMergedUpdates() { return lightingConfig.getLightingMaxMergedUpdates(); }
 
-        rayCollisionEnabled = config.getBoolean("collision-optimization.ray-collision.enabled", true);
-        rayCollisionMaxDistance = config.getDouble("collision-optimization.ray-collision.max-distance", 64.0);
-        shapeOptimizationEnabled = config.getBoolean("collision-optimization.shape-optimization.enabled", true);
-        shapePrecomputeArrays = config.getBoolean("collision-optimization.shape-optimization.precompute-arrays", true);
-        shapeBlockShapeCache = config.getBoolean("collision-optimization.shape-optimization.block-shape-cache", true);
-        shapeBlockShapeCacheSize = config.getInt("collision-optimization.shape-optimization.cache-size", 512);
-        tntCacheEnabled = config.getBoolean("tnt-explosion-optimization.cache.enabled", true);
-        tntUseOptimizedCache = config.getBoolean("tnt-explosion-optimization.cache.use-optimized-cache", true);
-        tntCacheExpiryTicks = config.getInt("tnt-explosion-optimization.cache.cache-expiry-ticks", 600);
-        tntCacheWarmupEnabled = config.getBoolean("tnt-explosion-optimization.cache.warmup-enabled", false);
-        tntPrecomputedShapeEnabled = config.getBoolean("tnt-explosion-optimization.precomputed-shape.enabled", true);
-        tntUseOcclusionDetection = config.getBoolean("tnt-explosion-optimization.precomputed-shape.use-occlusion-detection", true);
-        tntOcclusionThreshold = config.getDouble("tnt-explosion-optimization.precomputed-shape.occlusion-threshold", 0.5);
-        tntBatchCollisionEnabled = config.getBoolean("tnt-explosion-optimization.batch-collision.enabled", true);
-        tntBatchUnrollFactor = config.getInt("tnt-explosion-optimization.batch-collision.unroll-factor", 4);
-    }
+    public boolean isLightingChunkBorderEnabled() { return lightingConfig.isLightingChunkBorderEnabled(); }
+    public boolean isLightingBatchBorderUpdates() { return lightingConfig.isLightingBatchBorderUpdates(); }
+    public long getLightingBorderUpdateDelay() { return lightingConfig.getLightingBorderUpdateDelay(); }
+    public int getLightingCrossChunkBatchSize() { return lightingConfig.getLightingCrossChunkBatchSize(); }
 
-    public int getLightingThreadPoolSize() { return lightingThreadPoolSize; }
-    public String getLightingThreadPoolMode() { return lightingThreadPoolMode; }
-    public String getLightingThreadPoolCalculation() { return lightingThreadPoolCalculation; }
-    public int getLightingMinThreads() { return lightingMinThreads; }
-    public int getLightingMaxThreads() { return lightingMaxThreads; }
-    public int getLightingBatchThresholdMax() { return lightingBatchThresholdMax; }
-    public boolean isLightingAggressiveBatching() { return lightingAggressiveBatching; }
+    public boolean isLightingAdaptiveEnabled() { return lightingConfig.isLightingAdaptiveEnabled(); }
+    public int getLightingMonitorInterval() { return lightingConfig.getLightingMonitorInterval(); }
+    public boolean isLightingAutoAdjustThreads() { return lightingConfig.isLightingAutoAdjustThreads(); }
+    public boolean isLightingAutoAdjustBatchSize() { return lightingConfig.isLightingAutoAdjustBatchSize(); }
+    public int getLightingTargetQueueSize() { return lightingConfig.getLightingTargetQueueSize(); }
+    public int getLightingTargetLatency() { return lightingConfig.getLightingTargetLatency(); }
 
-    public boolean isLightingPrioritySchedulingEnabled() { return lightingPrioritySchedulingEnabled; }
-    public int getLightingHighPriorityRadius() { return lightingHighPriorityRadius; }
-    public int getLightingMediumPriorityRadius() { return lightingMediumPriorityRadius; }
-    public int getLightingLowPriorityRadius() { return lightingLowPriorityRadius; }
-    public long getLightingMaxLowPriorityDelay() { return lightingMaxLowPriorityDelay; }
+    public boolean isLightingChunkUnloadEnabled() { return lightingConfig.isLightingChunkUnloadEnabled(); }
+    public boolean isLightingAsyncCleanup() { return lightingConfig.isLightingAsyncCleanup(); }
+    public int getLightingCleanupBatchSize() { return lightingConfig.getLightingCleanupBatchSize(); }
+    public long getLightingCleanupDelay() { return lightingConfig.getLightingCleanupDelay(); }
 
-    public boolean isLightingDebouncingEnabled() { return lightingDebouncingEnabled; }
-    public long getLightingDebounceDelay() { return lightingDebounceDelay; }
-    public int getLightingMaxUpdatesPerSecond() { return lightingMaxUpdatesPerSecond; }
-    public long getLightingResetOnStableMs() { return lightingResetOnStableMs; }
+    public boolean isJigsawOptimizationEnabled() { return chunkConfig.isJigsawOptimizationEnabled(); }
 
-    public boolean isLightingMergingEnabled() { return lightingMergingEnabled; }
-    public int getLightingMergeRadius() { return lightingMergeRadius; }
-    public long getLightingMergeDelay() { return lightingMergeDelay; }
-    public int getLightingMaxMergedUpdates() { return lightingMaxMergedUpdates; }
+    public boolean isMultiNettyEventLoopEnabled() { return performanceConfig.isMultiNettyEventLoopEnabled(); }
+    public boolean isPalettedContainerLockRemovalEnabled() { return performanceConfig.isPalettedContainerLockRemovalEnabled(); }
+    public boolean isSpawnDensityArrayEnabled() { return performanceConfig.isSpawnDensityArrayEnabled(); }
+    public boolean isTypeFilterableListOptimizationEnabled() { return performanceConfig.isTypeFilterableListOptimizationEnabled(); }
+    public boolean isEntityTrackerLinkedHashMapEnabled() { return performanceConfig.isEntityTrackerLinkedHashMapEnabled(); }
+    public boolean isBiomeAccessOptimizationEnabled() { return performanceConfig.isBiomeAccessOptimizationEnabled(); }
+    public boolean isEntityMoveZeroVelocityOptimizationEnabled() { return performanceConfig.isEntityMoveZeroVelocityOptimizationEnabled(); }
+    public boolean isEntityTrackerDistanceCacheEnabled() { return performanceConfig.isEntityTrackerDistanceCacheEnabled(); }
+    public boolean isVirtualThreadEnabled() { return performanceConfig.isVirtualThreadEnabled(); }
+    public boolean isWorkStealingEnabled() { return performanceConfig.isWorkStealingEnabled(); }
 
-    public boolean isLightingChunkBorderEnabled() { return lightingChunkBorderEnabled; }
-    public boolean isLightingBatchBorderUpdates() { return lightingBatchBorderUpdates; }
-    public long getLightingBorderUpdateDelay() { return lightingBorderUpdateDelay; }
-    public int getLightingCrossChunkBatchSize() { return lightingCrossChunkBatchSize; }
+    public String getLanguage() { return miscConfig.getLanguage(); }
 
-    public boolean isLightingAdaptiveEnabled() { return lightingAdaptiveEnabled; }
-    public int getLightingMonitorInterval() { return lightingMonitorInterval; }
-    public boolean isLightingAutoAdjustThreads() { return lightingAutoAdjustThreads; }
-    public boolean isLightingAutoAdjustBatchSize() { return lightingAutoAdjustBatchSize; }
-    public int getLightingTargetQueueSize() { return lightingTargetQueueSize; }
-    public int getLightingTargetLatency() { return lightingTargetLatency; }
-
-    public boolean isLightingChunkUnloadEnabled() { return lightingChunkUnloadEnabled; }
-    public boolean isLightingAsyncCleanup() { return lightingAsyncCleanup; }
-    public int getLightingCleanupBatchSize() { return lightingCleanupBatchSize; }
-    public long getLightingCleanupDelay() { return lightingCleanupDelay; }
-
-    public boolean isJigsawOptimizationEnabled() { return jigsawOptimizationEnabled; }
-
-    public boolean isMultiNettyEventLoopEnabled() {
-        return config.getBoolean("advanced-optimizations.multi-netty-event-loop", true);
-    }
-
-    public boolean isPalettedContainerLockRemovalEnabled() {
-        return config.getBoolean("advanced-optimizations.paletted-container-lock-removal", true);
-    }
-
-    public boolean isSpawnDensityArrayEnabled() {
-        return config.getBoolean("advanced-optimizations.spawn-density-array", true);
-    }
-
-    public boolean isTypeFilterableListOptimizationEnabled() {
-        return config.getBoolean("advanced-optimizations.type-filterable-list", true);
-    }
-
-    public boolean isEntityTrackerLinkedHashMapEnabled() {
-        return config.getBoolean("advanced-optimizations.entity-tracker-linked-hashmap", true);
-    }
-
-    public boolean isBiomeAccessOptimizationEnabled() {
-        return config.getBoolean("advanced-optimizations.biome-access-optimization", true);
-    }
-
-    public boolean isEntityMoveZeroVelocityOptimizationEnabled() {
-        return config.getBoolean("advanced-optimizations.entity-move-zero-velocity", true);
-    }
-
-    public boolean isEntityTrackerDistanceCacheEnabled() {
-        return config.getBoolean("advanced-optimizations.entity-tracker-distance-cache", true);
-    }
-
-    public boolean isVirtualThreadEnabled() {
-        return config.getBoolean("advanced-optimizations.virtual-threads", true);
-    }
-
-    public boolean isWorkStealingEnabled() {
-        return config.getBoolean("advanced-optimizations.work-stealing", true);
-    }
+    public NetworkConfig network() { return networkConfig; }
+    public EntityConfig entity() { return entityConfig; }
+    public AIConfig ai() { return aiConfig; }
+    public LightingConfig lighting() { return lightingConfig; }
+    public ChunkConfig chunk() { return chunkConfig; }
+    public TNTConfig tnt() { return tntConfig; }
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Config sections are intentionally shared and immutable after load")
+    public CollisionConfig collision() { return collisionConfig; }
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Config sections are intentionally shared and immutable after load")
+    public PerformanceConfig performance() { return performanceConfig; }
+    public CompatibilityConfig compatibility() { return compatibilityConfig; }
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Config sections are intentionally shared and immutable after load")
+    public MiscConfig misc() { return miscConfig; }
 }

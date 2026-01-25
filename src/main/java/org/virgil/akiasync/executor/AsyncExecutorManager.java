@@ -221,32 +221,18 @@ public class AsyncExecutorManager {
             int minThreads = plugin.getConfigManager().getLightingMinThreads();
             int maxThreads = plugin.getConfigManager().getLightingMaxThreads();
 
+            ThreadCalculationStrategy strategy = ThreadCalculationStrategy.fromConfig(formula);
             int calculated;
 
-            switch (formula.toLowerCase(Locale.ROOT)) {
-                case "cores/3":
-
-                    calculated = Math.max(1, cores / 3);
-                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/3 = " + cores + "/3 = " + calculated);
-                    break;
-
-                case "cores/2":
-
-                    calculated = Math.max(1, cores / 2);
-                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/2 = " + cores + "/2 = " + calculated);
-                    break;
-
-                case "cores/4":
-
-                    calculated = Math.max(1, cores / 4);
-                    plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/4 = " + cores + "/4 = " + calculated);
-                    break;
-
-                default:
-
-                    calculated = 2;
-                    plugin.getLogger().warning("[AkiAsync] Unknown lighting thread formula '" + formula + "', using default: 2");
-                    break;
+            if (strategy != null) {
+                calculated = strategy.calculate(cores);
+                plugin.getLogger().info("[AkiAsync] Lighting threads (auto): " + strategy.getConfigValue() + 
+                    " = " + cores + " -> " + calculated);
+            } else {
+                strategy = ThreadCalculationStrategy.getDefault();
+                calculated = strategy.calculate(cores);
+                plugin.getLogger().warning("[AkiAsync] Unknown lighting thread formula '" + formula + 
+                    "', using default: " + strategy.getConfigValue() + " = " + calculated);
             }
 
             int finalThreads = Math.max(minThreads, Math.min(maxThreads, calculated));

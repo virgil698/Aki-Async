@@ -18,7 +18,7 @@ public class ConfigReloadListener implements Listener {
     @EventHandler
     public void onConfigReload(ConfigReloadEvent event) {
         plugin.getLogger().info("[AkiAsync] Configuration reload event received, starting hot-reload...");
-        plugin.getLogger().info("[AkiAsync] Using optimized reload strategy (C3H6N6O6-inspired)");
+        plugin.getLogger().info("[AkiAsync] Using optimized reload strategy");
 
         plugin.getExecutorManager().getExecutorService().execute(() -> {
             performReload();
@@ -31,6 +31,7 @@ public class ConfigReloadListener implements Listener {
         try {
             plugin.getLogger().info("[AkiAsync] Phase 1: Reloading configuration and clearing caches...");
             plugin.getConfigManager().reload();
+            plugin.getLanguageManager().reload();
             plugin.getCacheManager().invalidateAll();
 
             if (plugin.getBridge() != null) {

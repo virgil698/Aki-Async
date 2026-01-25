@@ -4,6 +4,12 @@
 # 配置版本 / Configuration version
 version: 20
 
+# 语言设置 / Language Setting
+# 可选值 / Available options: zh_CN (中文), en_US (English)
+# 语言文件位于 plugins/AkiAsync/language/ 目录
+# Language files are located in plugins/AkiAsync/language/ directory
+language: zh_CN
+
 # ==========================================
 # 统一线程池配置 / Unified Thread Pool Configuration
 # ==========================================
@@ -798,7 +804,6 @@ seed-encryption:
   
   # /seed 命令权限控制 / /seed Command Permission Control
   restrict-seed-command: true  # 限制/seed命令仅OP可用 / Restrict /seed to OPs only (权限等级4 / permission level 4)
-  seed-command-deny-message: "&c你没有权限使用此命令。只有服务器管理员可以查看世界种子。"  # 拒绝消息 / Deny message
   
   # 防插件窃取种子 / Anti-Plugin Seed Theft
   # 防止恶意插件窃取世界种子

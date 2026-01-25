@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.language.LanguageManager;
 import org.virgil.akiasync.network.NetworkTrafficMonitor;
 
 import io.papermc.paper.command.brigadier.BasicCommand;
@@ -20,15 +21,19 @@ public class NetworkCommand implements BasicCommand {
         this.plugin = plugin;
     }
 
+    private LanguageManager lang() {
+        return plugin.getLanguageManager();
+    }
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (!(source.getSender() instanceof Player player)) {
-            source.getSender().sendMessage("[AkiAsync] This command can only be executed by players");
+            source.getSender().sendMessage(lang().prefixed("common.player-only"));
             return;
         }
 
         if (args.length != 1) {
-            source.getSender().sendMessage("[AkiAsync] Usage: /aki-network <true|false>");
+            source.getSender().sendMessage(lang().prefixed("command.network.usage"));
             return;
         }
 
@@ -40,7 +45,7 @@ public class NetworkCommand implements BasicCommand {
         } else if (arg.equals("false") || arg.equals("off") || arg.equals("disable")) {
             enable = false;
         } else {
-            source.getSender().sendMessage("[AkiAsync] Invalid argument. Use 'true' or 'false'");
+            source.getSender().sendMessage(lang().prefixed("command.network.invalid-arg"));
             return;
         }
 
@@ -48,17 +53,17 @@ public class NetworkCommand implements BasicCommand {
 
         if (enable) {
             if (monitor.isViewing(player)) {
-                player.sendMessage("[AkiAsync] Network monitor is already enabled");
+                player.sendMessage(lang().prefixed("command.network.already-enabled"));
             } else {
                 monitor.addViewer(player);
-                player.sendMessage("[AkiAsync] Network monitor enabled");
+                player.sendMessage(lang().prefixed("command.network.enabled"));
             }
         } else {
             if (!monitor.isViewing(player)) {
-                player.sendMessage("[AkiAsync] Network monitor is already disabled");
+                player.sendMessage(lang().prefixed("command.network.already-disabled"));
             } else {
                 monitor.removeViewer(player);
-                player.sendMessage("[AkiAsync] Network monitor disabled");
+                player.sendMessage(lang().prefixed("command.network.disabled"));
             }
         }
     }

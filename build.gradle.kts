@@ -117,6 +117,7 @@ val mixinSourceSet: SourceSet = sourceSets["mixin"]
 
 dependencies {
     implementation("org.bstats:bstats-bukkit:3.1.0")
+    compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.6")
 
     apply `plugin dependencies`@{
         compileOnly("com.viaversion:viaversion-api:5.1.1") {

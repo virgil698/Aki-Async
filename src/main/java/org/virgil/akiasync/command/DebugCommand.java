@@ -5,6 +5,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.event.ConfigReloadEvent;
+import org.virgil.akiasync.language.LanguageManager;
 
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -20,10 +21,14 @@ public class DebugCommand implements BasicCommand {
         this.plugin = plugin;
     }
 
+    private LanguageManager lang() {
+        return plugin.getLanguageManager();
+    }
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (args.length != 1) {
-            source.getSender().sendMessage("[AkiAsync] Usage: /aki-debug <true|false>");
+            source.getSender().sendMessage(lang().prefixed("command.debug.usage"));
             return;
         }
         String arg = args[0].toLowerCase(Locale.ROOT);
@@ -33,16 +38,18 @@ public class DebugCommand implements BasicCommand {
         } else if (arg.equals("false") || arg.equals("off") || arg.equals("disable")) {
             enableDebug = false;
         } else {
-            source.getSender().sendMessage("[AkiAsync] Invalid argument. Use 'true' or 'false'");
+            source.getSender().sendMessage(lang().prefixed("command.debug.invalid-arg"));
             return;
         }
         try {
             plugin.getConfigManager().setDebugLoggingEnabled(enableDebug);
-            source.getSender().sendMessage("[AkiAsync] Debug logging " + (enableDebug ? "enabled" : "disabled") + " successfully!");
+            source.getSender().sendMessage(lang().prefixed(
+                enableDebug ? "command.debug.enabled" : "command.debug.disabled"
+            ));
             Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
-            source.getSender().sendMessage("[AkiAsync] Configuration reloaded to apply debug changes.");
+            source.getSender().sendMessage(lang().prefixed("command.debug.config-reloaded"));
         } catch (Exception e) {
-            source.getSender().sendMessage("[AkiAsync] Failed to toggle debug logging: " + e.getMessage());
+            source.getSender().sendMessage(lang().prefixed("command.debug.failed", "error", e.getMessage()));
             plugin.getLogger().severe("Error toggling debug logging: " + e.getMessage());
         }
     }

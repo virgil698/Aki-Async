@@ -1,0 +1,94 @@
+# AkiAsync English Language File
+# Supports MiniMessage format: https://docs.advntr.dev/minimessage/format.html
+# Placeholders use <placeholder_name> format
+
+# Common prefix
+prefix: "<gold>[AkiAsync]</gold> "
+
+# Common messages
+common:
+  enabled: "<green>Enabled</green>"
+  disabled: "<red>Disabled</red>"
+  on: "ON"
+  off: "OFF"
+  success: "<green>Success</green>"
+  failed: "<red>Failed</red>"
+  usage: "<yellow>Usage:</yellow> <value>"
+  invalid-argument: "<red>Invalid argument.</red>"
+  player-only: "<red>This command can only be executed by players</red>"
+  no-permission: "<red>You don't have permission to execute this command</red>"
+
+# Debug command
+command:
+  debug:
+    usage: "<yellow>Usage:</yellow> /aki-debug <true|false>"
+    invalid-arg: "<red>Invalid argument. Use 'true' or 'false'</red>"
+    enabled: "<green>Debug logging enabled successfully!</green>"
+    disabled: "<green>Debug logging disabled successfully!</green>"
+    config-reloaded: "<green>Configuration reloaded to apply debug changes.</green>"
+    failed: "<red>Failed to toggle debug logging:</red> <error>"
+
+# Reload command
+  reload:
+    success: "<green>Configuration hot-reloaded, thread pools smoothly restarted.</green>"
+    warning:
+      title: "<yellow><bold>⚠</bold></yellow> <red><bold>[AkiAsync] RELOAD WARNING</bold></red> <yellow><bold>⚠</bold></yellow>"
+      description: "<yellow>⚠</yellow> <gold>Reloading AkiAsync will:</gold>"
+      item-restart-pools: "  <gray>•</gray> <white>Restart all async thread pools</white>"
+      item-clear-cache: "  <gray>•</gray> <white>Clear all internal caches</white>"
+      item-reset-mixin: "  <gray>•</gray> <white>Reset all Mixin states</white>"
+      item-tps-spike: "  <gray>•</gray> <yellow>May cause temporary TPS spike</yellow>"
+      confirm: "<yellow>⚠</yellow> <gold>Execute the command again within </gold><red><bold><timeout> seconds</bold></red><gold> to confirm.</gold>"
+
+# Network command
+  network:
+    usage: "<yellow>Usage:</yellow> /aki-network <true|false>"
+    invalid-arg: "<red>Invalid argument. Use 'true' or 'false'</red>"
+    already-enabled: "<yellow>Network monitor is already enabled</yellow>"
+    already-disabled: "<yellow>Network monitor is already disabled</yellow>"
+    enabled: "<green>Network monitor enabled</green>"
+    disabled: "<green>Network monitor disabled</green>"
+
+# Version command
+  version:
+    header: "<gold>========================================</gold>"
+    plugin: "<gold>Plugin:</gold> <value>"
+    version: "<gold>Version:</gold> <value>"
+    authors: "<gold>Authors:</gold> <value>"
+    config-version: "<gold>Config Version:</gold> <value>"
+    server: "<gold>Server:</gold> <value>"
+    minecraft: "<gold>Minecraft:</gold> <value>"
+    java: "<gold>Java:</gold> <value>"
+    os: "<gold>OS:</gold> <value>"
+    active-optimizations: "<gold>Active Optimizations:</gold>"
+    optimization-item: "  <gray><name>:</gray> <status>"
+
+# Packets command
+  packets:
+    usage:
+      title: "<yellow>Packet Inspector Usage:</yellow>"
+      start: "  <aqua>/aki-packets start</aqua> <gray>- Start tracking</gray>"
+      stop: "  <aqua>/aki-packets stop</aqua> <gray>- Stop tracking</gray>"
+      report: "  <aqua>/aki-packets report [count]</aqua> <gray>- View report</gray>"
+      reset: "  <aqua>/aki-packets reset</aqua> <gray>- Reset statistics</gray>"
+    bridge-not-initialized: "<red>Bridge not initialized</red>"
+    already-running: "<yellow>Packet statistics is already running</yellow>"
+    not-running: "<yellow>Packet statistics is not running</yellow>"
+    started: "<green>Packet statistics started, use </green><aqua>/aki-packets report</aqua><green> to view report</green>"
+    stopped: "<green>Packet statistics stopped</green>"
+    reset: "<green>Packet statistics reset</green>"
+    report:
+      header: "<gold>═══════ </gold><yellow><bold>Packet Statistics Report</bold></yellow><gold> ═══════</gold>"
+      duration: "<gray>Duration:</gray> <white><seconds> seconds</white>"
+      status-running: "<green>Running</green>"
+      status-stopped: "<red>Stopped</red>"
+      total: "<gray>Total:</gray> <red>↑ <out></red> <gray>sent |</gray> <green>↓ <in></green> <gray>received</gray>"
+      outgoing-title: "<red><bold>▼ Outgoing Packets TOP <limit></bold></red> <gray>(may cause client lag)</gray>"
+      incoming-title: "<green><bold>▼ Incoming Packets TOP <limit></bold></green> <gray>(may cause server lag)</gray>"
+      no-data: "  <gray>No data available</gray>"
+      packet-name: "  <gray><rank>.</gray> <aqua><name></aqua>"
+      packet-stats: "     <white><count></white> <gray>times (</gray><percent><gray>) |</gray> <yellow><rate>/s</yellow>"
+
+# Seed protection messages
+seed:
+  command-denied: "<red>You don't have permission to use this command. Only server operators can view the world seed.</red>"

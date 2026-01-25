@@ -1,8 +1,6 @@
 package org.virgil.akiasync.command;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,6 +8,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.event.ConfigReloadEvent;
+import org.virgil.akiasync.language.LanguageManager;
 
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -25,6 +24,10 @@ public class ReloadCommand implements BasicCommand {
 
     public ReloadCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    private LanguageManager lang() {
+        return plugin.getLanguageManager();
     }
 
     @Override
@@ -58,31 +61,20 @@ public class ReloadCommand implements BasicCommand {
 
     private void performReload(CommandSender sender) {
         Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
-        sender.sendMessage(Component.text("[AkiAsync] ", NamedTextColor.GOLD)
-            .append(Component.text("Configuration hot-reloaded, thread pools smoothly restarted.", NamedTextColor.GREEN)));
+        sender.sendMessage(lang().prefixed("command.reload.success"));
     }
 
     private void sendWarningMessage(CommandSender sender, int timeoutSeconds) {
         sender.sendMessage(Component.empty());
-        sender.sendMessage(Component.text("⚠ ", NamedTextColor.YELLOW, TextDecoration.BOLD)
-            .append(Component.text("[AkiAsync] RELOAD WARNING", NamedTextColor.RED, TextDecoration.BOLD))
-            .append(Component.text(" ⚠", NamedTextColor.YELLOW, TextDecoration.BOLD)));
+        sender.sendMessage(lang().get("command.reload.warning.title"));
         sender.sendMessage(Component.empty());
-        sender.sendMessage(Component.text("⚠ ", NamedTextColor.YELLOW)
-            .append(Component.text("Reloading AkiAsync will:", NamedTextColor.GOLD)));
-        sender.sendMessage(Component.text("  • ", NamedTextColor.GRAY)
-            .append(Component.text("Restart all async thread pools", NamedTextColor.WHITE)));
-        sender.sendMessage(Component.text("  • ", NamedTextColor.GRAY)
-            .append(Component.text("Clear all internal caches", NamedTextColor.WHITE)));
-        sender.sendMessage(Component.text("  • ", NamedTextColor.GRAY)
-            .append(Component.text("Reset all Mixin states", NamedTextColor.WHITE)));
-        sender.sendMessage(Component.text("  • ", NamedTextColor.GRAY)
-            .append(Component.text("May cause temporary TPS spike", NamedTextColor.YELLOW)));
+        sender.sendMessage(lang().get("command.reload.warning.description"));
+        sender.sendMessage(lang().get("command.reload.warning.item-restart-pools"));
+        sender.sendMessage(lang().get("command.reload.warning.item-clear-cache"));
+        sender.sendMessage(lang().get("command.reload.warning.item-reset-mixin"));
+        sender.sendMessage(lang().get("command.reload.warning.item-tps-spike"));
         sender.sendMessage(Component.empty());
-        sender.sendMessage(Component.text("⚠ ", NamedTextColor.YELLOW)
-            .append(Component.text("Execute the command again within ", NamedTextColor.GOLD))
-            .append(Component.text(timeoutSeconds + " seconds", NamedTextColor.RED, TextDecoration.BOLD))
-            .append(Component.text(" to confirm.", NamedTextColor.GOLD)));
+        sender.sendMessage(lang().get("command.reload.warning.confirm", "timeout", String.valueOf(timeoutSeconds)));
         sender.sendMessage(Component.empty());
     }
 

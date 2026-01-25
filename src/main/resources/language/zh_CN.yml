@@ -1,0 +1,94 @@
+# AkiAsync 中文语言文件
+# 支持 MiniMessage 格式: https://docs.advntr.dev/minimessage/format.html
+# 占位符使用 <placeholder_name> 格式
+
+# 通用前缀
+prefix: "<gold>[AkiAsync]</gold> "
+
+# 通用消息
+common:
+  enabled: "<green>已启用</green>"
+  disabled: "<red>已禁用</red>"
+  on: "开启"
+  off: "关闭"
+  success: "<green>成功</green>"
+  failed: "<red>失败</red>"
+  usage: "<yellow>用法:</yellow> <value>"
+  invalid-argument: "<red>无效参数。</red>"
+  player-only: "<red>此命令只能由玩家执行</red>"
+  no-permission: "<red>你没有权限执行此命令</red>"
+
+# Debug 命令
+command:
+  debug:
+    usage: "<yellow>用法:</yellow> /aki-debug <true|false>"
+    invalid-arg: "<red>无效参数。请使用 'true' 或 'false'</red>"
+    enabled: "<green>调试日志已启用！</green>"
+    disabled: "<green>调试日志已禁用！</green>"
+    config-reloaded: "<green>配置已重载以应用调试更改。</green>"
+    failed: "<red>切换调试日志失败:</red> <error>"
+
+# Reload 命令
+  reload:
+    success: "<green>配置热重载完成，线程池平滑重启。</green>"
+    warning:
+      title: "<yellow><bold>⚠</bold></yellow> <red><bold>[AkiAsync] 重载警告</bold></red> <yellow><bold>⚠</bold></yellow>"
+      description: "<yellow>⚠</yellow> <gold>重载 AkiAsync 将会:</gold>"
+      item-restart-pools: "  <gray>•</gray> <white>重启所有异步线程池</white>"
+      item-clear-cache: "  <gray>•</gray> <white>清空所有内部缓存</white>"
+      item-reset-mixin: "  <gray>•</gray> <white>重置所有 Mixin 状态</white>"
+      item-tps-spike: "  <gray>•</gray> <yellow>可能导致短暂的 TPS 波动</yellow>"
+      confirm: "<yellow>⚠</yellow> <gold>在 </gold><red><bold><timeout> 秒</bold></red><gold> 内再次执行命令以确认。</gold>"
+
+# Network 命令
+  network:
+    usage: "<yellow>用法:</yellow> /aki-network <true|false>"
+    invalid-arg: "<red>无效参数。请使用 'true' 或 'false'</red>"
+    already-enabled: "<yellow>网络监控已经启用</yellow>"
+    already-disabled: "<yellow>网络监控已经禁用</yellow>"
+    enabled: "<green>网络监控已启用</green>"
+    disabled: "<green>网络监控已禁用</green>"
+
+# Version 命令
+  version:
+    header: "<gold>========================================</gold>"
+    plugin: "<gold>插件:</gold> <value>"
+    version: "<gold>版本:</gold> <value>"
+    authors: "<gold>作者:</gold> <value>"
+    config-version: "<gold>配置版本:</gold> <value>"
+    server: "<gold>服务器:</gold> <value>"
+    minecraft: "<gold>Minecraft:</gold> <value>"
+    java: "<gold>Java:</gold> <value>"
+    os: "<gold>操作系统:</gold> <value>"
+    active-optimizations: "<gold>已启用的优化:</gold>"
+    optimization-item: "  <gray><name>:</gray> <status>"
+
+# Packets 命令
+  packets:
+    usage:
+      title: "<yellow>发包检查器用法:</yellow>"
+      start: "  <aqua>/aki-packets start</aqua> <gray>- 开始统计</gray>"
+      stop: "  <aqua>/aki-packets stop</aqua> <gray>- 停止统计</gray>"
+      report: "  <aqua>/aki-packets report [数量]</aqua> <gray>- 查看报告</gray>"
+      reset: "  <aqua>/aki-packets reset</aqua> <gray>- 重置统计</gray>"
+    bridge-not-initialized: "<red>Bridge 未初始化</red>"
+    already-running: "<yellow>发包统计已在运行中</yellow>"
+    not-running: "<yellow>发包统计未在运行</yellow>"
+    started: "<green>发包统计已启动，使用 </green><aqua>/aki-packets report</aqua><green> 查看报告</green>"
+    stopped: "<green>发包统计已停止</green>"
+    reset: "<green>发包统计已重置</green>"
+    report:
+      header: "<gold>═══════ </gold><yellow><bold>发包统计报告</bold></yellow><gold> ═══════</gold>"
+      duration: "<gray>统计时长:</gray> <white><seconds> 秒</white>"
+      status-running: "<green>运行中</green>"
+      status-stopped: "<red>已停止</red>"
+      total: "<gray>总计:</gray> <red>↑ <out></red> <gray>发送 |</gray> <green>↓ <in></green> <gray>接收</gray>"
+      outgoing-title: "<red><bold>▼ 发送包 TOP <limit></bold></red> <gray>(可能导致客户端卡顿)</gray>"
+      incoming-title: "<green><bold>▼ 接收包 TOP <limit></bold></green> <gray>(可能导致服务端卡顿)</gray>"
+      no-data: "  <gray>暂无数据</gray>"
+      packet-name: "  <gray><rank>.</gray> <aqua><name></aqua>"
+      packet-stats: "     <white><count></white> <gray>次 (</gray><percent><gray>) |</gray> <yellow><rate>/s</yellow>"
+
+# 种子保护消息
+seed:
+  command-denied: "<red>你没有权限使用此命令。只有服务器管理员可以查看世界种子。</red>"
