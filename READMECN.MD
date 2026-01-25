@@ -56,9 +56,9 @@
 
 | 组件 | 要求 |
 |------|------|
-| **服务端** | [Leaves](https://github.com/LeavesMC/Leaves) 或 [Luminol](https://github.com/LuminolMC/Luminol) 以及其分支 |
+| **服务端** | [Leaves](https://github.com/LeavesMC/Leaves) 或 [Luminol](https://github.com/LuminolMC/Luminol) 以及其分支（已测试核心：Leaves、Luminol、LightingLuminol、Lophine、Mint） |
 | **服务端版本** | 1.21.8+（已测试版本：1.21.8、1.21.10、1.21.11） |
-| **JDK** | Java 21+（已测试：Java 21、Java 25） |
+| **JDK** | Java 21+（已测试环境：Java 21、Java 25） |
 | **内存** | 推荐 6GB+ |
 | **CPU** | 推荐 4核心+（虽多线程优化，但依旧以单核性能为主）|
 

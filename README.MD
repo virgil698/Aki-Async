@@ -56,7 +56,7 @@ English | [简体中文](READMECN.MD)
 
 | Component | Requirement |
 |-----------|-------------|
-| **Server** | [Leaves](https://github.com/LeavesMC/Leaves) or [Luminol](https://github.com/LuminolMC/Luminol) and their forks |
+| **Server** | [Leaves](https://github.com/LeavesMC/Leaves) or [Luminol](https://github.com/LuminolMC/Luminol) and their forks (Tested: Leaves, Luminol, LightingLuminol, Lophine, Mint) |
 | **Server Version** | 1.21.8+ (Tested: 1.21.8, 1.21.10, 1.21.11) |
 | **JDK** | Java 21+ (Tested: Java21, Java 25) |
 | **Memory** | Recommended 6GB+ |
