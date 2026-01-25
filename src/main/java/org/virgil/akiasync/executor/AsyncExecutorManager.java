@@ -16,10 +16,10 @@ import org.virgil.akiasync.util.resource.ExecutorLifecycleManager;
 import org.virgil.akiasync.util.resource.ResourceTracker;
 
 public class AsyncExecutorManager {
-    
+
     private final AkiAsyncPlugin plugin;
-    private final ForkJoinPool executorService;  
-    private final ForkJoinPool lightingExecutor;  
+    private final ForkJoinPool executorService;
+    private final ForkJoinPool lightingExecutor;
     private final ExecutorService tntExecutor;
     private final ExecutorService chunkTickExecutor;
     private final ExecutorService villagerBreedExecutor;
@@ -36,7 +36,7 @@ public class AsyncExecutorManager {
         this.executorService = (ForkJoinPool) ResourceTracker.track(
             ExecutorLifecycleManager.createForkJoinPool("AkiAsync-Worker", threadPoolSize, true),
             "AkiAsync-Worker-ForkJoinPool");
-        
+
         this.lightingExecutor = (ForkJoinPool) ResourceTracker.track(
             ExecutorLifecycleManager.createForkJoinPool("AkiAsync-Lighting", lightingThreads, true),
             "AkiAsync-Lighting-ForkJoinPool");
@@ -51,7 +51,7 @@ public class AsyncExecutorManager {
             new FoliaExecutorAdapter(plugin, 4, "AkiAsync-VillagerBreed"),
             "AkiAsync-VillagerBreed-Executor");
         this.brainExecutor = ResourceTracker.track(
-            new FoliaExecutorAdapter(plugin, threadPoolSize / 2, "AkiAsync-Brain"),
+            new FoliaExecutorAdapter(plugin, threadPoolSize, "AkiAsync-Brain"),
             "AkiAsync-Brain-Executor");
 
         this.collisionExecutor = ResourceTracker.track(
@@ -66,13 +66,13 @@ public class AsyncExecutorManager {
                 return thread;
             }),
             "AkiAsync-Metrics-Executor");
-        
+
         plugin.getLogger().info("General executor initialized: ForkJoinPool with parallelism=" + threadPoolSize + " (work-stealing enabled)");
         plugin.getLogger().info("Lighting executor initialized: ForkJoinPool with parallelism=" + lightingThreads + " (work-stealing enabled)");
         plugin.getLogger().info("TNT executor initialized: " + tntThreads + " threads (Folia-compatible)");
         plugin.getLogger().info("ChunkTick executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
-        plugin.getLogger().info("Brain executor initialized: " + (threadPoolSize / 2) + " threads (Folia-compatible)");
+        plugin.getLogger().info("Brain executor initialized: " + threadPoolSize + " threads (Folia-compatible)");
         plugin.getLogger().info("Collision executor initialized: " + Math.max(2, threadPoolSize / 4) + " threads (Folia-compatible)");
         plugin.getLogger().info("All executors tracked by ResourceTracker for leak detection");
     }
@@ -88,7 +88,7 @@ public class AsyncExecutorManager {
     public void shutdown() {
         plugin.getLogger().info("Initiating graceful shutdown of async executors...");
         long startTime = System.currentTimeMillis();
-        
+
         plugin.getLogger().info("Phase 1: Stopping new task submissions...");
         metricsExecutor.shutdown();
         collisionExecutor.shutdown();
@@ -98,69 +98,69 @@ public class AsyncExecutorManager {
         tntExecutor.shutdown();
         lightingExecutor.shutdown();
         executorService.shutdown();
-        
+
         plugin.getLogger().info("Phase 2: Waiting for running tasks to complete...");
         int successCount = 0;
         int totalExecutors = 8;
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(metricsExecutor, 3, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("Metrics executor did not terminate gracefully, forcing shutdown");
             metricsExecutor.shutdownNow();
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(collisionExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("Collision executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(villagerBreedExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("VillagerBreed executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(brainExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("Brain executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(chunkTickExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("ChunkTick executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(tntExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("TNT executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(lightingExecutor, 10, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("Lighting executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         if (ExecutorLifecycleManager.shutdownGracefully(executorService, 15, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("General executor did not terminate gracefully, forcing shutdown");
         }
-        
+
         plugin.getLogger().info("Phase 3: Cleaning up resources...");
         java.util.List<String> unclosed = ResourceTracker.getUnclosedResources();
         if (!unclosed.isEmpty()) {
             plugin.getLogger().info("Cleaning up " + unclosed.size() + " remaining executor resources");
             ResourceTracker.closeAll();
         }
-        
+
         long elapsed = System.currentTimeMillis() - startTime;
-        plugin.getLogger().info("Shutdown completed: " + successCount + "/" + totalExecutors + 
+        plugin.getLogger().info("Shutdown completed: " + successCount + "/" + totalExecutors +
             " executors terminated gracefully in " + elapsed + "ms");
     }
     public ExecutorService getExecutorService() {
@@ -181,12 +181,12 @@ public class AsyncExecutorManager {
     public ExecutorService getBrainExecutor() {
         return brainExecutor;
     }
-    
+
     public ExecutorService getCollisionExecutor() {
         return collisionExecutor;
     }
     public String getStatistics() {
-        
+
         return String.format(
             "ForkJoinPool: Size=%d | Active=%d | Running=%d | Queued=%d | Steal=%d | Parallelism=%d",
             executorService.getPoolSize(),
@@ -202,63 +202,63 @@ public class AsyncExecutorManager {
     }
     public void restartSmooth() {
         plugin.getLogger().info("[AkiAsync] Starting smooth restart of async executors...");
-        
+
         int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
         int lightingThreads = calculateLightingThreads(plugin);
-        
+
         plugin.getLogger().warning("[AkiAsync] Smooth restart requires plugin reload to take effect");
         plugin.getLogger().warning("  - Desired general executor threads: " + threadPoolSize);
         plugin.getLogger().warning("  - Desired lighting executor threads: " + lightingThreads);
         plugin.getLogger().warning("  - Please use /reload or restart the server to apply new thread pool sizes");
     }
-    
+
     private static int calculateLightingThreads(AkiAsyncPlugin plugin) {
         String mode = plugin.getConfigManager().getLightingThreadPoolMode();
-        
+
         if ("auto".equalsIgnoreCase(mode)) {
             int cores = Runtime.getRuntime().availableProcessors();
             String formula = plugin.getConfigManager().getLightingThreadPoolCalculation();
             int minThreads = plugin.getConfigManager().getLightingMinThreads();
             int maxThreads = plugin.getConfigManager().getLightingMaxThreads();
-            
+
             int calculated;
-            
+
             switch (formula.toLowerCase(Locale.ROOT)) {
                 case "cores/3":
-                    
+
                     calculated = Math.max(1, cores / 3);
                     plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/3 = " + cores + "/3 = " + calculated);
                     break;
-                    
+
                 case "cores/2":
-                    
+
                     calculated = Math.max(1, cores / 2);
                     plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/2 = " + cores + "/2 = " + calculated);
                     break;
-                    
+
                 case "cores/4":
-                    
+
                     calculated = Math.max(1, cores / 4);
                     plugin.getLogger().info("[AkiAsync] Lighting threads (auto): cores/4 = " + cores + "/4 = " + calculated);
                     break;
-                    
+
                 default:
-                    
+
                     calculated = 2;
                     plugin.getLogger().warning("[AkiAsync] Unknown lighting thread formula '" + formula + "', using default: 2");
                     break;
             }
-            
+
             int finalThreads = Math.max(minThreads, Math.min(maxThreads, calculated));
-            
+
             if (finalThreads != calculated) {
-                plugin.getLogger().info("[AkiAsync] Lighting threads adjusted by limits: " + calculated + " -> " + finalThreads + 
+                plugin.getLogger().info("[AkiAsync] Lighting threads adjusted by limits: " + calculated + " -> " + finalThreads +
                     " (min=" + minThreads + ", max=" + maxThreads + ")");
             }
-            
+
             return finalThreads;
         } else {
-            
+
             int manualThreads = plugin.getConfigManager().getLightingThreadPoolSize();
             plugin.getLogger().info("[AkiAsync] Lighting threads (manual): " + manualThreads);
             return manualThreads;

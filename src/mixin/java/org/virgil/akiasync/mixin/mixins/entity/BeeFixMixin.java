@@ -37,11 +37,11 @@ public abstract class BeeFixMixin {
                 BlockPos hivePos = bee.getHivePos();
                 if (bee.distanceToSqr(Vec3.atCenterOf(hivePos)) < 64.0) {
                     if (level.getBlockEntity(hivePos) instanceof BeehiveBlockEntity hive) {
-                        
+
                         if (hive.getOccupantCount() >= 3) {
                             cir.setReturnValue(false);
                         }
-                        
+
                     }
                 }
             }
@@ -145,10 +145,10 @@ public abstract class BeeFixMixin {
             enabled = bridge.isBeeFixEnabled();
             bridge.debugLog("[AkiAsync] BeeFixMixin initialized: enabled=" + enabled);
             bridge.debugLog("[AkiAsync]   Fixed bugs: MC-168329, MC-190042, MC-206401, MC-229321, MC-234364, MC-248332, MC-255743");
-        
+
             initialized = true;
         } else {
-            enabled = false; 
+            enabled = false;
         }
     }
 }

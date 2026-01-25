@@ -120,7 +120,7 @@
     </Match>
     
     <Match>
-        <Class name="org.virgil.akiasync.mixin.mixins.entity.VillagerBreedAsyncMixin"/>
+        <Class name="org.virgil.akiasync.mixin.mixins.entity.parallel.VillagerBreedAsyncMixin"/>
         <Method name="aki$safeGetMemory"/>
         <Bug pattern="NP_OPTIONAL_RETURN_NULL"/>
     </Match>
@@ -171,6 +171,11 @@
     </Match>
     
     <Match>
+        <Class name="org.virgil.akiasync.mixin.util.ManhattanSearchOffsets"/>
+        <Bug pattern="MS_MUTABLE_ARRAY"/>
+    </Match>
+    
+    <Match>
         <Class name="org.virgil.akiasync.mixin.async.explosion.ExplosionCalculator"/>
         <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS"/>
     </Match>
@@ -178,6 +183,11 @@
     <Match>
         <Class name="~.*Mixin"/>
         <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin"/>
+        <Bug pattern="PA_PUBLIC_MUTABLE_OBJECT_ATTRIBUTE"/>
     </Match>
     
     <Match>
@@ -412,17 +422,99 @@
     </Match>
 
     <Match>
-        <Class name="org.virgil.akiasync.mixin.mixins.chunk.ChunkPosOptimizationMixin"/>
+        <Class name="org.virgil.akiasync.mixin.mixins.chunk.data.ChunkPosOptimizationMixin"/>
         <Bug pattern="EQ_CHECK_FOR_OPERAND_NOT_COMPATIBLE_WITH_THIS"/>
     </Match>
-    
+
     <Match>
-        <Class name="org.virgil.akiasync.mixin.mixins.chunk.ChunkPosOptimizationMixin"/>
+        <Class name="org.virgil.akiasync.mixin.mixins.chunk.data.ChunkPosOptimizationMixin"/>
         <Bug pattern="HE_EQUALS_USE_HASHCODE"/>
     </Match>
-    
+
     <Match>
-        <Class name="org.virgil.akiasync.mixin.mixins.worldgen.ImprovedNoiseOptimizationMixin"/>
+        <Class name="org.virgil.akiasync.mixin.mixins.worldgen.optimization.ImprovedNoiseOptimizationMixin"/>
         <Bug pattern="INT_VACUOUS_BIT_OPERATION"/>
     </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.util.PooledFeatureContext"/>
+        <Bug pattern="NP_NONNULL_PARAM_VIOLATION"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.util.PooledFeatureContext"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.util.PooledFeatureContext"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.UnifiedExplosionEngine"/>
+        <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.UnifiedExplosionEngine"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.UnifiedExplosionEngine"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.async.explosion.ByteVectorizedAABBIntersection"/>
+        <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS"/>
+    </Match>
+    
+    <Match>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.config.ConfigManager"/>
+        <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.mixins.ai.GoalBasedMobThrottleMixin"/>
+        <Bug pattern="NP_NONNULL_PARAM_VIOLATION"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Mixin"/>
+        <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.parallel.ParallelEntityProcessor"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.parallel.ParallelEntityProcessor"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.parallel.ParallelEntityProcessor"/>
+        <Bug pattern="LI_LAZY_INIT_STATIC"/>
+    </Match>
+    
+    <Match>
+        <Class name="org.virgil.akiasync.mixin.parallel.ParallelEntityProcessor"/>
+        <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="com.mojang.brigadier.Message"/>
+    </Match>
+    <Match>
+        <Class name="net.kyori.adventure.util.ComponentMessageThrowable"/>
+    </Match>
+
 </FindBugsFilter>

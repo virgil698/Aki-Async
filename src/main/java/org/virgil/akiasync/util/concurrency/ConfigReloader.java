@@ -18,7 +18,7 @@ public final class ConfigReloader {
         if (listener == null) {
             throw new IllegalArgumentException("Listener cannot be null");
         }
-        
+
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
@@ -37,7 +37,7 @@ public final class ConfigReloader {
             try {
                 listener.onConfigReload(newConfig);
             } catch (Exception e) {
-                
+
                 System.err.println("[AkiAsync] Error notifying config reload listener: " + e.getMessage());
                 e.printStackTrace();
             }

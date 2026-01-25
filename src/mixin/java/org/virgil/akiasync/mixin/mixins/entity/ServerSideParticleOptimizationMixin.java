@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(Entity.class)
 public class ServerSideParticleOptimizationMixin {
-    
+
     @Redirect(
         method = "baseTick",
         at = @At(

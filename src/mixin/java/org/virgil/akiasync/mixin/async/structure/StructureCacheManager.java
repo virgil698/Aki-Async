@@ -188,14 +188,14 @@ public class StructureCacheManager {
         }
 
         int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
-        
+
         structureCache.entrySet().stream()
             .sorted((e1, e2) -> Long.compare(e1.getValue().timestamp, e2.getValue().timestamp))
             .limit(toRemove)
             .map(java.util.Map.Entry::getKey)
             .collect(Collectors.toList())
             .forEach(structureCache::remove);
-        
+
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isStructureLocationDebugEnabled()) {
             bridge.debugLog(String.format(
@@ -211,14 +211,14 @@ public class StructureCacheManager {
         }
 
         int toRemove = Math.max(1, (int)(maxCacheSize * 0.1));
-        
+
         negativeCache.entrySet().stream()
             .sorted((e1, e2) -> Long.compare(e1.getValue(), e2.getValue()))
             .limit(toRemove)
             .map(java.util.Map.Entry::getKey)
             .collect(Collectors.toList())
             .forEach(negativeCache::remove);
-        
+
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isStructureLocationDebugEnabled()) {
             bridge.debugLog(String.format(

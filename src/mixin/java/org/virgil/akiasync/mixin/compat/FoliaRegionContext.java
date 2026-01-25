@@ -45,19 +45,19 @@ public final class FoliaRegionContext {
 
             try {
                 regionizedServerClass = Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-                
+
                 try {
                     isOwnedByCurrentRegionEntityMethod = regionizedServerClass.getMethod(
                         "isOwnedByCurrentRegion", Entity.class);
                 } catch (NoSuchMethodException e) {
-                    
+
                 }
 
                 try {
                     isOwnedByCurrentRegionLocationMethod = regionizedServerClass.getMethod(
                         "isOwnedByCurrentRegion", Level.class, BlockPos.class);
                 } catch (NoSuchMethodException e) {
-                    
+
                 }
 
             } catch (Exception e) {

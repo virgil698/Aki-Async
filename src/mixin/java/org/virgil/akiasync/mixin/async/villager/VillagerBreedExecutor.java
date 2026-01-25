@@ -14,25 +14,25 @@ public class VillagerBreedExecutor {
     private static final Map<UUID, BlockPos> lastPositionCache = new ConcurrentHashMap<>();
     private static final int IDLE_THRESHOLD_TICKS = 20;
     private static volatile boolean initialized = false;
-    
+
     static {
-        
+
         initializeExecutor();
     }
-    
+
     private static synchronized void initializeExecutor() {
         if (initialized) return;
-        
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+        org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge != null) {
             executor = bridge.getVillagerBreedExecutor();
             if (bridge.isDebugLoggingEnabled()) {
                 bridge.debugLog("[AkiAsync] VillagerBreedExecutor using shared VillagerBreed Executor");
             }
         } else {
-            
+
             executor = Executors.newFixedThreadPool(4, r -> {
                 Thread t = new Thread(r, "AkiAsync-Villager-Breed-Fallback");
                 t.setDaemon(true);
@@ -40,7 +40,7 @@ public class VillagerBreedExecutor {
                 return t;
             });
         }
-        
+
         initialized = true;
     }
 
@@ -77,7 +77,7 @@ public class VillagerBreedExecutor {
             .filter(entry -> (currentTick - entry.getValue()) > IDLE_THRESHOLD_TICKS * 100)
             .map(java.util.Map.Entry::getKey)
             .collect(java.util.stream.Collectors.toSet());
-        
+
         oldVillagers.forEach(uuid -> {
             movementCache.remove(uuid);
             lastPositionCache.remove(uuid);
@@ -102,7 +102,7 @@ public class VillagerBreedExecutor {
 
         movementCache.clear();
         lastPositionCache.clear();
-        
+
         if (bridge != null) {
             executor = bridge.getVillagerBreedExecutor();
             bridge.debugLog("[AkiAsync-Debug] VillagerBreedExecutor restart completed");

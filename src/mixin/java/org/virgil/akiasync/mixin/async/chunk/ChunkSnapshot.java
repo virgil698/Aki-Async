@@ -39,7 +39,7 @@ public final class ChunkSnapshot {
     public Map<BlockPos, BlockState> getBlockStates() {
         return blockStates;
     }
-    
+
     public List<BlockPos> getTickingBlocks() {
         return tickingBlocks;
     }

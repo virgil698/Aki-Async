@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.19-SNAPSHOT"
+version = "3.2.20-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
@@ -73,32 +73,6 @@ repositories {
     maven("https://repo.viaversion.com") {
         name = "viaversion"
     }
-    exclusiveContent {
-        forRepository {
-            maven("https://jitpack.io") {
-                name = "jitpack"
-            }
-        }
-        filter {
-            includeGroup("com.github.angeschossen") // LandsAPI
-            includeGroup("com.github.Zrips")        // Residence
-            includeGroup("com.github.rutgerkok")    // BlockLocker
-        }
-    }
-    
-    exclusiveContent {
-        forRepository {
-            maven("https://maven.enginehub.org/repo/") {
-                name = "enginehub"
-            }
-        }
-        filter {
-            includeGroup("com.sk89q.worldguard")    // WorldGuard
-            includeGroup("com.sk89q.worldedit")
-        }
-    }
-    
-    // Virtual entity plugin repositories
     maven("https://repo.codemc.io/repository/maven-public/") {
         name = "codemc"
     }
@@ -145,21 +119,6 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
     apply `plugin dependencies`@{
-        compileOnly("com.github.Zrips:Residence:6.0.0.1") {
-            isTransitive = false
-        }
-        compileOnly("cn.lunadeer:DominionAPI:4.7.3") {
-            isTransitive = false
-        }
-        compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9") {
-            isTransitive = false
-        }
-        compileOnly("com.github.angeschossen:LandsAPI:6.28.11") {
-            isTransitive = false
-        }
-        compileOnly("com.github.rutgerkok:BlockLocker:1.13") {
-            isTransitive = false
-        }
         compileOnly("com.viaversion:viaversion-api:5.1.1") {
             isTransitive = false
         }
@@ -191,6 +150,15 @@ dependencies {
             compileOnly(libs.mixinCondition)
             compileOnly(libs.fastutil)
             compileOnly("com.mojang:datafixerupper:6.0.8")
+            compileOnly("org.jetbrains:annotations:24.1.0") {
+                isTransitive = false
+            }
+            compileOnly("org.slf4j:slf4j-api:2.0.9") {
+                isTransitive = false
+            }
+            compileOnly("org.apache.logging.log4j:log4j-api:2.20.0") {
+                isTransitive = false
+            }
             accessWiden(compileOnly(files(getMappedServerJar()))!!)
         }
     }

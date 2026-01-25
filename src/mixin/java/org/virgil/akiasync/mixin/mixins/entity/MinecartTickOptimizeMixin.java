@@ -11,64 +11,64 @@ import net.minecraft.world.phys.Vec3;
 
 @Mixin(AbstractMinecart.class)
 public class MinecartTickOptimizeMixin {
-    
+
     @Unique
     private static volatile boolean cached_enabled = false;
-    
+
     @Unique
     private static volatile boolean initialized = false;
-    
+
     @Unique
     private static volatile double cached_staticThreshold = 0.01;
-    
+
     @Unique
     private static volatile int cached_tickInterval = 2;
-    
+
     @Unique
     private Vec3 aki$lastPosition = Vec3.ZERO;
-    
+
     @Unique
     private int aki$staticTicks = 0;
-    
+
     @Unique
     private int aki$tickCounter = 0;
-    
+
     @Unique
     private long aki$lastBlockCheckTime = 0;
-    
+
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizeMinecartTick(CallbackInfo ci) {
         if (!initialized) {
             aki$initMinecartOptimization();
         }
-        
+
         if (!cached_enabled) {
             return;
         }
-        
+
         AbstractMinecart minecart = (AbstractMinecart) (Object) this;
         Vec3 currentPos = minecart.position();
         Vec3 deltaMovement = minecart.getDeltaMovement();
         if (deltaMovement == null) return;
-        
+
         net.minecraft.core.BlockPos blockPos = minecart.blockPosition();
         net.minecraft.world.level.block.state.BlockState blockState = minecart.level().getBlockState(blockPos);
         boolean onRail = blockState.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock;
-        
+
         long currentTime = minecart.level().getGameTime();
         if (currentTime - aki$lastBlockCheckTime > 20) {
             aki$lastBlockCheckTime = currentTime;
-            
+
             if (aki$staticTicks > 20) {
                 aki$staticTicks = Math.max(0, aki$staticTicks - 10);
             }
         }
-        
+
         boolean isStatic = false;
         if (aki$lastPosition != null) {
             double movement = currentPos.distanceTo(aki$lastPosition);
             double speed = deltaMovement.length();
-            
+
             if (movement < cached_staticThreshold && speed < cached_staticThreshold) {
                 aki$staticTicks++;
                 isStatic = true;
@@ -76,48 +76,48 @@ public class MinecartTickOptimizeMixin {
                 aki$staticTicks = 0;
             }
         }
-        
+
         aki$lastPosition = currentPos;
-        
+
         if (onRail && isStatic && aki$staticTicks > 40) {
             aki$tickCounter++;
-            
+
             if (aki$tickCounter % cached_tickInterval != 0) {
                 ci.cancel();
                 return;
             }
         }
-        
+
         else if (!onRail && isStatic && aki$staticTicks > 20) {
             aki$tickCounter++;
-            
+
             if (aki$tickCounter % (cached_tickInterval * 2) != 0) {
                 ci.cancel();
                 return;
             }
         }
-        
+
         if (minecart.getPassengers().isEmpty() && isStatic && aki$staticTicks > 100) {
-            
+
             if (aki$tickCounter % (cached_tickInterval * 5) != 0) {
                 ci.cancel();
             }
         }
     }
-    
+
     @Unique
     private static void aki$initMinecartOptimization() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge != null) {
             cached_enabled = bridge.isMinecartOptimizationEnabled();
             cached_tickInterval = bridge.getMinecartTickInterval();
             cached_staticThreshold = 0.01;
-            
-            bridge.debugLog("[AkiAsync] MinecartTickOptimizeMixin initialized: enabled=" + 
+
+            bridge.debugLog("[AkiAsync] MinecartTickOptimizeMixin initialized: enabled=" +
                 cached_enabled + " | interval=" + cached_tickInterval + " | threshold=" + cached_staticThreshold);
-        
+
             initialized = true;
         } else {
             cached_enabled = false;

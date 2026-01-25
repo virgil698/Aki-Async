@@ -19,7 +19,7 @@ public class DebugCommand implements BasicCommand {
     public DebugCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
-    
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (args.length != 1) {

@@ -10,29 +10,29 @@ import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 public class AsyncCollisionProcessor {
-    
+
     private static volatile ExecutorService collisionExecutor = null;
-    private static final int DEFAULT_TIMEOUT_MS = 5; 
-    
+    private static final int DEFAULT_TIMEOUT_MS = 5;
+
     public static void setExecutor(ExecutorService executor) {
         collisionExecutor = executor;
     }
-    
+
     public static int countNearbyEntitiesAsync(Entity entity, double radius) {
         if (collisionExecutor == null || collisionExecutor.isShutdown()) {
-            
+
             return countNearbyEntitiesSync(entity, radius);
         }
-        
+
         try {
-            Future<Integer> future = collisionExecutor.submit(() -> 
+            Future<Integer> future = collisionExecutor.submit(() ->
                 countNearbyEntitiesSync(entity, radius)
             );
-            
+
             return future.get(DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            
+
         } catch (TimeoutException e) {
-            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "countNearbyTimeout", 
+            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "countNearbyTimeout",
                 new Exception("Timeout after " + DEFAULT_TIMEOUT_MS + "ms"));
             return 0;
         } catch (Exception e) {
@@ -40,26 +40,26 @@ public class AsyncCollisionProcessor {
             return 0;
         }
     }
-    
+
     private static int countNearbyEntitiesSync(Entity entity, double radius) {
         try {
             Level level = entity.level();
             if (level == null) return 0;
-            
+
             AABB box = entity.getBoundingBox().inflate(radius);
             List<Entity> nearby = level.getEntities(
                 entity,
                 box,
                 EntitySelectorCache.PUSHABLE
             );
-            
+
             return nearby.size();
         } catch (Exception e) {
             ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "countNearbySync", e);
             return 0;
         }
     }
-    
+
     public static List<Entity> getEntitiesAsync(
         Level level,
         Entity except,
@@ -68,19 +68,19 @@ public class AsyncCollisionProcessor {
         int timeoutMs
     ) {
         if (collisionExecutor == null || collisionExecutor.isShutdown()) {
-            
+
             return getEntitiesSync(level, except, box, predicate);
         }
-        
+
         try {
-            Future<List<Entity>> future = collisionExecutor.submit(() -> 
+            Future<List<Entity>> future = collisionExecutor.submit(() ->
                 getEntitiesSync(level, except, box, predicate)
             );
-            
+
             return future.get(timeoutMs, TimeUnit.MILLISECONDS);
-            
+
         } catch (TimeoutException e) {
-            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "getEntitiesTimeout", 
+            ExceptionHandler.handleExpected("AsyncCollisionProcessor", "getEntitiesTimeout",
                 new Exception("Timeout after " + timeoutMs + "ms"));
             return new ArrayList<>();
         } catch (Exception e) {
@@ -88,7 +88,7 @@ public class AsyncCollisionProcessor {
             return new ArrayList<>();
         }
     }
-    
+
     private static List<Entity> getEntitiesSync(
         Level level,
         Entity except,
@@ -103,7 +103,7 @@ public class AsyncCollisionProcessor {
             return new ArrayList<>();
         }
     }
-    
+
     public static <T> List<T> processBatchAsync(
         List<Callable<T>> tasks,
         int timeoutMs
@@ -111,14 +111,14 @@ public class AsyncCollisionProcessor {
         if (collisionExecutor == null || collisionExecutor.isShutdown() || tasks.isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         try {
             List<Future<T>> futures = collisionExecutor.invokeAll(
                 tasks,
                 timeoutMs,
                 TimeUnit.MILLISECONDS
             );
-            
+
             List<T> results = new ArrayList<>();
             for (Future<T> future : futures) {
                 try {
@@ -132,24 +132,24 @@ public class AsyncCollisionProcessor {
                     ExceptionHandler.handleExpected("AsyncCollisionProcessor", "batchTaskResult", e);
                 }
             }
-            
+
             return results;
-            
+
         } catch (Exception e) {
             ExceptionHandler.handleUnexpected("AsyncCollisionProcessor", "processBatchAsync", e);
             return new ArrayList<>();
         }
     }
-    
+
     public static boolean isAvailable() {
         return collisionExecutor != null && !collisionExecutor.isShutdown();
     }
-    
+
     public static String getStatistics() {
         if (collisionExecutor == null) {
             return "CollisionExecutor: not initialized";
         }
-        
+
         if (collisionExecutor instanceof ThreadPoolExecutor) {
             ThreadPoolExecutor tpe = (ThreadPoolExecutor) collisionExecutor;
             return String.format(
@@ -159,7 +159,7 @@ public class AsyncCollisionProcessor {
                 tpe.getCompletedTaskCount()
             );
         }
-        
+
         return "CollisionExecutor: initialized";
     }
 }

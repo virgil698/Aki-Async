@@ -7,16 +7,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-
 @Mixin(ChunkEntitySlices.class)
 public interface ChunkEntitySlicesAccessor {
-    
+
     @Accessor("chunkX")
     int getChunkX();
-    
+
     @Accessor("chunkZ")
     int getChunkZ();
-    
+
+    @Accessor("minSection")
+    int getMinSection();
+
     @Invoker("getEntityBasicListFromAllEntity")
     ChunkEntitySlices.BasicEntityList<Entity>[] invokeGetEntityBasicListFromAllEntity(AABB boundingBox);
 }

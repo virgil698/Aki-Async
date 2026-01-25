@@ -31,7 +31,7 @@ public class AIExecutorManager {
                 return thread;
             }
         };
-        
+
         this.aiExecutor = new ThreadPoolExecutor(
             aiThreads,
             aiThreads,

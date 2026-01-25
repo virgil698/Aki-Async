@@ -26,7 +26,7 @@ public final class FoliaUtils {
     private FoliaUtils() {
         throw new UnsupportedOperationException("Utility class");
     }
-    
+
     public static long getCurrentTick() {
         if (isFoliaEnvironment()) {
             if (getCurrentTickMethod == null) {
@@ -40,7 +40,7 @@ public final class FoliaUtils {
                     }
                 }
             }
-            
+
             if (getCurrentTickMethod != null) {
                 try {
                     return (long) getCurrentTickMethod.invoke(null);
@@ -48,7 +48,7 @@ public final class FoliaUtils {
                 }
             }
         }
-        
+
         if (paperCurrentTickField == null) {
             synchronized (FoliaUtils.class) {
                 if (paperCurrentTickField == null) {
@@ -61,14 +61,14 @@ public final class FoliaUtils {
                 }
             }
         }
-        
+
         if (paperCurrentTickField != null) {
             try {
                 return paperCurrentTickField.getInt(null);
             } catch (Exception e) {
             }
         }
-        
+
         return System.currentTimeMillis() / 50L;
     }
 
@@ -107,7 +107,7 @@ public final class FoliaUtils {
                     worldClass, int.class, int.class);
 
                 BlockPos blockPos = BlockPos.containing(position);
-                
+
                 Method getWorldMethod = level.getClass().getMethod("getWorld");
                 Object bukkitWorld = getWorldMethod.invoke(level);
                 return (Boolean) isOwnedMethod.invoke(null, bukkitWorld,

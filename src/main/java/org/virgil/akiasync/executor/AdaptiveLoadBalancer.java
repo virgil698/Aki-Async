@@ -5,31 +5,31 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 public class AdaptiveLoadBalancer {
-    
+
     private static final Logger LOGGER = Logger.getLogger("AkiAsync");
-    
+
     private static final double MSPT_WARNING = 40.0;
     private static final double MSPT_CRITICAL = 45.0;
     private static final double MSPT_TARGET = 30.0;
-    
+
     public enum LoadLevel {
         NORMAL,
         MODERATE,
         HIGH,
         CRITICAL
     }
-    
+
     private static volatile LoadLevel currentLoad = LoadLevel.NORMAL;
     private static final AtomicLong lastMsptUpdate = new AtomicLong(0);
     private static final AtomicInteger consecutiveHighLoad = new AtomicInteger(0);
-    
+
     private static volatile double taskSubmitRate = 1.0;
-    
+
     public static void updateMspt(double mspt) {
         lastMsptUpdate.set(System.currentTimeMillis());
-        
+
         LoadLevel oldLoad = currentLoad;
-        
+
         if (mspt >= MSPT_CRITICAL) {
             currentLoad = LoadLevel.CRITICAL;
             consecutiveHighLoad.incrementAndGet();
@@ -43,9 +43,9 @@ public class AdaptiveLoadBalancer {
             currentLoad = LoadLevel.NORMAL;
             consecutiveHighLoad.set(0);
         }
-        
+
         adjustTaskSubmitRate(mspt);
-        
+
         if (oldLoad != currentLoad) {
             LOGGER.fine(String.format(
                 "[LoadBalancer] Load level changed: %s -> %s (MSPT: %.2f, Rate: %.0f%%)",
@@ -53,7 +53,7 @@ public class AdaptiveLoadBalancer {
             ));
         }
     }
-    
+
     private static void adjustTaskSubmitRate(double mspt) {
         switch (currentLoad) {
             case CRITICAL:
@@ -74,28 +74,28 @@ public class AdaptiveLoadBalancer {
                 break;
         }
     }
-    
+
     public static LoadLevel getCurrentLoad() {
         return currentLoad;
     }
-    
+
     public static double getTaskSubmitRate() {
         return taskSubmitRate;
     }
-    
+
     public static boolean shouldSubmitTask() {
         if (currentLoad == LoadLevel.NORMAL) {
             return true;
         }
-        
+
         return Math.random() < taskSubmitRate;
     }
-    
+
     public static boolean shouldSkipLowPriority() {
-        return currentLoad == LoadLevel.CRITICAL || 
+        return currentLoad == LoadLevel.CRITICAL ||
                (currentLoad == LoadLevel.HIGH && consecutiveHighLoad.get() > 3);
     }
-    
+
     public static String getStatistics() {
         return String.format(
             "LoadBalancer: Level=%s | Rate=%.0f%% | ConsecutiveHigh=%d",
@@ -104,7 +104,7 @@ public class AdaptiveLoadBalancer {
             consecutiveHighLoad.get()
         );
     }
-    
+
     public static void reset() {
         currentLoad = LoadLevel.NORMAL;
         taskSubmitRate = 1.0;

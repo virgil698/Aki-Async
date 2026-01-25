@@ -9,21 +9,21 @@ import net.minecraft.server.level.ServerLevel;
 import org.virgil.akiasync.mixin.crypto.secureseed.duck.IWorldOptionsFeatureSeed;
 
 public final class Globals {
-  
+
   public static final int WORLD_SEED_LONGS = 16;
-  
+
   public static final int WORLD_SEED_BITS = WORLD_SEED_LONGS * 64;
-  
+
   private static final int BITS_PER_LONG = 64;
-  
+
   private static final int MAX_CACHE_SIZE = 100;
-  
+
   public static final long[] worldSeed = new long[WORLD_SEED_LONGS];
-  
+
   public static final ThreadLocal<Integer> dimension = ThreadLocal.withInitial(() -> 0);
-  
+
   private static final ConcurrentHashMap<String, long[]> seedCache = new ConcurrentHashMap<>();
-  
+
   private static final SecureRandom secureRandom = new SecureRandom();
 
   public enum Salt {
@@ -52,23 +52,23 @@ public final class Globals {
   }
 
   public static void setupGlobals(ServerLevel world) {
-    
+
     long[] seed = ((IWorldOptionsFeatureSeed) world.getServer()
         .getWorldData()
         .worldGenOptions())
         .secureSeed$featureSeed();
-    
+
     System.arraycopy(seed, 0, worldSeed, 0, WORLD_SEED_LONGS);
-    
+
     int worldIndex = Iterables.indexOf(
         world.getServer().levelKeys(),
         key -> key == world.dimension()
     );
-    
+
     if (worldIndex == -1) {
       worldIndex = world.getServer().levelKeys().size();
     }
-    
+
     dimension.set(worldIndex);
   }
 
@@ -79,11 +79,11 @@ public final class Globals {
     }
     return seed;
   }
-  
+
   public static void initializeWorldSeed(long originalSeed, int bits) {
-    
+
     secureRandom.setSeed(originalSeed);
-    
+
     for (int i = 0; i < WORLD_SEED_LONGS; i++) {
       worldSeed[i] = secureRandom.nextLong();
     }
@@ -114,7 +114,7 @@ public final class Globals {
       int startIndex = i * BITS_PER_LONG;
       int endIndex = startIndex + BITS_PER_LONG;
       String seedSection = seedString.substring(startIndex, endIndex);
-      
+
       BigInteger seedValue = new BigInteger(seedSection, 2);
       seed[i] = seedValue.longValue();
     }
@@ -128,16 +128,16 @@ public final class Globals {
 
   public static String seedToString(long[] seed) {
     StringBuilder builder = new StringBuilder(WORLD_SEED_BITS);
-    
+
     for (long value : seed) {
       String binaryString = String.format(
           "%64s",
           Long.toBinaryString(value)
       ).replace(' ', '0');
-      
+
       builder.append(binaryString);
     }
-    
+
     return builder.toString();
   }
 

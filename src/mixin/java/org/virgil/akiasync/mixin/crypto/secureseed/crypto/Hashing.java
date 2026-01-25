@@ -39,10 +39,10 @@ public final class Hashing {
   public static long[] hashWorldSeed(long[] worldSeed) {
     long[] result = BLAKE2B_IV.clone();
     result[0] ^= PARAMETER_BLOCK;
-    
+
     long[] internalState = new long[INTERNAL_STATE_LENGTH];
     hash(worldSeed, result, internalState, 0, false);
-    
+
     return result;
   }
 
@@ -52,7 +52,7 @@ public final class Hashing {
       long[] internalState,
       long messageOffset,
       boolean isFinal) {
-    
+
     if (message.length != MESSAGE_LENGTH) {
       throw new IllegalArgumentException("Message must be 16 longs");
     }
@@ -65,7 +65,7 @@ public final class Hashing {
 
     System.arraycopy(chainValue, 0, internalState, 0, CHAIN_VALUE_LENGTH);
     System.arraycopy(BLAKE2B_IV, 0, internalState, CHAIN_VALUE_LENGTH, 4);
-    
+
     internalState[12] = messageOffset ^ BLAKE2B_IV[4];
     internalState[13] = BLAKE2B_IV[5];
     internalState[14] = isFinal ? ~BLAKE2B_IV[6] : BLAKE2B_IV[6];
@@ -73,12 +73,12 @@ public final class Hashing {
 
     for (int round = 0; round < BLAKE2B_ROUNDS; round++) {
       byte[] sigma = BLAKE2B_SIGMA[round];
-      
+
       mixG(message[sigma[0]], message[sigma[1]], 0, 4, 8, 12, internalState);
       mixG(message[sigma[2]], message[sigma[3]], 1, 5, 9, 13, internalState);
       mixG(message[sigma[4]], message[sigma[5]], 2, 6, 10, 14, internalState);
       mixG(message[sigma[6]], message[sigma[7]], 3, 7, 11, 15, internalState);
-      
+
       mixG(message[sigma[8]], message[sigma[9]], 0, 5, 10, 15, internalState);
       mixG(message[sigma[10]], message[sigma[11]], 1, 6, 11, 12, internalState);
       mixG(message[sigma[12]], message[sigma[13]], 2, 7, 8, 13, internalState);
@@ -98,16 +98,16 @@ public final class Hashing {
       int posC,
       int posD,
       long[] state) {
-    
+
     state[posA] = state[posA] + state[posB] + messageWord1;
     state[posD] = Long.rotateRight(state[posD] ^ state[posA], 32);
-    
+
     state[posC] = state[posC] + state[posD];
     state[posB] = Long.rotateRight(state[posB] ^ state[posC], 24);
-    
+
     state[posA] = state[posA] + state[posB] + messageWord2;
     state[posD] = Long.rotateRight(state[posD] ^ state[posA], 16);
-    
+
     state[posC] = state[posC] + state[posD];
     state[posB] = Long.rotateRight(state[posB] ^ state[posC], 63);
   }

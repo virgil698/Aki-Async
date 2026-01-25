@@ -30,7 +30,7 @@ public final class TimedCache<K, V> implements CacheInvalidator {
         }
 
         if (entry.isExpired()) {
-            
+
             cache.remove(key);
             return Optional.empty();
         }
@@ -102,7 +102,7 @@ public final class TimedCache<K, V> implements CacheInvalidator {
 
     @Override
     public void invalidate() {
-        
+
         invalidateAll();
     }
 }

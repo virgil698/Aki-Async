@@ -7,25 +7,17 @@ import java.util.function.IntFunction;
 
 public class ObjectCachingUtils {
 
-    private static final IntFunction<BitSet> bitSetConstructor = BitSet::new;
+    private static final IntFunction<BitSet> BIT_SET_CONSTRUCTOR = BitSet::new;
 
-    public static final ThreadLocal<Int2ObjectOpenHashMap<BitSet>> BITSETS = 
+    public static final ThreadLocal<Int2ObjectOpenHashMap<BitSet>> BITSETS =
         ThreadLocal.withInitial(Int2ObjectOpenHashMap::new);
 
     private ObjectCachingUtils() {
     }
 
     public static BitSet getCachedOrNewBitSet(int bits) {
-        final BitSet bitSet = BITSETS.get().computeIfAbsent(bits, bitSetConstructor);
+        final BitSet bitSet = BITSETS.get().computeIfAbsent(bits, BIT_SET_CONSTRUCTOR);
         bitSet.clear();
         return bitSet;
-    }
-    
-    public static void clearBitSetCache() {
-        BITSETS.get().clear();
-    }
-    
-    public static void removeBitSetCache() {
-        BITSETS.remove();
     }
 }

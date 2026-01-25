@@ -25,7 +25,7 @@ public class EntityThrottlingManager {
     private final Map<EntityType, EntityCounter> entityCounters = new ConcurrentHashMap<>();
 
     private int taskId = -1;
-    private Object foliaTask = null; 
+    private Object foliaTask = null;
 
     private boolean enabled;
     private int checkInterval;
@@ -35,7 +35,7 @@ public class EntityThrottlingManager {
 
     public EntityThrottlingManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
-        
+
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
@@ -102,19 +102,19 @@ public class EntityThrottlingManager {
 
     private void startCheckTask() {
         if (isFolia) {
-            
+
             try {
                 Object server = Bukkit.getServer();
                 Object globalScheduler = server.getClass().getMethod("getGlobalRegionScheduler").invoke(server);
-                
+
                 java.lang.reflect.Method runAtFixedRateMethod = globalScheduler.getClass().getMethod(
-                    "runAtFixedRate", 
-                    org.bukkit.plugin.Plugin.class, 
-                    java.util.function.Consumer.class, 
-                    long.class, 
+                    "runAtFixedRate",
+                    org.bukkit.plugin.Plugin.class,
+                    java.util.function.Consumer.class,
+                    long.class,
                     long.class
                 );
-                
+
                 foliaTask = runAtFixedRateMethod.invoke(
                     globalScheduler,
                     plugin,
@@ -122,8 +122,8 @@ public class EntityThrottlingManager {
                         try {
                             checkAndThrottle();
                         } catch (Exception e) {
-                            plugin.getLogger().warning("[EntityThrottling] Error during throttle check: " + 
-                                e.getClass().getSimpleName() + ": " + e.getMessage() + 
+                            plugin.getLogger().warning("[EntityThrottling] Error during throttle check: " +
+                                e.getClass().getSimpleName() + ": " + e.getMessage() +
                                 " (checkInterval=" + checkInterval + "ticks)");
                             if (plugin.getConfig().getBoolean("debug", false)) {
                                 java.io.StringWriter sw = new java.io.StringWriter();
@@ -135,15 +135,15 @@ public class EntityThrottlingManager {
                     (long) checkInterval,
                     (long) checkInterval
                 );
-                
+
                 plugin.getLogger().info("[EntityThrottling] Using Folia GlobalRegionScheduler");
             } catch (NoSuchMethodException e) {
-                plugin.getLogger().severe("[EntityThrottling] Folia API method not found: " + e.getMessage() + 
+                plugin.getLogger().severe("[EntityThrottling] Folia API method not found: " + e.getMessage() +
                     " - This may indicate an incompatible Folia version");
                 plugin.getLogger().severe("[EntityThrottling] Falling back to disabled state");
                 e.printStackTrace();
             } catch (java.lang.reflect.InvocationTargetException e) {
-                plugin.getLogger().severe("[EntityThrottling] Folia method invocation failed: " + 
+                plugin.getLogger().severe("[EntityThrottling] Folia method invocation failed: " +
                     e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
                 plugin.getLogger().severe("[EntityThrottling] Falling back to disabled state");
                 e.printStackTrace();
@@ -152,20 +152,20 @@ public class EntityThrottlingManager {
                 plugin.getLogger().severe("[EntityThrottling] Falling back to disabled state");
                 e.printStackTrace();
             } catch (Exception e) {
-                plugin.getLogger().severe("[EntityThrottling] Unexpected error starting Folia task: " + 
-                    e.getClass().getSimpleName() + ": " + e.getMessage() + 
+                plugin.getLogger().severe("[EntityThrottling] Unexpected error starting Folia task: " +
+                    e.getClass().getSimpleName() + ": " + e.getMessage() +
                     " (checkInterval=" + checkInterval + "ticks, isFolia=" + isFolia + ")");
                 plugin.getLogger().severe("[EntityThrottling] Falling back to disabled state");
                 e.printStackTrace();
             }
         } else {
-            
+
             taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 try {
                     checkAndThrottle();
                 } catch (Exception e) {
-                    plugin.getLogger().warning("[EntityThrottling] Error during throttle check: " + 
-                        e.getClass().getSimpleName() + ": " + e.getMessage() + 
+                    plugin.getLogger().warning("[EntityThrottling] Error during throttle check: " +
+                        e.getClass().getSimpleName() + ": " + e.getMessage() +
                         " (checkInterval=" + checkInterval + "ticks, taskId=" + taskId + ")");
                     if (plugin.getConfig().getBoolean("debug", false)) {
                         e.printStackTrace();
@@ -179,51 +179,51 @@ public class EntityThrottlingManager {
         entityCounters.clear();
 
         if (isFolia) {
-            
+
             for (World world : Bukkit.getWorlds()) {
                 try {
-                    
+
                     org.bukkit.Chunk[] loadedChunks = world.getLoadedChunks();
                     int chunkCount = loadedChunks.length;
-                    
+
                     for (org.bukkit.Chunk chunk : loadedChunks) {
                         scheduleRegionEntityCheck(world, chunk);
                     }
                 } catch (Exception e) {
-                    plugin.getLogger().warning("[EntityThrottling] Error checking world " + world.getName() + ": " + 
+                    plugin.getLogger().warning("[EntityThrottling] Error checking world " + world.getName() + ": " +
                         e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
             }
-            
+
             Bukkit.getScheduler().runTaskLater(plugin, this::processThrottling, 20L);
         } else {
-            
+
             for (World world : Bukkit.getWorlds()) {
                 for (Entity entity : world.getEntities()) {
                     EntityType type = entity.getType();
                     if (entityLimits.containsKey(type)) {
                         EntityCounter counter = entityCounters.computeIfAbsent(type, k -> new EntityCounter());
                         counter.addEntity(entity);
-                        
+
                         if (type == EntityType.ENDERMAN && isEndermanCarryingBlock(entity)) {
                             counter.markAsCarrying(entity);
                         }
                     }
                 }
             }
-            
+
             processThrottling();
         }
     }
 
     private void scheduleRegionEntityCheck(World world, org.bukkit.Chunk chunk) {
         try {
-            
+
             Object regionScheduler = Bukkit.getServer().getClass().getMethod("getRegionScheduler").invoke(Bukkit.getServer());
-            
+
             int chunkX = chunk.getX();
             int chunkZ = chunk.getZ();
-            
+
             java.lang.reflect.Method runMethod = regionScheduler.getClass().getMethod(
                 "run",
                 org.bukkit.plugin.Plugin.class,
@@ -232,7 +232,7 @@ public class EntityThrottlingManager {
                 int.class,
                 java.util.function.Consumer.class
             );
-            
+
             runMethod.invoke(
                 regionScheduler,
                 plugin,
@@ -241,14 +241,14 @@ public class EntityThrottlingManager {
                 chunkZ,
                 (java.util.function.Consumer<Object>) task -> {
                     try {
-                        
+
                         for (Entity entity : chunk.getEntities()) {
                             EntityType type = entity.getType();
                             if (entityLimits.containsKey(type)) {
                                 EntityCounter counter = entityCounters.computeIfAbsent(type, k -> new EntityCounter());
                                 synchronized (counter) {
                                     counter.addEntity(entity);
-                                    
+
                                     if (type == EntityType.ENDERMAN && isEndermanCarryingBlock(entity)) {
                                         counter.markAsCarrying(entity);
                                     }
@@ -308,10 +308,10 @@ public class EntityThrottlingManager {
         entities.sort((e1, e2) -> {
             boolean e1Carrying = carryingEntities.contains(e1);
             boolean e2Carrying = carryingEntities.contains(e2);
-            
+
             if (e1Carrying && !e2Carrying) return -1;
             if (!e1Carrying && e2Carrying) return 1;
-            
+
             return Integer.compare(e2.getTicksLived(), e1.getTicksLived());
         });
 
@@ -329,10 +329,10 @@ public class EntityThrottlingManager {
             if (entity.isInsideVehicle()) continue;
 
             if (isFolia) {
-                
+
                 removeEntityInRegion(entity);
             } else {
-                
+
                 entity.remove();
             }
             removed++;
@@ -355,16 +355,16 @@ public class EntityThrottlingManager {
 
     private void removeEntityInRegion(Entity entity) {
         try {
-            
+
             Object regionScheduler = Bukkit.getServer().getClass().getMethod("getRegionScheduler").invoke(Bukkit.getServer());
-            
+
             java.lang.reflect.Method runMethod = regionScheduler.getClass().getMethod(
                 "run",
                 org.bukkit.plugin.Plugin.class,
                 org.bukkit.Location.class,
                 java.util.function.Consumer.class
             );
-            
+
             runMethod.invoke(
                 regionScheduler,
                 plugin,
@@ -409,15 +409,15 @@ public class EntityThrottlingManager {
 
     public void shutdown() {
         if (isFolia && foliaTask != null) {
-            
+
             try {
-                
+
                 java.lang.reflect.Method cancelMethod = null;
                 try {
                     cancelMethod = foliaTask.getClass().getDeclaredMethod("cancel");
                     cancelMethod.setAccessible(true);
                 } catch (NoSuchMethodException e) {
-                    
+
                     cancelMethod = foliaTask.getClass().getMethod("cancel");
                 }
                 cancelMethod.invoke(foliaTask);
@@ -425,10 +425,10 @@ public class EntityThrottlingManager {
                 plugin.getLogger().info("[EntityThrottling] Folia task cancelled successfully");
             } catch (Exception e) {
                 plugin.getLogger().warning("[EntityThrottling] Failed to cancel Folia task: " + e.getClass().getName() + " - " + e.getMessage());
-                
+
             }
         } else if (taskId != -1) {
-            
+
             Bukkit.getScheduler().cancelTask(taskId);
             taskId = -1;
         }

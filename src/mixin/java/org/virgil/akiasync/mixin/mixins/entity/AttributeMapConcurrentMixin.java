@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 @Mixin(value = AttributeMap.class, priority = 900)
 public class AttributeMapConcurrentMixin {
 

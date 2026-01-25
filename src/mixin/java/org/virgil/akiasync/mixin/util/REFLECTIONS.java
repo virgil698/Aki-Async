@@ -21,7 +21,7 @@ public final class REFLECTIONS {
             }
             return false;
         } catch (Throwable t) {
-            ExceptionHandler.handleExpected("REFLECTIONS", "setField", 
+            ExceptionHandler.handleExpected("REFLECTIONS", "setField",
                 t instanceof Exception ? (Exception) t : new RuntimeException(t));
             return false;
         }

@@ -4,20 +4,20 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityAccess;
 
 public final class VirtualEntityCheck {
-    
+
     public static boolean is(Entity entity) {
         if (entity == null) return false;
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+            org.virgil.akiasync.mixin.bridge.Bridge bridge =
                 org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
             return bridge != null && bridge.isVirtualEntity(entity);
         } catch (Throwable t) {
-            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntity", 
+            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntity",
                 t instanceof Exception ? (Exception) t : new RuntimeException(t));
             return false;
         }
     }
-    
+
     public static boolean is(EntityAccess entity) {
         if (entity == null) return false;
         try {
@@ -25,17 +25,17 @@ public final class VirtualEntityCheck {
                 return is(realEntity);
             }
         } catch (Throwable t) {
-            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntityAccess", 
+            ExceptionHandler.handleExpected("VirtualEntityCheck", "isVirtualEntityAccess",
                 t instanceof Exception ? (Exception) t : new RuntimeException(t));
             return false;
         }
         return false;
     }
-    
+
     public static boolean isAny(Entity entity1, Entity entity2) {
         return is(entity1) || is(entity2);
     }
-    
+
     private VirtualEntityCheck() {
         throw new UnsupportedOperationException("Utility class");
     }

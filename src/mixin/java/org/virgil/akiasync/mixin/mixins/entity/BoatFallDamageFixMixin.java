@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @SuppressWarnings("unused")
 @Mixin(AbstractBoat.class)
 public abstract class BoatFallDamageFixMixin {
-    
+
     @Inject(
         method = "checkFallDamage",
         at = @At("HEAD"),

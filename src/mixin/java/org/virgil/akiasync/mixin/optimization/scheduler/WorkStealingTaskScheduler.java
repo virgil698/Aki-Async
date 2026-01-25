@@ -23,7 +23,7 @@ public class WorkStealingTaskScheduler {
     private WorkStealingTaskScheduler() {
         this.parallelism = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
         this.finishedLatch = new CountDownLatch(parallelism);
-        
+
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             this.executor = bridge.getGeneralExecutor();
@@ -31,7 +31,7 @@ public class WorkStealingTaskScheduler {
                 bridge.debugLog("[AkiAsync] WorkStealingTaskScheduler using shared General Executor");
             }
         } else {
-            
+
             this.executor = Executors.newFixedThreadPool(parallelism, r -> {
                 Thread t = new Thread(r, "AkiAsync-WorkStealing-Fallback");
                 t.setDaemon(true);
@@ -79,7 +79,7 @@ public class WorkStealingTaskScheduler {
 
     private <T> void processWorkStealingTasks(T[] items, Consumer<T> processor, int batchSize) {
         while (handleBatchTasks(items, processor, batchSize)) {
-            
+
         }
     }
 

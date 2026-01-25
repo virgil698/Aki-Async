@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.memory;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+
 @SuppressWarnings("unused")
 @Mixin(PathNavigation.class)
 public abstract class BlockPosPoolMixin {
@@ -33,10 +35,10 @@ public abstract class BlockPosPoolMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isBlockPosPoolEnabled();
-        
+
             initialized = true;
         } else {
-            enabled = false; 
+            enabled = false;
         }
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] BlockPosPoolMixin initialized: enabled=" + enabled);

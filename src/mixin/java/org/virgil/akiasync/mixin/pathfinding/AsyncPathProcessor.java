@@ -19,7 +19,7 @@ public final class AsyncPathProcessor {
   private static volatile ThreadPoolExecutor executor;
   private static final AtomicBoolean initialized = new AtomicBoolean(false);
   private static volatile boolean enabled = false;
-  
+
   private static final ThreadLocal<List<AsyncPath>> pendingPaths = ThreadLocal.withInitial(ArrayList::new);
   private static final AtomicInteger batchCount = new AtomicInteger(0);
   private static final AtomicInteger totalBatchedPaths = new AtomicInteger(0);
@@ -31,9 +31,9 @@ public final class AsyncPathProcessor {
   }
 
   public static void initialize() {
-    
+
     if (!initialized.compareAndSet(false, true)) {
-      return; 
+      return;
     }
 
     Bridge bridge = BridgeManager.getBridge();
@@ -79,40 +79,40 @@ public final class AsyncPathProcessor {
     }
 
     if (!enabled || executor == null) {
-      
+
       path.process();
       return;
     }
 
     List<AsyncPath> paths = pendingPaths.get();
     paths.add(path);
-    
+
     if (paths.size() >= 8) {
       flushPendingPaths();
     }
   }
-  
+
   public static void flushPendingPaths() {
     List<AsyncPath> paths = pendingPaths.get();
     if (paths.isEmpty()) {
       return;
     }
-    
+
     List<AsyncPath> batch = new ArrayList<>(paths);
     paths.clear();
-    
+
     if (batch.isEmpty()) {
       return;
     }
-    
+
     List<AsyncPath> mergedBatch = mergeSimilarPaths(batch);
-    
+
     batchCount.incrementAndGet();
     totalBatchedPaths.addAndGet(batch.size());
     if (mergedBatch.size() < batch.size()) {
       mergedPaths.addAndGet(batch.size() - mergedBatch.size());
     }
-    
+
     try {
 
       executor.execute(() -> {
@@ -143,26 +143,26 @@ public final class AsyncPathProcessor {
     if (paths.size() <= 1) {
       return paths;
     }
-    
+
     List<AsyncPath> merged = new ArrayList<>();
     List<AsyncPath> duplicates = new ArrayList<>();
-    
+
     for (int i = 0; i < paths.size(); i++) {
       AsyncPath current = paths.get(i);
       boolean isDuplicate = false;
-      
+
       for (AsyncPath existing : merged) {
         if (current.hasSameProcessingPositions(existing.getPositions())) {
-          
+
           duplicates.add(current);
-          
+
           existing.postProcessing(() -> {
-            
+
             try {
               java.lang.reflect.Field delegatedPathField = AsyncPath.class.getDeclaredField("delegatedPath");
               delegatedPathField.setAccessible(true);
               delegatedPathField.set(current, existing.getPath());
-              
+
               java.lang.reflect.Field processStateField = AsyncPath.class.getDeclaredField("processState");
               processStateField.setAccessible(true);
               processStateField.set(current, existing.getClass().getDeclaredField("processState").get(existing));
@@ -172,24 +172,24 @@ public final class AsyncPathProcessor {
               current.process();
             }
           });
-          
+
           isDuplicate = true;
           break;
         }
       }
-      
+
       if (!isDuplicate) {
         merged.add(current);
       }
     }
-    
+
     return merged;
   }
 
   public static void shutdown() {
-    
+
     if (!initialized.compareAndSet(true, false)) {
-      return; 
+      return;
     }
 
     if (executor != null && !executor.isShutdown()) {
@@ -212,7 +212,7 @@ public final class AsyncPathProcessor {
         bridge.debugLog("[AkiAsync-AsyncPath] Async pathfinding processor shut down");
       }
     }
-    
+
     enabled = false;
     executor = null;
   }
@@ -228,9 +228,9 @@ public final class AsyncPathProcessor {
     int hits = cacheHits.get();
     double avgBatchSize = batches > 0 ? (double) totalPaths / batches : 0;
     double mergeRate = totalPaths > 0 ? (double) merged / totalPaths * 100 : 0;
-    
+
     String cacheStats = SharedPathCache.getStats();
-    
+
     return String.format(
         "AsyncPath: Pool=%d/%d | Active=%d | Queue=%d | Completed=%d | Batches=%d | AvgBatch=%.1f | Merged=%d(%.1f%%) | CacheHits=%d | %s",
         executor.getPoolSize(),

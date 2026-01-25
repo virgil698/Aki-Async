@@ -11,63 +11,63 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class EventLoopAffinity {
-    
+
     private static boolean strictChecking = false;
     private static boolean debugMode = false;
-    
+
     public static void initialize(boolean enableStrictChecking, boolean enableDebug) {
         strictChecking = enableStrictChecking;
         debugMode = enableDebug;
-        
+
         if (debugMode) {
             Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
-                bridge.debugLog("[EventLoopAffinity] Initialized - strict=%s, debug=%s", 
+                bridge.debugLog("[EventLoopAffinity] Initialized - strict=%s, debug=%s",
                     strictChecking, debugMode);
             }
         }
     }
-    
+
     public static boolean isInEventLoop(EventLoop eventLoop) {
         return eventLoop != null && eventLoop.inEventLoop();
     }
-    
+
     public static void ensureInEventLoop(EventLoop eventLoop, String context) {
         if (strictChecking && eventLoop != null && !eventLoop.inEventLoop()) {
             String error = String.format(
                 "[EventLoopAffinity] Operation '%s' must be called from event loop, but called from %s",
                 context, Thread.currentThread().getName()
             );
-            
+
             if (debugMode) {
                 Bridge bridge = BridgeManager.getBridge();
                 if (bridge != null) {
                     bridge.errorLog(error);
                 }
             }
-            
+
             throw new IllegalStateException(error);
         }
     }
-    
+
     public static void executeInEventLoop(EventLoop eventLoop, Runnable task) {
         if (eventLoop == null) {
             executeOnMainThread(task);
             return;
         }
-        
+
         if (eventLoop.inEventLoop()) {
             task.run();
         } else {
             eventLoop.execute(task);
         }
     }
-    
+
     public static <T> CompletableFuture<T> supplyInEventLoop(EventLoop eventLoop, Supplier<T> supplier) {
         if (eventLoop == null) {
             return supplyOnMainThread(supplier);
         }
-        
+
         if (eventLoop.inEventLoop()) {
             try {
                 return CompletableFuture.completedFuture(supplier.get());
@@ -88,8 +88,8 @@ public class EventLoopAffinity {
             return future;
         }
     }
-    
-    public static <T> void supplyInEventLoopWithCallback(EventLoop eventLoop, 
+
+    public static <T> void supplyInEventLoopWithCallback(EventLoop eventLoop,
                                                          Supplier<T> supplier,
                                                          Consumer<T> callback) {
         if (eventLoop == null) {
@@ -99,7 +99,7 @@ public class EventLoopAffinity {
             });
             return;
         }
-        
+
         if (eventLoop.inEventLoop()) {
             try {
                 T result = supplier.get();
@@ -118,7 +118,7 @@ public class EventLoopAffinity {
             });
         }
     }
-    
+
     public static void scheduleInEventLoop(EventLoop eventLoop, Runnable task, long delayTicks) {
         if (eventLoop == null) {
             try {
@@ -134,11 +134,11 @@ public class EventLoopAffinity {
             }
             return;
         }
-        
+
         long delayMs = delayTicks * 50L;
         eventLoop.schedule(task, delayMs, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
-    
+
     private static void executeOnMainThread(Runnable task) {
         try {
             org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("AkiAsync");
@@ -152,7 +152,7 @@ public class EventLoopAffinity {
             task.run();
         }
     }
-    
+
     private static <T> CompletableFuture<T> supplyOnMainThread(Supplier<T> supplier) {
         CompletableFuture<T> future = new CompletableFuture<>();
         try {
@@ -180,7 +180,7 @@ public class EventLoopAffinity {
         }
         return future;
     }
-    
+
     private static void logError(String message, Exception e) {
         if (debugMode) {
             Bridge bridge = BridgeManager.getBridge();
@@ -189,7 +189,7 @@ public class EventLoopAffinity {
             }
         }
     }
-    
+
     public static Executor asExecutor(EventLoop eventLoop) {
         if (eventLoop == null) {
             return task -> executeOnMainThread(task);

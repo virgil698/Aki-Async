@@ -37,11 +37,11 @@ public abstract class VirtualThreadService {
             try {
                 implementation = DirectVirtualThreadService.create();
             } catch (Throwable e) {
-                
+
                 try {
                     implementation = ReflectionVirtualThreadService.create();
                 } catch (Throwable e2) {
-                    
+
                 }
             }
         }

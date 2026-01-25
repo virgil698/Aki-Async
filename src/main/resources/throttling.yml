@@ -105,6 +105,10 @@ minecraft:piglin_brute:
   limit: 50
   removal: 100
 
+minecraft:zombified_piglin:
+  limit: 150
+  removal: 300
+
 minecraft:wither_skeleton:
   limit: 100
   removal: 200

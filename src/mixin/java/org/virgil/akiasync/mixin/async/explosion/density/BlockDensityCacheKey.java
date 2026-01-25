@@ -19,7 +19,7 @@ public final class BlockDensityCacheKey {
         int expX = (int) Math.floor(explosionPos.x);
         int expY = (int) Math.floor(explosionPos.y);
         int expZ = (int) Math.floor(explosionPos.z);
-        
+
         return Objects.hash(expX, expY, expZ, entityPos.getX(), entityPos.getY(), entityPos.getZ());
     }
 

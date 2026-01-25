@@ -29,11 +29,11 @@ public class StructureLocatorBridge {
         if (initialized) {
             return;
         }
-        
+
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null && bridge.isStructureLocationAsyncEnabled()) {
-            
+
             executorService = bridge.getGeneralExecutor();
             initialized = true;
 
@@ -88,7 +88,7 @@ public class StructureLocatorBridge {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleChestExplorationMapAsyncStart(
-                stack, context, destination, mapDecoration, 
+                stack, context, destination, mapDecoration,
                 zoom, searchRadius, skipKnownStructures, cir);
         }
     }
@@ -108,7 +108,7 @@ public class StructureLocatorBridge {
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             bridge.handleVillagerTradeMapAsyncStart(
-                offer, trader, destination, destinationType, 
+                offer, trader, destination, destinationType,
                 displayName, maxUses, villagerXp, cir);
         }
     }

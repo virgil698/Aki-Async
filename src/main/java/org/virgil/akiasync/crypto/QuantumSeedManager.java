@@ -8,28 +8,28 @@ import org.virgil.akiasync.mixin.crypto.quantum.GenerationType;
 import java.util.logging.Logger;
 
 public class QuantumSeedManager {
-    
+
     private static final Logger LOGGER = Logger.getLogger("AkiAsync-QuantumSeed");
-    
+
     private final ServerKeyManager keyManager;
     private final QuantumSeedCache cache;
     private volatile boolean enableTimeDecay;
     private volatile boolean debugLogging;
-    
+
     public QuantumSeedManager(Plugin plugin, int cacheSize, boolean enableTimeDecay, boolean debugLogging) {
         this.keyManager = new ServerKeyManager(plugin);
         this.cache = new QuantumSeedCache(cacheSize);
         this.enableTimeDecay = enableTimeDecay;
         this.debugLogging = debugLogging;
     }
-    
+
     public void initialize() {
         keyManager.initialize();
-        
+
         if (debugLogging) {
             LOGGER.info("[QuantumSeed] Manager initialized with cache");
         }
-        
+
         try {
             org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.preheatCache(
                 cache,
@@ -43,7 +43,7 @@ public class QuantumSeedManager {
             LOGGER.warning("[QuantumSeed] Failed to start cache preheating: " + e.getMessage());
         }
     }
-    
+
     public long getEncryptedSeed(
         long originalSeed,
         int chunkX,
@@ -59,9 +59,9 @@ public class QuantumSeedManager {
             }
             return cached;
         }
-        
+
         long startTime = debugLogging ? System.nanoTime() : 0;
-        
+
         long encrypted = QuantumSeedCore.encrypt(
             originalSeed,
             chunkX,
@@ -72,18 +72,18 @@ public class QuantumSeedManager {
             gameTime,
             enableTimeDecay
         );
-        
+
         if (debugLogging) {
             long elapsed = System.nanoTime() - startTime;
             LOGGER.fine(String.format("[QuantumSeed] Encrypted seed for chunk (%d, %d) in %s: %d ns, type=%s",
                 chunkX, chunkZ, dimension, elapsed, type));
         }
-        
+
         cache.put(originalSeed, chunkX, chunkZ, dimension, type, encrypted);
-        
+
         return encrypted;
     }
-    
+
     public long getEncryptedSeed(
         long originalSeed,
         int chunkX,
@@ -93,36 +93,36 @@ public class QuantumSeedManager {
     ) {
         return getEncryptedSeed(originalSeed, chunkX, chunkZ, dimension, type, 0);
     }
-    
+
     public void clearCache() {
         cache.clear();
         LOGGER.info("[QuantumSeed] Cache cleared");
     }
-    
+
     public QuantumSeedCache.CacheStats getCacheStats() {
         return cache.getStats();
     }
-    
+
     public void printCacheStats() {
         QuantumSeedCache.CacheStats stats = getCacheStats();
         LOGGER.info("[QuantumSeed] " + stats.toString());
     }
-    
+
     public void updateConfig(boolean enableTimeDecay, boolean debugLogging) {
         this.enableTimeDecay = enableTimeDecay;
         this.debugLogging = debugLogging;
-        
+
         if (debugLogging) {
             LOGGER.info("[QuantumSeed] Config updated: timeDecay=" + enableTimeDecay + ", debug=" + debugLogging);
         }
     }
-    
+
     public void regenerateServerKey() throws Exception {
         keyManager.regenerateKey();
         clearCache();
         LOGGER.warning("[QuantumSeed] Server key regenerated - world generation will change!");
     }
-    
+
     public boolean isInitialized() {
         return keyManager.isInitialized();
     }

@@ -19,22 +19,22 @@ public class NetworkCommand implements BasicCommand {
     public NetworkCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
-    
+
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         if (!(source.getSender() instanceof Player player)) {
             source.getSender().sendMessage("[AkiAsync] This command can only be executed by players");
             return;
         }
-        
+
         if (args.length != 1) {
             source.getSender().sendMessage("[AkiAsync] Usage: /aki-network <true|false>");
             return;
         }
-        
+
         String arg = args[0].toLowerCase(Locale.ROOT);
         boolean enable;
-        
+
         if (arg.equals("true") || arg.equals("on") || arg.equals("enable")) {
             enable = true;
         } else if (arg.equals("false") || arg.equals("off") || arg.equals("disable")) {
@@ -43,9 +43,9 @@ public class NetworkCommand implements BasicCommand {
             source.getSender().sendMessage("[AkiAsync] Invalid argument. Use 'true' or 'false'");
             return;
         }
-        
+
         NetworkTrafficMonitor monitor = NetworkTrafficMonitor.getInstance(plugin);
-        
+
         if (enable) {
             if (monitor.isViewing(player)) {
                 player.sendMessage("[AkiAsync] Network monitor is already enabled");
@@ -62,7 +62,7 @@ public class NetworkCommand implements BasicCommand {
             }
         }
     }
-    
+
     @Override
     public @Nullable String permission() {
         return "akiasync.network";

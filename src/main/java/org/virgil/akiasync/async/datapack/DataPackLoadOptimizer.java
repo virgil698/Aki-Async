@@ -279,7 +279,7 @@ public class DataPackLoadOptimizer {
                 try {
                     entry.getValue().fileSystem.close();
                 } catch (IOException e) {
-                    
+
                 }
                 removedFileSystems.incrementAndGet();
                 return true;
@@ -313,7 +313,7 @@ public class DataPackLoadOptimizer {
                         try {
                             cached.fileSystem.close();
                         } catch (IOException e) {
-                            
+
                         }
                         removedFileSystems.incrementAndGet();
                     }
@@ -347,7 +347,7 @@ public class DataPackLoadOptimizer {
             try {
                 cached.fileSystem.close();
             } catch (IOException e) {
-                
+
             }
         }
         fileSystemCache.clear();

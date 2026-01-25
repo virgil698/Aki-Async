@@ -18,6 +18,18 @@ public final class ChunkTickExecutor {
             return;
         }
 
+        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+
+        if (bridge != null) {
+            java.util.concurrent.ExecutorService bridgeExecutor = bridge.getChunkTickExecutor();
+            if (bridgeExecutor instanceof ForkJoinPool) {
+                POOL = (ForkJoinPool) bridgeExecutor;
+                initialized = true;
+                bridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor using Bridge executor");
+                return;
+            }
+        }
+
         POOL = new ForkJoinPool(
             threadCount,
             ForkJoinPool.defaultForkJoinWorkerThreadFactory,
@@ -44,9 +56,8 @@ public final class ChunkTickExecutor {
         );
 
         initialized = true;
-        org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor initialized with " + threadCount + " threads");
+            bridge.debugLog("[AkiAsync-Debug] ChunkTickExecutor initialized with fallback pool (" + threadCount + " threads)");
         }
     }
 
@@ -69,7 +80,7 @@ public final class ChunkTickExecutor {
     public static void setThreadCount(int count) {
         threadCount = Math.max(1, Math.min(count, 16));
     }
-    
+
     public static void shutdown() {
         if (POOL != null) {
             POOL.shutdown();

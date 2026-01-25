@@ -10,10 +10,10 @@ public class VirtualEntityPacketHandler {
     private final Logger logger;
     private volatile boolean enabled;
 
-    public VirtualEntityPacketHandler(PluginDetectorRegistry detectorRegistry, 
-                                     ConfigManager configManager, 
+    public VirtualEntityPacketHandler(PluginDetectorRegistry detectorRegistry,
+                                     ConfigManager configManager,
                                      Logger logger) {
-        
+
         this.configManager = configManager;
         this.logger = logger;
         this.enabled = false;

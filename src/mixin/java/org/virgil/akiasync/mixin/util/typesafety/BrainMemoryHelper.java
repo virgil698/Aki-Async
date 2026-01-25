@@ -15,13 +15,13 @@ public final class BrainMemoryHelper {
     }
 
     public static <U> Optional<U> getMemory(
-            Brain<?> brain, 
+            Brain<?> brain,
             MemoryModuleType<U> memoryType) {
-        
+
         if (brain == null) {
             return Optional.empty();
         }
-        
+
         try {
             return brain.getMemory(memoryType);
         } catch (Exception e) {
@@ -31,14 +31,14 @@ public final class BrainMemoryHelper {
     }
 
     public static <U> void setMemory(
-            Brain<?> brain, 
-            MemoryModuleType<U> memoryType, 
+            Brain<?> brain,
+            MemoryModuleType<U> memoryType,
             U value) {
-        
+
         if (brain == null) {
             return;
         }
-        
+
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
@@ -46,16 +46,16 @@ public final class BrainMemoryHelper {
         }
     }
 
-    @SuppressWarnings("unchecked") 
+    @SuppressWarnings("unchecked")
     public static void setMemoryRaw(
-            Brain<?> brain, 
-            MemoryModuleType<Object> memoryType, 
+            Brain<?> brain,
+            MemoryModuleType<Object> memoryType,
             Object value) {
-        
+
         if (brain == null || value == null) {
             return;
         }
-        
+
         try {
             brain.setMemory(memoryType, value);
         } catch (Exception e) {
@@ -64,13 +64,13 @@ public final class BrainMemoryHelper {
     }
 
     public static void eraseMemory(
-            Brain<?> brain, 
+            Brain<?> brain,
             MemoryModuleType<?> memoryType) {
-        
+
         if (brain == null) {
             return;
         }
-        
+
         try {
             brain.eraseMemory(memoryType);
         } catch (Exception e) {
@@ -79,16 +79,16 @@ public final class BrainMemoryHelper {
     }
 
     public static <E extends LivingEntity> BrainMemorySnapshot createSnapshot(
-            Brain<E> brain, 
+            Brain<E> brain,
             ServerLevel level) {
-        
+
         return BrainMemorySnapshot.capture(brain, level);
     }
 
     public static <E extends LivingEntity> void applySnapshot(
-            Brain<E> brain, 
+            Brain<E> brain,
             BrainMemorySnapshot snapshot) {
-        
+
         snapshot.applyTo(brain);
     }
 }

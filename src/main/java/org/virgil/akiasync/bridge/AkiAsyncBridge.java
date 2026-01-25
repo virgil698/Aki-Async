@@ -21,7 +21,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
     private final ExecutorService collisionExecutor;
-    
+
     private TaskSmoothingScheduler blockTickScheduler;
     private TaskSmoothingScheduler entityTickScheduler;
     private TaskSmoothingScheduler blockEntityScheduler;
@@ -36,12 +36,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         this.villagerBreedExecutor = villagerBreedExecutor;
         this.brainExecutor = brainExecutor;
         this.collisionExecutor = collisionExecutor;
-        
+
         initializeSmoothingSchedulers();
-        
+
         ConfigReloader.registerListener(this);
     }
-    
+
     private void initializeSmoothingSchedulers() {
         try {
 
@@ -50,14 +50,14 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
                 isFolia = true;
             } catch (ClassNotFoundException e) {
-                
+
             }
-            
+
             if (isFolia) {
                 plugin.getLogger().info("[AkiAsync] Folia environment detected - TaskSmoothingScheduler disabled");
                 return;
             }
-            
+
             if (config != null && config.isChunkTickAsyncEnabled() && generalExecutor != null) {
                 int batchSize = config.getChunkTickAsyncBatchSize();
                 blockTickScheduler = new TaskSmoothingScheduler(
@@ -68,7 +68,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 );
                 plugin.getLogger().info("[AkiAsync] BlockTick TaskSmoothingScheduler initialized");
             }
-            
+
             if (config != null && config.isEntityTickParallel() && generalExecutor != null) {
                 int batchSize = config.getEntityTickBatchSize();
                 entityTickScheduler = new TaskSmoothingScheduler(
@@ -79,7 +79,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 );
                 plugin.getLogger().info("[AkiAsync] EntityTick TaskSmoothingScheduler initialized");
             }
-            
+
             if (config != null && config.isBlockEntityParallelTickEnabled() && generalExecutor != null) {
                 int batchSize = config.getBlockEntityParallelBatchSize();
                 blockEntityScheduler = new TaskSmoothingScheduler(
@@ -94,10 +94,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[AkiAsync] Failed to initialize TaskSmoothingSchedulers: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void onConfigReload(ConfigManager newConfig) {
-        
+
         this.config = newConfig;
         plugin.getLogger().info("[AkiAsync] Bridge configuration updated after reload");
     }
@@ -126,52 +126,52 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isOptimizedCollectionsEnabled() {
         return config != null ? config.isOptimizedCollectionsEnabled() : true;
     }
-    
+
     @Override
     public boolean isMobSunBurnOptimizationEnabled() {
         return config != null ? config.isMobSunBurnOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isEntitySpeedOptimizationEnabled() {
         return config != null ? config.isEntitySpeedOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isEntityFallDamageOptimizationEnabled() {
         return config != null ? config.isEntityFallDamageOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isEntitySectionStorageOptimizationEnabled() {
         return config != null ? config.isEntitySectionStorageOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isChunkPosOptimizationEnabled() {
         return config != null ? config.isChunkPosOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isNoiseOptimizationEnabled() {
         return config != null ? config.isNoiseOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isNbtOptimizationEnabled() {
         return config != null ? config.isNbtOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isBitSetPoolingEnabled() {
         return config != null ? config.isBitSetPoolingEnabled() : true;
     }
-    
+
     @Override
     public boolean isCompletableFutureOptimizationEnabled() {
         return config != null ? config.isCompletableFutureOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isChunkOptimizationEnabled() {
         return config != null ? config.isChunkOptimizationEnabled() : true;
@@ -179,9 +179,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isEntityTickParallel() { return config.isEntityTickParallel(); }
-
-    @Override
-    public int getEntityTickThreads() { return config.getEntityTickThreads(); }
 
     @Override
     public int getMinEntitiesForParallel() {return config.getMinEntitiesForParallel();}
@@ -202,166 +199,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public int getLivingEntityTravelSkipInterval() {return config.getLivingEntityTravelSkipInterval();}
 
     @Override
-    public boolean isBehaviorThrottleEnabled() {return config.isBehaviorThrottleEnabled();}
-
-    @Override
-    public int getBehaviorThrottleInterval() {return config.getBehaviorThrottleInterval();}
-
-    @Override
     public boolean isMobDespawnOptimizationEnabled() {return config.isMobDespawnOptimizationEnabled();}
 
     @Override
     public int getMobDespawnCheckInterval() {return config.getMobDespawnCheckInterval();}
-
-    @Override
-    public long getAsyncAITimeoutMicros() {return config.getAsyncAITimeoutMicros();}
-
-    @Override
-    public boolean isAiSpatialIndexEnabled() {return config.isAiSpatialIndexEnabled();}
-    
-    @Override
-    public int getAiSpatialIndexGridSize() {return config.getAiSpatialIndexGridSize();}
-    
-    @Override
-    public boolean isAiSpatialIndexAutoUpdate() {return config.isAiSpatialIndexAutoUpdate();}
-    
-    @Override
-    public boolean isAiSpatialIndexPlayerIndexEnabled() {return config.isAiSpatialIndexPlayerIndexEnabled();}
-    
-    @Override
-    public boolean isAiSpatialIndexPoiIndexEnabled() {return config.isAiSpatialIndexPoiIndexEnabled();}
-    
-    @Override
-    public boolean isAiSpatialIndexStatisticsEnabled() {return config.isAiSpatialIndexStatisticsEnabled();}
-    
-    @Override
-    public int getAiSpatialIndexLogIntervalSeconds() {return config.getAiSpatialIndexLogIntervalSeconds();}
-
-    @Override
-    public boolean isVillagerOptimizationEnabled() {return config.isVillagerOptimizationEnabled();}
-
-    @Override
-    public boolean isVillagerUsePOISnapshot() {return config.isVillagerUsePOISnapshot();}
-
-    @Override
-    public boolean isVillagerPoiCacheEnabled() {return config.isVillagerPoiCacheEnabled();}
-
-    @Override
-    public int getVillagerPoiCacheExpireTime() {return config.getVillagerPoiCacheExpireTime();}
-    
-    @Override
-    public boolean isWanderingTraderOptimizationEnabled() {return config.isWanderingTraderOptimizationEnabled();}
-    
-    @Override
-    public boolean isWardenOptimizationEnabled() {return config.isWardenOptimizationEnabled();}
-    
-    @Override
-    public boolean isHoglinOptimizationEnabled() {return config.isHoglinOptimizationEnabled();}
-    
-    @Override
-    public boolean isAllayOptimizationEnabled() {return config.isAllayOptimizationEnabled();}
-    
-    @Override
-    public boolean isEndermanOptimizationEnabled() {return config.isEndermanOptimizationEnabled();}
-    
-    @Override
-    public int getEndermanTickInterval() {return config.getEndermanTickInterval();}
-    
-    @Override
-    public boolean isEndermanAllowPickupBlocks() {return config.isEndermanAllowPickupBlocks();}
-    
-    @Override
-    public boolean isArmadilloOptimizationEnabled() {return config.isArmadilloOptimizationEnabled();}
-    
-    @Override
-    public int getArmadilloTickInterval() {return config.getArmadilloTickInterval();}
-    
-    @Override
-    public boolean isSnifferOptimizationEnabled() {return config.isSnifferOptimizationEnabled();}
-    
-    @Override
-    public int getSnifferTickInterval() {return config.getSnifferTickInterval();}
-    
-    @Override
-    public boolean isCamelOptimizationEnabled() {return config.isCamelOptimizationEnabled();}
-    
-    @Override
-    public int getCamelTickInterval() {return config.getCamelTickInterval();}
-    
-    @Override
-    public boolean isFrogOptimizationEnabled() {return config.isFrogOptimizationEnabled();}
-    
-    @Override
-    public int getFrogTickInterval() {return config.getFrogTickInterval();}
-    
-    @Override
-    public boolean isGoatOptimizationEnabled() {return config.isGoatOptimizationEnabled();}
-    
-    @Override
-    public int getGoatTickInterval() {return config.getGoatTickInterval();}
-    
-    @Override
-    public boolean isPandaOptimizationEnabled() {return config.isPandaOptimizationEnabled();}
-    
-    @Override
-    public int getPandaTickInterval() {return config.getPandaTickInterval();}
-    
-    @Override
-    public boolean isEndermanAllowPlaceBlocks() {return config.isEndermanAllowPlaceBlocks();}
-
-    @Override
-    public boolean isPiglinOptimizationEnabled() {return config.isPiglinOptimizationEnabled();}
-
-    @Override
-    public boolean isPiglinUsePOISnapshot() { return config.isPiglinUsePOISnapshot(); }
-
-    @Override
-    public int getPiglinLookDistance() { return config.getPiglinLookDistance(); }
-
-    @Override
-    public int getPiglinBarterDistance() { return config.getPiglinBarterDistance(); }
-
-    @Override
-    public boolean isPillagerFamilyOptimizationEnabled() { return config.isPillagerFamilyOptimizationEnabled(); }
-
-    @Override
-    public boolean isPillagerFamilyUsePOISnapshot() { return config.isPillagerFamilyUsePOISnapshot(); }
-
-    @Override
-    public boolean isEvokerOptimizationEnabled() { return config.isEvokerOptimizationEnabled(); }
-
-    @Override
-    public boolean isBlazeOptimizationEnabled() { return config.isBlazeOptimizationEnabled(); }
-
-    @Override
-    public boolean isGuardianOptimizationEnabled() { return config.isGuardianOptimizationEnabled(); }
-
-    @Override
-    public boolean isWitchOptimizationEnabled() { return config.isWitchOptimizationEnabled(); }
-
-    @Override
-    public boolean isUniversalAiOptimizationEnabled() { return config.isUniversalAiOptimizationEnabled(); }
-
-    @Override
-    public java.util.Set<String> getUniversalAiEntities() { return config.getUniversalAiEntities(); }
-
-    @Override
-    public boolean isDabEnabled() { return config.isDabEnabled(); }
-
-    @Override
-    public int getDabStartDistance() { return config.getDabStartDistance(); }
-
-    @Override
-    public int getDabActivationDistMod() { return config.getDabActivationDistMod(); }
-
-    @Override
-    public int getDabMaxTickInterval() { return config.getDabMaxTickInterval(); }
-    
-    @Override
-    public boolean isBrainMemoryOptimizationEnabled() { return config.isBrainMemoryOptimizationEnabled(); }
-    
-    @Override
-    public boolean isPoiSnapshotEnabled() { return config.isPoiSnapshotEnabled(); }
 
     @Override
     public boolean isAiSensorOptimizationEnabled() { return config.isAiSensorOptimizationEnabled(); }
@@ -401,46 +242,61 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getAsyncPathfindingTimeoutMs() { return config.getAsyncPathfindingTimeoutMs(); }
-    
+
     @Override
-    public boolean isAsyncPathfindingSyncFallbackEnabled() { 
-        return config.isAsyncPathfindingSyncFallbackEnabled(); 
+    public boolean isAsyncPathfindingSyncFallbackEnabled() {
+        return config.isAsyncPathfindingSyncFallbackEnabled();
     }
-    
+
     @Override
     public boolean isEnhancedPathfindingEnabled() { return config.isEnhancedPathfindingEnabled(); }
-    
+
     @Override
-    public int getEnhancedPathfindingMaxConcurrentRequests() { 
-        return config.getEnhancedPathfindingMaxConcurrentRequests(); 
+    public int getEnhancedPathfindingMaxConcurrentRequests() {
+        return config.getEnhancedPathfindingMaxConcurrentRequests();
     }
-    
+
     @Override
-    public int getEnhancedPathfindingMaxRequestsPerTick() { 
-        return config.getEnhancedPathfindingMaxRequestsPerTick(); 
+    public int getEnhancedPathfindingMaxRequestsPerTick() {
+        return config.getEnhancedPathfindingMaxRequestsPerTick();
     }
-    
+
     @Override
-    public int getEnhancedPathfindingHighPriorityDistance() { 
-        return config.getEnhancedPathfindingHighPriorityDistance(); 
+    public int getEnhancedPathfindingHighPriorityDistance() {
+        return config.getEnhancedPathfindingHighPriorityDistance();
     }
-    
+
     @Override
-    public int getEnhancedPathfindingMediumPriorityDistance() { 
-        return config.getEnhancedPathfindingMediumPriorityDistance(); 
+    public int getEnhancedPathfindingMediumPriorityDistance() {
+        return config.getEnhancedPathfindingMediumPriorityDistance();
     }
-    
+
     @Override
     public boolean isPathPrewarmEnabled() { return config.isPathPrewarmEnabled(); }
-    
+
     @Override
     public int getPathPrewarmRadius() { return config.getPathPrewarmRadius(); }
-    
+
     @Override
     public int getPathPrewarmMaxMobsPerBatch() { return config.getPathPrewarmMaxMobsPerBatch(); }
-    
+
     @Override
     public int getPathPrewarmMaxPoisPerMob() { return config.getPathPrewarmMaxPoisPerMob(); }
+
+    @Override
+    public boolean isAsyncPathfindingCacheEnabled() { return config.isAsyncPathfindingCacheEnabled(); }
+
+    @Override
+    public int getAsyncPathfindingCacheMaxSize() { return config.getAsyncPathfindingCacheMaxSize(); }
+
+    @Override
+    public int getAsyncPathfindingCacheExpireSeconds() { return config.getAsyncPathfindingCacheExpireSeconds(); }
+
+    @Override
+    public int getAsyncPathfindingCacheReuseTolerance() { return config.getAsyncPathfindingCacheReuseTolerance(); }
+
+    @Override
+    public int getAsyncPathfindingCacheCleanupIntervalSeconds() { return config.getAsyncPathfindingCacheCleanupIntervalSeconds(); }
 
     @Override
     public boolean shouldThrottleEntity(Object entity) {
@@ -467,7 +323,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
         return plugin.getThrottlingManager().shouldThrottle(bukkitEntity);
     }
-    
+
     @Override
     public boolean isEntityThrottlingEnabled() { return config != null ? config.isEntityThrottlingEnabled() : true; }
 
@@ -505,12 +361,6 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public int getMinecartTickInterval() {return config.getMinecartTickInterval();}
 
     @Override
-    public boolean isSimpleEntitiesOptimizationEnabled() {return config.isSimpleEntitiesOptimizationEnabled();}
-
-    @Override
-    public boolean isSimpleEntitiesUsePOISnapshot() {return config.isSimpleEntitiesUsePOISnapshot();}
-
-    @Override
     public boolean isMobSpawningEnabled() {return config.isMobSpawningEnabled();}
 
     @Override
@@ -518,7 +368,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getMaxEntitiesPerChunk() {return config.getMaxEntitiesPerChunk();}
-    
+
     @Override
     public int getMobSpawnInterval() {return config.getMobSpawnInterval();}
 
@@ -526,26 +376,14 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isSpawnerOptimizationEnabled() {return config.isSpawnerOptimizationEnabled();}
 
     @Override
-    @Deprecated 
-    public boolean isEntityTrackerEnabled() {
-        return false;
-    }
+    public boolean isMultithreadedTrackerEnabled() {return config.isMultithreadedTrackerEnabled();}
 
     @Override
-    @Deprecated 
-    public int getEntityTrackerQueueSize() {
-        return 10000;
-    }
-    
-    @Override
-    public boolean isMultithreadedTrackerEnabled() {return config.isMultithreadedTrackerEnabled();}
-    
-    @Override
     public int getMultithreadedTrackerParallelism() {return config.getMultithreadedTrackerParallelism();}
-    
+
     @Override
     public int getMultithreadedTrackerBatchSize() {return config.getMultithreadedTrackerBatchSize();}
-    
+
     @Override
     public int getMultithreadedTrackerAssistBatchSize() {return config.getMultithreadedTrackerAssistBatchSize();}
 
@@ -581,7 +419,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public ExecutorService getBrainExecutor() { return brainExecutor != null ? brainExecutor : generalExecutor; }
-    
+
     @Override
     public ExecutorService getCollisionExecutor() { return collisionExecutor != null ? collisionExecutor : generalExecutor; }
 
@@ -596,7 +434,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public int getLightUpdateIntervalMs() {return config.getLightUpdateIntervalMs();}
-    
+
     @Override
     public int getLightingParallelism() {
         int poolSize = config.getThreadPoolSize();
@@ -629,7 +467,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isLightingDebugEnabled() {return config.isLightingDebugEnabled();}
-    
+
     @Override
     public boolean isSpawnChunkRemovalEnabled() {return config.isSpawnChunkRemovalEnabled();}
 
@@ -652,6 +490,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isTNTUseVectorizedAABB() {return config.isTNTUseVectorizedAABB();}
 
     @Override
+    public boolean isTNTUseUnifiedEngine() {return config.isTNTUseUnifiedEngine();}
+
+    @Override
     public boolean isTNTMergeEnabled() {return config.isTNTMergeEnabled();}
 
     @Override
@@ -664,10 +505,16 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public float getTNTMergedPowerMultiplier() {return config.getTNTMergedPowerMultiplier();}
 
     @Override
-    public boolean isTNTOptimizationEnabled() {return config.isTNTOptimizationEnabled();}
+    public float getTNTMaxPower() {return config.getTNTMaxPower();}
 
     @Override
-    public java.util.Set<String> getTNTExplosionEntities() {return config.getTNTExplosionEntities();}
+    public boolean isTNTCacheEnabled() {return config.isTntCacheEnabled();}
+
+    @Override
+    public int getTNTCacheExpiryTicks() {return config.getTntCacheExpiryTicks();}
+
+    @Override
+    public boolean isTNTOptimizationEnabled() {return config.isTNTOptimizationEnabled();}
 
     @Override
     public int getTNTThreads() {return config.getTNTThreads();}
@@ -701,40 +548,40 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isEndIslandDensityFixEnabled() {return config.isEndIslandDensityFixEnabled();}
-    
+
     @Override
     public boolean isLeaderZombieHealthFixEnabled() {return config.isLeaderZombieHealthFixEnabled();}
-    
+
     @Override
     public boolean isPortalSuffocationCheckDisabled() {return config.isPortalSuffocationCheckDisabled();}
-    
+
     @Override
     public boolean isShulkerBulletSelfHitFixEnabled() {return config.isShulkerBulletSelfHitFixEnabled();}
-    
+
     @Override
     public boolean isExecuteCommandInactiveSkipEnabled() {return config.isExecuteCommandInactiveSkipEnabled();}
-    
+
     @Override
     public int getExecuteCommandSkipLevel() {return config.getExecuteCommandSkipLevel();}
-    
+
     @Override
     public double getExecuteCommandSimulationDistanceMultiplier() {return config.getExecuteCommandSimulationDistanceMultiplier();}
-    
+
     @Override
     public long getExecuteCommandCacheDurationMs() {return config.getExecuteCommandCacheDurationMs();}
-    
+
     @Override
     public java.util.Set<String> getExecuteCommandWhitelistTypes() {return config.getExecuteCommandWhitelistTypes();}
-    
+
     @Override
     public boolean isExecuteCommandDebugEnabled() {return config.isExecuteCommandDebugEnabled();}
-    
+
     @Override
     public boolean isCommandDeduplicationEnabled() {return config.isCommandDeduplicationEnabled();}
-    
+
     @Override
     public boolean isCommandDeduplicationDebugEnabled() {return config.isCommandDeduplicationDebugEnabled();}
-    
+
     @Override
     public boolean isTNTUseFullRaycast() {return config.isTNTUseFullRaycast();}
 
@@ -746,60 +593,71 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean isDebugLoggingEnabled() {return config.isDebugLoggingEnabled();}
-    
+
     @Override
     public boolean isSmartLagCompensationEnabled() {
         return config != null && config.isSmartLagCompensationEnabled();
     }
-    
+
     @Override
     public double getSmartLagTPSThreshold() {
         return config != null ? config.getSmartLagTPSThreshold() : 18.0;
     }
-    
+
     @Override
     public boolean isSmartLagItemPickupDelayEnabled() {
         return config != null && config.isSmartLagItemPickupDelayEnabled();
     }
-    
+
     @Override
     public boolean isSmartLagPotionEffectsEnabled() {
         return config != null && config.isSmartLagPotionEffectsEnabled();
     }
-    
+
     @Override
     public boolean isSmartLagTimeAccelerationEnabled() {
         return config != null && config.isSmartLagTimeAccelerationEnabled();
     }
-    
+
     @Override
     public boolean isSmartLagDebugEnabled() {
         return config != null && config.isSmartLagDebugEnabled();
     }
-    
+
     @Override
     public boolean isSmartLagLogMissedTicks() {
         return config != null && config.isSmartLagLogMissedTicks();
     }
-    
+
     @Override
     public boolean isSmartLagLogCompensation() {
         return config != null && config.isSmartLagLogCompensation();
     }
-    
+
     @Override
     public boolean isExperienceOrbInactiveTickEnabled() {
         return config != null && config.isExperienceOrbInactiveTickEnabled();
     }
-    
+
     @Override
     public double getExperienceOrbInactiveRange() {
         return config != null ? config.getExperienceOrbInactiveRange() : 32.0;
     }
-    
+
     @Override
     public int getExperienceOrbInactiveMergeInterval() {
         return config != null ? config.getExperienceOrbInactiveMergeInterval() : 100;
+    }
+
+    @Override
+    public boolean isExperienceOrbMergeEnabled() {
+
+        return config != null && config.isExperienceOrbMergeEnabled();
+    }
+
+    @Override
+    public int getExperienceOrbMergeInterval() {
+        return config != null ? config.getExperienceOrbMergeInterval() : 20;
     }
 
     @Override
@@ -842,7 +700,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public String getBlockId(net.minecraft.world.level.block.Block block) {
         try {
-            
+
             net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
             return key.toString();
         } catch (Exception e) {
@@ -875,7 +733,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public long getChunkTickTimeoutMicros() {return config.getChunkTickTimeoutMicros();}
-    
+
     @Override
     public int getChunkTickAsyncBatchSize() {return config.getChunkTickAsyncBatchSize();}
 
@@ -1322,7 +1180,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             errorLog("[AkiAsync] Error clearing Sakura caches: %s", e.getMessage());
         }
     }
-    
+
     @Override
     public void clearEntityThrottleCache(int entityId) {
         try {
@@ -1336,15 +1194,15 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     @Override
     public java.util.Map<String, Object> getSakuraCacheStatistics() {
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
-        
+
         try {
 
             java.util.Map<String, String> densityStats = new java.util.HashMap<>();
             for (org.bukkit.World world : plugin.getServer().getWorlds()) {
                 try {
-                    net.minecraft.server.level.ServerLevel serverLevel = 
+                    net.minecraft.server.level.ServerLevel serverLevel =
                         ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache =
                         org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
                     densityStats.put(world.getName(), cache.getStats());
                 } catch (Exception e) {
@@ -1352,13 +1210,13 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 }
             }
             stats.put("density_cache", densityStats);
-            
+
             java.util.Map<String, String> asyncStats = new java.util.HashMap<>();
             for (org.bukkit.World world : plugin.getServer().getWorlds()) {
                 try {
-                    net.minecraft.server.level.ServerLevel serverLevel = 
+                    net.minecraft.server.level.ServerLevel serverLevel =
                         ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager =
                         org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
                     asyncStats.put(world.getName(), manager.getStats());
                 } catch (Exception e) {
@@ -1366,11 +1224,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 }
             }
             stats.put("async_density_cache", asyncStats);
-            
+
         } catch (Exception e) {
             errorLog("[AkiAsync] Error getting Sakura cache stats: %s", e.getMessage());
         }
-        
+
         return stats;
     }
 
@@ -1379,17 +1237,17 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         try {
             for (org.bukkit.World world : plugin.getServer().getWorlds()) {
                 try {
-                    net.minecraft.server.level.ServerLevel serverLevel = 
+                    net.minecraft.server.level.ServerLevel serverLevel =
                         ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-                    
-                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache =
                         org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
                     cache.expire(serverLevel.getGameTime());
-                    
-                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager =
                         org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
                     manager.expire(serverLevel.getGameTime());
-                    
+
                 } catch (Exception e) {
                     org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                         "AkiAsyncBridge", "expireRedstoneNetwork", e);
@@ -1404,7 +1262,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isVirtualEntity(net.minecraft.world.entity.Entity entity) {
         if (entity == null) return false;
         try {
-            
+
             org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
             return org.virgil.akiasync.util.VirtualEntityDetector.isVirtualEntity(bukkitEntity);
         } catch (Exception e) {
@@ -1426,12 +1284,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public long getFakeSeedValue() {
         return config != null ? config.getFakeSeedValue() : 0L;
     }
-    
+
     @Override
     public boolean isQuantumSeedEnabled() {
         return config != null && config.isQuantumSeedEnabled();
     }
-    
+
     @Override
     public byte[] getQuantumServerKey() {
         org.virgil.akiasync.crypto.QuantumSeedManager manager = plugin.getQuantumSeedManager();
@@ -1442,7 +1300,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         try {
             java.lang.reflect.Field keyManagerField = manager.getClass().getDeclaredField("keyManager");
             keyManagerField.setAccessible(true);
-            org.virgil.akiasync.crypto.ServerKeyManager keyManager = 
+            org.virgil.akiasync.crypto.ServerKeyManager keyManager =
                 (org.virgil.akiasync.crypto.ServerKeyManager) keyManagerField.get(manager);
             return keyManager.getServerKey();
         } catch (Exception e) {
@@ -1450,117 +1308,75 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             return null;
         }
     }
-    
+
     @Override
     public long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String generationType, long gameTime) {
         org.virgil.akiasync.crypto.QuantumSeedManager manager = plugin.getQuantumSeedManager();
         if (manager == null) {
             return originalSeed;
         }
-        
+
         org.virgil.akiasync.mixin.crypto.quantum.GenerationType type;
         try {
             type = org.virgil.akiasync.mixin.crypto.quantum.GenerationType.valueOf(generationType.toUpperCase());
         } catch (Exception e) {
             type = org.virgil.akiasync.mixin.crypto.quantum.GenerationType.DECORATION;
         }
-        
+
         return manager.getEncryptedSeed(originalSeed, chunkX, chunkZ, dimension, type, gameTime);
     }
-    
+
     @Override
     public boolean isSecureSeedEnabled() {
-        return config != null && config.isSeedEncryptionEnabled() && 
+        return config != null && config.isSeedEncryptionEnabled() &&
                "secure".equalsIgnoreCase(config.getSeedEncryptionScheme());
     }
-    
+
     @Override
     public long[] getSecureSeedWorldSeed() {
         return org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals.worldSeed;
     }
-    
+
     @Override
     public void initializeSecureSeed(long originalSeed) {
         if (!isSecureSeedEnabled()) {
             return;
         }
-        
+
         int bits = getSecureSeedBits();
         plugin.getLogger().info("[AkiAsync-SecureSeed] Initializing with " + bits + " bits");
-        
+
         org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals.initializeWorldSeed(
-            originalSeed, 
+            originalSeed,
             bits
         );
-        
+
         plugin.getLogger().info("[AkiAsync-SecureSeed] Seed encryption initialized");
     }
-    
+
     @Override
     public int getSecureSeedBits() {
         return config != null ? config.getSecureSeedBits() : 1024;
     }
-    
+
     @Override
     public boolean isSeedEncryptionProtectStructures() {
         return config != null && config.isSeedEncryptionProtectStructures();
     }
-    
+
     @Override
     public boolean isSeedEncryptionProtectOres() {
         return config != null && config.isSeedEncryptionProtectOres();
     }
-    
+
     @Override
     public boolean isSeedEncryptionProtectSlimes() {
         return config != null && config.isSeedEncryptionProtectSlimes();
     }
-    
+
     @Override
     public boolean isSeedEncryptionProtectBiomes() {
         return config != null && config.isSeedEncryptionProtectBiomes();
-    }
-
-    @Override
-    public boolean isTNTLandProtectionEnabled() {
-        return config != null && config.isTNTLandProtectionEnabled();
-    }
-
-    @Override
-    public boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
-        if (!isTNTLandProtectionEnabled()) {
-            return true;
-        }
-        
-        org.bukkit.World world = level.getWorld();
-        boolean debug = config != null && config.isLandProtectionDebugEnabled();
-        return org.virgil.akiasync.util.LandProtectionIntegration.canTNTExplode(world, pos.getX(), pos.getY(), pos.getZ(), debug);
-    }
-
-    @Override
-    public Boolean checkChunkProtection(net.minecraft.server.level.ServerLevel level, int chunkX, int chunkZ) {
-        if (!isTNTLandProtectionEnabled()) {
-            return true; 
-        }
-        
-        org.bukkit.World world = level.getWorld();
-        return org.virgil.akiasync.util.LandProtectionIntegration.checkChunkProtection(world, chunkX, chunkZ);
-    }
-    
-    @Override
-    public boolean isBlockLockerProtectionEnabled() {
-        return config != null && config.isBlockLockerProtectionEnabled();
-    }
-    
-    @Override
-    public boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
-        if (!isBlockLockerProtectionEnabled()) {
-            return false;
-        }
-        
-        org.bukkit.World world = level.getWorld();
-        String blockType = getBlockId(state.getBlock());
-        return org.virgil.akiasync.util.BlockLockerIntegration.isProtected(world, pos.getX(), pos.getY(), pos.getZ(), blockType);
     }
 
     @Override
@@ -1748,10 +1564,10 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         if (plugin == null || player == null || chunkPos == null) {
             return;
         }
-        
+
         org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler scheduler = plugin.getChunkLoadScheduler();
         if (scheduler != null) {
-            
+
             org.bukkit.entity.Player bukkitPlayer = player.getBukkitEntity();
             org.bukkit.World world = player.level().getWorld();
             scheduler.submitChunkLoad(bukkitPlayer, world, chunkPos.x, chunkPos.z, priority, speed);
@@ -1762,47 +1578,47 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isSuffocationOptimizationEnabled() {
         return config != null && config.isSuffocationOptimizationEnabled();
     }
-    
+
     @Override
     public boolean isFastRayTraceEnabled() {
         return config != null && config.isFastRayTraceEnabled();
     }
-    
+
     @Override
     public boolean isMapRenderingOptimizationEnabled() {
         return config != null && config.isMapRenderingOptimizationEnabled();
     }
-    
+
     @Override
     public boolean isProjectileOptimizationEnabled() {
         return config != null && config.isProjectileOptimizationEnabled();
     }
-    
+
     @Override
     public int getMaxProjectileLoadsPerTick() {
         return config != null ? config.getMaxProjectileLoadsPerTick() : 10;
     }
-    
+
     @Override
     public int getMaxProjectileLoadsPerProjectile() {
         return config != null ? config.getMaxProjectileLoadsPerProjectile() : 10;
     }
-    
+
     @Override
     public int getMapRenderingThreads() {
         return config != null ? config.getMapRenderingThreads() : 2;
     }
-    
+
     @Override
     public void runOnMainThread(Runnable task) {
         if (task == null) return;
-        
+
         try {
-            
+
             org.virgil.akiasync.compat.FoliaSchedulerAdapter.runTask(plugin, task);
         } catch (Exception e) {
             plugin.getLogger().warning("[AkiAsync] Failed to run task on main thread: " + e.getMessage());
-            
+
             try {
                 task.run();
             } catch (Exception ex) {
@@ -1811,7 +1627,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             }
         }
     }
-    
+
     @Override
     public double getCurrentTPS() {
         try {
@@ -1821,11 +1637,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             return 20.0;
         }
     }
-    
+
     @Override
     public double getCurrentMSPT() {
         try {
-            
+
             long[] tickTimes = plugin.getServer().getTickTimes();
             if (tickTimes.length > 0) {
                 long sum = 0;
@@ -1841,26 +1657,26 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         }
         return 50.0;
     }
-    
+
     @Override
     public Object getBlockTickSmoothingScheduler() {
         return blockTickScheduler;
     }
-    
+
     @Override
     public Object getEntityTickSmoothingScheduler() {
         return entityTickScheduler;
     }
-    
+
     @Override
     public Object getBlockEntitySmoothingScheduler() {
         return blockEntityScheduler;
     }
-    
+
     @Override
     public boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category) {
         if (scheduler == null || task == null) return false;
-        
+
         try {
             if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
                 TaskSmoothingScheduler.Priority pri = switch (priority) {
@@ -1878,11 +1694,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         }
         return false;
     }
-    
+
     @Override
     public int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category) {
         if (scheduler == null || tasks == null || tasks.isEmpty()) return 0;
-        
+
         try {
             if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
                 TaskSmoothingScheduler.Priority pri = switch (priority) {
@@ -1892,16 +1708,16 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                     case 3 -> TaskSmoothingScheduler.Priority.LOW;
                     default -> TaskSmoothingScheduler.Priority.NORMAL;
                 };
-                
+
                 int successCount = 0;
                 String cat = category != null ? category : "Unknown";
-                
+
                 for (Runnable task : tasks) {
                     if (task != null && smoothScheduler.submit(task, pri, cat)) {
                         successCount++;
                     }
                 }
-                
+
                 return successCount;
             }
         } catch (Exception e) {
@@ -1910,11 +1726,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         }
         return 0;
     }
-    
+
     @Override
     public void notifySmoothSchedulerTick(Object scheduler) {
         if (scheduler == null) return;
-        
+
         try {
             if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
                 smoothScheduler.onTick();
@@ -1924,11 +1740,11 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 "AkiAsyncBridge", "notifySmoothSchedulerTick", e);
         }
     }
-    
+
     @Override
     public void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt) {
         if (scheduler == null) return;
-        
+
         try {
             if (scheduler instanceof TaskSmoothingScheduler smoothScheduler) {
                 smoothScheduler.updatePerformanceMetrics(tps, mspt);
@@ -1938,7 +1754,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 "AkiAsyncBridge", "updateSmoothSchedulerMetrics", e);
         }
     }
-    
+
     @Override
     public boolean isCollisionOptimizationEnabled() {
         return config != null ? config.isCollisionOptimizationEnabled() : true;
@@ -1953,223 +1769,222 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public java.util.Set<String> getCollisionExcludedEntities() {
         return config != null ? config.getCollisionExcludedEntities() : java.util.Collections.emptySet();
     }
-    
-    
+
     @Override
     public boolean isNativeCollisionsEnabled() {
         return config != null ? config.isNativeCollisionsEnabled() : true;
     }
-    
+
     @Override
     public boolean isNativeCollisionsFallbackEnabled() {
         return config != null ? config.isNativeCollisionsFallbackEnabled() : true;
     }
-    
+
     @Override
     public boolean isCollisionBlockCacheEnabled() {
         return config != null ? config.isCollisionBlockCacheEnabled() : true;
     }
-    
+
     @Override
     public int getCollisionBlockCacheSize() {
         return config != null ? config.getCollisionBlockCacheSize() : 512;
     }
-    
+
     @Override
     public int getCollisionBlockCacheExpireTicks() {
         return config != null ? config.getCollisionBlockCacheExpireTicks() : 600;
     }
-    
+
     @Override
     public boolean isRayCollisionEnabled() {
         return config != null ? config.isRayCollisionEnabled() : true;
     }
-    
+
     @Override
     public double getRayCollisionMaxDistance() {
         return config != null ? config.getRayCollisionMaxDistance() : 64.0;
     }
-    
+
     @Override
     public boolean isShapeOptimizationEnabled() {
         return config != null ? config.isShapeOptimizationEnabled() : true;
     }
-    
+
     @Override
     public boolean isShapePrecomputeArrays() {
         return config != null ? config.isShapePrecomputeArrays() : true;
     }
-    
+
     @Override
     public boolean isShapeBlockShapeCache() {
         return config != null ? config.isShapeBlockShapeCache() : true;
     }
-    
+
     @Override
     public int getShapeBlockShapeCacheSize() {
         return config != null ? config.getShapeBlockShapeCacheSize() : 512;
     }
-    
+
     @Override
     public boolean isLightingPrioritySchedulingEnabled() {
         return config != null && config.isLightingPrioritySchedulingEnabled();
     }
-    
+
     @Override
     public int getLightingHighPriorityRadius() {
         return config != null ? config.getLightingHighPriorityRadius() : 32;
     }
-    
+
     @Override
     public int getLightingMediumPriorityRadius() {
         return config != null ? config.getLightingMediumPriorityRadius() : 64;
     }
-    
+
     @Override
     public int getLightingLowPriorityRadius() {
         return config != null ? config.getLightingLowPriorityRadius() : 128;
     }
-    
+
     @Override
     public long getLightingMaxLowPriorityDelay() {
         return config != null ? config.getLightingMaxLowPriorityDelay() : 500;
     }
-    
+
     @Override
     public boolean isLightingDebouncingEnabled() {
         return config != null && config.isLightingDebouncingEnabled();
     }
-    
+
     @Override
     public long getLightingDebounceDelay() {
         return config != null ? config.getLightingDebounceDelay() : 50;
     }
-    
+
     @Override
     public int getLightingMaxUpdatesPerSecond() {
         return config != null ? config.getLightingMaxUpdatesPerSecond() : 20;
     }
-    
+
     @Override
     public long getLightingResetOnStableMs() {
         return config != null ? config.getLightingResetOnStableMs() : 200;
     }
-    
+
     @Override
     public boolean isLightingMergingEnabled() {
         return config != null && config.isLightingMergingEnabled();
     }
-    
+
     @Override
     public int getLightingMergeRadius() {
         return config != null ? config.getLightingMergeRadius() : 2;
     }
-    
+
     @Override
     public long getLightingMergeDelay() {
         return config != null ? config.getLightingMergeDelay() : 10;
     }
-    
+
     @Override
     public int getLightingMaxMergedUpdates() {
         return config != null ? config.getLightingMaxMergedUpdates() : 64;
     }
-    
+
     @Override
     public boolean isLightingChunkBorderEnabled() {
         return config != null && config.isLightingChunkBorderEnabled();
     }
-    
+
     @Override
     public boolean isLightingBatchBorderUpdates() {
         return config != null && config.isLightingBatchBorderUpdates();
     }
-    
+
     @Override
     public long getLightingBorderUpdateDelay() {
         return config != null ? config.getLightingBorderUpdateDelay() : 20;
     }
-    
+
     @Override
     public int getLightingCrossChunkBatchSize() {
         return config != null ? config.getLightingCrossChunkBatchSize() : 32;
     }
-    
+
     @Override
     public boolean isLightingAdaptiveEnabled() {
         return config != null && config.isLightingAdaptiveEnabled();
     }
-    
+
     @Override
     public int getLightingMonitorInterval() {
         return config != null ? config.getLightingMonitorInterval() : 10;
     }
-    
+
     @Override
     public boolean isLightingAutoAdjustThreads() {
         return config != null && config.isLightingAutoAdjustThreads();
     }
-    
+
     @Override
     public boolean isLightingAutoAdjustBatchSize() {
         return config != null && config.isLightingAutoAdjustBatchSize();
     }
-    
+
     @Override
     public int getLightingTargetQueueSize() {
         return config != null ? config.getLightingTargetQueueSize() : 100;
     }
-    
+
     @Override
     public int getLightingTargetLatency() {
         return config != null ? config.getLightingTargetLatency() : 50;
     }
-    
+
     @Override
     public boolean isLightingChunkUnloadEnabled() {
         return config != null && config.isLightingChunkUnloadEnabled();
     }
-    
+
     @Override
     public boolean isLightingAsyncCleanup() {
         return config != null && config.isLightingAsyncCleanup();
     }
-    
+
     @Override
     public int getLightingCleanupBatchSize() {
         return config != null ? config.getLightingCleanupBatchSize() : 16;
     }
-    
+
     @Override
     public long getLightingCleanupDelay() {
         return config != null ? config.getLightingCleanupDelay() : 100;
     }
-    
+
     @Override
     public String getLightingThreadPoolMode() {
         return config != null ? config.getLightingThreadPoolMode() : "auto";
     }
-    
+
     @Override
     public String getLightingThreadPoolCalculation() {
         return config != null ? config.getLightingThreadPoolCalculation() : "cores/3";
     }
-    
+
     @Override
     public int getLightingMinThreads() {
         return config != null ? config.getLightingMinThreads() : 1;
     }
-    
+
     @Override
     public int getLightingMaxThreads() {
         return config != null ? config.getLightingMaxThreads() : 8;
     }
-    
+
     @Override
     public int getLightingBatchThresholdMax() {
         return config != null ? config.getLightingBatchThresholdMax() : 64;
     }
-    
+
     @Override
     public boolean isLightingAggressiveBatching() {
         return config != null && config.isLightingAggressiveBatching();
@@ -2196,7 +2011,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public void insertIntoJigsawOctree(net.minecraft.world.phys.AABB box) {
-        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree = 
+        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree =
             org.virgil.akiasync.mixin.util.worldgen.OctreeHolder.get();
         if (octree != null) {
             octree.insert(box);
@@ -2205,7 +2020,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public boolean jigsawOctreeIntersects(net.minecraft.world.phys.AABB box) {
-        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree = 
+        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree =
             org.virgil.akiasync.mixin.util.worldgen.OctreeHolder.get();
         return octree != null && octree.intersects(box);
     }
@@ -2217,39 +2032,39 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public String getJigsawOctreeStats() {
-        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree = 
+        org.virgil.akiasync.mixin.util.worldgen.BoxOctree octree =
             org.virgil.akiasync.mixin.util.worldgen.OctreeHolder.get();
         if (octree != null) {
             return octree.getStats().toString();
         }
         return null;
     }
-    
+
     @Override
     public boolean isChunkVisibilityFilterEnabled() {
         return config != null && config.isChunkVisibilityFilterEnabled();
     }
-    
+
     @Override
     public boolean isChunkVisible(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, net.minecraft.server.level.ServerLevel level) {
         if (!isChunkVisibilityFilterEnabled() || player == null || chunkPos == null || level == null) {
             return true;
         }
-        
+
         try {
             return org.virgil.akiasync.mixin.network.ChunkVisibilityFilter.isChunkVisible(player, chunkPos, level);
         } catch (Exception e) {
-            
+
             return true;
         }
     }
-    
+
     @Override
     public void tickChunkVisibilityFilter() {
         if (!isChunkVisibilityFilterEnabled()) {
             return;
         }
-        
+
         try {
             org.virgil.akiasync.mixin.network.ChunkVisibilityFilter.tick();
         } catch (Exception e) {
@@ -2257,21 +2072,20 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
                 "AkiAsyncBridge", "tickChunkVisibilityFilter", e);
         }
     }
-    
+
     @Override
     public void clearWorldCaches(String worldName) {
         try {
-            
+
             org.bukkit.World world = plugin.getServer().getWorld(worldName);
             if (world == null) {
                 plugin.getLogger().warning("[Bridge] World not found: " + worldName);
                 return;
             }
-            
-            net.minecraft.server.level.ServerLevel level = 
+
+            net.minecraft.server.level.ServerLevel level =
                 ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
-            
-            org.virgil.akiasync.mixin.brain.core.AiSpatialIndexManager.removeIndex(level);
+
             org.virgil.akiasync.mixin.poi.PoiSpatialIndexManager.removeIndex(level);
             org.virgil.akiasync.mixin.poi.BatchPoiManager.clearLevelCache(level);
             org.virgil.akiasync.mixin.util.EntitySliceGridManager.clearSliceGrid(level);
@@ -2281,40 +2095,40 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to clear world caches: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void prewarmPlayerPaths(java.util.UUID playerId) {
         try {
-            
+
             org.bukkit.entity.Player player = plugin.getServer().getPlayer(playerId);
             if (player == null) {
                 plugin.getLogger().warning("[Bridge] Player not found: " + playerId);
                 return;
             }
-            
-            net.minecraft.server.level.ServerPlayer serverPlayer = 
+
+            net.minecraft.server.level.ServerPlayer serverPlayer =
                 ((org.bukkit.craftbukkit.entity.CraftPlayer) player).getHandle();
-            
+
             org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem.prewarmPlayerPathsMainThread(serverPlayer);
         } catch (Exception e) {
-            plugin.getLogger().warning("[Bridge] Failed to prewarm player paths: " + 
+            plugin.getLogger().warning("[Bridge] Failed to prewarm player paths: " +
                 (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
             if (config != null && config.isDebugLoggingEnabled()) {
                 e.printStackTrace();
             }
         }
     }
-    
+
     @Override
     public void cleanupPlayerPaths(java.util.UUID playerId) {
         try {
-            
+
             org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingSystem.cleanupPlayer(playerId);
         } catch (Exception e) {
             plugin.getLogger().warning("[Bridge] Failed to cleanup player paths: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void restartVillagerExecutor() {
         try {
@@ -2323,7 +2137,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to restart villager executor: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void restartTNTExecutor() {
         try {
@@ -2332,16 +2146,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to restart TNT executor: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void restartBrainExecutor() {
-        try {
-            org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.restartSmooth();
-        } catch (Exception e) {
-            plugin.getLogger().warning("[Bridge] Failed to restart brain executor: " + e.getMessage());
-        }
+
     }
-    
+
     @Override
     public void restartChunkExecutor(int threadCount) {
         try {
@@ -2351,7 +2161,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to restart chunk executor: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void clearVillagerBreedCache() {
         try {
@@ -2360,16 +2170,12 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to clear villager breed cache: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void resetBrainExecutorStatistics() {
-        try {
-            org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
-        } catch (Exception e) {
-            plugin.getLogger().warning("[Bridge] Failed to reset brain executor statistics: " + e.getMessage());
-        }
+
     }
-    
+
     @Override
     public void resetAsyncMetrics() {
         try {
@@ -2378,163 +2184,295 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             plugin.getLogger().warning("[Bridge] Failed to reset async metrics: " + e.getMessage());
         }
     }
-    
+
     @Override
     public boolean isEndermanBlockCarryLimiterEnabled() {
         return config.isEndermanBlockCarryLimiterEnabled();
     }
-    
+
     @Override
     public int getEndermanMaxCarrying() {
         return config.getEndermanMaxCarrying();
     }
-    
+
     @Override
     public boolean isEndermanCountTowardsMobCap() {
         return config.isEndermanCountTowardsMobCap();
     }
-    
+
     @Override
     public boolean isEndermanPreventPickup() {
         return config.isEndermanPreventPickup();
     }
-    
+
     @Override
     public boolean isMultithreadedEntityTrackerEnabled() {
         return config.isMultithreadedEntityTrackerEnabled();
     }
-    
+
     @Override
     public boolean isVelocityCompressionEnabled() {
-        return true; 
+        return true;
     }
-    
+
     @Override
     public boolean isAdvancedNetworkOptimizationEnabled() {
         return config != null && config.isAdvancedNetworkOptimizationEnabled();
     }
-    
+
     @Override
     public boolean isFastVarIntEnabled() {
         return config != null && config.isFastVarIntEnabled();
     }
-    
+
     @Override
     public boolean isEventLoopAffinityEnabled() {
         return config != null && config.isEventLoopAffinityEnabled();
     }
-    
+
     @Override
     public boolean isByteBufOptimizerEnabled() {
         return config != null && config.isByteBufOptimizerEnabled();
     }
-    
+
     @Override
     public boolean isStrictEventLoopChecking() {
         return config != null && config.isStrictEventLoopChecking();
     }
-    
+
     @Override
     public boolean isPooledByteBufAllocator() {
         return config != null ? config.isPooledByteBufAllocator() : true;
     }
-    
+
     @Override
     public boolean isDirectByteBufPreferred() {
         return config != null ? config.isDirectByteBufPreferred() : true;
     }
-    
+
     @Override
     public boolean isSkipZeroMovementPacketsEnabled() {
         return config != null && config.isSkipZeroMovementPacketsEnabled();
     }
-    
+
     @Override
     public boolean isSkipZeroMovementPacketsStrictMode() {
         return config != null && config.isSkipZeroMovementPacketsStrictMode();
     }
-    
-    
+
+    @Override
+    public boolean isMtuAwareBatchingEnabled() {
+        return config != null && config.isMtuAwareBatchingEnabled();
+    }
+
+    @Override
+    public int getMtuLimit() {
+        return config != null ? config.getMtuLimit() : 1396;
+    }
+
+    @Override
+    public int getMtuHardCapPackets() {
+        return config != null ? config.getMtuHardCapPackets() : 4096;
+    }
+
+    @Override
+    public boolean isFlushConsolidationEnabled() {
+        return config != null && config.isFlushConsolidationEnabled();
+    }
+
+    @Override
+    public int getFlushConsolidationExplicitFlushAfterFlushes() {
+        return config != null ? config.getFlushConsolidationExplicitFlushAfterFlushes() : 256;
+    }
+
+    @Override
+    public boolean isFlushConsolidationConsolidateWhenNoReadInProgress() {
+        return config != null && config.isFlushConsolidationConsolidateWhenNoReadInProgress();
+    }
+
+    @Override
+    public boolean isNativeCompressionEnabled() {
+        return config != null && config.isNativeCompressionEnabled();
+    }
+
+    @Override
+    public int getNativeCompressionLevel() {
+        return config != null ? config.getNativeCompressionLevel() : 6;
+    }
+
+    @Override
+    public boolean isNativeEncryptionEnabled() {
+        return config != null && config.isNativeEncryptionEnabled();
+    }
+
+    @Override
+    public boolean isExplosionBlockUpdateOptimizationEnabled() {
+        return config != null && config.isExplosionBlockUpdateOptimizationEnabled();
+    }
+
+    @Override
+    public int getExplosionBlockChangeThreshold() {
+        return config != null ? config.getExplosionBlockChangeThreshold() : 512;
+    }
+
+    @Override
+    public long getConnectionPendingBytes(Object connection) {
+        try {
+            if (connection instanceof net.minecraft.network.Connection conn) {
+                if (conn.channel != null && conn.channel.isActive() &&
+                    conn.channel.unsafe() != null &&
+                    conn.channel.unsafe().outboundBuffer() != null) {
+                    return conn.channel.unsafe().outboundBuffer().totalPendingWriteBytes();
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean addFlushConsolidationHandler(Object channel, int explicitFlushAfterFlushes, boolean consolidateWhenNoReadInProgress) {
+        try {
+            if (channel instanceof io.netty.channel.Channel nettyChannel) {
+                io.netty.channel.ChannelPipeline pipeline = nettyChannel.pipeline();
+                if (pipeline != null && pipeline.get("flush_consolidation") == null) {
+                    pipeline.addFirst("flush_consolidation",
+                        new io.netty.handler.flush.FlushConsolidationHandler(explicitFlushAfterFlushes, consolidateWhenNoReadInProgress));
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        return false;
+    }
+
+    @Override
+    public void sendPacketWithoutFlush(Object connection, Object packet) {
+        if (!(connection instanceof net.minecraft.network.Connection conn) ||
+            !(packet instanceof net.minecraft.network.protocol.Packet<?> pkt)) {
+            return;
+        }
+        try {
+
+            conn.send((net.minecraft.network.protocol.Packet<?>) pkt, null, false);
+        } catch (Exception e) {
+
+            conn.send((net.minecraft.network.protocol.Packet<?>) pkt);
+        }
+    }
+
+    @Override
+    public void flushConnection(Object connection) {
+        try {
+            if (connection instanceof net.minecraft.network.Connection conn) {
+                conn.flushChannel();
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
+    @Override
+    public Object getConnectionFromListener(Object listener) {
+        try {
+            if (listener instanceof net.minecraft.server.network.ServerCommonPacketListenerImpl impl) {
+                return impl.connection;
+            }
+        } catch (Exception e) {
+
+        }
+        return null;
+    }
+
     @Override
     public int getHighLatencyThreshold() {
         return config != null ? config.getHighLatencyThreshold() : 150;
     }
-    
+
     @Override
     public int getHighLatencyMinViewDistance() {
         return config != null ? config.getHighLatencyMinViewDistance() : 5;
     }
-    
+
     @Override
     public long getHighLatencyDurationMs() {
         return config != null ? config.getHighLatencyDurationMs() : 60000L;
     }
-    
-    
+
     @Override
     public boolean isAfkPacketThrottleEnabled() {
         return config != null && config.isAfkPacketThrottleEnabled();
     }
-    
+
     @Override
     public long getAfkDurationMs() {
         return config != null ? config.getAfkDurationMs() : 120000L;
     }
-    
+
     @Override
     public double getAfkParticleMaxDistance() {
         return config != null ? config.getAfkParticleMaxDistance() : 0.0;
     }
-    
+
     @Override
     public double getAfkSoundMaxDistance() {
         return config != null ? config.getAfkSoundMaxDistance() : 64.0;
     }
-    
-    
+
     @Override
     public int getMidTickChunkTasksIntervalMs() {
-        
+
         return config != null ? config.getMidTickChunkTasksIntervalMs() : 1;
     }
-    
-    
+
     @Override
     public boolean isMultiNettyEventLoopEnabled() {
         return config != null && config.isMultiNettyEventLoopEnabled();
     }
-    
+
     @Override
     public boolean isPalettedContainerLockRemovalEnabled() {
         return config != null && config.isPalettedContainerLockRemovalEnabled();
     }
-    
+
     @Override
     public boolean isSpawnDensityArrayEnabled() {
         return config != null && config.isSpawnDensityArrayEnabled();
     }
-    
+
     @Override
     public boolean isTypeFilterableListOptimizationEnabled() {
         return config != null && config.isTypeFilterableListOptimizationEnabled();
     }
-    
+
     @Override
     public boolean isEntityTrackerLinkedHashMapEnabled() {
         return config != null && config.isEntityTrackerLinkedHashMapEnabled();
     }
-    
+
     @Override
     public boolean isBiomeAccessOptimizationEnabled() {
         return config != null && config.isBiomeAccessOptimizationEnabled();
     }
-    
+
+    @Override
+    public boolean isEntityMoveZeroVelocityOptimizationEnabled() {
+        return config != null && config.isEntityMoveZeroVelocityOptimizationEnabled();
+    }
+
+    @Override
+    public boolean isEntityTrackerDistanceCacheEnabled() {
+        return config != null && config.isEntityTrackerDistanceCacheEnabled();
+    }
+
     @Override
     public void handleConnectionProtocolChange(Object connection, int protocolOrdinal) {
         if (!isMultiNettyEventLoopEnabled()) {
             return;
         }
-        
+
         try {
             if (connection instanceof net.minecraft.network.Connection conn) {
                 org.virgil.akiasync.network.MultiNettyEventLoopManager.handleProtocolChange(conn, protocolOrdinal);
@@ -2543,114 +2481,207 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
             errorLog("[MultiNettyEventLoop] Error handling protocol change: " + e.getMessage());
         }
     }
-    
-    
+
     @Override
     public boolean isDynamicChunkSendRateEnabled() {
         return config != null && config.isDynamicChunkSendRateEnabled();
     }
-    
+
     @Override
     public long getDynamicChunkLimitBandwidth() {
         return config != null ? config.getDynamicChunkLimitBandwidth() : 10240L;
     }
-    
+
     @Override
     public long getDynamicChunkGuaranteedBandwidth() {
         return config != null ? config.getDynamicChunkGuaranteedBandwidth() : 512L;
     }
-    
-    
+
     @Override
     public boolean isPacketCompressionOptimizationEnabled() {
         return config != null && config.isPacketCompressionOptimizationEnabled();
     }
-    
+
     @Override
     public boolean isAdaptiveCompressionThresholdEnabled() {
         return config != null && config.isAdaptiveCompressionThresholdEnabled();
     }
-    
+
     @Override
     public boolean isSkipSmallPacketsEnabled() {
         return config != null && config.isSkipSmallPacketsEnabled();
     }
-    
+
     @Override
     public int getSkipSmallPacketsThreshold() {
         return config != null ? config.getSkipSmallPacketsThreshold() : 32;
     }
-    
-    
+
     @Override
     public boolean isChunkBatchOptimizationEnabled() {
         return config != null && config.isChunkBatchOptimizationEnabled();
     }
-    
+
     @Override
     public float getChunkBatchMinChunks() {
         return config != null ? config.getChunkBatchMinChunks() : 2.0f;
     }
-    
+
     @Override
     public float getChunkBatchMaxChunks() {
         return config != null ? config.getChunkBatchMaxChunks() : 32.0f;
     }
-    
+
     @Override
     public int getChunkBatchMaxUnacked() {
         return config != null ? config.getChunkBatchMaxUnacked() : 8;
     }
-    
-    
+
     @Override
     public boolean isPacketPriorityQueueEnabled() {
         return config != null && config.isPacketPriorityQueueEnabled();
     }
-    
+
     @Override
     public boolean isPrioritizePlayerPacketsEnabled() {
         return config != null && config.isPrioritizePlayerPacketsEnabled();
     }
-    
+
     @Override
     public boolean isPrioritizeChunkPacketsEnabled() {
         return config != null && config.isPrioritizeChunkPacketsEnabled();
     }
-    
+
     @Override
     public boolean isDeprioritizeParticlesEnabled() {
         return config != null && config.isDeprioritizeParticlesEnabled();
     }
-    
+
     @Override
     public boolean isDeprioritizeSoundsEnabled() {
         return config != null && config.isDeprioritizeSoundsEnabled();
     }
-    
+
     @Override
     public long getNetworkTrafficInRate() {
         return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getCurrentInRate();
     }
-    
+
     @Override
     public long getNetworkTrafficOutRate() {
         return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getCurrentOutRate();
     }
-    
+
     @Override
     public long getNetworkTrafficTotalIn() {
         return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getTotalBytesIn();
     }
-    
+
     @Override
     public long getNetworkTrafficTotalOut() {
         return org.virgil.akiasync.mixin.network.NetworkTrafficTracker.getTotalBytesOut();
     }
-    
+
     @Override
     public void calculateNetworkTrafficRates() {
         org.virgil.akiasync.mixin.network.NetworkTrafficTracker.calculateRates();
+    }
+
+    @Override
+    public void setPacketStatisticsEnabled(boolean enabled) {
+        org.virgil.akiasync.mixin.network.PacketStatistics.setEnabled(enabled);
+    }
+
+    @Override
+    public boolean isPacketStatisticsEnabled() {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.isEnabled();
+    }
+
+    @Override
+    public void resetPacketStatistics() {
+        org.virgil.akiasync.mixin.network.PacketStatistics.reset();
+    }
+
+    @Override
+    public long getPacketStatisticsElapsedSeconds() {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.getElapsedSeconds();
+    }
+
+    @Override
+    public java.util.List<Object[]> getTopOutgoingPackets(int limit) {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.getTopOutgoing(limit).stream()
+            .map(stat -> new Object[]{stat.name(), stat.count(), stat.totalBytes(), stat.countPerSecond(), stat.bytesPerSecond()})
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public java.util.List<Object[]> getTopIncomingPackets(int limit) {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.getTopIncoming(limit).stream()
+            .map(stat -> new Object[]{stat.name(), stat.count(), stat.totalBytes(), stat.countPerSecond(), stat.bytesPerSecond()})
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public long getTotalOutgoingPacketCount() {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.getTotalOutgoingCount();
+    }
+
+    @Override
+    public long getTotalIncomingPacketCount() {
+        return org.virgil.akiasync.mixin.network.PacketStatistics.getTotalIncomingCount();
+    }
+
+    @Override
+    public int getGeneralThreadPoolSize() {
+        return config.getThreadPoolSize();
+    }
+
+    @Override
+    public java.util.List<net.minecraft.core.BlockPos> fireEntityExplodeEvent(
+            net.minecraft.server.level.ServerLevel level,
+            net.minecraft.world.entity.Entity entity,
+            net.minecraft.world.phys.Vec3 center,
+            java.util.List<net.minecraft.core.BlockPos> blocks,
+            float yield) {
+
+        org.bukkit.World bukkitWorld = level.getWorld();
+        org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
+        org.bukkit.Location bukkitLocation = new org.bukkit.Location(
+            bukkitWorld, center.x, center.y, center.z
+        );
+
+        java.util.List<org.bukkit.block.Block> bukkitBlocks = new java.util.ArrayList<>();
+        for (net.minecraft.core.BlockPos pos : blocks) {
+            bukkitBlocks.add(bukkitWorld.getBlockAt(pos.getX(), pos.getY(), pos.getZ()));
+        }
+
+        org.bukkit.event.entity.EntityExplodeEvent explodeEvent =
+            new org.bukkit.event.entity.EntityExplodeEvent(
+                bukkitEntity, bukkitLocation, bukkitBlocks, yield,
+                org.bukkit.ExplosionResult.DESTROY
+            );
+        org.bukkit.Bukkit.getPluginManager().callEvent(explodeEvent);
+
+        if (explodeEvent.isCancelled()) {
+            if (isTNTDebugEnabled()) {
+                debugLog("[AkiAsync-TNT] EntityExplodeEvent was cancelled by a plugin");
+            }
+            return java.util.Collections.emptyList();
+        }
+
+        java.util.List<net.minecraft.core.BlockPos> result = new java.util.ArrayList<>();
+        for (org.bukkit.block.Block block : explodeEvent.blockList()) {
+            result.add(new net.minecraft.core.BlockPos(block.getX(), block.getY(), block.getZ()));
+        }
+
+        if (isTNTDebugEnabled()) {
+            int removed = blocks.size() - result.size();
+            if (removed > 0) {
+                debugLog("[AkiAsync-TNT] EntityExplodeEvent: %d blocks removed by protection plugins", removed);
+            }
+        }
+
+        return result;
     }
 }
 

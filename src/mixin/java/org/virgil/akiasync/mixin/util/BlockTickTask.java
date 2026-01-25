@@ -9,7 +9,7 @@ public class BlockTickTask {
     public final Block block;
     public final BlockState state;
     public final BlockTickCategory category;
-    
+
     public BlockTickTask(BlockPos pos, Block block, BlockState state, BlockTickCategory category) {
         this.pos = pos;
         this.block = block;

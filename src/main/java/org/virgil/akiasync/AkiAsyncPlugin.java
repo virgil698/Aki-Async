@@ -6,6 +6,7 @@ import org.virgil.akiasync.cache.CacheManager;
 import org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler;
 import org.virgil.akiasync.command.DebugCommand;
 import org.virgil.akiasync.command.NetworkCommand;
+import org.virgil.akiasync.command.PacketStatsCommand;
 import org.virgil.akiasync.command.ReloadCommand;
 import org.virgil.akiasync.command.VersionCommand;
 import org.virgil.akiasync.config.ConfigManager;
@@ -56,29 +57,29 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             executorManager.getBrainExecutor(),
             executorManager.getCollisionExecutor()
         );
-        
+
         org.virgil.akiasync.mixin.util.AsyncCollisionProcessor.setExecutor(
             executorManager.getCollisionExecutor()
         );
         BridgeManager.setBridge(bridge);
 
         org.virgil.akiasync.util.VirtualEntityDetector.setLogger(getLogger(), configManager.isDebugLoggingEnabled());
-        
+
         org.virgil.akiasync.compat.ViaVersionCompat.initialize();
 
         virtualEntityCompatManager = new org.virgil.akiasync.compat.VirtualEntityCompatManager(this);
         virtualEntityCompatManager.initialize();
-        
+
         if (virtualEntityCompatManager.isEnabled()) {
             org.virgil.akiasync.util.VirtualEntityDetector.setDetectorRegistry(
                 virtualEntityCompatManager.getDetectorRegistry()
             );
-            
+
             java.util.Map<String, Boolean> availability = virtualEntityCompatManager.getPluginAvailability();
             if (!availability.isEmpty()) {
                 getLogger().info("[VirtualEntity] Plugin availability status:");
                 for (java.util.Map.Entry<String, Boolean> entry : availability.entrySet()) {
-                    getLogger().info("  - " + entry.getKey() + ": " + 
+                    getLogger().info("  - " + entry.getKey() + ": " +
                                    (entry.getValue() ? "Available" : "Not found"));
                 }
             }
@@ -96,14 +97,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 configManager.isPooledByteBufAllocator(),
                 configManager.isDirectByteBufPreferred()
             );
-            
+
             getLogger().info("[AkiAsync] Network optimization initialized:");
             getLogger().info("  - FastVarInt: " + (configManager.isFastVarIntEnabled() ? "Enabled" : "Disabled"));
             getLogger().info("  - EventLoop Affinity: " + (configManager.isEventLoopAffinityEnabled() ? "Enabled (Strict: " + configManager.isStrictEventLoopChecking() + ")" : "Disabled"));
             getLogger().info("  - ByteBuf Optimizer: " + (configManager.isByteBufOptimizerEnabled() ? "Enabled (Pooled: " + configManager.isPooledByteBufAllocator() + ", Direct: " + configManager.isDirectByteBufPreferred() + ")" : "Disabled"));
         }
-        
-        
+
         if (configManager.isMultiNettyEventLoopEnabled()) {
             org.virgil.akiasync.network.MultiNettyEventLoopManager.initialize(true);
             getLogger().info("[AkiAsync] VMP Multi-Netty Event Loop enabled");
@@ -148,7 +148,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
                 getLogger().info("[AkiAsync] SecureSeed features: BLAKE2b哈希 + 1024位种子空间");
             }
         }
-        
+
         if (configManager.isStructureLocationAsyncEnabled()) {
             org.virgil.akiasync.mixin.async.StructureLocatorBridge.initialize();
             org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.initialize(this);
@@ -170,7 +170,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
         getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.WorldUnloadListener(this), this);
         getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.PlayerPathPrewarmListener(this), this);
-        
+
         if (configManager.isSeedCommandRestrictionEnabled()) {
             getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.SeedCommandListener(this), this);
             getLogger().info("[AkiAsync] /seed command restriction enabled (OP only)");
@@ -180,9 +180,9 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         registerBasicCommand("aki-debug", new DebugCommand(this));
         registerBasicCommand("aki-version", new VersionCommand(this));
         registerBasicCommand("aki-network", new NetworkCommand(this));
-        
+        registerBasicCommand("aki-packets", new PacketStatsCommand(this));
+
         org.virgil.akiasync.network.NetworkTrafficMonitor.getInstance(this);
-        
 
         if (configManager.isFastMovementChunkLoadEnabled()) {
             chunkLoadScheduler = new ChunkLoadPriorityScheduler(configManager);
@@ -198,12 +198,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
         getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-network");
+        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-network | /aki-packets");
         getLogger().info("");
         getLogger().info("[+] Core Features:");
         getLogger().info("  [+] Multithreaded Entity Tracker: " + (configManager.isMultithreadedEntityTrackerEnabled() ? "Enabled" : "Disabled"));
         getLogger().info("  [+] Async Mob Spawning: " + (configManager.isMobSpawningEnabled() ? "Enabled" : "Disabled"));
-        getLogger().info("  [+] Entity Tick Parallel: " + (configManager.isEntityTickParallel() ? "Enabled" : "Disabled") + " (" + configManager.getEntityTickThreads() + " threads)");
+        getLogger().info("  [+] Entity Tick Parallel: " + (configManager.isEntityTickParallel() ? "Enabled" : "Disabled") + " (using general pool: " + configManager.getThreadPoolSize() + " threads)");
         getLogger().info("  [+] Async Lighting: " + (configManager.isAsyncLightingEnabled() ? "Enabled" : "Disabled") + " (" + configManager.getLightingThreadPoolSize() + " threads)");
         getLogger().info("");
         getLogger().info("[*] Performance Settings:");
@@ -224,18 +224,18 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     public void onDisable() {
         getLogger().info("=== AkiAsync Shutdown Sequence Starting ===");
         long startTime = System.currentTimeMillis();
-        
+
         getLogger().info("Phase 1: Disconnecting bridge and stopping new tasks...");
         BridgeManager.clearBridge();
 
         getLogger().info("Phase 2: Shutting down high-priority components...");
-        
-        org.virgil.akiasync.network.NetworkTrafficMonitor networkMonitor = 
+
+        org.virgil.akiasync.network.NetworkTrafficMonitor networkMonitor =
             org.virgil.akiasync.network.NetworkTrafficMonitor.getInstance();
         if (networkMonitor != null) {
             networkMonitor.shutdown();
         }
-        
+
         if (metricsScheduler != null) {
             metricsScheduler.shutdownNow();
         }
@@ -249,16 +249,16 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         getLogger().info("Phase 3: Shutting down async processors...");
-        
+
         org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
-        
+
         try {
             org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer.shutdown();
             getLogger().info("EnhancedPathfindingSystem shutdown completed");
         } catch (Exception e) {
             getLogger().warning("Failed to shutdown EnhancedPathfindingSystem: " + e.getMessage());
         }
-        
+
         try {
             org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.shutdown();
             getLogger().info("AsyncSeedEncryptor shutdown completed");
@@ -267,20 +267,19 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
-        
+
         try {
             org.virgil.akiasync.mixin.async.structure.OptimizedStructureLocator.shutdown();
             getLogger().info("OptimizedStructureLocator shutdown completed");
         } catch (Exception e) {
             getLogger().warning("Failed to shutdown OptimizedStructureLocator: " + e.getMessage());
         }
-        
-        org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer = 
+
+        org.virgil.akiasync.async.datapack.DataPackLoadOptimizer optimizer =
             org.virgil.akiasync.async.datapack.DataPackLoadOptimizer.getInstance();
         if (optimizer != null) {
             optimizer.shutdown();
         }
-
 
         try {
             org.virgil.akiasync.network.NetworkOptimizationManager.shutdown();
@@ -288,7 +287,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().warning("Failed to shutdown NetworkOptimizationManager: " + e.getMessage());
         }
-        
+
         try {
             org.virgil.akiasync.network.MultiNettyEventLoopManager.shutdown();
             getLogger().info("MultiNettyEventLoopManager shutdown completed");
@@ -304,10 +303,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (executorManager != null) {
             executorManager.shutdown();
         }
-        
+
         long elapsed = System.currentTimeMillis() - startTime;
         getLogger().info("=== AkiAsync Shutdown Completed in " + elapsed + "ms ===");
-        
+
         synchronized (AkiAsyncPlugin.class) {
             instance = null;
         }
@@ -400,7 +399,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     public org.virgil.akiasync.compat.VirtualEntityCompatManager getVirtualEntityCompatManager() {
         return virtualEntityCompatManager;
     }
-    
+
     @SuppressWarnings("EI_EXPOSE_REP")
     public org.virgil.akiasync.crypto.QuantumSeedManager getQuantumSeedManager() {
         return quantumSeedManager;

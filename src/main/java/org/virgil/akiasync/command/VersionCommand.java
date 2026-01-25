@@ -10,7 +10,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 
 @NullMarked
 public class VersionCommand implements BasicCommand {
-    
+
     private final AkiAsyncPlugin plugin;
 
     public VersionCommand(AkiAsyncPlugin plugin) {
@@ -41,17 +41,16 @@ public class VersionCommand implements BasicCommand {
         source.getSender().sendMessage(prefix + "  Chunk Tick Async: " + (plugin.getConfigManager().isChunkTickAsyncEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Brain Throttle: " + (plugin.getConfigManager().isBrainThrottleEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  TNT Optimization: " + (plugin.getConfigManager().isTNTOptimizationEnabled() ? "ON" : "OFF"));
-        source.getSender().sendMessage(prefix + "  Universal AI: " + (plugin.getConfigManager().isUniversalAiOptimizationEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  BeeFix: " + (plugin.getConfigManager().isBeeFixEnabled() ? "ON" : "OFF"));
         source.getSender().sendMessage(prefix + "  Structure Location Async: " + (plugin.getConfigManager().isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
 
         if (plugin.getConfigManager().isSeedEncryptionEnabled()) {
             String scheme = plugin.getConfigManager().getSeedEncryptionScheme();
             if ("quantum".equalsIgnoreCase(scheme)) {
-                source.getSender().sendMessage(prefix + "  Seed Encryption: QuantumSeed (Level " + 
+                source.getSender().sendMessage(prefix + "  Seed Encryption: QuantumSeed (Level " +
                     plugin.getConfigManager().getQuantumSeedEncryptionLevel() + ")");
             } else {
-                source.getSender().sendMessage(prefix + "  Seed Encryption: SecureSeed (" + 
+                source.getSender().sendMessage(prefix + "  Seed Encryption: SecureSeed (" +
                     plugin.getConfigManager().getSecureSeedBits() + " bits)");
             }
         } else {

@@ -7,18 +7,18 @@ import org.virgil.akiasync.mixin.crypto.secureseed.crypto.Globals;
 import org.virgil.akiasync.mixin.crypto.secureseed.crypto.Hashing;
 
 public class WorldgenCryptoRandom extends WorldgenRandom {
-  
+
   private static final int MAX_RANDOM_BIT_INDEX = 512;
-  
+
   private static final int BITS_PER_LONG = 64;
-  
+
   private static final int MAX_BITS = 64;
-  
+
   private static final ThreadLocal<long[]> THREAD_LOCAL_BUFFER =
       ThreadLocal.withInitial(() -> new long[16]);
 
   private final long[] randomBits = new long[8];
-  
+
   private int randomBitIndex = MAX_RANDOM_BIT_INDEX;
 
   public WorldgenCryptoRandom(int x, int z, Globals.Salt salt, long extra) {
@@ -32,11 +32,11 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
     System.arraycopy(Globals.worldSeed, 0, message, 0, Globals.WORLD_SEED_LONGS);
 
     message[Globals.WORLD_SEED_LONGS] = packCoordinates(x, z);
-    
+
     message[Globals.WORLD_SEED_LONGS + 1] = salt.ordinal();
-    
+
     message[Globals.WORLD_SEED_LONGS + 2] = extra;
-    
+
     message[Globals.WORLD_SEED_LONGS + 3] = Globals.dimension.get();
 
     Hashing.hash(message, randomBits, new long[16], 0, false);
@@ -58,7 +58,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
     int bitsRemaining = bits;
 
     while (bitsRemaining > 0) {
-      
+
       if (randomBitIndex >= MAX_RANDOM_BIT_INDEX) {
         refillRandomBits();
       }
@@ -70,7 +70,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
       long mask = (1L << bitsToTake) - 1;
       long extractedBits = (randomBits[longIndex] >>> bitOffset) & mask;
-      
+
       result = (result << bitsToTake) | extractedBits;
       randomBitIndex += bitsToTake;
       bitsRemaining -= bitsToTake;
@@ -82,7 +82,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
   private void refillRandomBits() {
     long[] internalState = new long[16];
     long messageOffset = randomBitIndex / MAX_RANDOM_BIT_INDEX;
-    
+
     Hashing.hash(randomBits, randomBits, internalState, messageOffset, false);
     randomBitIndex = 0;
   }
@@ -119,13 +119,13 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
   @Override
   public float nextFloat() {
-    
+
     return (float) (getBits(24) * 0x1.0p-24);
   }
 
   @Override
   public double nextDouble() {
-    
+
     return getBits(53) * 0x1.0p-53;
   }
 
@@ -140,19 +140,19 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
     int x = (int) (populationSeed >> 32);
     int z = (int) populationSeed;
     long extra = index + 10000L * step;
-    
+
     setSecureSeed(x, z, Globals.Salt.DECORATION, extra);
   }
 
   @Override
   public void setLargeFeatureSeed(long worldSeed, int chunkX, int chunkZ) {
-    
+
     super.setLargeFeatureSeed(worldSeed, chunkX, chunkZ);
   }
 
   @Override
   public void setLargeFeatureWithSalt(long worldSeed, int regionX, int regionZ, int salt) {
-    
+
     super.setLargeFeatureWithSalt(worldSeed, regionX, regionZ, salt);
   }
 
@@ -161,7 +161,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
   }
 
   private static class DummyRandomSource implements RandomSource {
-    
+
     @Override
     public RandomSource fork() {
       return this;
@@ -174,7 +174,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
     @Override
     public void setSeed(long seed) {
-      
+
     }
 
     @Override
@@ -214,7 +214,7 @@ public class WorldgenCryptoRandom extends WorldgenRandom {
 
     @Override
     public void consumeCount(int count) {
-      
+
     }
   }
 }

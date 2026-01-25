@@ -1,6 +1,5 @@
 package org.virgil.akiasync.mixin.util;
 
-
 public class PlayerChunkStats {
     public int lastPing = 0;
     public long lastUpdateTime = 0;

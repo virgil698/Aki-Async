@@ -15,9 +15,9 @@ public final class AtomicBridge {
         if (bridge == null) {
             throw new IllegalArgumentException("Bridge cannot be null");
         }
-        
+
         Bridge oldBridge = BRIDGE_REF.getAndSet(bridge);
-        
+
         if (oldBridge == null) {
             if (bridge.isDebugLoggingEnabled()) {
                 bridge.debugLog("[AkiAsync] Bridge implementation registered: " + bridge.getClass().getName());
@@ -29,8 +29,8 @@ public final class AtomicBridge {
             }
             return true;
         }
-        
-        return false; 
+
+        return false;
     }
 
     public static Optional<Bridge> getBridge() {
@@ -52,7 +52,7 @@ public final class AtomicBridge {
         if (newBridge == null) {
             throw new IllegalArgumentException("New bridge cannot be null");
         }
-        
+
         return BRIDGE_REF.compareAndSet(expected, newBridge);
     }
 }

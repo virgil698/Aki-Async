@@ -32,7 +32,7 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("[AkiAsync] Phase 1: Reloading configuration and clearing caches...");
             plugin.getConfigManager().reload();
             plugin.getCacheManager().invalidateAll();
-            
+
             if (plugin.getBridge() != null) {
                 plugin.getBridge().resetAsyncMetrics();
             }
@@ -41,23 +41,23 @@ public class ConfigReloadListener implements Listener {
             org.virgil.akiasync.manager.MixinStateManager.resetAllMixinStates();
 
             plugin.getLogger().info("[AkiAsync] Phase 3: Restarting executors in controlled batches...");
-            
+
             CompletableFuture<Void> restartChain = CompletableFuture.completedFuture(null);
-            
+
             if (plugin.getConfigManager().isAsyncVillagerBreedEnabled() && plugin.getBridge() != null) {
                 restartChain = restartChain.thenRunAsync(() -> {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting villager executor...");
                     plugin.getBridge().restartVillagerExecutor();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-                restartChain = restartChain.thenRunAsync(() -> {}, 
+                restartChain = restartChain.thenRunAsync(() -> {},
                     CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
             }
-            
+
             restartChain = restartChain.thenRunAsync(() -> {
                 plugin.getLogger().info("[AkiAsync]   -> Restarting main executor manager...");
                 plugin.getExecutorManager().restartSmooth();
             }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-            restartChain = restartChain.thenRunAsync(() -> {}, 
+            restartChain = restartChain.thenRunAsync(() -> {},
                 CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
 
             if (plugin.getConfigManager().isTNTOptimizationEnabled() && plugin.getBridge() != null) {
@@ -65,7 +65,7 @@ public class ConfigReloadListener implements Listener {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting TNT executor...");
                     plugin.getBridge().restartTNTExecutor();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-                restartChain = restartChain.thenRunAsync(() -> {}, 
+                restartChain = restartChain.thenRunAsync(() -> {},
                     CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS));
             }
 
@@ -74,7 +74,7 @@ public class ConfigReloadListener implements Listener {
                     plugin.getLogger().info("[AkiAsync]   -> Restarting brain executor...");
                     plugin.getBridge().restartBrainExecutor();
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-                restartChain = restartChain.thenRunAsync(() -> {}, 
+                restartChain = restartChain.thenRunAsync(() -> {},
                     CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
             }
 
@@ -85,20 +85,20 @@ public class ConfigReloadListener implements Listener {
                         plugin.getConfigManager().getChunkTickThreads()
                     );
                 }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS));
-                restartChain = restartChain.thenRunAsync(() -> {}, 
+                restartChain = restartChain.thenRunAsync(() -> {},
                     CompletableFuture.delayedExecutor(150, TimeUnit.MILLISECONDS));
             }
-            
+
             restartChain.join();
 
             plugin.getLogger().info("[AkiAsync] Phase 4: Updating configuration and metrics...");
             plugin.getBridge().updateConfiguration(plugin.getConfigManager());
-            
+
             if (plugin.getVirtualEntityCompatManager() != null) {
                 plugin.getLogger().info("[AkiAsync]   -> Reloading virtual entity compatibility...");
                 plugin.getVirtualEntityCompatManager().reload();
             }
-            
+
             plugin.getLogger().info("[AkiAsync]   -> Block tick mixin will reload on next tick");
 
             CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS).execute(() -> {
@@ -110,7 +110,7 @@ public class ConfigReloadListener implements Listener {
                     plugin.getLogger().info("[AkiAsync]   -> Metrics scheduler stopped");
                 }
             });
-            
+
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException ie) {
@@ -119,7 +119,7 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("[AkiAsync] Phase 5: Validating configuration...");
 
             try {
-                
+
                 plugin.getLogger().info("[AkiAsync] Configuration validation completed");
             } catch (Exception e) {
                 plugin.getLogger().warning("Configuration validation failed: " + e.getMessage());

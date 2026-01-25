@@ -62,16 +62,16 @@ public class AsyncPath {
     processState = PathState.PROCESSING;
 
     try {
-      
+
       Path cachedPath = tryGetCachedPath();
-      
+
       final Path bestPath;
       if (cachedPath != null) {
         bestPath = cachedPath;
       } else {
-        
+
         bestPath = this.pathSupplier.get();
-        
+
         if (bestPath != null && bestPath.canReach()) {
           cacheComputedPath(bestPath);
         }
@@ -102,13 +102,13 @@ public class AsyncPath {
     if (positions == null || positions.isEmpty()) {
       return null;
     }
-    
+
     BlockPos start = positions.iterator().next();
     BlockPos target = null;
     for (BlockPos pos : positions) {
       target = pos;
     }
-    
+
     if (start != null && target != null && !start.equals(target)) {
       Path cached = SharedPathCache.getCachedPath(start, target);
       if (cached != null) {
@@ -116,7 +116,7 @@ public class AsyncPath {
       }
       return cached;
     }
-    
+
     return null;
   }
 
@@ -124,13 +124,13 @@ public class AsyncPath {
     if (positions == null || positions.isEmpty()) {
       return;
     }
-    
+
     BlockPos start = positions.iterator().next();
     BlockPos target = null;
     for (BlockPos pos : positions) {
       target = pos;
     }
-    
+
     if (start != null && target != null && !start.equals(target)) {
       SharedPathCache.cachePath(start, target, path);
     }
@@ -140,32 +140,32 @@ public class AsyncPath {
     if (this.processState == PathState.WAITING) {
       long startTime = System.nanoTime();
       long timeoutNanos = getTimeoutNanos();
-      
-      while (this.processState == PathState.WAITING && 
+
+      while (this.processState == PathState.WAITING &&
              (System.nanoTime() - startTime) < timeoutNanos) {
-        
-        java.util.concurrent.locks.LockSupport.parkNanos(100_000); 
+
+        java.util.concurrent.locks.LockSupport.parkNanos(100_000);
       }
-      
+
       if (this.processState == PathState.WAITING && shouldFallbackToSync()) {
-        process(); 
+        process();
       }
     }
   }
-  
+
   private long getTimeoutNanos() {
-    
-    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+    org.virgil.akiasync.mixin.bridge.Bridge bridge =
         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
     if (bridge != null) {
       return bridge.getAsyncPathfindingTimeoutMs() * 1_000_000L;
     }
-    return 5_000_000L; 
+    return 5_000_000L;
   }
-  
+
   private boolean shouldFallbackToSync() {
-    
-    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+
+    org.virgil.akiasync.mixin.bridge.Bridge bridge =
         org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
     return bridge != null && bridge.isAsyncPathfindingSyncFallbackEnabled();
   }

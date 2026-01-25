@@ -30,9 +30,9 @@ public class StructureLocateTask<T> {
     }
 
     public StructureLocateTask<T> thenOnServerThread(Consumer<T> action) {
-        completableFuture.thenAccept(result ->
-            server.submit(() -> action.accept(result))
-        );
+        completableFuture.thenAccept(result -> {
+            server.submit(() -> action.accept(result)).join();
+        });
         return this;
     }
 
@@ -46,7 +46,7 @@ public class StructureLocateTask<T> {
 
     public StructureLocateTask<T> onErrorOnServerThread(Consumer<Throwable> errorHandler) {
         completableFuture.exceptionally(throwable -> {
-            server.submit(() -> errorHandler.accept(throwable));
+            server.submit(() -> errorHandler.accept(throwable)).join();
             return null;
         });
         return this;

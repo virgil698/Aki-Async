@@ -35,7 +35,7 @@ public final class BridgeManager {
         }
 
         Bridge bridge = bridgeOpt.get();
-        
+
         if (!bridge.isDebugLoggingEnabled()) {
             return;
         }
@@ -47,13 +47,13 @@ public final class BridgeManager {
                 ", interval=" + bridge.getBrainThrottleInterval());
 
             bridge.debugLog("  [Entity] TickParallel: enabled=" + bridge.isEntityTickParallel() +
-                ", threads=" + bridge.getEntityTickThreads() +
+                ", threads=" + bridge.getGeneralThreadPoolSize() +
                 ", minEntities=" + bridge.getMinEntitiesForParallel());
             bridge.debugLog("  [Entity] Collision: enabled=" + bridge.isCollisionOptimizationEnabled() +
                 ", native=" + bridge.isNativeCollisionsEnabled());
             bridge.debugLog("  [Entity] LookupCache: enabled=" + bridge.isEntityLookupCacheEnabled() +
                 ", duration=" + bridge.getEntityLookupCacheDurationMs() + "ms");
-            bridge.debugLog("  [Entity] Tracker: enabled=" + bridge.isEntityTrackerEnabled() +
+            bridge.debugLog("  [Entity] MultithreadedTracker: enabled=" + bridge.isMultithreadedTrackerEnabled() +
                 ", executor=" + (bridge.getGeneralExecutor() != null));
 
             bridge.debugLog("  [Spawning] Enabled: " + bridge.isMobSpawningEnabled() +

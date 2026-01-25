@@ -15,7 +15,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-
 public class MultiNettyEventLoopManager {
 
     private static final Logger LOGGER = Logger.getLogger("AkiAsync-MultiNetty");
@@ -28,8 +27,7 @@ public class MultiNettyEventLoopManager {
     private static EpollEventLoopGroup epollLoginGroup;
     private static EpollEventLoopGroup epollPlayGroup;
 
-    
-    private static final java.util.concurrent.ConcurrentHashMap<Channel, ReregistrationState> reregistrationStates = 
+    private static final java.util.concurrent.ConcurrentHashMap<Channel, ReregistrationState> reregistrationStates =
         new java.util.concurrent.ConcurrentHashMap<>();
 
     private static class ReregistrationState {
@@ -46,21 +44,20 @@ public class MultiNettyEventLoopManager {
 
         if (enabled) {
             try {
-                
+
                 nioLoginGroup = new NioEventLoopGroup(2, createThreadFactory("AkiAsync-Netty-Login-IO"));
                 nioPlayGroup = new NioEventLoopGroup(0, createThreadFactory("AkiAsync-Netty-Play-IO"));
 
-                
                 try {
                     epollLoginGroup = new EpollEventLoopGroup(2, createThreadFactory("AkiAsync-Netty-Epoll-Login-IO"));
                     epollPlayGroup = new EpollEventLoopGroup(0, createThreadFactory("AkiAsync-Netty-Epoll-Play-IO"));
                 } catch (Throwable t) {
-                    
+
                     epollLoginGroup = null;
                     epollPlayGroup = null;
                 }
 
-                LOGGER.info("[MultiNettyEventLoop] Initialized: nioLogin=2 threads, nioPlay=" + 
+                LOGGER.info("[MultiNettyEventLoop] Initialized: nioLogin=2 threads, nioPlay=" +
                     Runtime.getRuntime().availableProcessors() + " threads");
             } catch (Exception e) {
                 enabled = false;
@@ -88,7 +85,6 @@ public class MultiNettyEventLoopManager {
         initialized = false;
     }
 
-    
     public static void handleProtocolChange(Connection connection, int protocolOrdinal) {
         if (!enabled || connection == null) {
             return;

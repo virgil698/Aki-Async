@@ -1,6 +1,6 @@
 [versions]
 leavesApi = "1.21.8-R0.1-SNAPSHOT"
-leavesweightUserdev = "2.0.0-SNAPSHOT"
+leavesweightUserdev = "2.1.0-SNAPSHOT"
 shadow = "9.0.0-rc1"
 runPaper = "2.3.1"
 resourceFactory = "1.0.0"

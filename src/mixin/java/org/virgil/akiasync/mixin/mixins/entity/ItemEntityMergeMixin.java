@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.world.entity.item.ItemEntity;
@@ -23,12 +24,6 @@ public abstract class ItemEntityMergeMixin {
     @Unique
     private static volatile boolean enabled;
     @Unique
-    private static volatile boolean cancelVanillaMerge;
-    @Unique
-    private static volatile int mergeInterval;
-    @Unique
-    private static volatile int minNearbyItems;
-    @Unique
     private static volatile double mergeRange;
     @Unique
     private static volatile int maxQueryResults = 20;
@@ -36,154 +31,78 @@ public abstract class ItemEntityMergeMixin {
     private static volatile boolean initialized = false;
 
     @Unique
-    private int aki$mergeTickCounter = 0;
-    @Unique
     private List<ItemEntity> aki$cachedNearbyItems = null;
     @Unique
     private int aki$lastCacheTick = 0;
 
-    @Inject(method = "mergeWithNeighbours", at = @At("HEAD"), cancellable = true)
-    private void cancelVanillaMerge(CallbackInfo ci) {
+    @Redirect(
+        method = "mergeWithNeighbours",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;"
+        ),
+        require = 0
+    )
+    private <T extends net.minecraft.world.entity.Entity> List<T> aki$optimizeEntityQuery(
+            net.minecraft.world.level.Level level,
+            Class<T> entityClass,
+            AABB box,
+            java.util.function.Predicate<? super T> predicate) {
+
         if (!initialized) {
             akiasync$initMergeOptimization();
         }
-        
-        if (enabled && cancelVanillaMerge && aki$cachedNearbyItems != null) {
-            ci.cancel(); 
-        }
-    }
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void optimizeMerge(CallbackInfo ci) {
-        if (!initialized) {
-            akiasync$initMergeOptimization();
-        }
-        if (!enabled) return;
+        if (!enabled) {
 
-        
-        aki$mergeTickCounter++;
-        if (aki$mergeTickCounter % mergeInterval != 0) {
-            return;
+            return level.getEntitiesOfClass(entityClass, box, predicate);
         }
-        aki$mergeTickCounter = 0;
 
         ItemEntity self = (ItemEntity) (Object) this;
 
-        
         if (akiasync$isVirtualEntity(self)) {
-            return;
+            return level.getEntitiesOfClass(entityClass, box, predicate);
         }
 
         if (akiasync$isInDangerousEnvironment(self)) {
-            return;
-        }
-
-        akiasync$smartMerge(self);
-    }
-
-    @Unique
-    private void akiasync$smartMerge(ItemEntity self) {
-        
-        if (!akiasync$isTickThread(self)) {
-            return;
-        }
-
-        int currentTick = self.tickCount;
-        if (aki$cachedNearbyItems == null || currentTick - aki$lastCacheTick >= 3) {
-            aki$cachedNearbyItems = akiasync$getNearbyItems(self);
-            aki$lastCacheTick = currentTick;
-        }
-
-        boolean highDensity = aki$cachedNearbyItems.size() >= 10;
-        
-        if (!highDensity && aki$cachedNearbyItems.size() < minNearbyItems) {
-            return;
-        }
-
-        int mergedCount = 0;
-        for (ItemEntity other : aki$cachedNearbyItems) {
-            if (other != self && !other.isRemoved()) {
-                
-                if (!akiasync$isTickThread(other)) {
-                    continue;
-                }
-                try {
-                    this.tryToMerge(other);
-                    mergedCount++;
-                    
-                    if (!highDensity && mergedCount >= 5) break;
-                } catch (Throwable t) {
-                    org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                        "ItemEntityMerge", "tryMerge",
-                        t instanceof Exception ? (Exception) t : new RuntimeException(t));
-                }
-            }
-        }
-    }
-    
-    @Unique
-    private boolean akiasync$isTickThread(ItemEntity entity) {
-        
-        
-        return true;
-    }
-
-    @Unique
-    private List<ItemEntity> akiasync$getNearbyItems(ItemEntity self) {
-        AABB boundingBox = self.getBoundingBox();
-        if (boundingBox == null) {
             return java.util.Collections.emptyList();
         }
-        
+
         try {
-            org.virgil.akiasync.mixin.util.EntitySliceGrid grid = 
-                org.virgil.akiasync.mixin.util.EntitySliceGridManager.getSliceGrid(self.level());
-            
+            org.virgil.akiasync.mixin.util.EntitySliceGrid grid =
+                org.virgil.akiasync.mixin.util.EntitySliceGridManager.getSliceGrid(level);
+
             if (grid != null) {
-                
-                AABB searchBox = boundingBox.inflate(mergeRange);
-                if (searchBox != null) {
-                    List<net.minecraft.world.entity.Entity> entities = grid.queryRange(searchBox);
-                    
-                    
-                    List<ItemEntity> result = new ArrayList<>(Math.min(entities.size(), maxQueryResults));
-                    for (net.minecraft.world.entity.Entity entity : entities) {
-                        if (entity instanceof ItemEntity item && 
-                            item != self && 
-                            !item.isRemoved()) {
-                            result.add(item);
-                            
+                List<net.minecraft.world.entity.Entity> entities = grid.queryRange(box);
+
+                @SuppressWarnings("unchecked")
+                List<T> result = new ArrayList<>(Math.min(entities.size(), maxQueryResults));
+                for (net.minecraft.world.entity.Entity entity : entities) {
+                    if (entityClass.isInstance(entity)) {
+                        @SuppressWarnings("unchecked")
+                        T typed = (T) entity;
+                        if (predicate.test(typed)) {
+                            result.add(typed);
                             if (result.size() >= maxQueryResults) {
                                 break;
                             }
                         }
                     }
-                    return result;
                 }
+                return result;
             }
         } catch (Throwable t) {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
-                "ItemEntityMerge", "getNearbyItemsOptimized",
+                "ItemEntityMerge", "optimizeEntityQuery",
                 t instanceof Exception ? (Exception) t : new RuntimeException(t));
         }
-        
-        AABB searchBox = boundingBox.inflate(mergeRange);
-        if (searchBox == null) {
-            return java.util.Collections.emptyList();
-        }
 
-        
-        List<ItemEntity> result = self.level().getEntitiesOfClass(
-            ItemEntity.class,
-            searchBox,
-            item -> item != self && !item.isRemoved()
-        );
-        
-        
+        List<T> result = level.getEntitiesOfClass(entityClass, box, predicate);
+
         if (result.size() > maxQueryResults) {
             return result.subList(0, maxQueryResults);
         }
-        
+
         return result;
     }
 
@@ -201,12 +120,12 @@ public abstract class ItemEntityMergeMixin {
         if (pos == null) {
             return false;
         }
-        
+
         net.minecraft.world.level.block.state.BlockState state = item.level().getBlockState(pos);
         if (state == null) {
             return false;
         }
-        
+
         if (state.getBlock() instanceof net.minecraft.world.level.block.LayeredCauldronBlock ||
             state.getBlock() instanceof net.minecraft.world.level.block.LavaCauldronBlock) {
             return true;
@@ -262,25 +181,16 @@ public abstract class ItemEntityMergeMixin {
 
         if (bridge != null) {
             enabled = bridge.isItemEntityMergeOptimizationEnabled();
-            cancelVanillaMerge = bridge.isItemEntityCancelVanillaMerge();
-            mergeInterval = bridge.getItemEntityMergeInterval();
-            minNearbyItems = bridge.getItemEntityMinNearbyItems();
             mergeRange = bridge.getItemEntityMergeRange();
-        
+
+            bridge.debugLog("[AkiAsync] ItemEntityMergeMixin initialized: enabled=" + enabled +
+                ", mergeRange=" + mergeRange +
+                " (optimizes vanilla mergeWithNeighbours query, no duplicate execution)");
+
             initialized = true;
         } else {
-            enabled = false; 
-            cancelVanillaMerge = true;
-            mergeInterval = 3; 
-            minNearbyItems = 2; 
-            mergeRange = 2.0; 
-        }
-
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] ItemEntityMergeMixin initialized: enabled=" + enabled +
-                ", cancelVanillaMerge=" + cancelVanillaMerge +
-                ", mergeInterval=" + mergeInterval + ", minNearbyItems=" + minNearbyItems +
-                ", mergeRange=" + mergeRange);
+            enabled = false;
+            mergeRange = 2.0;
         }
     }
 }

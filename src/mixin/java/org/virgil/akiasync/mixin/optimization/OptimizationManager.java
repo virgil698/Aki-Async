@@ -120,7 +120,7 @@ public class OptimizationManager {
     public void shutdown() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge != null) {
             bridge.debugLog("[AkiAsync-Optimization] Shutting down optimizations...");
         }
@@ -166,9 +166,9 @@ public class OptimizationManager {
     public void printPerformanceReport() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge =
             org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-        
+
         if (bridge == null) return;
-        
+
         bridge.debugLog("=== AkiAsync Optimization Performance Report ===");
         bridge.debugLog("Uptime: " + (stats.getUptimeMillis() / 1000) + " seconds");
         bridge.debugLog("Entity Collections Created: " + stats.entityCollectionsCreated);

@@ -3,7 +3,7 @@ import java.util.concurrent.ExecutorService;
 
 public class TNTThreadPool {
     private static ExecutorService executor;
-    
+
     private static int threadCount = Math.max(6, (int)(Runtime.getRuntime().availableProcessors() * 1.5));
 
     public static void init(int threads) {

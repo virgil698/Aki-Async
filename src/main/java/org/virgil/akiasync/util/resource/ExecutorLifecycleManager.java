@@ -12,10 +12,10 @@ public final class ExecutorLifecycleManager {
 
     @Nonnull
     public static ExecutorService createExecutor(
-            @Nonnull String name, 
-            int threads, 
+            @Nonnull String name,
+            int threads,
             boolean daemon) {
-        
+
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
@@ -50,7 +50,7 @@ public final class ExecutorLifecycleManager {
             @Nonnull String name,
             int parallelism,
             boolean asyncMode) {
-        
+
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
@@ -77,12 +77,12 @@ public final class ExecutorLifecycleManager {
     }
 
     public static boolean shutdownGracefully(
-            @Nonnull ExecutorService executor, 
-            long timeout, 
+            @Nonnull ExecutorService executor,
+            long timeout,
             @Nonnull TimeUnit unit) {
-        
+
         if (executor == null) {
-            return true; 
+            return true;
         }
 
         executor.shutdown();
@@ -139,10 +139,10 @@ public final class ExecutorLifecycleManager {
 
     @Nonnull
     public static ExecutorService restart(
-            @Nonnull ExecutorService oldExecutor, 
-            @Nonnull String name, 
+            @Nonnull ExecutorService oldExecutor,
+            @Nonnull String name,
             int threads) {
-        
+
         shutdownGracefully(oldExecutor, 5, TimeUnit.SECONDS);
 
         return createExecutor(name, threads, true);

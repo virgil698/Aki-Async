@@ -17,31 +17,31 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Mixin(value = Util.class, priority = 1100)
 public abstract class UtilCompletableFutureMixin {
-    
+
     @Unique
     private static volatile boolean akiasync$enabled = true;
-    
+
     @Unique
     private static volatile boolean akiasync$initialized = false;
-    
+
     @Unique
     private static void akiasync$initialize() {
         if (akiasync$initialized) {
             return;
         }
-        
+
         try {
             Bridge bridge = BridgeConfigCache.getBridge();
             if (bridge != null) {
                 akiasync$enabled = bridge.isCompletableFutureOptimizationEnabled();
-            
+
                 akiasync$initialized = true;
             }
         } catch (Exception e) {
             akiasync$enabled = true;
         }
     }
-    
+
     @Inject(
         method = "sequence",
         at = @At("HEAD"),
@@ -54,25 +54,25 @@ public abstract class UtilCompletableFutureMixin {
         if (!akiasync$initialized) {
             akiasync$initialize();
         }
-        
+
         if (!akiasync$enabled) {
             return;
         }
-        
+
         if (futures.isEmpty()) {
             cir.setReturnValue(CompletableFuture.completedFuture(new ArrayList<>()));
             return;
         }
-        
+
         final List<V> results = new ArrayList<>(futures.size());
         for (int i = 0; i < futures.size(); i++) {
             results.add(null);
         }
-        
+
         final CompletableFuture<List<V>> result = new CompletableFuture<>();
         final AtomicInteger remaining = new AtomicInteger(futures.size());
         final AtomicReference<Throwable> error = new AtomicReference<>();
-        
+
         for (int i = 0; i < futures.size(); i++) {
             final int index = i;
             futures.get(i).whenComplete((value, throwable) -> {
@@ -81,7 +81,7 @@ public abstract class UtilCompletableFutureMixin {
                 } else {
                     results.set(index, value);
                 }
-                
+
                 if (remaining.decrementAndGet() == 0) {
                     Throwable err = error.get();
                     if (err != null) {
@@ -92,7 +92,7 @@ public abstract class UtilCompletableFutureMixin {
                 }
             });
         }
-        
+
         cir.setReturnValue(result);
     }
 }

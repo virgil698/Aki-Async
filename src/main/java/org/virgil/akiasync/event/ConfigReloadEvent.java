@@ -6,7 +6,7 @@ import org.bukkit.event.HandlerList;
 public class ConfigReloadEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
-    
+
     public ConfigReloadEvent() {
         super(false);
     }

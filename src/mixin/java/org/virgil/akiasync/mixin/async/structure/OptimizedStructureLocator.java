@@ -27,7 +27,7 @@ public class OptimizedStructureLocator {
 
     private static final Map<ChunkPos, String> BIOME_CACHE = new ConcurrentHashMap<>();
     private static final int MAX_BIOME_CACHE_SIZE = 1000;
-    
+
     private static final Map<String, Integer> STRUCTURE_RARITY = Map.of(
         "minecraft:village", 32,
         "minecraft:pillager_outpost", 64,
@@ -50,17 +50,17 @@ public class OptimizedStructureLocator {
         }
         updateConfiguration();
     }
-    
+
     public static synchronized void shutdown() {
 
         BIOME_CACHE.clear();
-        
+
         if (cacheManager != null) {
             cacheManager.shutdown();
             cacheManager = null;
         }
     }
-    
+
     public static void updateConfiguration() {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
@@ -97,20 +97,20 @@ public class OptimizedStructureLocator {
         int adaptiveRadius = getAdaptiveSearchRadius(structures, searchRadius);
 
         List<ChunkPos> searchOrder = getSearchOrder(level, startChunk, structures, adaptiveRadius);
-        
+
         if (searchOrder == null || searchOrder.isEmpty()) {
             return null;
         }
 
         Pair<BlockPos, Holder<Structure>> result = null;
-        
+
         try {
             result = executeThreadSafeSearch(
                 level, generator, structures, searchOrder, skipKnownStructures);
         } catch (Exception e) {
             LOGGER.warning("[Structure] Optimized search failed: " + e.getMessage());
         }
-        
+
         if (result == null) {
             try {
                 result = generator.findNearestMapStructure(
@@ -119,7 +119,7 @@ public class OptimizedStructureLocator {
                 LOGGER.warning("[Structure] Vanilla search failed: " + e.getMessage());
             }
         }
-        
+
         if (result == null && searchRadius < 200) {
             try {
                 result = generator.findNearestMapStructure(
@@ -137,7 +137,7 @@ public class OptimizedStructureLocator {
 
         return result;
     }
-    
+
     private static boolean shouldRetryNegativeCache(String cacheKey) {
 
         return Math.random() < 0.1;
@@ -145,9 +145,9 @@ public class OptimizedStructureLocator {
 
     private static List<ChunkPos> getSearchOrder(
             ServerLevel level, ChunkPos center, HolderSet<Structure> structures, int radius) {
-        
+
         List<ChunkPos> baseOrder;
-        
+
         switch (searchPattern.toLowerCase()) {
             case "spiral":
                 baseOrder = getSpiralSearchOrder(center, radius);
@@ -160,18 +160,18 @@ public class OptimizedStructureLocator {
                 baseOrder = getHybridSearchOrder(center, radius);
                 break;
         }
-        
+
         if (biomeAwareSearchEnabled) {
             return applyBiomeAwareOrdering(level, baseOrder, structures);
         }
-        
+
         return baseOrder;
     }
-    
+
     private static List<ChunkPos> getSpiralSearchOrder(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         positions.add(center);
-        
+
         if (radius <= 0) {
             return positions;
         }
@@ -206,18 +206,18 @@ public class OptimizedStructureLocator {
 
         return positions;
     }
-    
+
     private static List<ChunkPos> getLayeredSearchOrder(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         positions.add(center);
-        
+
         if (radius <= 0) {
             return positions;
         }
-        
+
         for (int layer = 1; layer <= radius; layer++) {
             List<ChunkPos> layerPositions = new ArrayList<>();
-            
+
             for (int dx = -layer; dx <= layer; dx++) {
                 for (int dz = -layer; dz <= layer; dz++) {
 
@@ -226,31 +226,31 @@ public class OptimizedStructureLocator {
                     }
                 }
             }
-            
+
             Collections.shuffle(layerPositions);
             positions.addAll(layerPositions);
         }
-        
+
         return positions;
     }
-    
+
     private static List<ChunkPos> getHybridSearchOrder(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
-        
+
         if (radius <= 0) {
             positions.add(center);
             return positions;
         }
-        
+
         int spiralRadius = Math.min(radius / 3, 10);
         int layeredStart = spiralRadius + 1;
-        
+
         positions.addAll(getSpiralSearchOrder(center, spiralRadius));
-        
+
         if (radius > spiralRadius) {
             for (int layer = layeredStart; layer <= radius; layer++) {
                 List<ChunkPos> layerPositions = new ArrayList<>();
-                
+
                 for (int dx = -layer; dx <= layer; dx++) {
                     for (int dz = -layer; dz <= layer; dz++) {
                         if (Math.abs(dx) == layer || Math.abs(dz) == layer) {
@@ -258,12 +258,12 @@ public class OptimizedStructureLocator {
                         }
                     }
                 }
-                
+
                 Collections.shuffle(layerPositions);
                 positions.addAll(layerPositions);
             }
         }
-        
+
         return positions;
     }
 
@@ -274,38 +274,38 @@ public class OptimizedStructureLocator {
         if (compatibleBiomes.isEmpty()) {
             return positions;
         }
-        
+
         if (positions.size() <= 1) {
             return positions;
         }
 
         int sortLimit = Math.min(positions.size(), Math.max(100, positions.size() / 3));
         sortLimit = Math.min(sortLimit, positions.size());
-        
+
         List<ChunkPos> toSort = new ArrayList<>(positions.subList(0, sortLimit));
-        List<ChunkPos> rest = sortLimit < positions.size() ? 
-            new ArrayList<>(positions.subList(sortLimit, positions.size())) : 
+        List<ChunkPos> rest = sortLimit < positions.size() ?
+            new ArrayList<>(positions.subList(sortLimit, positions.size())) :
             new ArrayList<>();
-        
+
         toSort.sort((pos1, pos2) -> {
             float score1 = getCachedBiomeCompatibilityScore(level, pos1, compatibleBiomes);
             float score2 = getCachedBiomeCompatibilityScore(level, pos2, compatibleBiomes);
             return Float.compare(score2, score1);
         });
-        
+
         toSort.addAll(rest);
         return toSort;
     }
-    
+
     private static float getCachedBiomeCompatibilityScore(ServerLevel level, ChunkPos chunkPos, Set<String> compatibleBiomes) {
 
         String cachedBiome = BIOME_CACHE.get(chunkPos);
         if (cachedBiome != null) {
             return compatibleBiomes.contains(cachedBiome) ? 1.0f : 0.1f;
         }
-        
+
         float score = getBiomeCompatibilityScore(level, chunkPos, compatibleBiomes);
-        
+
         if (BIOME_CACHE.size() >= MAX_BIOME_CACHE_SIZE) {
             int toRemove = MAX_BIOME_CACHE_SIZE / 10;
             BIOME_CACHE.entrySet().stream()
@@ -314,11 +314,11 @@ public class OptimizedStructureLocator {
                 .collect(java.util.stream.Collectors.toList())
                 .forEach(BIOME_CACHE::remove);
         }
-        
+
         BlockPos samplePos = chunkPos.getMiddleBlockPosition(64);
         String biomeName = getBiomeName(level, samplePos);
         BIOME_CACHE.put(chunkPos, biomeName);
-        
+
         return score;
     }
 
@@ -330,21 +330,21 @@ public class OptimizedStructureLocator {
             boolean skipKnownStructures) {
 
         BlockPos startPos = searchOrder.get(0).getMiddleBlockPosition(64);
-        
+
         long startTime = System.currentTimeMillis();
         long timeout = 5000;
-        
+
         try {
             Pair<BlockPos, Holder<Structure>> result = generator.findNearestMapStructure(
-                level, structures, startPos, 
+                level, structures, startPos,
                 searchOrder.size(), skipKnownStructures
             );
-            
+
             if (System.currentTimeMillis() - startTime > timeout) {
                 LOGGER.warning("[Structure] Structure search timeout, using fallback");
                 return fallbackStructureSearch(level, structures, searchOrder, skipKnownStructures);
             }
-            
+
             if (result != null && result.getFirst() != null) {
 
                 double distance = startPos.distSqr(result.getFirst());
@@ -353,56 +353,56 @@ public class OptimizedStructureLocator {
                     return null;
                 }
             }
-            
+
             return result;
-            
+
         } catch (Exception e) {
             LOGGER.warning("[Structure] Structure search exception: " + e.getMessage());
 
             return fallbackStructureSearch(level, structures, searchOrder, skipKnownStructures);
         }
     }
-    
+
     private static Pair<BlockPos, Holder<Structure>> fallbackStructureSearch(
             ServerLevel level,
             HolderSet<Structure> structures,
             List<ChunkPos> searchOrder,
             boolean skipKnownStructures) {
-        
+
         int checkedChunks = 0;
         int maxChecks = Math.min(searchOrder.size(), 100);
-        
+
         for (ChunkPos chunkPos : searchOrder) {
             if (checkedChunks >= maxChecks) {
                 break;
             }
-            
+
             if (!level.getChunkSource().hasChunk(chunkPos.x, chunkPos.z)) {
                 continue;
             }
-            
+
             checkedChunks++;
-            
+
             try {
 
                 var chunk = level.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
                 if (chunk == null) {
                     continue;
                 }
-                
+
                 for (Holder<Structure> structureHolder : structures) {
                     Structure structure = structureHolder.value();
-                    
+
                     try {
                         StructureStart structureStart = chunk.getStartForStructure(structure);
-                        
+
                         if (structureStart != null && structureStart.isValid()) {
                             if (skipKnownStructures) {
                                 continue;
                             }
-                            
+
                             BlockPos structurePos = structureStart.getBoundingBox().getCenter();
-                            
+
                             if (structurePos != null && isValidStructurePosition(structurePos)) {
                                 return Pair.of(structurePos, structureHolder);
                             }
@@ -417,10 +417,10 @@ public class OptimizedStructureLocator {
                     "OptimizedStructureLocator", "processChunkStructures", e);
             }
         }
-        
+
         return null;
     }
-    
+
     private static boolean isValidStructurePosition(BlockPos pos) {
 
         if (pos.getY() < -64 || pos.getY() > 320) {
@@ -432,13 +432,13 @@ public class OptimizedStructureLocator {
         }
         return true;
     }
-    
+
     private static int getAdaptiveSearchRadius(HolderSet<Structure> structures, int defaultRadius) {
 
         if (defaultRadius <= 0) {
             defaultRadius = 100;
         }
-        
+
         int maxRarity = 0;
 
         for (Holder<Structure> holder : structures) {
@@ -487,7 +487,7 @@ public class OptimizedStructureLocator {
             if (chunk == null) {
                 return null;
             }
-            
+
             for (Holder<Structure> holder : structures) {
                 Structure structure = holder.value();
                 StructureStart start = chunk.getStartForStructure(structure);

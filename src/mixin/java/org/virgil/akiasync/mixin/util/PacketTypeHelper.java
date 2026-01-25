@@ -12,7 +12,7 @@ public final class PacketTypeHelper {
         if (packet == null || packetClass == null) {
             return false;
         }
-        
+
         return packetClass.isInstance(packet);
     }
 }

@@ -1,4 +1,5 @@
 package org.virgil.akiasync.mixin.mixins.memory;
+
 import java.util.function.Predicate;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+
 @SuppressWarnings("unused")
 @Mixin(Level.class)
 public abstract class PredicateCacheMixin {
@@ -42,10 +44,10 @@ public abstract class PredicateCacheMixin {
         org.virgil.akiasync.mixin.bridge.Bridge bridge = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge != null) {
             enabled = bridge.isPredicateCacheEnabled();
-        
+
             initialized = true;
         } else {
-            enabled = false; 
+            enabled = false;
         }
         if (bridge != null) {
             BridgeConfigCache.debugLog("[AkiAsync] PredicateCacheMixin initialized: enabled=" + enabled);

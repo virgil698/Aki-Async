@@ -13,17 +13,17 @@ import java.time.temporal.ChronoField;
 
 @Mixin(Bat.class)
 public class BatSpookySeasonMixin {
-    
+
     @Unique
     private static boolean akiasync$isSpookySeason = false;
-    
+
     @Unique
     private static final int akiasync$ONE_HOUR = 20 * 60 * 60;
-    
+
     @Unique
     private static int akiasync$lastSpookyCheck = -akiasync$ONE_HOUR;
-    
-    @Inject(method = "isHalloween", at = @At("HEAD"), cancellable = true)
+
+    @Inject(method = "isHalloween", at = @At("HEAD"), cancellable = true, require = 0)
     private static void onIsHalloween(CallbackInfoReturnable<Boolean> cir) {
         long currentTick = FoliaUtils.getCurrentTick();
         if (currentTick - akiasync$lastSpookyCheck > akiasync$ONE_HOUR) {
