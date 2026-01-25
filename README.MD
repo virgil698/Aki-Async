@@ -28,24 +28,25 @@ English | [简体中文](READMECN.MD)
 - **Multi-threaded Balance** - CPU usage distributed across multiple cores/threads with work-stealing support
 - **Zero-delay Snapshots** - Snapshot-compute-writeback pattern completes within the same tick
 - **Full Compatibility** - Maintains all vanilla features, compatible with Paper/Spigot/Leaves/Folia/Luminol configs
+- **Java 21 Virtual Threads** - Leverages modern Java features with automatic fallback for older versions
 
-### Optimization Modules (70+ Configurable Optimizations)
-- **Async AI Optimization** (20+) - Villagers, Endermen, Wandering Traders, Wardens, Hoglins, Allays, Armadillos, Sniffers, Camels, Frogs, Goats, Pandas, Piglins, Pillager family, Evokers, Blazes, Guardians, Witches, Universal AI template (65 mobs), async pathfinding, game event optimization, AI sensor optimization, brain throttling, behavior throttling
-- **Entity Performance** (15+) - Smart item merge, item age optimization, item inactive tick, experience orb merge, experience orb inactive tick, advanced collision optimization, collision optimization, entity push optimization, entity throttling, entity travel optimization, mob despawn optimization, entity density control, projectile optimization, parallel entity tick, Nitori entity optimizations (sunburn, speed, fall damage, section storage)
-- **Block Entity Optimization** (5) - Parallel block entity ticking, hopper optimization, minecart optimization, furnace recipe cache, crafting recipe cache
-- **TNT Explosion Optimization** (1) - Three-phase async: snapshot → compute → apply, supports massive simultaneous explosions with vanilla-compatible damage
-- **Collision System** (6) - Collision optimization, advanced collision optimization, push optimization, block shape cache, cube voxel shape optimization, collision cache
-- **Lighting System** (1) - Async lighting engine
-- **Redstone Optimization** (1) - Redstone wire turbo optimization
-- **Structure Location** (4) - Async locate command, dolphin treasure hunting, chest exploration maps, villager trade maps
-- **Secure Seed System** (3) - Decoration seed encryption, structure seed encryption, slime chunk seed encryption
-- **Datapack Optimization** (2) - Command deduplication, execute command inactive skip
-- **Vanilla Bug Fixes** (8) - Bee fixes, End island density fix, portal suffocation check, shulker bullet self-hit fix, minecart cauldron destruction fix, POI index update, lightning generation fix
-- **Memory Management** (7) - BlockPos object pool, entity BlockPos pool, predicate cache, entity lookup cache, list pre-allocation, ResourceLocation cache, ChunkPos optimization
-- **Chunk System** (2) - Async chunk ticking, async villager breeding
-- **World Generation** (3) - Perlin noise optimization, jigsaw placement optimization, structure pool element optimization
-- **Smart Lag Compensation** (3) - Time compensation, item pickup delay compensation, potion effect compensation
-- **Other Optimizations** (5) - Math optimization (sine lookup table), enderman block carry limiter, fast movement chunk loading, map rendering optimization, suffocation optimization, falling block parallel
+### Optimization Modules (90+ Configurable Optimizations)
+- **Entity System** (20+) - Parallel entity tick, entity tracker, density control, entity throttling, travel optimization, mob despawn optimization, projectile optimization, suffocation optimization, Nitori entity optimizations (sunburn, speed, fall damage, section storage), VMP entity optimizations (zero velocity skip, tracker distance cache)
+- **Async AI** (15+) - Enhanced async pathfinding with priority queue and multi-layer cache, AI sensor optimization, game event optimization, brain throttling, villager optimization (fast raytrace, async breeding), universal AI template (65+ mobs)
+- **Collision System** (10+) - Native collision detection (AVX SIMD), DDA ray collision, block shape cache, shape precomputation, aggressive mode, block cache with expiration
+- **Item & Experience Orbs** (6) - Smart merge, age optimization, inactive tick optimization for both items and experience orbs
+- **Block Entity** (8) - Parallel block entity tick, zero-delay factory, hopper container cache, minecart tick optimization, furnace/crafting recipe cache, C2ME NBT optimization
+- **TNT Explosion** (8) - Unified explosion engine with ByteVector optimization, density cache, vectorized AABB detection, entity merge, vanilla-compatible damage calculation, full protection plugin support
+- **Chunk System** (15+) - Async chunk loading/saving/serialization, noise optimization, Jigsaw optimization, ChunkPos optimization, Perlin noise optimization, mid-tick tasks, async blending, storage IO worker, NBT cache limit
+- **Network** (20+) - Native compression (libdeflate), native encryption (OpenSSL), fast VarInt encoding, MTU-aware batching, flush consolidation, AFK packet throttle, dynamic chunk send rate, packet priority queue, chunk visibility filter, fast movement chunk preload with center offset
+- **Structure Location** (6) - Async locate command, dolphin treasure hunting, chest exploration maps, villager trade maps, algorithm optimization with hybrid search pattern, biome-aware search
+- **Lighting System** (2) - Async lighting engine with time window control, light update batching
+- **Secure Seed** (4) - Quantum encryption scheme, structure/ore/slime protection, anti-plugin theft, /seed command restriction
+- **Datapack** (3) - Parallel datapack loading, command deduplication, execute command inactive skip
+- **Smart Lag Compensation** (4) - Time acceleration, item pickup delay compensation, potion effect compensation, TPS-aware auto-adjustment
+- **Vanilla Bug Fixes** (8) - Bee fixes (7 MC bugs), End island density fix, portal suffocation check, shulker bullet self-hit fix, minecart cauldron destruction fix, leader zombie health fix
+- **Memory & Math** (8) - BlockPos cache, BitSet pooling, CompletableFuture optimization, optimized collections, compact sine lookup table, C2ME resource optimizations
+- **Advanced** (8) - Virtual threads, work-stealing scheduler, multi-netty event loop, PalettedContainer lock removal, type-filterable list, spawn density array, biome access optimization
 
 > **Safety Guarantee**: All optimization targets are rigorously tested to ensure no vanilla game mechanics are broken
 
@@ -56,8 +57,8 @@ English | [简体中文](READMECN.MD)
 | Component | Requirement |
 |-----------|-------------|
 | **Server** | [Leaves](https://github.com/LeavesMC/Leaves) or [Luminol](https://github.com/LuminolMC/Luminol) and their forks |
-| **Server Version** | 1.21.8+ (Tested: 1.21.8, 1.21.10) |
-| **JDK** | Java 21+ |
+| **Server Version** | 1.21.8+ (Tested: 1.21.8, 1.21.10, 1.21.11) |
+| **JDK** | Java 21+ (Tested: Java21, Java 25) |
 | **Memory** | Recommended 6GB+ |
 | **CPU** | Recommended 4+ cores (multi-threaded optimization, but single-core performance still matters) |
 
