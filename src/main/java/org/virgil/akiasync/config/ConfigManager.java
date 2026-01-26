@@ -450,6 +450,7 @@ public class ConfigManager {
     public boolean isBeeFixEnabled() { return entityConfig.isBeeFixEnabled(); }
     public boolean isEndIslandDensityFixEnabled() { return entityConfig.isEndIslandDensityFixEnabled(); }
     public boolean isLeaderZombieHealthFixEnabled() { return entityConfig.isLeaderZombieHealthFixEnabled(); }
+    public boolean isEquipmentHealthCapFixEnabled() { return entityConfig.isEquipmentHealthCapFixEnabled(); }
     public boolean isPortalSuffocationCheckDisabled() { return entityConfig.isPortalSuffocationCheckDisabled(); }
     public boolean isShulkerBulletSelfHitFixEnabled() { return entityConfig.isShulkerBulletSelfHitFixEnabled(); }
 
@@ -696,6 +697,8 @@ public class ConfigManager {
     public boolean isBiomeAccessOptimizationEnabled() { return performanceConfig.isBiomeAccessOptimizationEnabled(); }
     public boolean isEntityMoveZeroVelocityOptimizationEnabled() { return performanceConfig.isEntityMoveZeroVelocityOptimizationEnabled(); }
     public boolean isEntityTrackerDistanceCacheEnabled() { return performanceConfig.isEntityTrackerDistanceCacheEnabled(); }
+    public boolean isMixinPrewarmEnabled() { return performanceConfig.isMixinPrewarmEnabled(); }
+    public boolean isMixinPrewarmAsync() { return performanceConfig.isMixinPrewarmAsync(); }
     public boolean isVirtualThreadEnabled() { return performanceConfig.isVirtualThreadEnabled(); }
     public boolean isWorkStealingEnabled() { return performanceConfig.isWorkStealingEnabled(); }
 

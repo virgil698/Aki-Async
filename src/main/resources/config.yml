@@ -730,6 +730,14 @@ end-island-density-fix:
 leader-zombie-health-fix:
   enabled: true
 
+# 修复装备属性导致的血量上限问题 (MC-17876)
+# Fix for equipment attribute health cap bug
+# 当实体加载时，装备的生命值加成会在setHealth之后才应用，导致血量被错误截断
+# When entities load, equipment health modifiers are applied after setHealth, causing health to be incorrectly clamped
+# 参考 / Reference: https://bugs.mojang.com/browse/MC-17876
+equipment-health-cap-fix:
+  enabled: true
+
 # 传送门窒息检查禁用 / Portal Suffocation Check Disable
 # Mojang在1.19.3添加了实体传送后的窒息检查算法
 # 禁用此检查可大幅提升传送门性能，但极少数情况下大型生物可能卡在方块内
@@ -1065,6 +1073,13 @@ performance:
       log-missed-ticks: false  # 记录丢失的tick / Log missed ticks
       log-compensation: false  # 记录补偿操作 / Log compensation actions
   
+  # Mixin 预热系统 / Mixin Prewarm System
+  # 在服务器启动时预热所有 Mixin 配置，避免第一个玩家加入时 MSPT 暴增
+  # Prewarm all mixin configurations on server startup to avoid MSPT spike when first player joins
+  mixin-prewarm:
+    enabled: true  # 启用预热 / Enable prewarming
+    async: true    # 异步预热（推荐）/ Async prewarming (recommended)
+
   # 性能指标收集 / Performance Metrics
   # 显示异步任务时间和队列状态
   # Show async task times and queue status

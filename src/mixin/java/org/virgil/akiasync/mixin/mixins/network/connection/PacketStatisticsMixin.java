@@ -22,6 +22,15 @@ public class PacketStatisticsMixin {
         }
     }
 
+    @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;Z)V", at = @At("HEAD"), require = 0)
+    private void trackOutgoingPacketWithListener(Packet<?> packet, Object listener, boolean flush, CallbackInfo ci) {
+        if (PacketStatistics.isEnabled() && packet != null) {
+            String packetName = getSimplePacketName(packet);
+            int estimatedSize = estimatePacketSize(packet);
+            PacketStatistics.recordOutgoing(packetName, estimatedSize);
+        }
+    }
+
     @Inject(method = "genericsFtw", at = @At("HEAD"), require = 0)
     private static void trackIncomingPacket(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
         if (PacketStatistics.isEnabled() && packet != null) {

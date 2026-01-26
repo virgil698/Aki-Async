@@ -20,9 +20,11 @@ public class BiomeSamplerBenchmark {
         long seed = 0xDEADBEEFL;
 
         // Warmup
+        int warmupSum = 0;
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
-            findClosestCornerScalar(seed, i % 1000, 64, i % 500, 0.25, 0.5, 0.75);
+            warmupSum += findClosestCornerScalar(seed, i % 1000, 64, i % 500, 0.25, 0.5, 0.75);
         }
+        if (warmupSum == Integer.MIN_VALUE) throw new AssertionError("Warmup failed");
 
         // Benchmark
         long startTime = System.nanoTime();
@@ -49,9 +51,11 @@ public class BiomeSamplerBenchmark {
         long seed = 0xDEADBEEFL;
 
         // Warmup
+        int warmupSum = 0;
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
-            findClosestCornerUnrolled(seed, i % 1000, 64, i % 500, 0.25, 0.5, 0.75);
+            warmupSum += findClosestCornerUnrolled(seed, i % 1000, 64, i % 500, 0.25, 0.5, 0.75);
         }
+        if (warmupSum == Integer.MIN_VALUE) throw new AssertionError("Warmup failed");
 
         // Benchmark
         long startTime = System.nanoTime();

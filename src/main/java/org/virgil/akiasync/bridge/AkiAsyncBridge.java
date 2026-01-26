@@ -515,6 +515,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     public boolean isLeaderZombieHealthFixEnabled() {return config.isLeaderZombieHealthFixEnabled();}
 
     @Override
+    public boolean isEquipmentHealthCapFixEnabled() {return config.isEquipmentHealthCapFixEnabled();}
+
+    @Override
     public boolean isPortalSuffocationCheckDisabled() {return config.isPortalSuffocationCheckDisabled();}
 
     @Override

@@ -47,7 +47,16 @@ public class PluginBootstrapper {
         registerListeners();
         registerCommands();
         initializeSchedulers();
+        prewarmMixinConfigurations();
         printStartupBanner();
+    }
+
+    private void prewarmMixinConfigurations() {
+        boolean prewarmEnabled = configManager.isMixinPrewarmEnabled();
+        boolean prewarmAsync = configManager.isMixinPrewarmAsync();
+        
+        MixinPrewarmer prewarmer = new MixinPrewarmer(plugin, prewarmEnabled, prewarmAsync);
+        prewarmer.prewarm();
     }
 
     private void initializeMetrics() {

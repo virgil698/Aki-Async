@@ -100,19 +100,26 @@ public class MultithreadedEntityTracker {
             return;
         }
 
-        for (int i = 0; i < size; i++) {
-            final LevelChunk chunk = chunks[i];
-            if (chunk != null) {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    try {
-                        processChunkEntities(chunk);
-                    } catch (Throwable t) {
-                        ExceptionHandler.handleExpected("MultithreadedEntityTracker", "processChunk",
-                            new RuntimeException("Failed to process chunk " + chunk.getPos(), t));
+        final int batchSize = Math.max(1, (size + getParallelism() - 1) / getParallelism());
+        
+        for (int batchStart = 0; batchStart < size; batchStart += batchSize) {
+            final int start = batchStart;
+            final int end = Math.min(start + batchSize, size);
+            
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                for (int i = start; i < end; i++) {
+                    LevelChunk chunk = chunks[i];
+                    if (chunk != null) {
+                        try {
+                            processChunkEntities(chunk);
+                        } catch (Throwable t) {
+                            ExceptionHandler.handleExpected("MultithreadedEntityTracker", "processChunk",
+                                new RuntimeException("Failed to process chunk", t));
+                        }
                     }
-                }, executor);
-                taskQueue.add(future);
-            }
+                }
+            }, executor);
+            taskQueue.add(future);
         }
 
         postTrackerTick(chunks.length > 0 ? chunks[0] : null);
@@ -154,8 +161,8 @@ public class MultithreadedEntityTracker {
                 }
             }
 
-            if (!hasTask) {
-                LockSupport.parkNanos(50_000);
+            if (!hasTask && mainThreadTasks.isEmpty()) {
+                LockSupport.parkNanos(10_000);
             }
         }
 

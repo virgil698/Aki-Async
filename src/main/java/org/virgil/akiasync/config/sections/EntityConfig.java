@@ -75,6 +75,7 @@ public class EntityConfig {
     private boolean beeFixEnabled;
     private boolean endIslandDensityFixEnabled;
     private boolean leaderZombieHealthFixEnabled;
+    private boolean equipmentHealthCapFixEnabled;
     private boolean portalSuffocationCheckDisabled;
     private boolean shulkerBulletSelfHitFixEnabled;
 
@@ -161,6 +162,7 @@ public class EntityConfig {
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
         endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
         leaderZombieHealthFixEnabled = config.getBoolean("leader-zombie-health-fix.enabled", true);
+        equipmentHealthCapFixEnabled = config.getBoolean("equipment-health-cap-fix.enabled", true);
         portalSuffocationCheckDisabled = config.getBoolean("portal-suffocation-check.disabled", false);
         shulkerBulletSelfHitFixEnabled = config.getBoolean("shulker-bullet-self-hit-fix.enabled", true);
 
@@ -265,6 +267,7 @@ public class EntityConfig {
     public boolean isBeeFixEnabled() { return beeFixEnabled; }
     public boolean isEndIslandDensityFixEnabled() { return endIslandDensityFixEnabled; }
     public boolean isLeaderZombieHealthFixEnabled() { return leaderZombieHealthFixEnabled; }
+    public boolean isEquipmentHealthCapFixEnabled() { return equipmentHealthCapFixEnabled; }
     public boolean isPortalSuffocationCheckDisabled() { return portalSuffocationCheckDisabled; }
     public boolean isShulkerBulletSelfHitFixEnabled() { return shulkerBulletSelfHitFixEnabled; }
 

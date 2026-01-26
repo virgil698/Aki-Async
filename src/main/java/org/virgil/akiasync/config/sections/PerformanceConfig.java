@@ -35,6 +35,9 @@ public class PerformanceConfig {
     private boolean entityMoveZeroVelocityOptimizationEnabled;
     private boolean entityTrackerDistanceCacheEnabled;
 
+    private boolean mixinPrewarmEnabled;
+    private boolean mixinPrewarmAsync;
+
     public void load(FileConfiguration config) {
         int configuredThreadPoolSize = config.getInt("general-thread-pool.size", 0);
         if (configuredThreadPoolSize <= 0) {
@@ -75,6 +78,9 @@ public class PerformanceConfig {
         biomeAccessOptimizationEnabled = config.getBoolean("advanced-optimizations.biome-access-optimization", true);
         entityMoveZeroVelocityOptimizationEnabled = config.getBoolean("advanced-optimizations.entity-move-zero-velocity", true);
         entityTrackerDistanceCacheEnabled = config.getBoolean("advanced-optimizations.entity-tracker-distance-cache", true);
+
+        mixinPrewarmEnabled = config.getBoolean("performance.mixin-prewarm.enabled", true);
+        mixinPrewarmAsync = config.getBoolean("performance.mixin-prewarm.async", true);
     }
 
     public void validate(java.util.logging.Logger logger) {
@@ -163,4 +169,7 @@ public class PerformanceConfig {
     public boolean isBiomeAccessOptimizationEnabled() { return biomeAccessOptimizationEnabled; }
     public boolean isEntityMoveZeroVelocityOptimizationEnabled() { return entityMoveZeroVelocityOptimizationEnabled; }
     public boolean isEntityTrackerDistanceCacheEnabled() { return entityTrackerDistanceCacheEnabled; }
+
+    public boolean isMixinPrewarmEnabled() { return mixinPrewarmEnabled; }
+    public boolean isMixinPrewarmAsync() { return mixinPrewarmAsync; }
 }

@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.virgil.akiasync.mixin.accessor.NoiseChunkAccessor;
 
 /**
  * Optimizes NoiseChunk's fillAllDirectly method with loop unrolling
@@ -18,7 +17,9 @@ import org.virgil.akiasync.mixin.accessor.NoiseChunkAccessor;
 @Mixin(NoiseChunk.class)
 public abstract class NoiseChunkParallelMixin {
 
+    @Shadow @Final int cellStartBlockX;
     @Shadow int cellStartBlockY;
+    @Shadow @Final int cellStartBlockZ;
     @Shadow int inCellY;
     @Shadow int inCellX;
     @Shadow int inCellZ;
@@ -62,13 +63,12 @@ public abstract class NoiseChunkParallelMixin {
         }
 
         NoiseChunk self = (NoiseChunk) (Object) this;
-        NoiseChunkAccessor accessor = (NoiseChunkAccessor) self;
 
         final int cellH = this.cellHeight;
         final int cellW = this.cellWidth;
-        final int startBlockX = accessor.getCellStartBlockX();
+        final int startBlockX = this.cellStartBlockX;
         final int startBlockY = this.cellStartBlockY;
-        final int startBlockZ = accessor.getCellStartBlockZ();
+        final int startBlockZ = this.cellStartBlockZ;
 
         int idx = 0;
 

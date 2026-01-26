@@ -3,6 +3,7 @@ package org.virgil.akiasync.listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.virgil.akiasync.AkiAsyncPlugin;
+import org.virgil.akiasync.bootstrap.MixinPrewarmer;
 import org.virgil.akiasync.event.ConfigReloadEvent;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -126,6 +127,9 @@ public class ConfigReloadListener implements Listener {
                 plugin.getLogger().warning("Configuration validation failed: " + e.getMessage());
             }
 
+            plugin.getLogger().info("[AkiAsync] Phase 6: Prewarming mixin configurations...");
+            prewarmAfterReload();
+
             long reloadTime = System.currentTimeMillis() - startTime;
 
             plugin.getLogger().info("========================================");
@@ -134,13 +138,26 @@ public class ConfigReloadListener implements Listener {
             plugin.getLogger().info("  - Configuration reloaded from file");
             plugin.getLogger().info("  - All caches invalidated");
             plugin.getLogger().info("  - Thread pools smoothly restarted");
-            plugin.getLogger().info("  - Mixin states reset");
-            plugin.getLogger().info("  - MSPT impact: Minimized (controlled execution)");
+            plugin.getLogger().info("  - Mixin states reset and prewarmed");
+            plugin.getLogger().info("  - MSPT impact: Minimized (controlled execution + prewarm)");
             plugin.getLogger().info("========================================");
 
         } catch (Exception e) {
             plugin.getLogger().severe("[AkiAsync] Error during hot-reload: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void prewarmAfterReload() {
+        try {
+            MixinPrewarmer.reset();
+            
+            boolean prewarmEnabled = plugin.getConfigManager().isMixinPrewarmEnabled();
+            MixinPrewarmer prewarmer = new MixinPrewarmer(plugin, prewarmEnabled, false);
+            prewarmer.prewarm();
+            
+        } catch (Exception e) {
+            plugin.getLogger().warning("[AkiAsync] Failed to prewarm after reload: " + e.getMessage());
         }
     }
 }

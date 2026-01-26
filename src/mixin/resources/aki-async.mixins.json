@@ -27,6 +27,7 @@
     "memory.pooling.EntityBlockPosPoolMixin",
     "entity.throttling.MobSunBurnOptimizationMixin",
     "entity.LeaderZombieHealthFixMixin",
+    "entity.LivingEntityHealthCapFixMixin",
     "entity.movement.EntitySpeedOptimizationMixin",
     "entity.movement.EntityMoveZeroVelocityMixin",
     "entity.movement.EntityFallDamageOptimizationMixin",

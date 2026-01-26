@@ -52,6 +52,7 @@ public interface EntityBridge {
     boolean isBeeFixEnabled();
     boolean isEndIslandDensityFixEnabled();
     boolean isLeaderZombieHealthFixEnabled();
+    boolean isEquipmentHealthCapFixEnabled();
 
     boolean isEndermanBlockCarryLimiterEnabled();
     int getEndermanMaxCarrying();
