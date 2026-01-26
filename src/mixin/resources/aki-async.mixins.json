@@ -186,6 +186,8 @@
     "worldgen.optimization.AnyOfBlockPredicateMixin",
     "worldgen.optimization.SequenceRuleSourceMixin",
     "worldgen.optimization.SequenceRuleMixin",
+    "worldgen.optimization.NoiseChunkParallelMixin",
+    "worldgen.optimization.XoroshiroRandomSourceMixin",
     "entity.movement.EntitySectionMixin",
     "entity.movement.PoiManagerMixin",
     "entity.movement.ServerPlayerFastMovementMixin",

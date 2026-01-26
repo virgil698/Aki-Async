@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.virgil.akiasync.mixin.util.worldgen.VectorizedBiomeSampler;
 
 @Mixin(BiomeManager.class)
 public class BiomeAccessOptimizationMixin {
@@ -21,6 +22,8 @@ public class BiomeAccessOptimizationMixin {
     private static volatile boolean initialized = false;
     @Unique
     private static volatile boolean enabled = true;
+    @Unique
+    private static volatile boolean vectorAvailable = false;
 
     @Overwrite
     public Holder<Biome> getBiome(BlockPos pos) {
@@ -42,42 +45,21 @@ public class BiomeAccessOptimizationMixin {
         final double fracY = (double) (y & 3) / 4.0;
         final double fracZ = (double) (z & 3) / 4.0;
 
-        int bestIndex = 0;
-        double bestDistance = Double.POSITIVE_INFINITY;
+        int bestIndex;
 
-        for (int i = 0; i < 8; ++i) {
-            boolean xFlag = (i & 4) == 0;
-            boolean yFlag = (i & 2) == 0;
-            boolean zFlag = (i & 1) == 0;
-
-            long sampleX = xFlag ? quartX : quartX + 1;
-            long sampleY = yFlag ? quartY : quartY + 1;
-            long sampleZ = zFlag ? quartZ : quartZ + 1;
-
-            double offsetX = xFlag ? fracX : fracX - 1.0;
-            double offsetY = yFlag ? fracY : fracY - 1.0;
-            double offsetZ = zFlag ? fracZ : fracZ - 1.0;
-
-            long seed = this.biomeZoomSeed;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleX;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleY;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleZ;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleX;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleY;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + sampleZ;
-
-            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
-            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
-            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
-            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
-
-            double distance = Mth.square(offsetZ + fiddleZ) + Mth.square(offsetY + fiddleY) + Mth.square(offsetX + fiddleX);
-
-            if (bestDistance > distance) {
-                bestIndex = i;
-                bestDistance = distance;
-            }
+        if (vectorAvailable) {
+            // Use SIMD-accelerated sampling
+            bestIndex = VectorizedBiomeSampler.findClosestCorner(
+                this.biomeZoomSeed,
+                quartX, quartY, quartZ,
+                fracX, fracY, fracZ
+            );
+        } else {
+            // Optimized scalar path with unrolled loop
+            bestIndex = akiasync$findClosestCornerUnrolled(
+                quartX, quartY, quartZ,
+                fracX, fracY, fracZ
+            );
         }
 
         int resX = (bestIndex & 4) == 0 ? quartX : quartX + 1;
@@ -159,7 +141,8 @@ public class BiomeAccessOptimizationMixin {
 
             if (bridge != null) {
                 enabled = bridge.isBiomeAccessOptimizationEnabled();
-                bridge.debugLog("[BiomeAccessOptimization] Initialized: enabled=%s", enabled);
+                vectorAvailable = VectorizedBiomeSampler.isAvailable();
+                bridge.debugLog("[BiomeAccessOptimization] Initialized: enabled=%s, vectorAvailable=%s", enabled, vectorAvailable);
 
                 initialized = true;
             }
@@ -167,5 +150,197 @@ public class BiomeAccessOptimizationMixin {
             org.virgil.akiasync.mixin.util.ExceptionHandler.handleExpected(
                 "BiomeAccessOptimization", "initConfig", e);
         }
+    }
+
+    @Unique
+    private int akiasync$findClosestCornerUnrolled(int quartX, int quartY, int quartZ,
+                                                    double fracX, double fracY, double fracZ) {
+        int bestIndex = 0;
+        double bestDistance = Double.POSITIVE_INFINITY;
+
+        // Corner 0: (0,0,0)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = fracX + fiddleX;
+            double dy = fracY + fiddleY;
+            double dz = fracZ + fiddleZ;
+            bestDistance = dx * dx + dy * dy + dz * dz;
+        }
+
+        // Corner 1: (0,0,1)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = fracX + fiddleX;
+            double dy = fracY + fiddleY;
+            double dz = (fracZ - 1.0) + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 1; bestDistance = distance; }
+        }
+
+        // Corner 2: (0,1,0)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = fracX + fiddleX;
+            double dy = (fracY - 1.0) + fiddleY;
+            double dz = fracZ + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 2; bestDistance = distance; }
+        }
+
+        // Corner 3: (0,1,1)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartX;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = fracX + fiddleX;
+            double dy = (fracY - 1.0) + fiddleY;
+            double dz = (fracZ - 1.0) + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 3; bestDistance = distance; }
+        }
+
+        // Corner 4: (1,0,0)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = (fracX - 1.0) + fiddleX;
+            double dy = fracY + fiddleY;
+            double dz = fracZ + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 4; bestDistance = distance; }
+        }
+
+        // Corner 5: (1,0,1)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartY;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = (fracX - 1.0) + fiddleX;
+            double dy = fracY + fiddleY;
+            double dz = (fracZ - 1.0) + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 5; bestDistance = distance; }
+        }
+
+        // Corner 6: (1,1,0)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + quartZ;
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = (fracX - 1.0) + fiddleX;
+            double dy = (fracY - 1.0) + fiddleY;
+            double dz = fracZ + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 6; bestDistance = distance; }
+        }
+
+        // Corner 7: (1,1,1)
+        {
+            long seed = this.biomeZoomSeed;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartX + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartY + 1);
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + (quartZ + 1);
+
+            double fiddleX = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleY = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+            seed = seed * (seed * 6364136223846793005L + 1442695040888963407L) + this.biomeZoomSeed;
+            double fiddleZ = ((double) ((seed >> 24) & 1023) / 1024.0 - 0.5) * 0.9;
+
+            double dx = (fracX - 1.0) + fiddleX;
+            double dy = (fracY - 1.0) + fiddleY;
+            double dz = (fracZ - 1.0) + fiddleZ;
+            double distance = dx * dx + dy * dy + dz * dz;
+            if (distance < bestDistance) { bestIndex = 7; }
+        }
+
+        return bestIndex;
     }
 }

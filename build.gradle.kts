@@ -119,6 +119,10 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.6")
 
+    // Test dependencies
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     apply `plugin dependencies`@{
         compileOnly("com.viaversion:viaversion-api:5.1.1") {
             isTransitive = false
@@ -218,6 +222,11 @@ tasks {
 
     build {
         dependsOn(shadowJar)
+    }
+    
+    test {
+        useJUnitPlatform()
+        jvmArgs("--enable-preview", "--add-modules", "jdk.incubator.vector")
     }
     
     withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {

@@ -515,6 +515,10 @@ public class ConfigManager {
 
     public boolean isChunkPosOptimizationEnabled() { return chunkConfig.isChunkPosOptimizationEnabled(); }
     public boolean isNoiseOptimizationEnabled() { return chunkConfig.isNoiseOptimizationEnabled(); }
+    public boolean isSimdOptimizationEnabled() { return chunkConfig.isSimdOptimizationEnabled(); }
+    public boolean isBatchRandomEnabled() { return chunkConfig.isBatchRandomEnabled(); }
+    public int getBatchRandomPoolSize() { return chunkConfig.getBatchRandomPoolSize(); }
+    public boolean isWorldgenThreadsEnabled() { return chunkConfig.isWorldgenThreadsEnabled(); }
     public boolean isNbtOptimizationEnabled() { return performanceConfig.isNbtOptimizationEnabled(); }
     public boolean isBitSetPoolingEnabled() { return performanceConfig.isBitSetPoolingEnabled(); }
     public boolean isCompletableFutureOptimizationEnabled() { return performanceConfig.isCompletableFutureOptimizationEnabled(); }

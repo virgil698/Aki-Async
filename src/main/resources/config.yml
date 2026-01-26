@@ -524,6 +524,25 @@ chunk-system:
     # 来源 / Source: C2ME
     perlin-noise-optimization:
       enabled: true
+    
+    # SIMD向量化优化 / SIMD Vectorization Optimization
+    # 使用Java Vector API加速噪声和Biome采样计算
+    # Use Java Vector API to accelerate noise and biome sampling calculations
+    simd-optimization:
+      enabled: true
+    
+    # 批量随机数生成 / Batch Random Number Generation
+    # 预生成随机数池减少调用开销
+    # Pre-generate random number pool to reduce per-call overhead
+    batch-random:
+      enabled: true
+      pool-size: 64  # 随机数池大小 / Random number pool size
+    
+    # Worldgen线程池 / Worldgen Thread Pool
+    # 地形生成专用线程池，使用general-thread-pool.size配置的线程数
+    # Dedicated thread pool for terrain generation, uses general-thread-pool.size
+    worldgen-threads:
+      enabled: true
   
   # 区块加载优化 / Chunk Loading
   loading:

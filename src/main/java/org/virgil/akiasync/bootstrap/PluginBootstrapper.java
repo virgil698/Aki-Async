@@ -82,7 +82,8 @@ public class PluginBootstrapper {
             executorManager.getChunkTickExecutor(),
             executorManager.getVillagerBreedExecutor(),
             executorManager.getBrainExecutor(),
-            executorManager.getCollisionExecutor()
+            executorManager.getCollisionExecutor(),
+            executorManager.getWorldgenExecutor()
         );
 
         org.virgil.akiasync.mixin.util.AsyncCollisionProcessor.setExecutor(

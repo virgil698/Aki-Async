@@ -32,6 +32,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
     private final ExecutorService collisionExecutor;
+    private final ExecutorService worldgenExecutor;
 
     // Delegates
     private final StructureBridgeDelegate structureDelegate;
@@ -46,7 +47,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
     private final UtilityBridgeDelegate utilityDelegate;
     private final EntityBridgeDelegate entityDelegate;
 
-    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor, ExecutorService collisionExecutor) {
+    public AkiAsyncBridge(AkiAsyncPlugin plugin, ExecutorService generalExecutor, ExecutorService lightingExecutor, ExecutorService tntExecutor, ExecutorService chunkTickExecutor, ExecutorService villagerBreedExecutor, ExecutorService brainExecutor, ExecutorService collisionExecutor, ExecutorService worldgenExecutor) {
         this.plugin = plugin;
         this.config = plugin.getConfigManager();
         this.generalExecutor = generalExecutor;
@@ -56,6 +57,7 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
         this.villagerBreedExecutor = villagerBreedExecutor;
         this.brainExecutor = brainExecutor;
         this.collisionExecutor = collisionExecutor;
+        this.worldgenExecutor = worldgenExecutor;
 
         // Initialize delegates
         this.structureDelegate = new StructureBridgeDelegate(plugin, config, generalExecutor);
@@ -385,6 +387,9 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge, 
 
     @Override
     public ExecutorService getCollisionExecutor() { return collisionExecutor != null ? collisionExecutor : generalExecutor; }
+
+    @Override
+    public ExecutorService getWorldgenExecutor() { return worldgenExecutor != null ? worldgenExecutor : generalExecutor; }
 
     @Override
     public boolean isAsyncLightingEnabled() {return config.isAsyncLightingEnabled();}

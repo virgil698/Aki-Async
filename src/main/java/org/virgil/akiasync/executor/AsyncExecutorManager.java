@@ -25,6 +25,7 @@ public class AsyncExecutorManager {
     private final ExecutorService villagerBreedExecutor;
     private final ExecutorService brainExecutor;
     private final ExecutorService collisionExecutor;
+    private final ExecutorService worldgenExecutor;
     private final ScheduledExecutorService metricsExecutor;
 
     public AsyncExecutorManager(AkiAsyncPlugin plugin) {
@@ -58,6 +59,11 @@ public class AsyncExecutorManager {
             new FoliaExecutorAdapter(plugin, Math.max(2, threadPoolSize / 4), "AkiAsync-Collision"),
             "AkiAsync-Collision-Executor");
 
+        int worldgenThreads = calculateWorldgenThreads(plugin);
+        this.worldgenExecutor = ResourceTracker.track(
+            new FoliaExecutorAdapter(plugin, worldgenThreads, "AkiAsync-Worldgen"),
+            "AkiAsync-Worldgen-Executor");
+
         this.metricsExecutor = ResourceTracker.track(
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread thread = new Thread(r, "AkiAsync-Metrics");
@@ -74,6 +80,7 @@ public class AsyncExecutorManager {
         plugin.getLogger().info("VillagerBreed executor initialized: 4 threads (Folia-compatible)");
         plugin.getLogger().info("Brain executor initialized: " + threadPoolSize + " threads (Folia-compatible)");
         plugin.getLogger().info("Collision executor initialized: " + Math.max(2, threadPoolSize / 4) + " threads (Folia-compatible)");
+        plugin.getLogger().info("Worldgen executor initialized: " + worldgenThreads + " threads (Folia-compatible)");
         plugin.getLogger().info("All executors tracked by ResourceTracker for leak detection");
     }
     public Future<?> submit(Runnable task) {
@@ -91,6 +98,7 @@ public class AsyncExecutorManager {
 
         plugin.getLogger().info("Phase 1: Stopping new task submissions...");
         metricsExecutor.shutdown();
+        worldgenExecutor.shutdown();
         collisionExecutor.shutdown();
         villagerBreedExecutor.shutdown();
         brainExecutor.shutdown();
@@ -101,13 +109,19 @@ public class AsyncExecutorManager {
 
         plugin.getLogger().info("Phase 2: Waiting for running tasks to complete...");
         int successCount = 0;
-        int totalExecutors = 8;
+        int totalExecutors = 9;
 
         if (ExecutorLifecycleManager.shutdownGracefully(metricsExecutor, 3, TimeUnit.SECONDS)) {
             successCount++;
         } else {
             plugin.getLogger().warning("Metrics executor did not terminate gracefully, forcing shutdown");
             metricsExecutor.shutdownNow();
+        }
+
+        if (ExecutorLifecycleManager.shutdownGracefully(worldgenExecutor, 10, TimeUnit.SECONDS)) {
+            successCount++;
+        } else {
+            plugin.getLogger().warning("Worldgen executor did not terminate gracefully, forcing shutdown");
         }
 
         if (ExecutorLifecycleManager.shutdownGracefully(collisionExecutor, 10, TimeUnit.SECONDS)) {
@@ -185,6 +199,10 @@ public class AsyncExecutorManager {
     public ExecutorService getCollisionExecutor() {
         return collisionExecutor;
     }
+
+    public ExecutorService getWorldgenExecutor() {
+        return worldgenExecutor;
+    }
     public String getStatistics() {
 
         return String.format(
@@ -210,6 +228,12 @@ public class AsyncExecutorManager {
         plugin.getLogger().warning("  - Desired general executor threads: " + threadPoolSize);
         plugin.getLogger().warning("  - Desired lighting executor threads: " + lightingThreads);
         plugin.getLogger().warning("  - Please use /reload or restart the server to apply new thread pool sizes");
+    }
+
+    private static int calculateWorldgenThreads(AkiAsyncPlugin plugin) {
+        int threadPoolSize = plugin.getConfigManager().getThreadPoolSize();
+        plugin.getLogger().info("[AkiAsync] Worldgen threads: using general-thread-pool.size = " + threadPoolSize);
+        return threadPoolSize;
     }
 
     private static int calculateLightingThreads(AkiAsyncPlugin plugin) {

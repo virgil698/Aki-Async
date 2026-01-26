@@ -21,6 +21,7 @@ public interface CoreBridge {
     ExecutorService getBrainExecutor();
     ExecutorService getCollisionExecutor();
     ExecutorService getLightingExecutor();
+    ExecutorService getWorldgenExecutor();
 
     boolean isFoliaEnvironment();
     boolean isOwnedByCurrentRegion(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);

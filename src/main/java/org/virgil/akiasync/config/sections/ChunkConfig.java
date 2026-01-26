@@ -20,9 +20,19 @@ public class ChunkConfig {
 
     private boolean spawnChunkRemovalEnabled;
 
+    private boolean simdOptimizationEnabled;
+    private boolean batchRandomEnabled;
+    private int batchRandomPoolSize;
+    private boolean worldgenThreadsEnabled;
+
     public void load(FileConfiguration config) {
         noiseOptimizationEnabled = config.getBoolean("chunk-system.generation.noise-optimization.enabled", true);
         jigsawOptimizationEnabled = config.getBoolean("chunk-system.generation.jigsaw-optimization.enabled", true);
+
+        simdOptimizationEnabled = config.getBoolean("chunk-system.generation.simd-optimization.enabled", true);
+        batchRandomEnabled = config.getBoolean("chunk-system.generation.batch-random.enabled", true);
+        batchRandomPoolSize = config.getInt("chunk-system.generation.batch-random.pool-size", 64);
+        worldgenThreadsEnabled = config.getBoolean("chunk-system.generation.worldgen-threads.enabled", true);
 
         playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
         maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
@@ -58,4 +68,9 @@ public class ChunkConfig {
     public boolean isChunkPosOptimizationEnabled() { return chunkPosOptimizationEnabled; }
 
     public boolean isSpawnChunkRemovalEnabled() { return spawnChunkRemovalEnabled; }
+
+    public boolean isSimdOptimizationEnabled() { return simdOptimizationEnabled; }
+    public boolean isBatchRandomEnabled() { return batchRandomEnabled; }
+    public int getBatchRandomPoolSize() { return batchRandomPoolSize; }
+    public boolean isWorldgenThreadsEnabled() { return worldgenThreadsEnabled; }
 }
