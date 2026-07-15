@@ -14,3 +14,7 @@ Build from the repository root:
 ```
 
 Keep normal plugin code in `src/main`, Bridge/Mixin support in the parent `src/mixin/.../mixin` package, and actual injections under `src/mixin/.../mixin/mixins`.
+
+The 1.21.11 source includes the same bounded datapack zip cache, Function compilation cache, small-Function scheduling path, reload metrics, and `/akiasync datapack status` command as the root source. Its Mixin targets use the 1.21.11 `Identifier` and `PermissionSet` signatures.
+
+It also includes the same bounded Redis-style task-tree scheduler and `/akiasync scheduler status` command. The 1.21.11 build pins SpottedLeaf concurrentutil 0.0.8 and relocates it into the plugin JAR; computation stays on plugin workers, while world commits use Paper global, region, or entity schedulers.

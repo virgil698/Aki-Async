@@ -8,6 +8,8 @@ spongeMixin = "0.15.5+mixin.0.8.7"
 mixinExtras = "0.4.1"
 mixinCondition = "1.0-SNAPSHOT"
 accessWiden = "1.0.0"
+concurrentUtil = "0.0.8"
+junit = "6.0.0"
 
 [libraries]
 leavesApi = { group = "org.leavesmc.leaves", name = "leaves-api", version.ref = "leavesApi" }
@@ -15,6 +17,9 @@ leavesDevBundle = { group = "org.leavesmc.leaves", name = "dev-bundle", version.
 spongeMixin = { group = "net.fabricmc", name = "sponge-mixin", version.ref = "spongeMixin" }
 mixinExtras = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
 mixinCondition = { group = "org.leavesmc", name = "leaves-plugin-mixin-condition", version.ref = "mixinCondition" }
+concurrentUtil = { group = "ca.spottedleaf", name = "concurrentutil", version.ref = "concurrentUtil" }
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
 
 [plugins]
 leavesweightUserdev = { id = "org.leavesmc.leavesweight.userdev", version.ref = "leavesweightUserdev" }

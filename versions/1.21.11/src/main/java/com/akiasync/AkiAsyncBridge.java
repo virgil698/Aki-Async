@@ -1,5 +1,7 @@
 package com.akiasync;
 
+import com.akiasync.datapack.DataPackRecord;
+import com.akiasync.datapack.DataPackService;
 import com.akiasync.lag.LagProfilerService;
 import com.akiasync.lag.LagSourceRecord;
 import com.akiasync.lag.LagStackRecord;
@@ -10,9 +12,36 @@ import com.akiasync.mixin.BridgeManager;
 
 public final class AkiAsyncBridge implements Bridge {
     private final LagProfilerService lagProfiler;
+    private final DataPackService dataPackService;
 
-    public AkiAsyncBridge(LagProfilerService lagProfiler) {
+    public AkiAsyncBridge(LagProfilerService lagProfiler, DataPackService dataPackService) {
         this.lagProfiler = lagProfiler;
+        this.dataPackService = dataPackService;
+    }
+
+    @Override
+    public void publishDataPack(DataPackSnapshot snapshot) {
+        dataPackService.accept(new DataPackRecord(
+                snapshot.generation(),
+                snapshot.startedAtMillis(),
+                snapshot.durationNanos(),
+                snapshot.successful(),
+                snapshot.failure(),
+                snapshot.functionsLoaded(),
+                snapshot.functionCompileHits(),
+                snapshot.functionCompileMisses(),
+                snapshot.zipIndexHits(),
+                snapshot.zipIndexMisses(),
+                snapshot.zipContentHits(),
+                snapshot.zipContentMisses(),
+                snapshot.zipBytesReused(),
+                snapshot.smallFunctionsScheduled(),
+                snapshot.smallFunctionEntriesScheduled(),
+                snapshot.functionCacheEntries(),
+                snapshot.zipIndexEntries(),
+                snapshot.zipContentEntries(),
+                snapshot.zipContentBytes()
+        ));
     }
 
     @Override

@@ -1,6 +1,11 @@
 package com.akiasync.lag;
 
 import com.akiasync.AkiAsyncBridge;
+import com.akiasync.datapack.DataPackRecord;
+import com.akiasync.datapack.DataPackService;
+import com.akiasync.scheduler.AkiScheduler;
+import com.akiasync.scheduler.SchedulerSnapshot;
+import com.akiasync.scheduler.SchedulerState;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
@@ -13,23 +18,62 @@ import java.util.Locale;
 import java.util.Optional;
 
 public final class LagCommand implements BasicCommand {
-    private static final String PERMISSION = "akiasync.lag";
+    private static final String LAG_PERMISSION = "akiasync.lag";
+    private static final String DATAPACK_PERMISSION = "akiasync.datapack";
+    private static final String SCHEDULER_PERMISSION = "akiasync.scheduler";
     private static final List<String> ROOT_SUGGESTIONS = List.of(
             "status", "report", "inspect", "top", "ranges", "categories", "arm"
     );
     private final LagProfilerService service;
+    private final DataPackService dataPackService;
     private final AkiAsyncBridge bridge;
+    private final AkiScheduler scheduler;
 
-    public LagCommand(LagProfilerService service, AkiAsyncBridge bridge) {
+    public LagCommand(
+            LagProfilerService service,
+            DataPackService dataPackService,
+            AkiAsyncBridge bridge,
+            AkiScheduler scheduler
+    ) {
         this.service = service;
+        this.dataPackService = dataPackService;
         this.bridge = bridge;
+        this.scheduler = scheduler;
     }
 
     @Override
     public void execute(CommandSourceStack source, String[] args) {
         CommandSender sender = source.getSender();
+        if (args.length >= 1 && args[0].equalsIgnoreCase("scheduler")) {
+            if (!sender.hasPermission(SCHEDULER_PERMISSION)) {
+                sender.sendMessage(Component.text("你没有权限查看调度器状态。", NamedTextColor.RED));
+                return;
+            }
+            if (args.length == 1 || args[1].equalsIgnoreCase("status")) {
+                sendSchedulerStatus(sender);
+            } else {
+                sendHelp(sender);
+            }
+            return;
+        }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("datapack")) {
+            if (!sender.hasPermission(DATAPACK_PERMISSION)) {
+                sender.sendMessage(Component.text("你没有权限查看数据包优化状态。", NamedTextColor.RED));
+                return;
+            }
+            if (args.length == 1 || args[1].equalsIgnoreCase("status")) {
+                sendDataPackStatus(sender);
+            } else {
+                sendHelp(sender);
+            }
+            return;
+        }
         if (args.length < 2 || !args[0].equalsIgnoreCase("lag")) {
             sendHelp(sender);
+            return;
+        }
+        if (!sender.hasPermission(LAG_PERMISSION)) {
+            sender.sendMessage(Component.text("你没有权限使用卡顿探针。", NamedTextColor.RED));
             return;
         }
 
@@ -49,7 +93,21 @@ public final class LagCommand implements BasicCommand {
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
         if (args.length <= 1) {
             String prefix = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
-            return "lag".startsWith(prefix) ? List.of("lag") : List.of();
+            return List.of("lag", "datapack", "scheduler").stream()
+                    .filter(value -> value.startsWith(prefix))
+                    .filter(value -> switch (value) {
+                        case "lag" -> source.getSender().hasPermission(LAG_PERMISSION);
+                        case "datapack" -> source.getSender().hasPermission(DATAPACK_PERMISSION);
+                        case "scheduler" -> source.getSender().hasPermission(SCHEDULER_PERMISSION);
+                        default -> false;
+                    })
+                    .toList();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("scheduler")) {
+            return "status".startsWith(args[1].toLowerCase(Locale.ROOT)) ? List.of("status") : List.of();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("datapack")) {
+            return "status".startsWith(args[1].toLowerCase(Locale.ROOT)) ? List.of("status") : List.of();
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("lag")) {
             String prefix = args[1].toLowerCase(Locale.ROOT);
@@ -69,12 +127,81 @@ public final class LagCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(PERMISSION);
+        return sender.hasPermission(LAG_PERMISSION)
+                || sender.hasPermission(DATAPACK_PERMISSION)
+                || sender.hasPermission(SCHEDULER_PERMISSION);
     }
 
     @Override
     public String permission() {
-        return PERMISSION;
+        return null;
+    }
+
+    private void sendDataPackStatus(CommandSender sender) {
+        Optional<DataPackRecord> latest = dataPackService.latest();
+        if (latest.isEmpty()) {
+            sender.sendMessage(Component.text("数据包优化已加载，尚无 reload 指标。", NamedTextColor.YELLOW));
+            return;
+        }
+        DataPackRecord record = latest.get();
+        sender.sendMessage(Component.text(
+                "Aki-Async 数据包优化 #" + record.generation() + " — " + millis(record.durationNanos()) + " ms"
+                        + (record.successful() ? " [成功]" : " [失败]"),
+                record.successful() ? NamedTextColor.GREEN : NamedTextColor.RED
+        ));
+        sender.sendMessage(Component.text(
+                "Functions " + record.functionsLoaded()
+                        + "，编译复用 " + record.functionCompileHits()
+                        + "，实际解析 " + record.functionCompileMisses(),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "Zip 索引复用/扫描 " + record.zipIndexHits() + "/" + record.zipIndexMisses()
+                        + "，内容复用/读取 " + record.zipContentHits() + "/" + record.zipContentMisses()
+                        + "，节省解压 " + formatBytes(record.zipBytesReused()),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "小型 Function 累计快速调度 " + record.smallFunctionsScheduled()
+                        + " 次 / " + record.smallFunctionEntriesScheduled() + " 条；缓存 "
+                        + record.functionCacheEntries() + " commands，"
+                        + record.zipIndexEntries() + " indexes，"
+                        + record.zipContentEntries() + " resources / " + formatBytes(record.zipContentBytes()),
+                NamedTextColor.DARK_GRAY
+        ));
+        if (!record.successful() && !record.failure().isBlank()) {
+            sender.sendMessage(Component.text(record.failure(), NamedTextColor.RED));
+        }
+    }
+
+    private void sendSchedulerStatus(CommandSender sender) {
+        SchedulerSnapshot snapshot = scheduler.snapshot();
+        NamedTextColor stateColor = snapshot.state() == SchedulerState.RUNNING
+                ? NamedTextColor.GREEN
+                : NamedTextColor.YELLOW;
+        sender.sendMessage(Component.text(
+                "Aki-Async 调度器 " + snapshot.state() + " / generation " + snapshot.generation(),
+                stateColor
+        ));
+        sender.sendMessage(Component.text(
+                "忙碌工作线程 " + snapshot.busyWorkers() + "/" + snapshot.workerThreads()
+                        + "，活动任务树 " + snapshot.activeTrees()
+                        + "，owner 提交 " + snapshot.pendingOwnerTasks(),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "任务容量 " + snapshot.outstandingTasks() + "/" + snapshot.taskCapacity()
+                        + "，计算队列 " + snapshot.queuedComputeTasks()
+                        + "，控制队列 " + snapshot.coordinatorBacklog(),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "任务树 提交/完成/失败/取消/拒绝 "
+                        + snapshot.submittedTrees() + "/" + snapshot.completedTrees() + "/"
+                        + snapshot.failedTrees() + "/" + snapshot.cancelledTrees() + "/"
+                        + snapshot.rejectedTrees(),
+                NamedTextColor.DARK_GRAY
+        ));
     }
 
     private void sendStatus(CommandSender sender) {
@@ -256,6 +383,8 @@ public final class LagCommand implements BasicCommand {
         sender.sendMessage(Component.text("/akiasync lag ranges", NamedTextColor.AQUA));
         sender.sendMessage(Component.text("/akiasync lag categories", NamedTextColor.AQUA));
         sender.sendMessage(Component.text("/akiasync lag arm [ticks]", NamedTextColor.AQUA));
+        sender.sendMessage(Component.text("/akiasync datapack status", NamedTextColor.AQUA));
+        sender.sendMessage(Component.text("/akiasync scheduler status", NamedTextColor.AQUA));
     }
 
     private static String primaryCause(LagTickRecord tick) {
@@ -311,7 +440,13 @@ public final class LagCommand implements BasicCommand {
         if (absolute >= 1024 * 1024 * 1024) {
             return String.format(Locale.ROOT, "%.2f GiB", bytes / (1024.0 * 1024 * 1024));
         }
-        return String.format(Locale.ROOT, "%.2f MiB", bytes / (1024.0 * 1024));
+        if (absolute >= 1024 * 1024) {
+            return String.format(Locale.ROOT, "%.2f MiB", bytes / (1024.0 * 1024));
+        }
+        if (absolute >= 1024) {
+            return String.format(Locale.ROOT, "%.2f KiB", bytes / 1024.0);
+        }
+        return bytes + " B";
     }
 
     private static String signedBytes(long bytes) {

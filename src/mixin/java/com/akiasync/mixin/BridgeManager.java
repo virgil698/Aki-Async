@@ -1,5 +1,6 @@
 package com.akiasync.mixin;
 
+import com.akiasync.mixin.datapack.DataPackOptimizationMetrics;
 import com.akiasync.mixin.profiler.LagProfilerCollector;
 
 import java.util.Objects;
@@ -20,6 +21,7 @@ public final class BridgeManager {
         if (!bridge.compareAndSet(NO_OP, newBridge)) {
             throw new IllegalStateException("A bridge is already installed");
         }
+        DataPackOptimizationMetrics.publishLatest();
         LagProfilerCollector.startSampler();
     }
 
@@ -27,6 +29,7 @@ public final class BridgeManager {
         if (bridge.compareAndSet(expectedBridge, NO_OP)) {
             detailedTicks.set(0);
             LagProfilerCollector.stopSampler();
+            DataPackOptimizationMetrics.clearCaches();
         }
     }
 
@@ -39,6 +42,14 @@ public final class BridgeManager {
             bridge.get().publish(snapshot);
         } catch (Throwable ignored) {
             // Diagnostics must never take down the server tick.
+        }
+    }
+
+    public void publishDataPack(Bridge.DataPackSnapshot snapshot) {
+        try {
+            bridge.get().publishDataPack(snapshot);
+        } catch (Throwable ignored) {
+            // Diagnostics must never make a resource reload fail.
         }
     }
 

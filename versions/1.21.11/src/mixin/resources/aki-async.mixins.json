@@ -5,6 +5,11 @@
   "compatibilityLevel": "JAVA_21",
   "target": "@env(PREINIT)",
   "mixins": [
+    "datapack.CallFunctionMixin",
+    "datapack.CommandFunctionMixin",
+    "datapack.CommandsMixin",
+    "datapack.FilePackResourcesMixin",
+    "datapack.ReloadableServerResourcesMixin",
     "profiler.BoundTickingBlockEntityProfilerMixin",
     "profiler.CraftTaskProfilerMixin",
     "profiler.LevelProfilerMixin",

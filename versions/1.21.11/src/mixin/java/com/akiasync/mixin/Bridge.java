@@ -5,6 +5,9 @@ import java.util.List;
 public interface Bridge {
     void publish(LagTickSnapshot snapshot);
 
+    default void publishDataPack(DataPackSnapshot snapshot) {
+    }
+
     enum LagCauseCategory {
         MOB,
         ENTITY,
@@ -62,5 +65,28 @@ public interface Bridge {
             sources = List.copyOf(sources);
             stackSamples = List.copyOf(stackSamples);
         }
+    }
+
+    record DataPackSnapshot(
+            long generation,
+            long startedAtMillis,
+            long durationNanos,
+            boolean successful,
+            String failure,
+            int functionsLoaded,
+            long functionCompileHits,
+            long functionCompileMisses,
+            long zipIndexHits,
+            long zipIndexMisses,
+            long zipContentHits,
+            long zipContentMisses,
+            long zipBytesReused,
+            long smallFunctionsScheduled,
+            long smallFunctionEntriesScheduled,
+            int functionCacheEntries,
+            int zipIndexEntries,
+            int zipContentEntries,
+            long zipContentBytes
+    ) {
     }
 }

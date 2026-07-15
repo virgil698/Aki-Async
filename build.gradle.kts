@@ -85,7 +85,12 @@ val mixinSourceSet: SourceSet = sourceSets["mixin"]
 
 dependencies {
     apply `plugin dependencies`@{
-        // TODO: your plugin deps here
+        implementation(libs.concurrentUtil) {
+            // Leaves supplies concurrentutil's logging/collection transitives; only its relocated classes ship here.
+            isTransitive = false
+        }
+        testImplementation(libs.junitJupiter)
+        testRuntimeOnly(libs.junitPlatformLauncher)
     }
 
     apply `api and server source`@{
@@ -144,7 +149,12 @@ tasks {
 
     shadowJar {
         from(mixinSourceSet.output)
+        relocate("ca.spottedleaf.concurrentutil", "com.akiasync.libs.concurrentutil")
         archiveFileName = "${project.name}-${version}.jar"
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     build {
