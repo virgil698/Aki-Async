@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "skills": {
+    "mc-gradle-builds": {
+      "source": "rfizzle/mercantile",
+      "ref": "master",
+      "sourceType": "github",
+      "skillPath": ".ai/skills/mc-gradle-builds/SKILL.md",
+      "computedHash": "a7e47f5ea45307d3acf0aaedf9906926a07085cbbf6d8e50cdcd73723c5c5daf"
+    },
+    "mc-mixin-craft": {
+      "source": "rfizzle/mercantile",
+      "ref": "master",
+      "sourceType": "github",
+      "skillPath": ".ai/skills/mc-mixin-craft/SKILL.md",
+      "computedHash": "1b149be2349a3aa6df43cbe8f50d82be3aad45270906b2f4a6bbe223476f21d5"
+    },
+    "mc-mod-testing": {
+      "source": "rfizzle/mercantile",
+      "ref": "master",
+      "sourceType": "github",
+      "skillPath": ".ai/skills/mc-mod-testing/SKILL.md",
+      "computedHash": "9d5cd65ce25f536eb9c2305ccd5417efa1102769a0bbcac984bcca88bffef2b0"
+    },
+    "mc-shared-state": {
+      "source": "rfizzle/mercantile",
+      "ref": "master",
+      "sourceType": "github",
+      "skillPath": ".ai/skills/mc-shared-state/SKILL.md",
+      "computedHash": "620c23fad522cdd4d9f350b8a2ce18a938041dc3f5cda77646f6031674260cbd"
+    },
+    "mc-tick-work": {
+      "source": "rfizzle/mercantile",
+      "ref": "master",
+      "sourceType": "github",
+      "skillPath": ".ai/skills/mc-tick-work/SKILL.md",
+      "computedHash": "552592dc8599c0e6c1963e0f4330c73fa7a7447c15ae6efa00971fd0bdf35def"
+    },
+    "minecraft-plugin-development": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/minecraft-plugin-development/SKILL.md",
+      "computedHash": "0dd6605a2f0b6729e8b2d18f2ce5faca1a93275b0b1e575a2c7987bfa0c2f1f1"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minecraft Shared State"
+  short_description: "Design safe shared state for Minecraft servers"
+  default_prompt: "Use $mc-shared-state to design or review thread-safe shared server state."

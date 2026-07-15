@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minecraft Plugin Development"
+  short_description: "Build lifecycle-safe Minecraft server plugins"
+  default_prompt: "Use $minecraft-plugin-development to implement a lifecycle-safe Minecraft server plugin change."

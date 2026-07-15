@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leaves Plugin Development"
+  short_description: "Develop Leaves plugins from the official template"
+  default_prompt: "Use $leaves-plugin-development to implement a change in this Leaves plugin while preserving the official template structure."

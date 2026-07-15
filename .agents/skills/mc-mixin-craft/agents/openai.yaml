@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minecraft Mixin Craft"
+  short_description: "Implement precise server-side Mixin hooks"
+  default_prompt: "Use $mc-mixin-craft to implement a precise, composable server-side Mixin hook."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leaves Tick Work"
+  short_description: "Budget tick work and hot server hooks safely"
+  default_prompt: "Use $mc-tick-work to design bounded, lifecycle-safe tick or hot-hook work."

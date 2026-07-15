@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leaves Gradle Builds"
+  short_description: "Build and verify Leaves plugin artifacts"
+  default_prompt: "Use $mc-gradle-builds to build this Leaves plugin and verify its packaged artifact."

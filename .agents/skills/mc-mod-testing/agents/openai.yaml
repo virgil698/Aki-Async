@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leaves Plugin Testing"
+  short_description: "Test Leaves plugins, Mixins, and async behavior"
+  default_prompt: "Use $mc-mod-testing to choose and run the right tests for this Leaves plugin change."

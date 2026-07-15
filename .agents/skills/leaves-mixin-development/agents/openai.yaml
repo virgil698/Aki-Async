@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leaves Mixin Development"
+  short_description: "Implement precise server-side Mixins for Leaves"
+  default_prompt: "Use $leaves-mixin-development to design and validate a server-side Mixin against the current Leaves dev bundle."
