@@ -15,7 +15,8 @@
     "profiler.LevelProfilerMixin",
     "profiler.MinecraftServerProfilerMixin",
     "profiler.RegisteredListenerProfilerMixin",
-    "profiler.ServerLevelProfilerMixin"
+    "profiler.ServerLevelProfilerMixin",
+    "fluid.FlowingFluidMixin"
   ],
   "plugin": "com.akiasync.mixin.AkiAsyncMixinConfigPlugin",
   "injectors": {
