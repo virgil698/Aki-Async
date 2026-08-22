@@ -16,12 +16,15 @@ public abstract class LevelProfilerMixin {
         try {
             original.call();
         } finally {
-            String world = (Object) this instanceof ServerLevel level
-                    ? level.dimension().identifier().toString()
-                    : "";
-            LagProfilerCollector.record(
-                    started, LagSourceType.BLOCK_ENTITIES, "", "block entity phase", world, false, 0, 0, 0
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                String world = (Object) this instanceof ServerLevel level
+                        ? level.dimension().identifier().toString()
+                        : "";
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.BLOCK_ENTITIES, "", "block entity phase", world, false, 0, 0, 0
+                );
+            }
         }
     }
 }

@@ -18,15 +18,22 @@ public abstract class BoundTickingBlockEntityProfilerMixin {
 
     @WrapMethod(method = "tick")
     private void akiAsync$profileBlockEntity(Operation<Void> original) {
+        if (!LagProfilerCollector.isDetailedActive()) {
+            original.call();
+            return;
+        }
         long started = LagProfilerCollector.start(true);
         try {
             original.call();
         } finally {
-            BlockPos position = getPos();
-            LagProfilerCollector.record(
-                    started, LagSourceType.BLOCK_ENTITY, "", getType(), "", true,
-                    position.getX(), position.getY(), position.getZ()
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                BlockPos position = getPos();
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.BLOCK_ENTITY, "", getType(), "", true,
+                        position.getX(), position.getY(), position.getZ()
+                );
+            }
         }
     }
 }

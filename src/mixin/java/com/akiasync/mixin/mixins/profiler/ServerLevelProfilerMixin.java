@@ -22,35 +22,54 @@ public abstract class ServerLevelProfilerMixin {
         try {
             original.call(hasTimeLeft);
         } finally {
-            LagProfilerCollector.record(started, LagSourceType.WORLD, "", "world tick", akiAsync$world(), false, 0, 0, 0);
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.WORLD, "", "world tick", akiAsync$world(), false, 0, 0, 0
+                );
+            }
         }
     }
 
     @WrapMethod(method = "tickChunk")
     private void akiAsync$profileChunk(LevelChunk chunk, int randomTickSpeed, Operation<Void> original) {
-        long started = LagProfilerCollector.start(false);
+        if (!LagProfilerCollector.isDetailedActive()) {
+            original.call(chunk, randomTickSpeed);
+            return;
+        }
+        long started = LagProfilerCollector.start(true);
         try {
             original.call(chunk, randomTickSpeed);
         } finally {
-            LagProfilerCollector.record(
-                    started, LagSourceType.CHUNK, "", "chunk tick", akiAsync$world(), true,
-                    chunk.getPos().x, 0, chunk.getPos().z
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.CHUNK, "", "chunk tick", akiAsync$world(), true,
+                        chunk.getPos().x, 0, chunk.getPos().z
+                );
+            }
         }
     }
 
     @WrapMethod(method = "tickNonPassenger")
     private void akiAsync$profileEntity(Entity entity, Operation<Void> original) {
+        if (!LagProfilerCollector.isDetailedActive()) {
+            original.call(entity);
+            return;
+        }
         long started = LagProfilerCollector.start(true);
         try {
             original.call(entity);
         } finally {
-            BlockPos position = entity.blockPosition();
-            LagProfilerCollector.record(
-                    started, entity instanceof Mob ? LagSourceType.MOB : LagSourceType.ENTITY,
-                    "", entity.getType().toString(), akiAsync$world(), true,
-                    position.getX(), position.getY(), position.getZ()
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                BlockPos position = entity.blockPosition();
+                LagProfilerCollector.recordElapsed(
+                        elapsed, entity instanceof Mob ? LagSourceType.MOB : LagSourceType.ENTITY,
+                        "", entity.getType().toString(), akiAsync$world(), true,
+                        position.getX(), position.getY(), position.getZ()
+                );
+            }
         }
     }
 

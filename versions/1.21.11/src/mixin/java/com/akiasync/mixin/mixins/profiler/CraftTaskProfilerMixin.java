@@ -19,15 +19,22 @@ public abstract class CraftTaskProfilerMixin {
 
     @WrapMethod(method = "run")
     private void akiAsync$profilePluginTask(Operation<Void> original) {
-        long started = LagProfilerCollector.start(false);
+        if (!LagProfilerCollector.isDetailedActive()) {
+            original.call();
+            return;
+        }
+        long started = LagProfilerCollector.start(true);
         try {
             original.call();
         } finally {
-            Plugin owner = getOwner();
-            LagProfilerCollector.record(
-                    started, LagSourceType.PLUGIN_TASK, owner == null ? "unknown" : owner.getName(),
-                    "task #" + getTaskId(), "", false, 0, 0, 0
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                Plugin owner = getOwner();
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.PLUGIN_TASK, owner == null ? "unknown" : owner.getName(),
+                        "task #" + getTaskId(), "", false, 0, 0, 0
+                );
+            }
         }
     }
 }

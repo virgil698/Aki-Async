@@ -1,11 +1,11 @@
 package com.akiasync;
 
 import com.akiasync.datapack.DataPackService;
-import com.akiasync.lag.LagCommand;
-import com.akiasync.lag.LagProfilerService;
+import com.akiasync.lag.command.LagCommand;
+import com.akiasync.lag.service.LagProfilerService;
 import com.akiasync.mixin.BridgeManager;
-import com.akiasync.scheduler.AkiScheduler;
-import com.akiasync.scheduler.SchedulerConfig;
+import com.akiasync.scheduler.api.AkiScheduler;
+import com.akiasync.scheduler.config.SchedulerConfig;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
 

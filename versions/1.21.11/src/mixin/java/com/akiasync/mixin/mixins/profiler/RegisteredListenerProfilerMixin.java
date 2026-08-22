@@ -17,15 +17,22 @@ public abstract class RegisteredListenerProfilerMixin {
 
     @WrapMethod(method = "callEvent")
     private void akiAsync$profileEvent(Event event, Operation<Void> original) {
-        long started = LagProfilerCollector.start(false);
+        if (!LagProfilerCollector.isDetailedActive()) {
+            original.call(event);
+            return;
+        }
+        long started = LagProfilerCollector.start(true);
         try {
             original.call(event);
         } finally {
-            Plugin plugin = getPlugin();
-            LagProfilerCollector.record(
-                    started, LagSourceType.PLUGIN_EVENT, plugin == null ? "unknown" : plugin.getName(),
-                    event.getEventName(), "", false, 0, 0, 0
-            );
+            long elapsed = LagProfilerCollector.elapsed(started);
+            if (LagProfilerCollector.shouldRecord(elapsed)) {
+                Plugin plugin = getPlugin();
+                LagProfilerCollector.recordElapsed(
+                        elapsed, LagSourceType.PLUGIN_EVENT, plugin == null ? "unknown" : plugin.getName(),
+                        event.getEventName(), "", false, 0, 0, 0
+                );
+            }
         }
     }
 }

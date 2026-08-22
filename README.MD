@@ -41,6 +41,7 @@ Windows 下可以运行：
 /akiasync lag report
 /akiasync lag inspect <tickId>
 /akiasync lag top [count]
+/akiasync lag rank [windowTicks] [count]
 /akiasync lag ranges
 /akiasync lag categories
 /akiasync lag arm [ticks]

@@ -25,14 +25,15 @@ import java.util.concurrent.locks.LockSupport;
 
 public final class LagProfilerCollector {
     public static final long SLOW_TICK_NANOS = 50_000_000L;
-    private static final long STACK_SAMPLING_START_NANOS = 25_000_000L;
-    private static final long STACK_SAMPLE_INTERVAL_NANOS = 2_000_000L;
+    private static final long STACK_SAMPLING_START_NANOS = SLOW_TICK_NANOS;
     private static final long IDLE_POLL_NANOS = 5_000_000L;
-    private static final long MIN_RECORDED_NANOS = 25_000L;
-    private static final int AUTOMATIC_DETAIL_TICKS = 200;
+    private static final long MIN_RECORDED_NANOS = 50_000L;
+    private static final int AUTOMATIC_DETAIL_TICKS = 40;
     private static final int MAX_SOURCE_KEYS = 1_024;
     private static final int MAX_PUBLISHED_SOURCES = 32;
     private static final int MAX_PUBLISHED_STACKS = 8;
+    private static final int MAX_UNIQUE_STACKS = 24;
+    private static final int MAX_STACK_SAMPLES_PER_TICK = 48;
     private static final int MAX_STACK_DEPTH = 24;
     private static final ThreadLocal<TickContext> CURRENT = new ThreadLocal<>();
     private static final AtomicReference<TickContext> ACTIVE = new AtomicReference<>();
@@ -41,6 +42,7 @@ public final class LagProfilerCollector {
     private static final MemoryMXBean MEMORY_MX_BEAN = ManagementFactory.getMemoryMXBean();
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
     private static volatile Thread samplerThread;
+    private static volatile boolean detailedActive;
 
     private LagProfilerCollector() {
     }
@@ -56,6 +58,7 @@ public final class LagProfilerCollector {
 
     public static void stopSampler() {
         SAMPLER_GENERATION.incrementAndGet();
+        detailedActive = false;
         ACTIVE.set(null);
         Thread thread = samplerThread;
         samplerThread = null;
@@ -66,6 +69,7 @@ public final class LagProfilerCollector {
 
     public static void beginTick(long tickId) {
         if (!BridgeManager.INSTANCE.isInstalled()) {
+            detailedActive = false;
             CURRENT.remove();
             return;
         }
@@ -82,12 +86,14 @@ public final class LagProfilerCollector {
                 Thread.currentThread()
         );
         CURRENT.set(context);
+        detailedActive = detailed;
         ACTIVE.set(context);
     }
 
     public static void endTick() {
         TickContext context = CURRENT.get();
         CURRENT.remove();
+        detailedActive = false;
         if (context == null) {
             return;
         }
@@ -116,7 +122,7 @@ public final class LagProfilerCollector {
                         entry.getKey().category,
                         entry.getKey().source,
                         entry.getValue().samples.get(),
-                        entry.getValue().frames
+                        entry.getKey().frames
                 ))
                 .sorted(Comparator.comparingInt(LagStackSnapshot::samples).reversed())
                 .limit(MAX_PUBLISHED_STACKS)
@@ -141,6 +147,9 @@ public final class LagProfilerCollector {
     }
 
     public static long start(boolean detailedOnly) {
+        if (detailedOnly && !detailedActive) {
+            return -1L;
+        }
         TickContext context = CURRENT.get();
         if (context == null || detailedOnly && !context.detailed) {
             return -1L;
@@ -148,8 +157,20 @@ public final class LagProfilerCollector {
         return System.nanoTime();
     }
 
-    public static void record(
-            long startedNanos,
+    public static boolean isDetailedActive() {
+        return detailedActive;
+    }
+
+    public static long elapsed(long startedNanos) {
+        return startedNanos < 0 ? -1L : System.nanoTime() - startedNanos;
+    }
+
+    public static boolean shouldRecord(long elapsedNanos) {
+        return elapsedNanos >= MIN_RECORDED_NANOS;
+    }
+
+    public static void recordElapsed(
+            long elapsed,
             LagSourceType type,
             String owner,
             String detail,
@@ -160,11 +181,7 @@ public final class LagProfilerCollector {
             int z
     ) {
         TickContext context = CURRENT.get();
-        if (startedNanos < 0 || context == null) {
-            return;
-        }
-        long elapsed = System.nanoTime() - startedNanos;
-        if (elapsed < MIN_RECORDED_NANOS && type != LagSourceType.PLUGIN_TASK && type != LagSourceType.PLUGIN_EVENT) {
+        if (!shouldRecord(elapsed) || context == null) {
             return;
         }
         SourceKey key = new SourceKey(type, safe(owner), safe(detail), safe(world), hasLocation, x, y, z);
@@ -192,15 +209,32 @@ public final class LagProfilerCollector {
                 continue;
             }
 
-            StackSample sample = stackSample(context.tickThread.getStackTrace());
-            if (sample != null && !context.closed) {
-                StackKey key = new StackKey(sample.category, sample.source);
-                context.stackSamples.computeIfAbsent(
-                        key, ignored -> new StackAggregate(sample.frames)
-                ).samples.incrementAndGet();
+            if (context.stackSamplesTaken >= MAX_STACK_SAMPLES_PER_TICK) {
+                LockSupport.parkNanos(50_000_000L);
+                continue;
             }
-            LockSupport.parkNanos(STACK_SAMPLE_INTERVAL_NANOS);
+
+            StackSample sample = stackSample(context.tickThread.getStackTrace());
+            context.stackSamplesTaken++;
+            if (sample != null && !context.closed) {
+                StackKey key = new StackKey(sample.category, sample.source, sample.frames);
+                StackAggregate aggregate = context.stackSamples.get(key);
+                if (aggregate != null) {
+                    aggregate.samples.incrementAndGet();
+                } else if (context.stackSamples.size() < MAX_UNIQUE_STACKS) {
+                    context.stackSamples.computeIfAbsent(key, ignored -> new StackAggregate())
+                            .samples.incrementAndGet();
+                }
+            }
+            LockSupport.parkNanos(stackSampleDelay(context.stackSamplesTaken));
         }
+    }
+
+    private static long stackSampleDelay(int samples) {
+        if (samples >= 16) {
+            return 20_000_000L;
+        }
+        return 5_000_000L;
     }
 
     private static StackSample stackSample(StackTraceElement[] stackTrace) {
@@ -379,11 +413,19 @@ public final class LagProfilerCollector {
     }
 
     private static long currentGcCollections() {
-        return GC_BEANS.stream().mapToLong(bean -> Math.max(0, bean.getCollectionCount())).sum();
+        long total = 0;
+        for (GarbageCollectorMXBean bean : GC_BEANS) {
+            total += Math.max(0, bean.getCollectionCount());
+        }
+        return total;
     }
 
     private static long currentGcTimeMillis() {
-        return GC_BEANS.stream().mapToLong(bean -> Math.max(0, bean.getCollectionTime())).sum();
+        long total = 0;
+        for (GarbageCollectorMXBean bean : GC_BEANS) {
+            total += Math.max(0, bean.getCollectionTime());
+        }
+        return total;
     }
 
     private static long nonNegativeDelta(long before, long after) {
@@ -417,6 +459,7 @@ public final class LagProfilerCollector {
         private final Thread tickThread;
         private final Map<SourceKey, Aggregate> sources = new HashMap<>();
         private final Map<StackKey, StackAggregate> stackSamples = new ConcurrentHashMap<>();
+        private int stackSamplesTaken;
         private volatile boolean closed;
 
         private TickContext(
@@ -457,7 +500,7 @@ public final class LagProfilerCollector {
         );
     }
 
-    private record StackKey(LagCauseCategory category, String source) {
+    private record StackKey(LagCauseCategory category, String source, List<String> frames) {
     }
 
     private record StackSample(LagCauseCategory category, String source, List<String> frames) {
@@ -467,12 +510,7 @@ public final class LagProfilerCollector {
     }
 
     private static final class StackAggregate {
-        private final List<String> frames;
         private final AtomicInteger samples = new AtomicInteger();
-
-        private StackAggregate(List<String> frames) {
-            this.frames = frames;
-        }
     }
 
     private static final class Aggregate {

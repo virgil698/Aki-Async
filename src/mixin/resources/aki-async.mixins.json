@@ -17,5 +17,8 @@
     "profiler.RegisteredListenerProfilerMixin",
     "profiler.ServerLevelProfilerMixin"
   ],
-  "plugin": "com.akiasync.mixin.AkiAsyncMixinConfigPlugin"
+  "plugin": "com.akiasync.mixin.AkiAsyncMixinConfigPlugin",
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
